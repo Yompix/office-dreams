@@ -593,7 +593,7 @@ public final class Calls {
     }
 
     static void toast(ServerPlayerEntity p, String s) {
-        p.sendMessage(Text.literal("📞 " + s).formatted(Formatting.GRAY), true);
+        p.sendMessage(Text.literal(s).formatted(Formatting.GRAY), true);
     }
 
     // ---------------------------------------------------------------- бонусы дружбы

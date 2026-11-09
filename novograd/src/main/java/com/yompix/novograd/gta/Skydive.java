@@ -86,7 +86,7 @@ public final class Skydive {
         p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.ITEM_ARMOR_EQUIP_ELYTRA.value(), SoundCategory.PLAYERS, 1.2f, 0.7f);
         p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.ENTITY_PHANTOM_FLAP, SoundCategory.PLAYERS, 1f, 0.6f);
         sync(p, true);
-        FunUtil.hint(p, "☂ Купол раскрыт · W — быстрее, S — тормоз, A/D — поворот", Formatting.AQUA);
+        FunUtil.hint(p, "Купол раскрыт · W — быстрее, S — тормоз, A/D — поворот", Formatting.AQUA);
         return true;
     }
 
@@ -157,7 +157,7 @@ public final class Skydive {
         Vec3d club = Story.place(w, CLUB);
         if (club != null && p.squaredDistanceTo(club) < 48 * 48) {
             ItemEntity it = FunUtil.marker(w, club, "chute_club", new ItemStack(PARACHUTE),
-                    Text.literal("☂ Парашютный клуб: прыжок на точность — $150").formatted(Formatting.AQUA), true);
+                    Text.literal("Парашютный клуб: прыжок на точность — $150").formatted(Formatting.AQUA), true);
             boolean inside = p.squaredDistanceTo(it) < 2.2 * 2.2;
             Boolean was = AT_CLUB.put(p.getUuid(), inside);
             if (inside && (was == null || !was)) {
@@ -169,14 +169,14 @@ public final class Skydive {
         // парашют у оружейника
         Vec3d shop = Story.place(w, "gunshop_door+3,3");
         if (shop != null && p.squaredDistanceTo(shop) < 40 * 40) {
-            ItemEntity it = FunUtil.marker(w, shop, "chute_shop", new ItemStack(PARACHUTE), Text.literal("☂ Парашют — $300").formatted(Formatting.GOLD), false);
+            ItemEntity it = FunUtil.marker(w, shop, "chute_shop", new ItemStack(PARACHUTE), Text.literal("Парашют — $300").formatted(Formatting.GOLD), false);
             boolean inside = p.squaredDistanceTo(it) < 2 * 2;
             Boolean was = AT_SHOP.put(p.getUuid(), inside);
             if (inside && (was == null || !was)) {
                 if (has(p)) FunUtil.hint(p, "Парашют у тебя уже есть", Formatting.GRAY);
                 else if (Economy.payBlack(p, 300, "парашют")) {
                     p.getInventory().insertStack(new ItemStack(PARACHUTE));
-                    FunUtil.hint(p, "☂ Парашют куплен. Прыгай с крыши или вертолёта, в падении — Пробел", Formatting.AQUA);
+                    FunUtil.hint(p, "Парашют куплен. Прыгай с крыши или вертолёта, в падении — Пробел", Formatting.AQUA);
                     if (d.flags.add("tips_chute")) Life.message(p, "Оружейник", "Парашют в деле не подведёт. Крыши небоскрёбов, вертолёт — а в клубе на аэродроме платят за меткое приземление.");
                 }
             }
@@ -201,7 +201,7 @@ public final class Skydive {
                 if (top - Island.surface(x, z) < 28) continue;
                 Vec3d at = new Vec3d(x + 0.5, top, z + 0.5);
                 if (p.squaredDistanceTo(at) > 40 * 40) continue;
-                ItemEntity it = FunUtil.marker(w, at, "chute_roof", new ItemStack(PARACHUTE), Text.literal("☂ Парашют").formatted(Formatting.AQUA), true);
+                ItemEntity it = FunUtil.marker(w, at, "chute_roof", new ItemStack(PARACHUTE), Text.literal("Парашют").formatted(Formatting.AQUA), true);
                 if (p.squaredDistanceTo(it) < 1.8 * 1.8) {
                     it.discard();
                     FunUtil.setLong(d, key, day);
@@ -241,7 +241,7 @@ public final class Skydive {
                 // в кабине вертолёта и самолёта всегда есть парашют
                 if ((p.getVehicle() instanceof HeliEntity || p.getVehicle() instanceof PlaneEntity) && !has(p)) {
                     p.getInventory().insertStack(new ItemStack(PARACHUTE));
-                    FunUtil.hint(p, "☂ В кабине нашёлся парашют — можно прыгать (в падении Пробел)", Formatting.AQUA);
+                    FunUtil.hint(p, "В кабине нашёлся парашют — можно прыгать (в падении Пробел)", Formatting.AQUA);
                 }
             }
         }

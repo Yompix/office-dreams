@@ -67,7 +67,7 @@ public class MissionsScreen extends LifeScreen {
             int ry = ly + i * rowH;
             boolean done = m.getBoolean("done"), open = m.getBoolean("open"), cur = m.getString("id").equals(active);
             ctx.fill(x + 6, ry, x + w - 6, ry + rowH - 2, cur ? 0xFF4A3010 : 0xFF241416);
-            ctx.drawText(textRenderer, (done ? "✔ " : open ? "• " : "🔒 ") + m.getString("title"), x + 12, ry + 3, done ? 0xFF8BC34A : open ? 0xFFFFFFFF : 0xFF777777, false);
+            ctx.drawText(textRenderer, (done ? "✔ " : open ? "• " : "○ ") + m.getString("title"), x + 12, ry + 3, done ? 0xFF8BC34A : open ? 0xFFFFFFFF : 0xFF777777, false);
             ctx.drawText(textRenderer, m.getString("giver") + " · $" + m.getInt("reward"), x + 12, ry + 12, 0xFFB0A0A0, false);
             if (open && !done && active.isEmpty())
                 button(ctx, x + w - 76, ry + 2, 66, 16, "Начать", 0xFFD32F2F, true, () -> {

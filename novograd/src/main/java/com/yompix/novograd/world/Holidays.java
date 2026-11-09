@@ -380,7 +380,7 @@ public final class Holidays {
             ItemStack fw = rocket(r, 2);
             fw.setCount(4);
             if (!p.getInventory().insertStack(fw)) p.dropItem(fw, false);
-            p.sendMessage(Text.literal("🎁 Подарок №" + n + ": фейерверки!").formatted(Formatting.GOLD), true);
+            p.sendMessage(Text.literal("Подарок №" + n + ": фейерверки!").formatted(Formatting.GOLD), true);
         } else {
             ItemStack cake = new ItemStack(Items.PUMPKIN_PIE, 3);
             if (!p.getInventory().insertStack(cake)) p.dropItem(cake, false);
@@ -447,7 +447,7 @@ public final class Holidays {
                 boolean night = tod >= 13000 && tod < 23000;
                 if (p.age % 40 < 20)
                     FunUtil.marker(w, door, "nv_fear", new ItemStack(Items.JACK_O_LANTERN),
-                            Text.literal(night ? "🎃 «Ночь страха» — войди, если смелый" : "🎃 Дом с привидениями · приходи ночью").formatted(Formatting.GOLD), true);
+                            Text.literal(night ? "«Ночь страха» — войди, если смелый" : "Дом с привидениями · приходи ночью").formatted(Formatting.GOLD), true);
                 if (p.age % 10 == 0)
                     w.spawnParticles(ParticleTypes.SOUL, door.x + (w.getRandom().nextDouble() - 0.5) * 8, door.y + 1 + w.getRandom().nextDouble() * 3, door.z - 4 + (w.getRandom().nextDouble() - 0.5) * 8, 1, 0, 0.05, 0, 0.01);
                 DriveHooks.walkIn(p, "out_fear", door, 1.8, () -> {
@@ -566,7 +566,7 @@ public final class Holidays {
             f.mobs.add(z.getUuid());
         }
         w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_ZOMBIE_AMBIENT, SoundCategory.HOSTILE, 1f, 0.6f);
-        p.sendMessage(Text.literal("🎃 Волна " + f.wave + " из 3: " + count + " мертвецов").formatted(Formatting.GOLD), true);
+        p.sendMessage(Text.literal("Волна " + f.wave + " из 3: " + count + " мертвецов").formatted(Formatting.GOLD), true);
     }
 
     static void endFear(ServerPlayerEntity p, boolean win, String why) {
@@ -606,7 +606,7 @@ public final class Holidays {
         if (p.squaredDistanceTo(stage) > 70 * 70) return;
         if (p.age % 40 < 20)
             FunUtil.marker(w, stage.add(0, 2.5, 0), "nv_cityday", new ItemStack(Items.FIREWORK_ROCKET),
-                    Text.literal("🎉 День города · концерт и ярмарка").formatted(Formatting.LIGHT_PURPLE), true);
+                    Text.literal("День города · концерт и ярмарка").formatted(Formatting.LIGHT_PURPLE), true);
         if (t % 20 == 5) w.spawnParticles(ParticleTypes.NOTE, stage.x, stage.y + 2.5, stage.z, 4, 2.5, 1, 2.5, 1);
         if (t % 200 == 5)
             w.playSound(null, stage.x, stage.y + 1, stage.z, w.getRandom().nextBoolean() ? com.yompix.novograd.gta.StreetPerformers.GUITAR

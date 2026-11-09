@@ -35,7 +35,7 @@ public final class LifeActions {
 
     private static void openCasino(ServerPlayerEntity p, String game) {
         if (!Life.get(p).adult()) {
-            p.sendMessage(Text.literal("🔞 Охранник: «Сегодня закрыто, приходи завтра»").formatted(Formatting.RED), false);
+            p.sendMessage(Text.literal("Охранник: «Сегодня закрыто, приходи завтра»").formatted(Formatting.RED), false);
             return;
         }
         NbtCompound n = new NbtCompound();

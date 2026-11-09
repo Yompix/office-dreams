@@ -167,9 +167,9 @@ public class DialogScreen extends LifeScreen {
                 if (hov) choiceSel = i;
                 choiceAnim[i] = Ui.approach(choiceAnim[i], i == choiceSel ? 1 : 0, 0.35f);
                 ctx.fill(x - 4, y, x + lw + 4, y + rowH, 0xA0000000);
-                if (choiceAnim[i] > 0.02f) Ui.slant(ctx, x - 4, y, (int) ((lw + 8) * Ui.easeOut(choiceAnim[i])), rowH, 4, 0xF0FF2E88);
-                Ui.slant(ctx, x - 4, y, 14, rowH, 4, i == choiceSel ? 0xFF07050C : Ui.CYAN);
-                ctx.drawText(textRenderer, String.valueOf(i + 1), x - 1, y + 4, i == choiceSel ? Ui.CYAN : 0xFF07050C, false);
+                if (choiceAnim[i] > 0.02f) Ui.slant(ctx, x - 4, y, (int) ((lw + 8) * Ui.easeOut(choiceAnim[i])), rowH, 4, 0xF0D42A3A);
+                Ui.slant(ctx, x - 4, y, 14, rowH, 4, i == choiceSel ? 0xFF060606 : Ui.CYAN);
+                ctx.drawText(textRenderer, String.valueOf(i + 1), x - 1, y + 4, i == choiceSel ? Ui.CYAN : 0xFF060606, false);
                 String c = choiceTexts.get(i);
                 if (textRenderer.getWidth(c) > lw - 22) c = textRenderer.trimToWidth(c, lw - 26) + "…";
                 ctx.drawText(textRenderer, c, x + 16 + (int) (choiceAnim[i] * 3), y + 4, 0xFFFFFFFF, true);
@@ -185,7 +185,7 @@ public class DialogScreen extends LifeScreen {
         if (ent instanceof LivingEntity le) {
             int pw = 54, ph = 64, px = 14 - (int) ((1 - a) * 60), py = height - bar - ph - 6;
             Ui.slant(ctx, px - 3, py - 3, pw + 6, ph + 6, 6, col);
-            Ui.slant(ctx, px, py, pw, ph, 6, 0xF00B0812);
+            Ui.slant(ctx, px, py, pw, ph, 6, 0xF00A0A0A);
             float sc = le.getScale();
             ctx.enableScissor(px, py, px + pw + 6, py + ph);
             InventoryScreen.drawEntity(ctx, px + 2, py + 2, px + pw + 2, py + ph + 20, (int) (32 / Math.max(0.6f, sc)), 0.0625f,
@@ -215,7 +215,7 @@ public class DialogScreen extends LifeScreen {
             left -= line.length();
             while (left > 0 && left < l.text().length() && Character.isWhitespace(l.text().charAt(shown.length() - left))) left--;
             int lw = textRenderer.getWidth(line);
-            Ui.outlined(ctx, textRenderer, part, width / 2 - lw / 2, ty + i * 11, narrator ? 0xFFFFE9A8 : 0xFFF4F2FA);
+            Ui.outlined(ctx, textRenderer, part, width / 2 - lw / 2, ty + i * 11, narrator ? 0xFFFFE9A8 : 0xFFF6F4EC);
         }
         if (!subs) Ui.big(ctx, textRenderer, "…", width / 2f, ty, 1f, 0xFFFFFFFF, 1);
         if (shownChars(l) >= l.text().length() && (System.currentTimeMillis() / 400) % 2 == 0)

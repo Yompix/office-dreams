@@ -155,14 +155,14 @@ public class DartsScreen extends LifeScreen {
         int px = width - 150, py = 40;
         Ui.panel(ctx, px, py, 138, 150, Ui.GOLD);
         Ui.small(ctx, textRenderer, "Ставка $" + bet, px + 69, py + 8, 1f, Ui.MONEY, 1);
-        ctx.drawText(textRenderer, "Раунд", px + 8, py + 26, 0xFFA9A3BC, false);
+        ctx.drawText(textRenderer, "Раунд", px + 8, py + 26, 0xFFA9A8A3, false);
         ctx.drawText(textRenderer, "Ты", px + 60, py + 26, 0xFFFFFFFF, false);
         String fn = foeName.length() > 9 ? foeName.substring(0, 9) + "." : foeName;
         ctx.drawText(textRenderer, fn, px + 88, py + 26, 0xFFFFC428, false);
         int foeSum = 0;
         for (int i = 0; i < 3; i++) {
             int yy = py + 42 + i * 16;
-            ctx.drawText(textRenderer, String.valueOf(i + 1), px + 16, yy, i == round && !done ? 0xFFFFC428 : 0xFFA9A3BC, false);
+            ctx.drawText(textRenderer, String.valueOf(i + 1), px + 16, yy, i == round && !done ? 0xFFFFC428 : 0xFFA9A8A3, false);
             String mine = i < round || done ? String.valueOf(myRounds[i]) : i == round ? myRounds[i] + "…" : "—";
             ctx.drawText(textRenderer, mine, px + 60, yy, 0xFFFFFFFF, false);
             boolean shown = i < foeShown;
@@ -170,10 +170,10 @@ public class DartsScreen extends LifeScreen {
             ctx.drawText(textRenderer, shown ? String.valueOf(foeRounds[i]) : "—", px + 92, yy, 0xFFFFC428, false);
         }
         ctx.fill(px + 8, py + 92, px + 130, py + 93, 0x60FFFFFF);
-        ctx.drawText(textRenderer, "Итого", px + 8, py + 98, 0xFFA9A3BC, false);
+        ctx.drawText(textRenderer, "Итого", px + 8, py + 98, 0xFFA9A8A3, false);
         ctx.drawText(textRenderer, String.valueOf(total), px + 60, py + 98, 0xFFFFFFFF, true);
         ctx.drawText(textRenderer, String.valueOf(foeSum), px + 92, py + 98, 0xFFFFC428, true);
-        ctx.drawText(textRenderer, "Дротик " + Math.min(3, dart + 1) + "/3", px + 8, py + 116, 0xFFA9A3BC, false);
+        ctx.drawText(textRenderer, "Дротик " + Math.min(3, dart + 1) + "/3", px + 8, py + 116, 0xFFA9A8A3, false);
         if (foeShowIn > 0) {
             foeShowIn -= dt;
             Ui.small(ctx, textRenderer, foeName + " бросает…", px + 69, py + 132, 0.9f, Ui.GOLD, 1);

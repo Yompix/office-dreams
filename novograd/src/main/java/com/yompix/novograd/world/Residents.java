@@ -99,7 +99,7 @@ public final class Residents {
                 int idx = idxOf(c);
                 if (idx >= 0 && idx < POOL_LIST.size()) {
                     Res r = POOL_LIST.get(idx);
-                    p.sendMessage(Text.literal("👤 " + r.name + " · живёт: " + r.homeKind + " · работа: " + r.workLabel).formatted(Formatting.GRAY), true);
+                    p.sendMessage(Text.literal(r.name + " · живёт: " + r.homeKind + " · работа: " + r.workLabel).formatted(Formatting.GRAY), true);
                 }
             }
             return ActionResult.PASS;

@@ -211,7 +211,7 @@ public final class TrafficLights {
             Wanted.add(p, 1, "проезд на красный на глазах у полиции", 1);
             Dispatch.report(w, car.getPos(), "проезд на красный", Dispatch.describe(car), p);
         } else {
-            p.sendMessage(net.minecraft.text.Text.literal("🚦 Проехал на красный! Повезло — полиции рядом нет").formatted(net.minecraft.util.Formatting.GOLD), true);
+            p.sendMessage(net.minecraft.text.Text.literal("Проехал на красный! Повезло — полиции рядом нет").formatted(net.minecraft.util.Formatting.GOLD), true);
         }
     }
 }

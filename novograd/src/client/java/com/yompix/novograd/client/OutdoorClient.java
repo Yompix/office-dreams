@@ -132,7 +132,7 @@ public final class OutdoorClient {
             var tr = c.textRenderer;
             int tw = (int) (tr.getWidth(toastTitle) * 1.6f);
             int bw = Math.max(tw + 30, 170);
-            ctx.fill(w / 2 - bw / 2, y - 4, w / 2 + bw / 2, y + 34, Ui.alpha(0xD0070510, a));
+            ctx.fill(w / 2 - bw / 2, y - 4, w / 2 + bw / 2, y + 34, Ui.alpha(0xD0070707, a));
             ctx.fill(w / 2 - bw / 2, y - 4, w / 2 + bw / 2, y - 2, Ui.alpha(toastColor, a));
             Ui.big(ctx, tr, toastTitle, w / 2f, y + 2, 1.6f, Ui.alpha(0xFFFFFFFF, a), 1);
             Ui.small(ctx, tr, toastSub, w / 2f, y + 18, 0.85f, Ui.alpha(toastColor, a), 1);
@@ -148,9 +148,9 @@ public final class OutdoorClient {
         if (tour.getBoolean("on") && System.currentTimeMillis() - tourAt < 12000) {
             NbtList rows = tour.getList("rows", NbtElement.COMPOUND_TYPE);
             int x = w - 128, y = 60;
-            ctx.fill(x - 4, y - 4, x + 122, y + 14 + Math.min(6, rows.size()) * 10, 0xB0070510);
+            ctx.fill(x - 4, y - 4, x + 122, y + 14 + Math.min(6, rows.size()) * 10, 0xB0070707);
             ctx.fill(x - 4, y - 4, x + 122, y - 2, 0xFF26C6DA);
-            Ui.small(ctx, c.textRenderer, "🎣 ТУРНИР НА ЯСНОМ", x, y, 0.8f, 0xFF26C6DA, 0);
+            Ui.small(ctx, c.textRenderer, "ТУРНИР НА ЯСНОМ", x, y, 0.8f, 0xFF26C6DA, 0);
             for (int i = 0; i < Math.min(6, rows.size()); i++) {
                 NbtCompound r = rows.getCompound(i);
                 int col = r.getBoolean("me") ? Ui.GOLD : 0xFFE0E0E8;

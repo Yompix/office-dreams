@@ -27,7 +27,7 @@ public class ParachuteItem extends Item {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         if (!world.isClient && user instanceof ServerPlayerEntity sp && com.yompix.novograd.gta.Skydive.open(sp)) return TypedActionResult.success(stack);
-        if (world.isClient && user.isOnGround()) user.sendMessage(Text.literal("☂ Парашют раскрывают в падении: прыгни с высоты и жми Пробел").formatted(Formatting.GRAY), true);
+        if (world.isClient && user.isOnGround()) user.sendMessage(Text.literal("Парашют раскрывают в падении: прыгни с высоты и жми Пробел").formatted(Formatting.GRAY), true);
         return TypedActionResult.pass(stack);
     }
 

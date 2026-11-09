@@ -72,7 +72,7 @@ public class RealEstateScreen extends LifeScreen {
         panel(ctx, x, y, w, h, 0xFF2B1E12, 0xFF120C07);
         ctx.fillGradient(x, y, x + w, y + 22, 0xFFA0785A, 0xFF6D4C35);
         NbtCompound d = d();
-        ctx.drawText(textRenderer, "🏠 НОВОГРАД-НЕДВИЖИМОСТЬ", x + 8, y + 7, 0xFFFFF3E0, true);
+        ctx.drawText(textRenderer, "НОВОГРАД-НЕДВИЖИМОСТЬ", x + 8, y + 7, 0xFFFFF3E0, true);
         String bal = "$" + d.getInt("money") + (d.getInt("dirty") > 0 ? "  · грязных $" + d.getInt("dirty") : "");
         ctx.drawText(textRenderer, bal, x + w - 8 - textRenderer.getWidth(bal), y + 7, 0xFFB9F6CA, true);
         button(ctx, x + 8, y + 27, 90, 14, "Каталог", mine ? 0xFF5D4037 : 0xFFFFB300, true, () -> { mine = false; scroll = 0; });
@@ -162,7 +162,7 @@ public class RealEstateScreen extends LifeScreen {
         }
         // сейф — один на все дома
         roundRect(ctx, x + 6, y, w - 14, 30, 0xFF33261A);
-        ctx.drawText(textRenderer, "💰 Сейф: $" + d.getInt("safe") + " грязными · в кармане $" + d.getInt("dirty"), x + 11, y + 4, 0xFFFFE082, false);
+        ctx.drawText(textRenderer, "Сейф: $" + d.getInt("safe") + " грязными · в кармане $" + d.getInt("dirty"), x + 11, y + 4, 0xFFFFE082, false);
         ctx.drawText(textRenderer, here.isEmpty() ? "Сейф, гардероб и сон — когда ты дома" : "Ты дома — деньги в сейфе не пропадут при гибели и аресте",
                 x + 11, y + 16, 0xFFBCAAA4, false);
         y += 34;
@@ -188,7 +188,7 @@ public class RealEstateScreen extends LifeScreen {
             ctx.drawText(textRenderer, l.getString("name") + (id.equals(here) ? "  · ты здесь" : ""), x + 11, y + 4, 0xFFFFF3E0, false);
             ctx.drawText(textRenderer, l.getString("kind") + " · " + l.getString("area") + (l.getString("state").equals("rent") ? " · аренда $" + l.getInt("rent") + "/сут" : ""),
                     x + 11, y + 15, 0xFFBCAAA4, false);
-            String g = "🅿 Гараж " + parked.size() + "/" + l.getInt("cars") + (l.getBoolean("heli") ? " · 🚁 на крыше" : "");
+            String g = "Гараж " + parked.size() + "/" + l.getInt("cars") + (l.getBoolean("heli") ? " · вертолётная площадка" : "");
             ctx.drawText(textRenderer, g, x + 11, y + 24, 0xFF90CAF9, false);
             boolean rent = l.getString("state").equals("rent");
             if (!id.startsWith("P:") && !id.startsWith("C:"))
@@ -209,7 +209,7 @@ public class RealEstateScreen extends LifeScreen {
         List<NbtCompound> lot = new ArrayList<>();
         for (NbtElement e : cars) if (((NbtCompound) e).getString("where").startsWith("impound:")) lot.add((NbtCompound) e);
         if (!lot.isEmpty()) {
-            ctx.drawText(textRenderer, "🚨 Штрафстоянка", x + 10, y + 2, 0xFFFF8A80, false);
+            ctx.drawText(textRenderer, "Штрафстоянка", x + 10, y + 2, 0xFFFF8A80, false);
             y += 13;
             for (NbtCompound c : lot) {
                 roundRect(ctx, x + 6, y, w - 14, 16, 0xFF3A1A1A);

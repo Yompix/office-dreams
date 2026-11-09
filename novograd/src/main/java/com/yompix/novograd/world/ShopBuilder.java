@@ -115,7 +115,7 @@ public final class ShopBuilder {
         b.mirror(9, -12, Blocks.DARK_OAK_PLANKS);
         b.lights(Blocks.GLOWSTONE.getDefaultState());
         b.neonLine(NeonBlock.Color.GREEN);
-        b.label(0, 8, 0, "👕 " + StyleCatalog.CHEAP_NAME.toUpperCase() + " · одежда недорого", Formatting.GREEN);
+        b.label(0, 8, 0, StyleCatalog.CHEAP_NAME.toUpperCase() + " · одежда недорого", Formatting.GREEN);
         b.npc(5, -14, CitizenEntity.RANDOM_FROM + 19, CitizenEntity.Role.TAILOR, "Продавец Гоша");
     }
 
@@ -160,7 +160,7 @@ public final class ShopBuilder {
         }
         b.lights(Blocks.SEA_LANTERN.getDefaultState());
         b.neonLine(NeonBlock.Color.PURPLE);
-        b.label(0, 8, 0, "💎 " + StyleCatalog.LUX_NAME.toUpperCase() + " · одежда класса люкс", Formatting.LIGHT_PURPLE);
+        b.label(0, 8, 0, StyleCatalog.LUX_NAME.toUpperCase() + " · одежда класса люкс", Formatting.LIGHT_PURPLE);
         b.npc(4, -14, CitizenEntity.RANDOM_FROM + 14, CitizenEntity.Role.BOUTIQUE, "Стилист Виолетта");
     }
 
@@ -237,7 +237,7 @@ public final class ShopBuilder {
         b.mirror(9, -10, Blocks.BLACK_CONCRETE);
         b.lights(Blocks.SEA_LANTERN.getDefaultState());
         b.neonLine(NeonBlock.Color.YELLOW);
-        b.label(0, 8, 0, "💪 " + StyleCatalog.GYM_NAME.toUpperCase() + " · сила и выносливость", Formatting.YELLOW);
+        b.label(0, 8, 0, StyleCatalog.GYM_NAME.toUpperCase() + " · сила и выносливость", Formatting.YELLOW);
         b.npc(0, -6, CitizenEntity.RANDOM_FROM + 27, CitizenEntity.Role.COACH, "Тренер Борис");
     }
 

@@ -115,7 +115,7 @@ public final class FightClub {
         if (Math.abs(p.getX() - EX) < 48 && Math.abs(p.getZ() - EZ) < 48) {
             Vec3d door = new Vec3d(EX + 0.5, Story.topY(w, EX, EZ), EZ + 0.5);
             var m = FunUtil.marker(w, door, "fc_door", new ItemStack(Items.IRON_DOOR),
-                    Text.literal("✊ «Подвал» — подпольные бои и ставки").formatted(Formatting.RED), true);
+                    Text.literal("«Подвал» — подпольные бои и ставки").formatted(Formatting.RED), true);
             if (p.squaredDistanceTo(m) < 1.8 * 1.8 && !p.hasVehicle() && now > GATE.getOrDefault(p.getUuid(), 0L)) {
                 GATE.put(p.getUuid(), now + 60);
                 LifeData d = Life.get(p);
@@ -139,7 +139,7 @@ public final class FightClub {
         if (!inside(p)) return;
         Vec3d exit = new Vec3d(OX + 1.5, FLOOR + 1, OZ + 1.5);
         var ex = FunUtil.marker(w, exit, "fc_exit", new ItemStack(Items.IRON_DOOR), Text.literal("⬆ Выход на улицу").formatted(Formatting.GRAY), false);
-        var bk = FunUtil.marker(w, bookie(), "fc_bookie", new ItemStack(Items.GOLD_INGOT), Text.literal("💰 Букмекер: ставки и запись на бой").formatted(Formatting.GOLD), true);
+        var bk = FunUtil.marker(w, bookie(), "fc_bookie", new ItemStack(Items.GOLD_INGOT), Text.literal("Букмекер: ставки и запись на бой").formatted(Formatting.GOLD), true);
         if (p.squaredDistanceTo(ex) < 1.5 * 1.5 && now > GATE.getOrDefault(p.getUuid(), 0L) && !p.getUuid().equals(bout.player)) {
             GATE.put(p.getUuid(), now + 60);
             Vec3d out = new Vec3d(EX + 0.5, Story.topY(w, EX, EZ), EZ + 2.5);
@@ -222,12 +222,12 @@ public final class FightClub {
                 if (s.getPlayerManager().getPlayerList().stream().anyMatch(FightClub::inside)) newNpcBout(w);
             }
             case BETS -> {
-                if (b.timer % 100 == 0 && b.timer > 0) say(s, "🔔 Ставки принимаются: " + b.nameA + " (×" + fmt(b.odds1) + ") против " + b.nameB + " (×" + fmt(b.odds2) + ") · " + b.timer / 20 + " с");
+                if (b.timer % 100 == 0 && b.timer > 0) say(s, "Ставки принимаются: " + b.nameA + " (×" + fmt(b.odds1) + ") против " + b.nameB + " (×" + fmt(b.odds2) + ") · " + b.timer / 20 + " с");
                 if (b.timer <= 0) {
                     b.phase = Phase.FIGHT;
                     b.timer = 20 * 40;
                     b.round = 1;
-                    say(s, "🥊 БОЙ! " + b.nameA + " против " + b.nameB);
+                    say(s, "БОЙ! " + b.nameA + " против " + b.nameB);
                     w.playSound(null, BlockPos.ofFloored(center()), SoundEvents.BLOCK_BELL_USE, SoundCategory.NEUTRAL, 1.5f, 1.2f);
                 }
             }
@@ -260,7 +260,7 @@ public final class FightClub {
             if (b.round < 3) {
                 b.round++;
                 b.timer = 20 * 40;
-                say(s, "🔔 Раунд " + b.round);
+                say(s, "Раунд " + b.round);
                 w.playSound(null, BlockPos.ofFloored(c), SoundEvents.BLOCK_BELL_USE, SoundCategory.NEUTRAL, 1.5f, 1.2f);
                 if (cb instanceof ServerPlayerEntity p) p.heal(4);
                 b.hpA = Math.min(b.maxA, b.hpA + b.maxA * 0.08f);
@@ -295,7 +295,7 @@ public final class FightClub {
         float dmg;
         if (att instanceof ServerPlayerEntity p) {
             if (!p.getMainHandStack().isEmpty()) {
-                p.sendMessage(Text.literal("🥊 Только кулаки! Убери оружие из руки").formatted(Formatting.RED), true);
+                p.sendMessage(Text.literal("Только кулаки! Убери оружие из руки").formatted(Formatting.RED), true);
                 return false;
             }
             dmg = amount * 4f * (1 + Life.get(p).strength / 60f);
@@ -338,7 +338,7 @@ public final class FightClub {
         w.playSound(null, BlockPos.ofFloored(center()), SoundEvents.BLOCK_BELL_USE, SoundCategory.NEUTRAL, 1.6f, 0.9f);
         w.playSound(null, BlockPos.ofFloored(center()), SoundEvents.ENTITY_VILLAGER_CELEBRATE, SoundCategory.NEUTRAL, 1.2f, 0.8f);
         String wn = winner == 1 ? b.nameA : b.nameB;
-        say(s, "🏆 Победа: " + wn + " (" + how + ")");
+        say(s, "Победа: " + wn + " (" + how + ")");
         if (b.player != null && cb instanceof ServerPlayerEntity p) {
             Pulse.send(p, "fight_hud", new NbtCompound());
             if (winner == 2) {
@@ -424,7 +424,7 @@ public final class FightClub {
         b.phase = Phase.BETS;
         b.timer = 20 * 25;
         bout = b;
-        say(w.getServer(), "📣 Следующий бой: " + b.nameA + " (×" + fmt(b.odds1) + ") против " + b.nameB + " (×" + fmt(b.odds2) + "). Ставки — у букмекера");
+        say(w.getServer(), "Следующий бой: " + b.nameA + " (×" + fmt(b.odds1) + ") против " + b.nameB + " (×" + fmt(b.odds2) + "). Ставки — у букмекера");
         for (ServerPlayerEntity p : w.getServer().getPlayerManager().getPlayerList()) if (inside(p)) sendState(p);
     }
 
@@ -443,7 +443,7 @@ public final class FightClub {
         }
         if (!Economy.payBlack(p, amount, "ставка на бой")) return;
         b.bets.put(p.getUuid(), new int[]{side, amount});
-        p.sendMessage(Text.literal("💰 Ставка $" + amount + " на " + (side == 1 ? b.nameA : b.nameB) + " ×" + fmt(side == 1 ? b.odds1 : b.odds2)).formatted(Formatting.GOLD), true);
+        p.sendMessage(Text.literal("Ставка $" + amount + " на " + (side == 1 ? b.nameA : b.nameB) + " ×" + fmt(side == 1 ? b.odds1 : b.odds2)).formatted(Formatting.GOLD), true);
         Life.sound(p, ModContent.CASH, 0.8f);
         sendState(p);
     }
@@ -493,7 +493,7 @@ public final class FightClub {
         b.timer = 20 * 4; // «три… два… один…»
         bout = b;
         Activities.title(p, "НА РИНГЕ", "Соперник: " + b.nameA + " · приз $" + PRIZE[tier] + " · только кулаки");
-        say(w.getServer(), "📣 На ринге новичок " + b.nameB + " против " + b.nameA + "!");
+        say(w.getServer(), "На ринге новичок " + b.nameB + " против " + b.nameA + "!");
     }
 
     // ------------------------------------------------------------------ интерфейс

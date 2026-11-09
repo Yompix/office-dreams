@@ -503,9 +503,9 @@ public final class DesertCity {
                 signs.add(new Sign(key, new Vec3d(cx + 0.5, Island.G + 5.6, cz + 17.2), "КАЗИНО-ОТЕЛЬ «" + CASINOS[idx].name().toUpperCase() + "»", Formatting.YELLOW, 1.6f));
             }
         spots.add(new Spot("chapel", new Vec3d(26 * 48 + 0.5, y, 25 * 48 - 6.5), 0, CitizenEntity.Role.CITIZEN, "Священник Элвис", 9));
-        signs.add(new Sign("chapel", new Vec3d(26 * 48 + 0.5, Island.G + 15.5, 25 * 48 + 10.8), "💍 ЧАСОВНЯ «НАВЕКИ» · свадьбы 24/7", Formatting.LIGHT_PURPLE, 1.6f));
+        signs.add(new Sign("chapel", new Vec3d(26 * 48 + 0.5, Island.G + 15.5, 25 * 48 + 10.8), "ЧАСОВНЯ «НАВЕКИ» · свадьбы 24/7", Formatting.LIGHT_PURPLE, 1.6f));
         spots.add(new Spot("pawn", new Vec3d(26 * 48 + 0.5, y, 27 * 48 - 4.5), 180, CitizenEntity.Role.SHOPKEEPER, "Ломбард «Фортуна»: Сэм", 7));
-        signs.add(new Sign("pawn", new Vec3d(26 * 48 + 0.5, Island.G + 7.4, 27 * 48 - 13.8), "💰 ЛОМБАРД «ФОРТУНА»", Formatting.YELLOW, 1.6f));
+        signs.add(new Sign("pawn", new Vec3d(26 * 48 + 0.5, Island.G + 7.4, 27 * 48 - 13.8), "ЛОМБАРД «ФОРТУНА»", Formatting.YELLOW, 1.6f));
         signs.add(new Sign("motel_c", new Vec3d(25 * 48 + 12.5, Island.G + 16.6, 25 * 48 - 16.8), "МОТЕЛЬ «КАКТУС»", Formatting.GREEN, 2.2f));
         signs.add(new Sign("motel_p", new Vec3d(26 * 48 + 12.5, Island.G + 16.6, 30 * 48 - 16.8), "МОТЕЛЬ «ПАЛЬМА»", Formatting.LIGHT_PURPLE, 2.2f));
         signs.add(new Sign("welcome", new Vec3d(953.5, Island.G + 13.2, 1352.5), "ДОБРО ПОЖАЛОВАТЬ\nВ СКАЗОЧНЫЙ «МИРАЖ»", Formatting.RED, 2.6f));

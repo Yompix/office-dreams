@@ -40,7 +40,7 @@ public class CasinoLobbyScreen extends LifeScreen {
         float a = openAnim();
         int w = Math.min(390, width - 12), h = Math.min(228, height - 10);
         int x = width / 2 - w / 2, y = (int) (height / 2 - h / 2 + (1 - a) * 30);
-        panel(ctx, x, y, w, h, 0xFF2A0F3D, 0xFF0A0610);
+        panel(ctx, x, y, w, h, 0xFF2A0F3D, 0xFF080808);
         ctx.fill(x, y + 3, x + w, y + 21, 0xFF3A1257);
         long t = System.currentTimeMillis();
         Ui.big(ctx, textRenderer, "ФОРТУНА", x + 10, y + 6, 1.5f, (t / 400) % 2 == 0 ? Ui.GOLD : 0xFFFFF0A0, 0);
@@ -62,7 +62,7 @@ public class CasinoLobbyScreen extends LifeScreen {
             ty += (int) ((1 - appear) * 10);
             boolean hov = hover(tx, ty, tw, th);
             ctx.fill(tx + 2, ty + 2, tx + tw + 2, ty + th + 2, 0x60000000);
-            ctx.fillGradient(tx, ty, tx + tw, ty + th, mix(0xF0100A18, g.color(), hov ? 0.45f : 0.22f), 0xF0080510);
+            ctx.fillGradient(tx, ty, tx + tw, ty + th, mix(0xF00E0D0D, g.color(), hov ? 0.45f : 0.22f), 0xF0070707);
             ctx.fill(tx, ty, tx + tw, ty + 2, g.color());
             ctx.drawBorder(tx, ty, tw, th, hov ? lighten(g.color(), 0.3f) : Ui.alpha(g.color(), 0.5f));
             Ui.big(ctx, textRenderer, g.icon(), tx + tw - 13, ty + th / 2f - 8, 1.8f, Ui.alpha(lighten(g.color(), 0.3f), 0.9f), 1);
@@ -70,6 +70,6 @@ public class CasinoLobbyScreen extends LifeScreen {
             Ui.small(ctx, textRenderer, g.sub(), tx + 6, ty + th - 11, 0.75f, Ui.DIM, 0);
             area(tx, ty, tw, th, () -> mc().setScreen(g.open().get()));
         }
-        Ui.small(ctx, textRenderer, "Все исходы решает сервер · в среднем заведение оставляет себе 2–7%", x + w / 2f, y + h - 9, 0.7f, 0xFF8A7AA0, 1);
+        Ui.small(ctx, textRenderer, "Все исходы решает сервер · в среднем заведение оставляет себе 2–7%", x + w / 2f, y + h - 9, 0.7f, 0xFF84837F, 1);
     }
 }

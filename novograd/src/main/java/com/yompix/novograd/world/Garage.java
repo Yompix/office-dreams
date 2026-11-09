@@ -81,7 +81,7 @@ public final class Garage {
         car.discard();
         st.markDirty();
         ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(owner);
-        if (p != null) p.sendMessage(Text.literal("🚨 Твою машину увезли на штрафстоянку («" + lot + "»)").formatted(Formatting.RED), false);
+        if (p != null) p.sendMessage(Text.literal("Твою машину увезли на штрафстоянку («" + lot + "»)").formatted(Formatting.RED), false);
         return true;
     }
 
@@ -222,12 +222,12 @@ public final class Garage {
                 w.spawnParticles(ParticleTypes.HAPPY_VILLAGER, at.garage.x, at.garage.y + 0.3, at.garage.z, 6, 2, 0.1, 2, 0);
             if (!car.slow()) {
                 PARKING.put(p.getUuid(), 0);
-                p.sendMessage(Text.literal("🅿 Гараж «" + at.name + "» — остановись, чтобы поставить машину").formatted(Formatting.AQUA), true);
+                p.sendMessage(Text.literal("Гараж «" + at.name + "» — остановись, чтобы поставить машину").formatted(Formatting.AQUA), true);
                 continue;
             }
             int n = PARKING.merge(p.getUuid(), 1, Integer::sum);
             if (n < 6) {
-                p.sendMessage(Text.literal("🅿 Ставлю в гараж" + ".".repeat(n % 4)).formatted(Formatting.AQUA), true);
+                p.sendMessage(Text.literal("Ставлю в гараж" + ".".repeat(n % 4)).formatted(Formatting.AQUA), true);
                 continue;
             }
             PARKING.remove(p.getUuid());
@@ -240,13 +240,13 @@ public final class Garage {
         Housing.Owner o = st.owner(p.getUuid());
         int used = parked(o, l.id);
         if (used >= l.cars) {
-            p.sendMessage(Text.literal("🅿 Гараж полон (" + used + "/" + l.cars + "). Выкати машину через телефон → «Дом»").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Гараж полон (" + used + "/" + l.cars + "). Выкати машину через телефон → «Дом»").formatted(Formatting.RED), true);
             PARKING.put(p.getUuid(), -200);
             return;
         }
         boolean stolen = car.getOwner() == null || !car.getOwner().equals(p.getUuid());
         if (car.isPolice() && com.yompix.novograd.gta.Wanted.stars(p) > 0) {
-            p.sendMessage(Text.literal("🅿 Полицейскую машину с хвостом в гараж не спрячешь — сначала оторвись").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Полицейскую машину с хвостом в гараж не спрячешь — сначала оторвись").formatted(Formatting.RED), true);
             PARKING.put(p.getUuid(), -200);
             return;
         }
@@ -273,7 +273,7 @@ public final class Garage {
         if (l == null) return;
         boolean near = l.garage.squaredDistanceTo(p.getPos()) < 40 * 40 || Housing.here(p) == l;
         if (!near) {
-            p.sendMessage(Text.literal("🅿 Машина в гараже «" + l.name + "» — приезжай туда").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Машина в гараже «" + l.name + "» — приезжай туда").formatted(Formatting.YELLOW), true);
             return;
         }
         ServerWorld w = p.getServerWorld();
@@ -281,7 +281,7 @@ public final class Garage {
         CarEntity car = release(p, carId, at, l.garageYaw);
         if (car == null) return;
         w.playSound(null, car.getBlockPos(), com.yompix.novograd.ModContent.CAR_START, SoundCategory.NEUTRAL, 0.8f, 1f);
-        p.sendMessage(Text.literal("🚗 Машина ждёт у въезда в гараж «" + l.name + "»").formatted(Formatting.GREEN), true);
+        p.sendMessage(Text.literal("Машина ждёт у въезда в гараж «" + l.name + "»").formatted(Formatting.GREEN), true);
     }
 
     /** Телефон: забрать со штрафстоянки — своя стоянка у другого модуля (IMPOUND_RELEASE) или выдача рядом за $250. */
@@ -300,7 +300,7 @@ public final class Garage {
         ServerWorld w = p.getServerWorld();
         Vec3d look = p.getRotationVec(1).multiply(1, 0, 1).normalize().multiply(4);
         CarEntity car = release(p, carId, free(w, p.getPos().add(look), false), p.getYaw());
-        if (car != null) p.sendMessage(Text.literal("🚗 Машину подогнали — она рядом").formatted(Formatting.GREEN), true);
+        if (car != null) p.sendMessage(Text.literal("Машину подогнали — она рядом").formatted(Formatting.GREEN), true);
     }
 
     /** Свободное место у точки: если там уже стоит машина — чуть дальше. */

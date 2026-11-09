@@ -66,18 +66,18 @@ public final class Heists {
                 if (at == null || p.squaredDistanceTo(at) > 7 * 7) continue;
                 int need = i == 2 ? 4 : 2;
                 if (Economy.act(d) < need) {
-                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal(i == 2 ? "🏦 Хранилище «Короны» пока не по зубам — сначала разберись с Кроу (акт V)"
-                            : "🏦 Без команды банк не взять. Наберись опыта по сюжету (откроется с акта III)").formatted(Formatting.GRAY), true);
+                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal(i == 2 ? "Хранилище «Короны» пока не по зубам — сначала разберись с Кроу (акт V)"
+                            : "Без команды банк не взять. Наберись опыта по сюжету (откроется с акта III)").formatted(Formatting.GRAY), true);
                     return;
                 }
                 String cd = "heist_cd:" + i;
                 long last = d.flags.stream().filter(f -> f.startsWith(cd + "=")).mapToLong(f -> Long.parseLong(f.substring(cd.length() + 1))).max().orElse(-99);
                 if (day(w) - last < 2) {
-                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal("🏦 Хранилище пустое после прошлого налёта — приходи через пару дней").formatted(Formatting.GRAY), true);
+                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal("Хранилище пустое после прошлого налёта — приходи через пару дней").formatted(Formatting.GRAY), true);
                     return;
                 }
                 int n = NEAR.merge(p.getUuid(), 1, Integer::sum);
-                if (n == 1) p.sendMessage(Text.literal("🏦 Стой с оружием у хранилища — начнётся ограбление…").formatted(Formatting.GOLD), true);
+                if (n == 1) p.sendMessage(Text.literal("Стой с оружием у хранилища — начнётся ограбление…").formatted(Formatting.GOLD), true);
                 if (n >= 6) { // ~3 секунды с оружием у двери
                     NEAR.remove(p.getUuid());
                     h = new Heist();
@@ -352,8 +352,8 @@ public final class Heists {
                 it.setCustomNameVisible(true);
                 w.spawnEntity(it);
             } else it = have.get(0);
-            it.setCustomName(Text.literal(own ? "💼 " + BUSINESS[i][0] + " — сейф $" + safe(d, i) + " · ур." + (level(d, i) + 1) + " · +$" + income(d, i) + "/день"
-                    : "💼 " + BUSINESS[i][0] + " — продаётся $" + BUSINESS[i][2] + " (доход $" + BUSINESS[i][3] + "/день)").formatted(own ? Formatting.GREEN : Formatting.GOLD));
+            it.setCustomName(Text.literal(own ? BUSINESS[i][0] + " — сейф $" + safe(d, i) + " · ур." + (level(d, i) + 1) + " · +$" + income(d, i) + "/день"
+                    : BUSINESS[i][0] + " — продаётся $" + BUSINESS[i][2] + " (доход $" + BUSINESS[i][3] + "/день)").formatted(own ? Formatting.GREEN : Formatting.GOLD));
             if (p.squaredDistanceTo(it) < 2.2 * 2.2) inside = i;
         }
         Integer was = AT_BIZ.put(p.getUuid(), inside);
@@ -363,7 +363,7 @@ public final class Heists {
             if (cash > 0) {
                 setSafe(d, inside, 0);
                 Life.earn(p, cash, "выручка: " + BUSINESS[inside][0]);
-            } else p.sendMessage(Text.literal("💼 Сейф пуст — выручка копится каждый день (до трёх дней)").formatted(Formatting.GRAY), true);
+            } else p.sendMessage(Text.literal("Сейф пуст — выручка копится каждый день (до трёх дней)").formatted(Formatting.GRAY), true);
             return;
         }
         int price = (int) BUSINESS[inside][2];
@@ -374,7 +374,7 @@ public final class Heists {
             Activities.title(p, "БИЗНЕС КУПЛЕН", BUSINESS[inside][0] + " · +$" + BUSINESS[inside][3] + " каждый день");
             w.playSound(null, p.getBlockPos(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.7f, 1.1f);
             Life.sync(p);
-        } else p.sendMessage(Text.literal("💼 " + BUSINESS[inside][0] + ": нужно $" + price + ", у тебя $" + d.money).formatted(Formatting.YELLOW), true);
+        } else p.sendMessage(Text.literal(BUSINESS[inside][0] + ": нужно $" + price + ", у тебя $" + d.money).formatted(Formatting.YELLOW), true);
     }
 
     private static int level(LifeData d, int i) {
@@ -446,7 +446,7 @@ public final class Heists {
             it.setNeverDespawn();
             it.addCommandTag("ray_wash");
             it.setCustomNameVisible(true);
-            it.setCustomName(Text.literal("💵 Рэй: отмою всё сразу, возьму 30%").formatted(Formatting.GREEN));
+            it.setCustomName(Text.literal("Рэй: отмою всё сразу, возьму 30%").formatted(Formatting.GREEN));
             w.spawnEntity(it);
         } else it = have.get(0);
         boolean inside = p.squaredDistanceTo(it) < 2.2 * 2.2;

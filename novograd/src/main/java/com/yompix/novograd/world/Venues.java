@@ -590,7 +590,7 @@ public final class Venues {
         boolean market = s.kind() == Kind.MARKET;
         Dish[] menu = market ? MARKET_MENU : CAFE_MENU;
         int money = Life.get(p).money;
-        NbtCompound m = CityNet.menu("venue:" + s.id(), (market ? "🛒 " : "☕ ") + s.name().toUpperCase(),
+        NbtCompound m = CityNet.menu("venue:" + s.id(), s.name().toUpperCase(),
                 market ? "Возьми с полки — оплата картой на кассе" : "Сядь за столик (ПКМ по стулу) — и ешь сидя: «приятного аппетита» лечит", market ? 0xFF2E7D32 : 0xFF8D5524);
         for (Dish d : menu) CityNet.item(m, d.name(), d.desc(), d.price(), money >= d.price());
         CityNet.send(p, "menu", m);
@@ -608,7 +608,7 @@ public final class Venues {
         ItemStack it = d.item().get();
         if (!p.getInventory().insertStack(it)) p.dropItem(it, false);
         p.playSoundToPlayer(ModContent.CASH, SoundCategory.PLAYERS, 0.6f, 1.3f);
-        if (s.kind() != Kind.MARKET) p.sendMessage(Text.literal("☕ «Ваш заказ! Садитесь, где удобно»").formatted(Formatting.GOLD), true);
+        if (s.kind() != Kind.MARKET) p.sendMessage(Text.literal("«Ваш заказ! Садитесь, где удобно»").formatted(Formatting.GOLD), true);
         com.yompix.novograd.life.Achievements.give(p, s.kind() == Kind.MARKET ? "market_buy" : "cafe_meal");
     }
 
@@ -726,7 +726,6 @@ public final class Venues {
 
     private static void labels(ServerWorld w, Site s) {
         boolean market = s.kind() == Kind.MARKET;
-        String icon = market ? "🛒 " : "☕ ";
         Formatting col = market ? Formatting.GREEN : s.style() == 4 ? Formatting.RED : Formatting.GOLD;
         Vec3d sign = switch (s.kind()) {
             case LOBBY -> new Vec3d(s.cx() + 1, Island.G + 5.6, s.cz() + 17.5);
@@ -734,7 +733,7 @@ public final class Venues {
             case BEACH -> toWorld(s, 0, -7.5, Island.G + 5.6);
             default -> toWorld(s, 0, -12.6, Island.G + 6.4);
         };
-        label(w, s, sign, Text.literal(icon + s.name().toUpperCase()).formatted(col, Formatting.BOLD), 2.0f);
+        label(w, s, sign, Text.literal(s.name().toUpperCase()).formatted(col, Formatting.BOLD), 2.0f);
         if (!market) {
             Vec3d menu = switch (s.kind()) {
                 case LOBBY -> new Vec3d(s.cx() - 5.5, Island.G + 3.4, s.cz() + 0.5);
@@ -746,10 +745,10 @@ public final class Venues {
             sb.append("ПКМ по стойке — заказать");
             label(w, s, menu, Text.literal(sb.toString()).formatted(Formatting.WHITE), 0.6f);
         } else {
-            String[] cats = {"🥖 Хлеб и крупы", "🥛 Молочное", "🥤 Напитки", "🍫 Сладости", "🧴 Бытовое", "🥫 Консервы"};
+            String[] cats = {"Хлеб и крупы", "Молочное", "Напитки", "Сладости", "Бытовое", "Консервы"};
             int[] rows = {-13, -9, -5, 5, 9, 13};
             for (int i = 0; i < rows.length; i++) label(w, s, toWorld(s, rows[i], 5, Island.G + 5.3), Text.literal(cats[i]).formatted(Formatting.YELLOW), 0.8f);
-            label(w, s, toWorld(s, 0, 4.5, Island.G + 3.8), Text.literal("🍎 Фрукты и овощи").formatted(Formatting.GREEN), 0.8f);
+            label(w, s, toWorld(s, 0, 4.5, Island.G + 3.8), Text.literal("Фрукты и овощи").formatted(Formatting.GREEN), 0.8f);
             label(w, s, toWorld(s, 0, 11.5, Island.G + 4.6), Text.literal("❄ Заморозка").formatted(Formatting.AQUA), 0.8f);
             label(w, s, toWorld(s, 0, -7.5, Island.G + 3.6), Text.literal("ПКМ по полке — купить").formatted(Formatting.WHITE), 0.6f);
         }
@@ -795,7 +794,7 @@ public final class Venues {
                 BON_APPETIT.put(p.getUuid(), now);
                 p.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 160, 0));
                 p.getHungerManager().add(2, 0.6f);
-                p.sendMessage(Text.literal("🍽 Приятного аппетита! За столиком вкуснее: +здоровье").formatted(Formatting.GOLD), true);
+                p.sendMessage(Text.literal("Приятного аппетита! За столиком вкуснее: +здоровье").formatted(Formatting.GOLD), true);
                 com.yompix.novograd.life.Achievements.give(p, "cafe_meal");
             }
         }

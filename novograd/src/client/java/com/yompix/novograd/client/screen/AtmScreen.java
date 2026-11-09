@@ -58,7 +58,7 @@ public class AtmScreen extends LifeScreen {
         roundRect(ctx, x - 6, y - 6, w + 12, h + 12, 0xFF1B1E24);
         roundRect(ctx, x, y, w, h, 0xFF3A404C);
         ctx.fillGradient(x, y, x + w, y + 26, 0xFF0D47A1, 0xFF1565C0);
-        center(ctx, "🏦 БАНК НОВОГРАДА", x + w / 2, y + 9, 0xFFFFFFFF);
+        center(ctx, "БАНК НОВОГРАДА", x + w / 2, y + 9, 0xFFFFFFFF);
         // экран
         int sx = x + 18, sy = y + 34, sw = w - 36, sh = 120;
         ctx.fill(sx - 3, sy - 3, sx + sw + 3, sy + sh + 3, 0xFF0B0D12);

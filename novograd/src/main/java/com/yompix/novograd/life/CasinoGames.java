@@ -74,7 +74,7 @@ public final class CasinoGames {
         if (win >= bet * 10) Achievements.give(p, "jackpot");
         if (win - bet >= 1000 && win >= bet * 5) {
             var server = p.getServer();
-            if (server != null) server.getPlayerManager().broadcast(Text.literal("🎰 Игрок " + p.getName().getString()
+            if (server != null) server.getPlayerManager().broadcast(Text.literal("Игрок " + p.getName().getString()
                     + " выиграл $" + win + " " + where + "!").formatted(Formatting.GOLD), false);
         }
         Life.sync(p);

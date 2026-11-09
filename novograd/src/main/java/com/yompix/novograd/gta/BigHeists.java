@@ -493,7 +493,7 @@ public final class BigHeists {
                     r.charge = 0;
                     r.bags++;
                     w.playSound(null, p.getBlockPos(), ModContent.CASH, SoundCategory.PLAYERS, 1f, 0.8f + r.bags * 0.1f);
-                    p.sendMessage(Text.literal("💰 Мешок " + r.bags + "/4 — тяжело! Уходи, когда хватит").formatted(Formatting.GOLD), true);
+                    p.sendMessage(Text.literal("Мешок " + r.bags + "/4 — тяжело! Уходи, когда хватит").formatted(Formatting.GOLD), true);
                 }
                 if (dv > 14 * 14 && r.bags > 0) escape(p, r);
             }

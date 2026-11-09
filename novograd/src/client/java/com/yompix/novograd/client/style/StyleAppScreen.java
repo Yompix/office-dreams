@@ -30,10 +30,10 @@ public class StyleAppScreen extends LifeScreen {
         LifeData d = NovogradClient.data;
         int top = 10 + (int) ((1 - a) * -20);
         title(ctx, "Стиль", 12, top, Ui.PINK);
-        Ui.small(ctx, textRenderer, "внешность · гардероб · спортзал", 14, top + 28, 0.8f, 0xFFD8D2EA, 0);
+        Ui.small(ctx, textRenderer, "внешность · гардероб · спортзал", 14, top + 28, 0.8f, 0xFFD9D7D0, 0);
         // герой
         int sw = (int) (width * 0.32f), sy = top + 40, sh = height - sy - 24;
-        ctx.fill(10, sy, 10 + sw, sy + sh, 0x90060410);
+        ctx.fill(10, sy, 10 + sw, sy + sh, 0x90060606);
         ctx.fill(10, sy, 10 + sw, sy + 1, Ui.alpha(Ui.PINK, 0.6f));
         yaw += 0.4f;
         ctx.enableScissor(10, sy, 10 + sw, sy + sh);
@@ -43,7 +43,7 @@ public class StyleAppScreen extends LifeScreen {
         int px = 20 + sw, pw = width - px - 10, py = sy;
         Ui.panel(ctx, px, py, pw, 92, Ui.alpha(Ui.GOLD, a));
         Ui.big(ctx, textRenderer, "СПОРТЗАЛ", px + 8, py + 7, 1.2f, Ui.GOLD, 0);
-        Ui.small(ctx, textRenderer, StyleCatalog.GYM_NAME + " · до +" + StyleCatalog.GYM_DAILY + " в день к каждому навыку", px + 8 + textRenderer.getWidth("СПОРТЗАЛ") * 1.2f + 8, py + 9, 0.75f, 0xFFB8B2CC, 0);
+        Ui.small(ctx, textRenderer, StyleCatalog.GYM_NAME + " · до +" + StyleCatalog.GYM_DAILY + " в день к каждому навыку", px + 8 + textRenderer.getWidth("СПОРТЗАЛ") * 1.2f + 8, py + 9, 0.75f, 0xFFB9B7B1, 0);
         boolean today = d.gymDay == (mc().world == null ? -1 : mc().world.getTimeOfDay() / 24000L + 1);
         stat(ctx, px + 8, py + 26, pw - 16, "СИЛА", d.strength, today ? d.gymStrToday : 0, Ui.RED,
                 "Удар кулаком и битой +" + String.format("%.1f", d.strength * 0.03) + " · плечи шире");
@@ -53,7 +53,7 @@ public class StyleAppScreen extends LifeScreen {
         int gy = py + 100;
         Ui.panel(ctx, px, gy, pw, height - gy - 24, Ui.alpha(Ui.PINK, a));
         Ui.big(ctx, textRenderer, "ГАРДЕРОБ", px + 8, gy + 7, 1.2f, Ui.WHITE, 0);
-        Ui.small(ctx, textRenderer, "вещей: " + d.wardrobe.size(), px + pw - 8, gy + 9, 0.8f, 0xFFB8B2CC, 2);
+        Ui.small(ctx, textRenderer, "вещей: " + d.wardrobe.size(), px + pw - 8, gy + 9, 0.8f, 0xFFB9B7B1, 2);
         button(ctx, px + 8, gy + 24, Math.min(160, pw - 16), 18, "ОТКРЫТЬ ГАРДЕРОБ", Ui.PINK, true, () -> StyleClient.send("wardrobe", new NbtCompound()));
         int ty = gy + 48;
         if (locked && System.currentTimeMillis() - lockedAt < 8000) {
@@ -66,11 +66,11 @@ public class StyleAppScreen extends LifeScreen {
         for (int i = 0; i < where.length; i++) {
             if (ty > height - 34) break;
             ctx.fill(px + 8, ty + 1, px + 13, ty + 6, dots[i]);
-            Ui.small(ctx, textRenderer, where[i], px + 17, ty, 0.8f, 0xFFDCD8E8, 0);
+            Ui.small(ctx, textRenderer, where[i], px + 17, ty, 0.8f, 0xFFDDDBD4, 0);
             ty += 10;
         }
         // низ
-        ctx.fill(0, height - 18, width, height, 0xE0050309);
+        ctx.fill(0, height - 18, width, height, 0xE0040404);
         ctx.fill(0, height - 19, width, height - 18, Ui.alpha(Ui.PINK, 0.8f));
         Ui.small(ctx, textRenderer, "Одежду покупают в магазинах, переодеваются бесплатно — дома и в магазине", 10, height - 13, 0.8f, 0xB0FFFFFF, 0);
         String back = "‹ НАЗАД";
@@ -86,8 +86,8 @@ public class StyleAppScreen extends LifeScreen {
         ctx.drawText(textRenderer, v, x + w - textRenderer.getWidth(v), y, color, true);
         Ui.bar(ctx, x, y + 11, w, 5, value / (float) StyleCatalog.STAT_MAX, color);
         // засечки дневного лимита
-        Ui.small(ctx, textRenderer, effect, x, y + 19, 0.72f, 0xFFB8B2CC, 0);
+        Ui.small(ctx, textRenderer, effect, x, y + 19, 0.72f, 0xFFB9B7B1, 0);
         String t = "сегодня +" + today + "/" + StyleCatalog.GYM_DAILY;
-        Ui.small(ctx, textRenderer, t, x + w, y + 19, 0.72f, today >= StyleCatalog.GYM_DAILY ? Ui.GOLD : 0xFFB8B2CC, 2);
+        Ui.small(ctx, textRenderer, t, x + w, y + 19, 0.72f, today >= StyleCatalog.GYM_DAILY ? Ui.GOLD : 0xFFB9B7B1, 2);
     }
 }

@@ -73,7 +73,7 @@ public final class Disguise {
     public static boolean unnoticed(ServerPlayerEntity p, boolean policeNear) {
         if (wearing(p).isEmpty() || policeNear) return false;
         boolean ok = p.getRandom().nextFloat() < 0.65f;
-        if (ok && p.getRandom().nextInt(3) == 0) p.sendMessage(Text.literal("🎭 В маске тебя не узнали").formatted(Formatting.GRAY), true);
+        if (ok && p.getRandom().nextInt(3) == 0) p.sendMessage(Text.literal("В маске тебя не узнали").formatted(Formatting.GRAY), true);
         return ok;
     }
 
@@ -106,7 +106,7 @@ public final class Disguise {
             return;
         }
         setMask(p, last);
-        p.sendMessage(Text.literal("🎭 Надета: " + mask(last).name() + " (K — снять)").formatted(Formatting.GRAY), true);
+        p.sendMessage(Text.literal("Надета: " + mask(last).name() + " (K — снять)").formatted(Formatting.GRAY), true);
     }
 
     private static NbtCompound entry(ServerPlayerEntity p) {
@@ -165,7 +165,7 @@ public final class Disguise {
                     if (n > 0) {
                         s.reduced += n;
                         s.look = key;
-                        p.sendMessage(Text.literal("🎭 Новый образ — полиция ищет другого человека: −" + n + "★").formatted(Formatting.GREEN), false);
+                        p.sendMessage(Text.literal("Новый образ — полиция ищет другого человека: −" + n + "★").formatted(Formatting.GREEN), false);
                         Wanted.reduce(p, n);
                     }
                 }
@@ -185,7 +185,7 @@ public final class Disguise {
     public static void menu(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
         String on = wearing(p);
-        CopsNet.Menu m = new CopsNet.Menu("masks", "🎭 " + SHOP, 0xFFFFC428)
+        CopsNet.Menu m = new CopsNet.Menu("masks", SHOP, 0xFFFFC428)
                 .line("Маска прячет лицо: в ней прохожие не узнают тебя (полицию не обманешь).")
                 .line("Сменил одежду или маску вне поля зрения полиции — минус 1–2 звезды.")
                 .line("K — надеть/снять маску где угодно.  У тебя: $" + d.money + (d.dirty > 0 ? " · грязными $" + d.dirty : ""));
@@ -234,7 +234,7 @@ public final class Disguise {
             Life.sound(p, ModContent.CASH, 1.2f);
             com.yompix.novograd.life.Style.broadcast(p);
             p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER.value(), SoundCategory.PLAYERS, 0.8f, 1f);
-            p.sendMessage(Text.literal("👕 Переоделся в новый комплект").formatted(Formatting.AQUA), true);
+            p.sendMessage(Text.literal("Переоделся в новый комплект").formatted(Formatting.AQUA), true);
         }
         Life.sync(p);
         menu(p);
@@ -264,7 +264,7 @@ public final class Disguise {
         w.setBlockState(new BlockPos(x - 1, y + 1, z), Blocks.CARVED_PUMPKIN.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
         w.setBlockState(new BlockPos(x + 1, y + 1, z), Blocks.WITHER_SKELETON_SKULL.getDefaultState().with(Properties.ROTATION, 8));
         w.setBlockState(new BlockPos(x, y + 1, z), Blocks.LANTERN.getDefaultState());
-        label(w, x + 0.5, y + 4.2, z + 0.5, "🎭 МАСКИ И ШМОТ");
+        label(w, x + 0.5, y + 4.2, z + 0.5, "МАСКИ И ШМОТ");
         com.yompix.novograd.entity.CitizenEntity seller = new com.yompix.novograd.entity.CitizenEntity(ModContent.CITIZEN, w);
         seller.refreshPositionAndAngles(x + 0.5, y, z + 1.5, 180, 0);
         seller.setHeadYaw(180);

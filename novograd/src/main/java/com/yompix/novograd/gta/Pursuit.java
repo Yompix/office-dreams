@@ -332,7 +332,7 @@ public final class Pursuit {
                     if (Boolean.getBoolean("novograd.debugcops")) com.yompix.novograd.Novograd.LOG.info("[cops] PIT kick {} ps {} cop {}", kick, ps, c.speed);
                     w.playSound(null, pc.getBlockPos(), SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1.3f, 0.6f);
                     w.playSound(null, pc.getBlockPos(), SoundEvents.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, SoundCategory.NEUTRAL, 0.9f, 0.8f);
-                    p.sendMessage(Text.literal("💥 PIT-манёвр — полиция развернула твою машину!").formatted(Formatting.RED), true);
+                    p.sendMessage(Text.literal("PIT-манёвр — полиция развернула твою машину!").formatted(Formatting.RED), true);
                 }
             }
             if (left && right) {
@@ -343,7 +343,7 @@ public final class Pursuit {
                     CopsNet.send(p, "box", n);
                 }
                 if (s.boxTicks == 1 && Boolean.getBoolean("novograd.debugcops")) com.yompix.novograd.Novograd.LOG.info("[cops] BOX ps {}", ps);
-                if (s.boxTicks == 1) p.sendMessage(Text.literal("🚓 Тебя зажали с двух сторон — вырывайся!").formatted(Formatting.RED), true);
+                if (s.boxTicks == 1) p.sendMessage(Text.literal("Тебя зажали с двух сторон — вырывайся!").formatted(Formatting.RED), true);
                 if (s.boxTicks >= 10 && ps < 0.12) {
                     // встал — копы выходят задерживать
                     for (CarEntity c : near)
@@ -441,7 +441,7 @@ public final class Pursuit {
                 w.playSound(null, car.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.NEUTRAL, 1.2f, 0.7f);
                 w.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD, car.getX(), car.getY() + 0.3, car.getZ(), 12, 1, 0.1, 1, 0.02);
                 if (car.getControllingPassenger() instanceof ServerPlayerEntity sp)
-                    sp.sendMessage(Text.literal("💥 Шины пробиты! Скорость и руль хуже — почини машину в «Нитро-Гараже» или смени её").formatted(Formatting.RED), false);
+                    sp.sendMessage(Text.literal("Шины пробиты! Скорость и руль хуже — почини машину в «Нитро-Гараже» или смени её").formatted(Formatting.RED), false);
             }
         }
     }
@@ -534,7 +534,7 @@ public final class Pursuit {
                 CitizenEntity cop = cop(w, bx - dir * 3 + 0.5, y, z0 - 3 + k * 3 + 0.5, stars >= 4 ? "Спецназ" : "Полицейский", stars >= 4);
                 cop.attack(p);
             }
-            p.sendMessage(Text.literal("🚧 " + (z0 < 0 ? "Северный" : "Южный") + " мост перекрыт полицией!").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("" + (z0 < 0 ? "Северный" : "Южный") + " мост перекрыт полицией!").formatted(Formatting.RED), true);
             Dispatch.wanted(p, "перекрыт " + (z0 < 0 ? "северный" : "южный") + " мост", stars);
             return true;
         }
@@ -564,7 +564,7 @@ public final class Pursuit {
             double cx = alongX ? along + 0.5 + back * 3 : lo + 1 + k * (width - 3) + 0.5, cz = alongX ? lo + 1 + k * (width - 3) + 0.5 : along + 0.5 + back * 3;
             cop(w, cx, y, cz, swat ? "Спецназ" : "Полицейский", swat).attack(p);
         }
-        p.sendMessage(Text.literal("🚧 Блокпост на трассе впереди!").formatted(Formatting.RED), true);
+        p.sendMessage(Text.literal("Блокпост на трассе впереди!").formatted(Formatting.RED), true);
         return true;
     }
 

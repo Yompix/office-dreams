@@ -58,7 +58,7 @@ public final class CopsAndRobbers {
     public static void menu(ServerPlayerEntity p) {
         MinecraftServer s = p.getServer();
         int n = s.getPlayerManager().getCurrentPlayerCount();
-        CopsNet.Menu m = new CopsNet.Menu("cnr", "🚓 Полицейские и воры", 0xFF4FA3FF);
+        CopsNet.Menu m = new CopsNet.Menu("cnr", "Полицейские и воры", 0xFF4FA3FF);
         if (running) {
             m.line("Идёт игра: раунд " + round + " из " + ROUNDS + ". Полиция: " + names(COPS) + ".")
                     .line("Воры: " + names(ROBBERS) + ".")
@@ -116,7 +116,7 @@ public final class CopsAndRobbers {
             NAMES.put(p.getUuid(), p.getName().getString());
         }
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList())
-            p.sendMessage(Text.literal("🚓 «Полицейские и воры»: " + pl.size() + " игрока(ов), " + ROUNDS + " раунда. Поехали!").formatted(Formatting.AQUA), false);
+            p.sendMessage(Text.literal("«Полицейские и воры»: " + pl.size() + " игрока(ов), " + ROUNDS + " раунда. Поехали!").formatted(Formatting.AQUA), false);
         startRound(server);
     }
 
@@ -219,7 +219,7 @@ public final class CopsAndRobbers {
             if (p == null) continue;
             CopsNet.send(p, "cnr", off);
             FunUtil.clearHud(p);
-            p.sendMessage(Text.literal("🚓 «Полицейские и воры» окончены: " + why + ". Счёт: " + scoreLine()).formatted(Formatting.AQUA), false);
+            p.sendMessage(Text.literal("«Полицейские и воры» окончены: " + why + ". Счёт: " + scoreLine()).formatted(Formatting.AQUA), false);
         }
         COPS.clear();
         ROBBERS.clear();
@@ -279,7 +279,7 @@ public final class CopsAndRobbers {
             int a = by != null && still ? ARREST.getOrDefault(ru, 0) + 1 : 0;
             ARREST.put(ru, a);
             if (a == 1) {
-                rob.sendMessage(Text.literal("🚔 Полиция рядом — двигайся, иначе арест!").formatted(Formatting.RED), true);
+                rob.sendMessage(Text.literal("Полиция рядом — двигайся, иначе арест!").formatted(Formatting.RED), true);
                 by.sendMessage(Text.literal("Задерживаешь " + rob.getName().getString() + "…").formatted(Formatting.AQUA), true);
             }
             if (a >= 3) caught(server, rob, by);
@@ -289,7 +289,7 @@ public final class CopsAndRobbers {
                 Life.earn(rob, 250, "добыча довезена");
                 Activities.title(rob, "ДОБЫЧА ДОВЕЗЕНА", "Ты ушёл от полиции! +2 очка");
                 FunUtil.clearHud(rob);
-                broadcast(server, "💰 " + rob.getName().getString() + " довёз добычу до точки «" + exitName + "»!");
+                broadcast(server, rob.getName().getString() + " довёз добычу до точки «" + exitName + "»!");
                 rob.stopRiding();
             }
         }
@@ -312,7 +312,7 @@ public final class CopsAndRobbers {
                 ServerPlayerEntity cop = server.getPlayerManager().getPlayer(cu);
                 if (cop != null) {
                     CopsNet.send(cop, "cnr_ping", n);
-                    cop.sendMessage(Text.literal("📡 Радар: воры замечены — смотри на радар").formatted(Formatting.AQUA), true);
+                    cop.sendMessage(Text.literal("Радар: воры замечены — смотри на радар").formatted(Formatting.AQUA), true);
                 }
             }
         }
@@ -333,7 +333,7 @@ public final class CopsAndRobbers {
         rob.stopRiding();
         FunUtil.clearHud(rob);
         Activities.title(rob, "ПОЙМАН", by != null ? "Тебя арестовал " + by.getName().getString() : "Вор выбыл из раунда");
-        broadcast(server, "🚔 " + rob.getName().getString() + (by != null ? " арестован (" + by.getName().getString() + ")" : " выбыл"));
+        broadcast(server, "" + rob.getName().getString() + (by != null ? " арестован (" + by.getName().getString() + ")" : " выбыл"));
     }
 
     private static void endRound(MinecraftServer server, String winner) {

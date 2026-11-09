@@ -73,7 +73,7 @@ public final class LifeEvents {
             d.started = true;
             School.give(p, new ItemStack(ModContent.PHONE));
             Life.message(p, "Неизвестный номер", "Добро пожаловать в Новоград. На карте $50 — на первое время. Не высовывайся.");
-            p.sendMessage(Text.literal("📱 Нажми G (или ПКМ телефоном), чтобы открыть телефон").formatted(Formatting.AQUA), false);
+            p.sendMessage(Text.literal("Нажми G (или ПКМ телефоном), чтобы открыть телефон").formatted(Formatting.AQUA), false);
         }
         com.yompix.novograd.story.Story.onJoin(p);
         NbtCompound places = Taxi.placesNbt(p.getServerWorld());
@@ -152,7 +152,7 @@ public final class LifeEvents {
             if (school != null && p.getBlockPos().getSquaredDistance(school) > 160 * 160) continue;
             if (school == null && Life.get(p).adult()) continue;
             p.playSoundToPlayer(ModContent.SCHOOL_BELL, SoundCategory.BLOCKS, school == null ? 0.4f : 0.9f, 1f);
-            p.sendMessage(Text.literal(last ? "🔔 Звонок! Уроки на сегодня закончились" : "🔔 Звонок на урок!").formatted(Formatting.GOLD), true);
+            p.sendMessage(Text.literal(last ? "Звонок! Уроки на сегодня закончились" : "Звонок на урок!").formatted(Formatting.GOLD), true);
         }
     }
 }

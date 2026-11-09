@@ -51,8 +51,8 @@ public final class UnderworldClient {
         int w = 0;
         for (String s : HUD) w = Math.max(w, tr.getWidth(s));
         int x = 6, y = ctx.getScaledWindowHeight() / 2 - 10, h = HUD.size() * 10 + 6;
-        ctx.fill(x - 3, y - 3, x + w + 5, y + h - 3, 0x90080510);
-        ctx.fill(x - 3, y - 3, x - 1, y + h - 3, 0xFFFF2E88);
+        ctx.fill(x - 3, y - 3, x + w + 5, y + h - 3, 0x90070707);
+        ctx.fill(x - 3, y - 3, x - 1, y + h - 3, 0xFFD42A3A);
         for (int i = 0; i < HUD.size(); i++) ctx.drawText(tr, HUD.get(i), x + 1, y + i * 10, 0xFFFFFFFF, true);
     }
 }

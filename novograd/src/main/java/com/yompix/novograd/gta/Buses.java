@@ -457,7 +457,7 @@ public final class Buses {
         ServerPlayerEntity thief = car.getControllingPassenger() instanceof ServerPlayerEntity sp ? sp : null;
         if (thief != null && !car.wrecked()) {
             Dispatch.report(w, car.getPos(), "угон автобуса маршрута №" + b.r.num, null, thief);
-            thief.sendMessage(Text.literal("🚌 Угнал автобус №" + b.r.num + "!").formatted(Formatting.GOLD), true);
+            thief.sendMessage(Text.literal("Угнал автобус №" + b.r.num + "!").formatted(Formatting.GOLD), true);
         }
         car.setAmbient(false);
         release(w, b, car);
@@ -632,7 +632,7 @@ public final class Buses {
         if (!p.isCreative() && !Life.pay(p, FARE, "проезд в автобусе №" + b.r.num)) return ActionResult.CONSUME;
         if (p.startRiding(car)) {
             b.dwell = Math.max(b.dwell, 3);
-            p.sendMessage(Text.literal("🚌 Автобус №" + b.r.num + " «" + b.r.title + "». Пробел — до следующей остановки, Shift — выйти").formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Автобус №" + b.r.num + " «" + b.r.title + "». Пробел — до следующей остановки, Shift — выйти").formatted(Formatting.YELLOW), false);
         }
         return ActionResult.CONSUME;
     }
@@ -665,7 +665,7 @@ public final class Buses {
         arrive(w, b, nb, next);
         b.dwell = DWELL + 4;
         REBOARD.put(p.getUuid(), new Object[]{nb, w.getTime() + 6}); // посадка через пару тиков, после телепорта у клиента
-        p.sendMessage(Text.literal("🚌 Остановка «" + next.name + "»").formatted(Formatting.YELLOW), true);
+        p.sendMessage(Text.literal("Остановка «" + next.name + "»").formatted(Formatting.YELLOW), true);
     }
 
     private static final Set<UUID> HUD_ON = new HashSet<>();
@@ -744,7 +744,7 @@ public final class Buses {
                 st.lastText = text;
                 String nm = st.name.length() > 15 ? st.name.substring(0, 15) : st.name;
                 SignText s = new SignText().withGlowing(true).withColor(DyeColor.WHITE)
-                        .withMessage(0, Text.literal("🚌 №" + r.num).formatted(Formatting.BOLD))
+                        .withMessage(0, Text.literal("№" + r.num).formatted(Formatting.BOLD))
                         .withMessage(1, Text.literal(nm))
                         .withMessage(2, Text.literal(when).formatted(Formatting.YELLOW))
                         .withMessage(3, Text.literal("$" + FARE + " · " + (r.title.length() > 11 ? r.title.substring(0, 11) : r.title)));

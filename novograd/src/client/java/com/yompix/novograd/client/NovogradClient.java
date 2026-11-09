@@ -367,7 +367,7 @@ public class NovogradClient implements ClientModInitializer {
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {
             ScreenshotRecorder.saveScreenshot(client.runDirectory, client.getFramebuffer(),
-                    t -> client.execute(() -> client.player.sendMessage(net.minecraft.text.Text.literal("☺ Фото сохранено в папку screenshots"), false)));
+                    t -> client.execute(() -> client.player.sendMessage(net.minecraft.text.Text.literal("Фото сохранено в папку screenshots"), false)));
             client.options.hudHidden = hudWasHidden;
             screenshotIn = -1;
         }

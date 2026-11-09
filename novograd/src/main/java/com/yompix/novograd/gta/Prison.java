@@ -207,7 +207,7 @@ public final class Prison {
         long tod = w.getTimeOfDay() % 24000;
         boolean night = tod > 13000 && tod < 23000;
         boolean solo = p.getServer().getPlayerManager().getCurrentPlayerCount() == 1;
-        CopsNet.Menu m = new CopsNet.Menu("jail", "🔒 Колония №7 · камера 1", 0xFFFF7043)
+        CopsNet.Menu m = new CopsNet.Menu("jail", "Колония №7 · камера 1", 0xFFFF7043)
                 .line("Осталось сидеть: " + left / 60 + ":" + String.format("%02d", left % 60) + " (" + days(left) + ")  · звёзд при аресте: " + "★".repeat(st))
                 .line("Телефон изъят. Карта: $" + d.money + (d.dirty > 0 ? " · грязными $" + d.dirty : "") + ".")
                 .line(stage > 0 ? "Идёт побег — меню закрыто для охраны." : night ? "Ночь: охрана дремлет — самое время для побега." : "День: охрана начеку, бежать лучше ночью.");

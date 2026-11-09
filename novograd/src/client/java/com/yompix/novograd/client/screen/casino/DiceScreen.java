@@ -44,7 +44,7 @@ public class DiceScreen extends CasinoScreen {
         long now = System.currentTimeMillis();
         // сукно
         int fw = w - 120;
-        ctx.fillGradient(x, y, x + fw, y + h, 0xFF5A0F2E, 0xFF2A0716);
+        ctx.fillGradient(x, y, x + fw, y + h, 0xFF5A0F2E, 0xFF131313);
         ctx.drawBorder(x, y, fw, h, 0xFFC9A227);
         ring(ctx, x + fw / 2, y + h / 2 - 6, Math.min(fw, h) / 2 - 8, 0x40FFD54F);
         long t = rollAt < 0 ? ROLL : now - rollAt;

@@ -59,7 +59,7 @@ public final class Garage {
                 c.paint(PAINTS[p.getRandom().nextInt(PAINTS.length)]);
                 c.repair();
                 Wanted.clear(p);
-                p.sendMessage(Text.literal("🎨 Новый цвет — полиция ищет другую машину. Розыск снят!").formatted(Formatting.GREEN), false);
+                p.sendMessage(Text.literal("Новый цвет — полиция ищет другую машину. Розыск снят!").formatted(Formatting.GREEN), false);
             });
             default -> false;
         };

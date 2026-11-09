@@ -290,7 +290,7 @@ public final class TownBuilder {
         b.set(-1, 1, 1, Blocks.GLASS_PANE.getDefaultState());
         b.set(-1, 0, 1, Blocks.AIR.getDefaultState());
         b.fill(-4, 3, -4, 2, 3, 2, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
-        b.label(0, 5, 0, "🅿 СТОЯНКА «ЦЕНТР»", Formatting.YELLOW);
+        b.label(0, 5, 0, "СТОЯНКА «ЦЕНТР»", Formatting.YELLOW);
         b.citizen(-1, 0, -1, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, "Охранник стоянки", 180).lockActivity(CitizenEntity.Activity.SIT);
         b.place("parking", 0, 0, 6, 180);
     }
@@ -424,7 +424,7 @@ public final class TownBuilder {
         b.place("prom_2", 3, 0, 12, 180);
         b.place("prom_3", 6, 0, 10, 180);
         b.place("goal_school", -12, 0, 11, 90);
-        b.label(0, 8, 2, "🏫 ШКОЛА №1", Formatting.GOLD);
+        b.label(0, 8, 2, "ШКОЛА №1", Formatting.GOLD);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.YELLOW);
     }
 
@@ -462,7 +462,7 @@ public final class TownBuilder {
         for (int x = x1; x <= x2; x += 4) b.fill(x, -1, 9, x, -1, 15, Blocks.WHITE_CONCRETE.getDefaultState());
         b.car(-6, 12, 0, 2);
         b.car(6, 12, 0, 4);
-        b.label(0, h + 2, z2, "🛒 СУПЕРМАРКЕТ", Formatting.RED);
+        b.label(0, h + 2, z2, "СУПЕРМАРКЕТ", Formatting.RED);
         b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.RED);
         b.place("shop_door", 0, 0, 6, 180);
         b.place("shop_counter", -5, 0, 2, 180);
@@ -504,7 +504,7 @@ public final class TownBuilder {
         b.set(0, 5, -11, ModContent.TV.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH).with(com.yompix.novograd.block.TvBlock.CHANNEL, 1));
         lights(b, x1, z1, x2, z2, h - 1);
         b.mailbox(-5, 0, z2 + 2);
-        b.label(0, h + 2, z2, "💼 ОФИС · ЦЕНТР ЗАНЯТОСТИ", Formatting.AQUA);
+        b.label(0, h + 2, z2, "ОФИС · ЦЕНТР ЗАНЯТОСТИ", Formatting.AQUA);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.CYAN);
         b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.BLUE);
     }
@@ -548,7 +548,7 @@ public final class TownBuilder {
         b.place("clue_backpack", -12, 0, -6, 0);
         b.place("race_2", 12, 0, 2, 270);
         b.place("race_3", 0, 0, 7, 0);
-        b.label(0, 6, 0, "🌳 ПАРК", Formatting.GREEN);
+        b.label(0, 6, 0, "ПАРК", Formatting.GREEN);
     }
 
     private static void tree(B b, int x, int z, Random r) {
@@ -643,7 +643,7 @@ public final class TownBuilder {
             b.set(x2 - 1, 1, z, Blocks.CAULDRON.getDefaultState());
         }
         lights(b, x1, z1, x2, z2, h - 1);
-        b.label(0, h + 2, z2, "💪 ФИТНЕС «АТЛАНТ»", Formatting.AQUA);
+        b.label(0, h + 2, z2, "ФИТНЕС «АТЛАНТ»", Formatting.AQUA);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.CYAN);
         b.mailbox(-8, 0, z2 + 2);
         b.citizen(-4, 0, -2, CitizenEntity.RANDOM_FROM + 13, CitizenEntity.Role.CITIZEN, true, "Спортсмен Дэнни", 180).lockActivity(CitizenEntity.Activity.CHEER);
@@ -671,7 +671,7 @@ public final class TownBuilder {
             b.stairs(t[0] + 1, 0, t[1], Direction.EAST, Blocks.OAK_STAIRS);
         }
         lights(b, x1, z1, x2, z2, h - 1);
-        b.label(0, h + 2, z2, "🍕 ПИЦЦЕРИЯ «МАМА МИЯ»", Formatting.GOLD);
+        b.label(0, h + 2, z2, "ПИЦЦЕРИЯ «МАМА МИЯ»", Formatting.GOLD);
         b.neonLine(x1, x2, h, z2 + 1, NeonBlock.Color.ORANGE);
         b.mailbox(-10, 0, z2 + 2);
         b.citizen(-2, 0, -7, CitizenEntity.RANDOM_FROM + 31, CitizenEntity.Role.SHOPKEEPER, true, "Повар Тони", 0);
@@ -682,7 +682,7 @@ public final class TownBuilder {
         b.set(17, 0, 2, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
         b.set(18, 0, 2, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
         b.citizen(17, 0, 1, CitizenEntity.RANDOM_FROM + 4, CitizenEntity.Role.SHOPKEEPER, true, "Кассир «Жир-Бургера»", 0);
-        b.label(17, 6, 3, "🍔 ЖИР-БУРГЕР", Formatting.RED);
+        b.label(17, 6, 3, "ЖИР-БУРГЕР", Formatting.RED);
         b.place("pizza_door", 0, 0, 7, 180);
         b.place("pizza_door2", 3, 0, 7, 180);
         b.place("pizza_door3", -3, 0, 8, 180);
@@ -724,7 +724,7 @@ public final class TownBuilder {
         for (int i = 0; i < 7; i++)
             b.citizen(-6 + r.nextInt(13), 0, -8 + r.nextInt(9), CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, Names.full(r), r.nextInt(360))
                     .lockActivity(CitizenEntity.Activity.DANCE);
-        b.label(0, h + 2, z2, "🎧 КЛУБ «НЕОН»", Formatting.LIGHT_PURPLE);
+        b.label(0, h + 2, z2, "КЛУБ «НЕОН»", Formatting.LIGHT_PURPLE);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.PURPLE);
         b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.PINK);
         b.mailbox(10, 0, z2 + 2);
@@ -784,7 +784,7 @@ public final class TownBuilder {
             b.fill(x, 0, z1 + 1, x, 2, z1 + 4, Blocks.IRON_BARS.getDefaultState());
         }
         lights(b, x1, z1, x2, z2, h - 1);
-        b.label(0, h + 2, z2, "🚔 ПОЛИЦИЯ НОВОГРАДА", Formatting.BLUE);
+        b.label(0, h + 2, z2, "ПОЛИЦИЯ НОВОГРАДА", Formatting.BLUE);
         b.neonLine(x1, x2, h, z2 + 1, NeonBlock.Color.BLUE);
         CitizenEntity c1 = b.citizen(-3, 0, -6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Дежурный Джо", 180);
         CitizenEntity c2 = b.citizen(5, 0, 6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Патрульный Дэн", 180);
@@ -820,7 +820,7 @@ public final class TownBuilder {
         for (int x = -6; x <= 6; x++) b.set(x, 0, -2, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
         b.fill(x1 + 1, 1, z1 + 1, x2 - 1, 3, z1 + 1, Blocks.IRON_BARS.getDefaultState());
         lights(b, x1, z1, x2, z2, h - 1);
-        b.label(0, h + 2, z2, "🔫 ОРУЖИЕ «КАЛИБР» 18+", Formatting.GOLD);
+        b.label(0, h + 2, z2, "ОРУЖИЕ «КАЛИБР» 18+", Formatting.GOLD);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.ORANGE);
         b.citizen(0, 0, -4, CitizenEntity.RANDOM_FROM + 17, CitizenEntity.Role.GUNSMITH, true, "Оружейник Боб", 0);
         b.place("gunshop_door", 0, 0, 7, 180);
@@ -849,7 +849,7 @@ public final class TownBuilder {
             b.set(x, 1, -6, Blocks.ANVIL.getDefaultState());
         }
         lights(b, x1, z1, x2, z2, h - 1);
-        b.label(0, h + 2, z2, "🔧 НИТРО-ГАРАЖ · тюнинг · покраска", Formatting.YELLOW);
+        b.label(0, h + 2, z2, "НИТРО-ГАРАЖ · тюнинг · покраска", Formatting.YELLOW);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.YELLOW);
         b.citizen(9, 0, -2, CitizenEntity.RANDOM_FROM + 25, CitizenEntity.Role.MECHANIC, true, "Механик Стив", 270);
         b.place("garage_door", 0, 0, 7, 180);
@@ -964,9 +964,9 @@ public final class TownBuilder {
         b.car(14, -2, -90, 5);
         b.car(14, 8, -90, 5);
         b.mailbox(-3, 0, z2 + 2);
-        b.label(-8, h + 2, z2, "🚗 АВТОСАЛОН", Formatting.YELLOW);
+        b.label(-8, h + 2, z2, "АВТОСАЛОН", Formatting.YELLOW);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.ORANGE);
-        b.label(13, 3, 12, "🚕 ТАКСИ", Formatting.YELLOW);
+        b.label(13, 3, 12, "ТАКСИ", Formatting.YELLOW);
     }
 
     // ---------------------------------------------------------------- казино и банк
@@ -1004,7 +1004,7 @@ public final class TownBuilder {
         b.citizen(-8, 0, z2 - 1, 6, CitizenEntity.Role.CITIZEN, true, "Охрана", 180);
         for (int x = x1 + 3; x <= x2 - 3; x += 5)
             for (int z = z1 + 3; z <= z2 - 2; z += 5) b.set(x, h - 1, z, Blocks.SEA_LANTERN.getDefaultState());
-        b.label(-5, h + 2, z2, "🎰 КАЗИНО «ФОРТУНА» 18+", Formatting.LIGHT_PURPLE);
+        b.label(-5, h + 2, z2, "КАЗИНО «ФОРТУНА» 18+", Formatting.LIGHT_PURPLE);
         b.neonLine(x1, x2, h - 2, z2 + 1, NeonBlock.Color.PINK);
         b.neonLine(x1, x2, 4, z2 + 1, NeonBlock.Color.PURPLE);
         b.place("casino_door", -5, 0, 7, 0);
@@ -1027,7 +1027,7 @@ public final class TownBuilder {
         b.citizen(15, 0, -6, 5, CitizenEntity.Role.BANKER, true, "Банкир Гарри", -90);
         lights(b, bx1, z1 + 2, bx2, z2, 5);
         b.mailbox(16, 0, z2 + 2);
-        b.label(12, 8, z2, "🏦 БАНК", Formatting.GREEN);
+        b.label(12, 8, z2, "БАНК", Formatting.GREEN);
         b.neonLine(bx1, bx2, 4, z2 + 1, NeonBlock.Color.GREEN);
     }
 

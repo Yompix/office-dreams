@@ -108,7 +108,7 @@ public final class Studio {
             return;
         }
         if (mc.player.hasVehicle()) {
-            mc.player.sendMessage(Text.literal("🎬 Киностудия: выйди из транспорта (в машине — кино-камера на B)").formatted(Formatting.GRAY), true);
+            mc.player.sendMessage(Text.literal("Киностудия: выйди из транспорта (в машине — кино-камера на B)").formatted(Formatting.GRAY), true);
             return;
         }
         load();
@@ -129,7 +129,7 @@ public final class Studio {
         hudWas = mc.options.hudHidden;
         appliedFilter = -1;
         spawnGhosts(mc);
-        mc.player.sendMessage(Text.literal("🎬 Киностудия открыта. H — подсказки, F7 — выйти.").formatted(Formatting.LIGHT_PURPLE), false);
+        mc.player.sendMessage(Text.literal("Киностудия открыта. H — подсказки, F7 — выйти.").formatted(Formatting.LIGHT_PURPLE), false);
     }
 
     private static void off(MinecraftClient mc) {
@@ -575,7 +575,7 @@ public final class Studio {
             ctx.drawText(tr, toast, W / 2 - w / 2, H - barH - 19, a | 0xFFFFFF, false);
         }
         if (playing || recording) return;
-        String head = "🎬 КИНОСТУДИЯ  ·  кадров " + data.keys.size() + "  ·  дублей " + data.takes.size() + "/4  ·  " + FILTERS[data.filter]
+        String head = "КИНОСТУДИЯ  ·  кадров " + data.keys.size() + "  ·  дублей " + data.takes.size() + "/4  ·  " + FILTERS[data.filter]
                 + "  ·  зум " + Math.round(fov) + "°" + (Math.abs(roll) > 0.5 ? "  ·  наклон " + Math.round(roll) + "°" : "");
         ctx.drawText(tr, head, 8, Math.max(4, barH / 2 - 4), 0xFFFF4FD8, true);
         if (!hints) return;

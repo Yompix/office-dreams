@@ -93,7 +93,7 @@ public class PokerScreen extends CasinoScreen {
             if (!drawn && hand[i] >= 0) {
                 if (held) {
                     Ui.slant(ctx, cx, cy + ch + 3, cw, 10, 3, 0xFFFFB300);
-                    Ui.small(ctx, textRenderer, "ДЕРЖУ", cx + cw / 2f, cy + ch + 5, 0.7f, 0xFF1A0A24, 1);
+                    Ui.small(ctx, textRenderer, "ДЕРЖУ", cx + cw / 2f, cy + ch + 5, 0.7f, 0xFF121211, 1);
                 }
                 final int bit = 1 << i;
                 area(cx, cy - 4, cw, ch + 18, () -> hold ^= bit);

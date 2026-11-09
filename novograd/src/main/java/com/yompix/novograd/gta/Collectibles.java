@@ -387,13 +387,13 @@ public final class Collectibles {
         int[] st = SPRAY.get(p.getUuid());
         if (st == null || st[0] != near) SPRAY.put(p.getUuid(), st = new int[]{near, 0});
         if (!p.isSneaking() || !facing || p.hasVehicle()) {
-            if (st[1] == 0) p.sendMessage(Text.literal("🎨 Тег банды на стене — держи Shift, глядя на стену, чтобы закрасить своим").formatted(Formatting.LIGHT_PURPLE), true);
+            if (st[1] == 0) p.sendMessage(Text.literal("Тег банды на стене — держи Shift, глядя на стену, чтобы закрасить своим").formatted(Formatting.LIGHT_PURPLE), true);
             return;
         }
         st[1] += 5;
         float k = Math.min(1, st[1] / (float) SPRAY_TICKS);
         int bars = (int) (k * 10);
-        p.sendMessage(Text.literal("🎨 Граффити  " + "▮".repeat(bars) + "▯".repeat(10 - bars)).formatted(Formatting.LIGHT_PURPLE), true);
+        p.sendMessage(Text.literal("Граффити  " + "▮".repeat(bars) + "▯".repeat(10 - bars)).formatted(Formatting.LIGHT_PURPLE), true);
         int[] cols = {0xFF2E88, 0x3FD8FF, 0x7CFF4A, 0xFFD000};
         int c = cols[(st[1] / 5) % cols.length];
         w.spawnParticles(new DustParticleEffect(new Vector3f((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f), 1.4f),
@@ -414,13 +414,13 @@ public final class Collectibles {
             double dx = ph.x() + 0.5 - p.getX(), dz = ph.z() + 0.5 - p.getZ();
             if (dx * dx + dz * dz > 7 * 7) continue;
             if (done(d, "photo", i)) {
-                p.sendMessage(Text.literal("📷 Этот кадр уже в коллекции: " + ph.name()).formatted(Formatting.GRAY), true);
+                p.sendMessage(Text.literal("Этот кадр уже в коллекции: " + ph.name()).formatted(Formatting.GRAY), true);
                 return;
             }
             double want = Math.toDegrees(Math.atan2(-(ph.sx() - p.getX()), ph.sz() - p.getZ()));
             float diff = Math.abs(net.minecraft.util.math.MathHelper.wrapDegrees((float) (want - p.getYaw())));
             if (diff > 45) {
-                p.sendMessage(Text.literal("📷 Не в кадре: повернись к «" + ph.name() + "» и сними ещё раз").formatted(Formatting.YELLOW), true);
+                p.sendMessage(Text.literal("Не в кадре: повернись к «" + ph.name() + "» и сними ещё раз").formatted(Formatting.YELLOW), true);
                 return;
             }
             found(p, d, "photo", i);
@@ -628,7 +628,7 @@ public final class Collectibles {
             if (s == null || sq(s[0] - p.getX(), s[2] - p.getZ()) > 64 * 64) continue;
             Vec3d v = stall(w, i);
             var it = FunUtil.marker(w, v, "col_stall_" + i, new ItemStack(Items.FILLED_MAP),
-                    Text.literal("🗺 Карты коллекций — граффити, тайники, фото, трюки").formatted(Formatting.GOLD), true);
+                    Text.literal("Карты коллекций — граффити, тайники, фото, трюки").formatted(Formatting.GOLD), true);
             if (p.squaredDistanceTo(it) < 2.2 * 2.2 && !p.hasVehicle()) at = i;
         }
         Integer was = AT_STALL.put(p.getUuid(), at);

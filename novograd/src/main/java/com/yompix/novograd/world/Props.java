@@ -148,10 +148,10 @@ public final class Props {
             case VENDING -> vending(w, pos, p);
             case PAYPHONE -> payphone(w, pos, p);
             case NEWS_STAND -> newspaper(w, pos, p);
-            case HOTDOG -> food(w, pos, p, 6, 7, 4f, "🌭 Хот-дог", FunnyLines.HOTDOG);
-            case ICECREAM -> food(w, pos, p, 4, 3, 2f, "🍦 Пломбир «Новоградский»", FunnyLines.ICECREAM);
+            case HOTDOG -> food(w, pos, p, 6, 7, 4f, "Хот-дог", FunnyLines.HOTDOG);
+            case ICECREAM -> food(w, pos, p, 4, 3, 2f, "Пломбир «Новоградский»", FunnyLines.ICECREAM);
             case PROPANE -> p.sendMessage(Text.literal("⚠ Пропан. Огнеопасно! Не стрелять и не курить").formatted(Formatting.GOLD), true);
-            case CONE -> p.sendMessage(Text.literal("🚧 Дорожный конус. Объезжай… или нет").formatted(Formatting.GOLD), true);
+            case CONE -> p.sendMessage(Text.literal("Дорожный конус. Объезжай… или нет").formatted(Formatting.GOLD), true);
         }
     }
 
@@ -168,7 +168,7 @@ public final class Props {
         if (!Life.pay(p, snack ? 4 : 3, snack ? "чипсы «Хруст»" : "газировка «Новоград-Кола»")) return;
         w.playSound(null, pos, SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 0.8f, 0.7f); // бам — банка упала
         if (w.random.nextInt(14) == 0) {
-            p.sendMessage(Text.literal("🥤 " + FunnyLines.VENDING_FAIL[w.random.nextInt(FunnyLines.VENDING_FAIL.length)]).formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal(FunnyLines.VENDING_FAIL[w.random.nextInt(FunnyLines.VENDING_FAIL.length)]).formatted(Formatting.YELLOW), true);
             JAMMED.put(pos.asLong(), w.getTime());
             return;
         }
@@ -176,12 +176,12 @@ public final class Props {
             p.getHungerManager().add(5, 0.5f);
             p.heal(1);
             w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 0.8f, 1.2f);
-            p.sendMessage(Text.literal("🍟 Чипсы «Хруст»: +сытость").formatted(Formatting.GREEN), true);
+            p.sendMessage(Text.literal("Чипсы «Хруст»: +сытость").formatted(Formatting.GREEN), true);
         } else {
             p.getHungerManager().add(2, 0.3f);
             p.heal(4);
             w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_GENERIC_DRINK, SoundCategory.PLAYERS, 0.8f, 1.1f);
-            p.sendMessage(Text.literal("🥤 «Новоград-Кола»: +здоровье   (Shift+ПКМ — чипсы)").formatted(Formatting.GREEN), true);
+            p.sendMessage(Text.literal("«Новоград-Кола»: +здоровье   (Shift+ПКМ — чипсы)").formatted(Formatting.GREEN), true);
         }
     }
 
@@ -195,7 +195,7 @@ public final class Props {
         if (jam || w.random.nextInt(12) == 0) {
             JAMMED.remove(pos.asLong());
             Destruction.dropCan(w, Vec3d.ofCenter(pos).add(Vec3d.of(w.getBlockState(pos).get(HorizontalFacingBlock.FACING).getVector()).multiply(0.7)));
-            p.sendMessage(Text.literal("🥤 Бам! Автомат выплюнул банку").formatted(Formatting.GREEN), true);
+            p.sendMessage(Text.literal("Бам! Автомат выплюнул банку").formatted(Formatting.GREEN), true);
         }
     }
 
@@ -205,7 +205,7 @@ public final class Props {
             anonymousTip(w, p);
             return;
         }
-        p.sendMessage(Text.literal("📞 Таксофон: «Служба такси Новограда, куда едем?»   (Shift+ПКМ — анонимный звонок в полицию)").formatted(Formatting.YELLOW), false);
+        p.sendMessage(Text.literal("Таксофон: «Служба такси Новограда, куда едем?»   (Shift+ПКМ — анонимный звонок в полицию)").formatted(Formatting.YELLOW), false);
         NbtCompound n = new NbtCompound();
         n.putString("app", "taxi");
         LifeNet.send(p, "open_phone", n);
@@ -214,14 +214,14 @@ public final class Props {
     /** Анонимный звонок: полиция едет разбираться с бандой поблизости. */
     private static void anonymousTip(ServerWorld w, ServerPlayerEntity p) {
         if (cooldown(p, "tip", 20 * 120)) {
-            p.sendMessage(Text.literal("📞 Диспетчер: «Опять вы? Наряд уже выехал»").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("Диспетчер: «Опять вы? Наряд уже выехал»").formatted(Formatting.GRAY), true);
             return;
         }
         List<CitizenEntity> gang = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(110, 30, 110),
                 c -> c.isAlive() && c.getRole() == CitizenEntity.Role.GANG && !c.hasVehicle());
         String area = com.yompix.novograd.gta.Territories.turfName(Math.max(0, com.yompix.novograd.gta.Territories.at(p.getX(), p.getZ())));
         if (gang.isEmpty()) {
-            p.sendMessage(Text.literal("📞 Ты: «Тут бандиты…» Диспетчер: «Принято. Наряд проверит район»").formatted(Formatting.BLUE), false);
+            p.sendMessage(Text.literal("Ты: «Тут бандиты…» Диспетчер: «Принято. Наряд проверит район»").formatted(Formatting.BLUE), false);
             com.yompix.novograd.gta.News.post(w.getServer(), "Анонимный звонок: в районе «" + area + "» видели вооружённых людей", "КРИМИНАЛ");
             return;
         }
@@ -241,7 +241,7 @@ public final class Props {
             cop.attack(target);
             cop.removeLater(20 * 100);
         }
-        p.sendMessage(Text.literal("📞 Ты (шёпотом): «Тут бандиты…» Диспетчер: «Наряд выезжает». Полиция разберётся с бандой").formatted(Formatting.BLUE), false);
+        p.sendMessage(Text.literal("Ты (шёпотом): «Тут бандиты…» Диспетчер: «Наряд выезжает». Полиция разберётся с бандой").formatted(Formatting.BLUE), false);
         com.yompix.novograd.gta.News.post(w.getServer(), "Полиция выехала по анонимному звонку: перестрелка в районе «" + area + "»", "КРИМИНАЛ");
     }
 
@@ -251,7 +251,7 @@ public final class Props {
         if (cooldown(p, "news", 30)) return;
         if (!Life.pay(p, 2, "газета «Вестник Новограда»")) return;
         w.playSound(null, pos, SoundEvents.ITEM_BOOK_PAGE_TURN, SoundCategory.BLOCKS, 1f, 1f);
-        p.sendMessage(Text.literal("📰 «ВЕСТНИК НОВОГРАДА» — свежий номер").formatted(Formatting.GOLD, Formatting.BOLD), false);
+        p.sendMessage(Text.literal("«ВЕСТНИК НОВОГРАДА» — свежий номер").formatted(Formatting.GOLD, Formatting.BOLD), false);
         var news = com.yompix.novograd.gta.News.latest(4);
         if (news.isEmpty()) {
             String[] fallback = {"Мэр обещает новые фонари на всех улицах", "В порту ждут рекордный урожай контейнеров", "Синоптики: ночью туман, водителям — осторожность"};
@@ -286,8 +286,8 @@ public final class Props {
             int ch = st.get(com.yompix.novograd.block.TvBlock.CHANNEL);
             if (ch == 0 || ch == 5) { // сейчас включится «Новости 24» — бегущая строка в чат
                 var news = com.yompix.novograd.gta.News.latest(2);
-                for (String[] n : news) p.sendMessage(Text.literal("📺 Новости 24 [" + n[1] + "]: ").formatted(Formatting.AQUA).append(Text.literal(n[0]).formatted(Formatting.WHITE)), false);
-                if (news.isEmpty()) p.sendMessage(Text.literal("📺 Новости 24: «В Новограде спокойно… пока»").formatted(Formatting.AQUA), false);
+                for (String[] n : news) p.sendMessage(Text.literal("Новости 24 [" + n[1] + "]: ").formatted(Formatting.AQUA).append(Text.literal(n[0]).formatted(Formatting.WHITE)), false);
+                if (news.isEmpty()) p.sendMessage(Text.literal("Новости 24: «В Новограде спокойно… пока»").formatted(Formatting.AQUA), false);
             }
             return ActionResult.PASS; // канал переключит сам телевизор
         }
@@ -300,12 +300,12 @@ public final class Props {
             w.playSound(null, pos, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS, 1f, 1.5f);
             p.extinguish();
             Life.get(p).mood = Math.min(100, Life.get(p).mood + 1);
-            p.sendMessage(Text.literal("🚰 Умылся холодной водой — бодрит").formatted(Formatting.AQUA), true);
+            p.sendMessage(Text.literal("Умылся холодной водой — бодрит").formatted(Formatting.AQUA), true);
             return ActionResult.SUCCESS;
         }
         if (st.isOf(Blocks.SMOOTH_QUARTZ) && fridge(w, pos)) {
             if (cooldown(p, "fridge", 20 * 45)) {
-                p.sendMessage(Text.literal("🧊 В холодильнике пусто… загляни попозже").formatted(Formatting.GRAY), true);
+                p.sendMessage(Text.literal("В холодильнике пусто… загляни попозже").formatted(Formatting.GRAY), true);
                 return ActionResult.SUCCESS;
             }
             String[] eat = {"бутерброд с колбасой", "холодный борщ", "пельмени", "йогурт", "котлету с пюре", "кусок пиццы", "сырок"};
@@ -313,7 +313,7 @@ public final class Props {
             p.heal(3);
             w.playSound(null, pos, SoundEvents.BLOCK_BARREL_OPEN, SoundCategory.BLOCKS, 0.7f, 1.4f);
             w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 0.8f, 1f);
-            p.sendMessage(Text.literal("🧊 Холодильник: съел " + eat[w.random.nextInt(eat.length)]).formatted(Formatting.GREEN), true);
+            p.sendMessage(Text.literal("Холодильник: съел " + eat[w.random.nextInt(eat.length)]).formatted(Formatting.GREEN), true);
             return ActionResult.SUCCESS;
         }
         if (st.isOf(Blocks.COMPOSTER) && Destruction.onSidewalk(w, pos)) {
@@ -340,7 +340,7 @@ public final class Props {
         long now = w.getTime();
         w.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_FILL, SoundCategory.BLOCKS, 1f, 0.8f);
         if (now - TRASH.getOrDefault(pos.asLong(), -100000L) < 20 * 300) {
-            p.sendMessage(Text.literal("🗑 Тут уже порылись. Только огрызки").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("Тут уже порылись. Только огрызки").formatted(Formatting.GRAY), true);
             return;
         }
         TRASH.put(pos.asLong(), now);
@@ -350,11 +350,11 @@ public final class Props {
                 : r == 9 ? new ItemStack(ModContent.BANKNOTE_50) : ItemStack.EMPTY;
         String what = r < 4 ? "мятые $10" : r < 7 ? "нераспечатанную газировку" : r < 9 ? "три патрона (кто их выбросил?!)" : r == 9 ? "$50! Повезло" : null;
         if (what == null) {
-            p.sendMessage(Text.literal("🗑 Порылся в урне: " + new String[]{"старые газеты", "банановая кожура", "сломанный зонтик", "ничего полезного"}[w.random.nextInt(4)]).formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("Порылся в урне: " + new String[]{"старые газеты", "банановая кожура", "сломанный зонтик", "ничего полезного"}[w.random.nextInt(4)]).formatted(Formatting.GRAY), true);
             return;
         }
         if (!p.getInventory().insertStack(loot)) p.dropItem(loot, false);
-        p.sendMessage(Text.literal("🗑 Порылся в урне и нашёл " + what).formatted(Formatting.GREEN), true);
+        p.sendMessage(Text.literal("Порылся в урне и нашёл " + what).formatted(Formatting.GREEN), true);
     }
 
     /** Монтировка (бита, нож, мачете) + Shift+ПКМ по банкомату: несколько рывков — и он вскрыт. */
@@ -371,10 +371,10 @@ public final class Props {
         w.playSound(null, pos, SoundEvents.BLOCK_ANVIL_PLACE, SoundCategory.BLOCKS, 0.5f, 1.4f + st[0] * 0.08f);
         w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, c.x, c.y + 0.2, c.z, 6, 0.3, 0.3, 0.3, 0.3);
         if (st[0] == 1) {
-            p.sendMessage(Text.literal("🔧 Вскрываешь банкомат… (Shift+ПКМ ещё)").formatted(Formatting.GOLD), true);
+            p.sendMessage(Text.literal("Вскрываешь банкомат… (Shift+ПКМ ещё)").formatted(Formatting.GOLD), true);
             if (!p.isCreative() && com.yompix.novograd.gta.Wanted.policeSees(w, p, 30)) com.yompix.novograd.gta.Wanted.add(p, 0, "взлом банкомата", 1);
             for (CitizenEntity cz : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(12), cz -> cz.isAlive() && !cz.hasVehicle())) cz.panic(c);
-        } else if (st[0] < 6) p.sendMessage(Text.literal("🔧 Вскрываешь банкомат… " + "▮".repeat(st[0]) + "▯".repeat(6 - st[0])).formatted(Formatting.GOLD), true);
+        } else if (st[0] < 6) p.sendMessage(Text.literal("Вскрываешь банкомат… " + "▮".repeat(st[0]) + "▯".repeat(6 - st[0])).formatted(Formatting.GOLD), true);
         else {
             st[0] = 0;
             Destruction.atmCracked(w, pos, p, false);

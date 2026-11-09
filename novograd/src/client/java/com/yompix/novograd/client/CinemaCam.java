@@ -25,7 +25,7 @@ public final class CinemaCam {
 
     public static void toggle(MinecraftClient mc) {
         if (!on && !(mc.player != null && mc.player.getVehicle() instanceof CarEntity)) {
-            if (mc.player != null) mc.player.sendMessage(net.minecraft.text.Text.literal("🎬 Кино-камера работает в машине"), true);
+            if (mc.player != null) mc.player.sendMessage(net.minecraft.text.Text.literal("Кино-камера работает в машине"), true);
             return;
         }
         if (on) off(mc);
@@ -36,7 +36,7 @@ public final class CinemaCam {
             shot = 0;
             shotTicks = 0;
             cx = Double.NaN;
-            mc.player.sendMessage(net.minecraft.text.Text.literal("🎬 Кино-камера: B — выключить"), true);
+            mc.player.sendMessage(net.minecraft.text.Text.literal("Кино-камера: B — выключить"), true);
         }
     }
 
@@ -115,7 +115,7 @@ public final class CinemaCam {
         ctx.fill(0, ctx.getScaledWindowHeight() - h, ctx.getScaledWindowWidth(), ctx.getScaledWindowHeight(), 0xFF000000);
         if (on) {
             var tr = MinecraftClient.getInstance().textRenderer;
-            String s = "🎬 КИНО · B — выход";
+            String s = "КИНО · B — выход";
             ctx.drawText(tr, s, ctx.getScaledWindowWidth() - tr.getWidth(s) - 8, h / 2 - 4, 0x99FFFFFF, false);
         }
     }

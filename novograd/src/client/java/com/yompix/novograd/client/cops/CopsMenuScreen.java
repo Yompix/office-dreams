@@ -34,10 +34,10 @@ public class CopsMenuScreen extends LifeScreen {
         int x = (width - w) / 2, y = Math.max(6, (height - h) / 2);
         float a = openAnim();
         y += (int) ((1 - a) * 20);
-        panel(ctx, x, y, w, h, 0xFF1A1424, 0xFF0C0812);
+        panel(ctx, x, y, w, h, 0xFF181817, 0xFF0A0A0A);
         title(ctx, n.getString("title"), x + 10, y + 10, accent | 0xFF000000);
         int yy = y + 34;
-        for (int i = 0; i < lines.size(); i++) yy += wrap(ctx, lines.getString(i), x + 10, yy, w - 20, 0xFFD8D2E8) + 2;
+        for (int i = 0; i < lines.size(); i++) yy += wrap(ctx, lines.getString(i), x + 10, yy, w - 20, 0xFFD8D6D0) + 2;
         yy += 6;
         for (int i = 0; i < buttons.size(); i++) {
             NbtCompound b = buttons.getCompound(i);

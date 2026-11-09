@@ -128,7 +128,7 @@ public class OnlineCasinoScreen extends LifeScreen {
         float a = openAnim();
         int w = Math.min(384, width - 12), h = Math.min(228, height - 10);
         int x = width / 2 - w / 2, y = (int) (height / 2 - h / 2 + (1 - a) * 30);
-        panel(ctx, x, y, w, h, 0xFF2A0F3D, 0xFF12061C);
+        panel(ctx, x, y, w, h, 0xFF2A0F3D, 0xFF0C0C0C);
         ctx.fill(x, y, x + w, y + 20, 0xFF6A1B9A);
         ctx.drawText(textRenderer, "ФОРТУНА.онлайн  18+", x + 8, y + 6, 0xFFFFD54F, true);
         String bal = "$" + NovogradClient.data.money;
@@ -139,7 +139,7 @@ public class OnlineCasinoScreen extends LifeScreen {
             int tw = textRenderer.getWidth(t[1]) + 10;
             boolean on = t[0].equals(tab);
             roundRect(ctx, tx, y + 24, tw, 14, on ? 0xFFFFB300 : 0xFF3D1A55);
-            ctx.drawText(textRenderer, t[1], tx + 5, y + 27, on ? 0xFF1A0A24 : 0xFFE0D0F0, false);
+            ctx.drawText(textRenderer, t[1], tx + 5, y + 27, on ? 0xFF121211 : 0xFFDBD8D2, false);
             area(tx, y + 24, tw, 14, () -> {
                 switch (t[0]) {
                     case "slots" -> mc().setScreen(new SlotsScreen());
@@ -245,7 +245,7 @@ public class OnlineCasinoScreen extends LifeScreen {
             Ui.small(ctx, textRenderer, s, hx + tw / 2f, y + 2, 0.75f, 0xFFFFFFFF, 1);
             hx += tw + 2;
         }
-        ctx.fill(gx, gy, gx + gw, gy + gh, 0xFF0B0614);
+        ctx.fill(gx, gy, gx + gw, gy + gh, 0xFF090909);
         for (int i = 1; i < 4; i++) ctx.fill(gx, gy + gh * i / 4, gx + gw, gy + gh * i / 4 + 1, 0x22FFFFFF);
         double e = crashPhase == 0 ? 0 : shownTicks(now);
         double m = crashPhase == 0 ? 1 : OnlineCasino.mult((long) Math.floor(e));
@@ -272,7 +272,7 @@ public class OnlineCasinoScreen extends LifeScreen {
             center(ctx, "Забрал на ×" + String.format(java.util.Locale.ROOT, "%.2f", cashedAt) + " · +$" + crashWin + (over ? " · краш был на ×" + String.format(java.util.Locale.ROOT, "%.2f", crashPoint) : ""), gx + gw / 2, gy + gh / 2 + 12, 0xFF7CFF8A);
         else if (crashPhase == 2) center(ctx, crashPoint <= 1.0 ? "КРАШ СРАЗУ!" : "КРАШ!", gx + gw / 2, gy + gh / 2 + 12, color);
         else if (crashPhase == 1 && CasinoMath.CRASH_AUTO[autoIndex] > 0)
-            center(ctx, "Автовывод на ×" + String.format(java.util.Locale.ROOT, "%.2f", CasinoMath.CRASH_AUTO[autoIndex] / 100.0), gx + gw / 2, gy + gh / 2 + 12, 0xFF9E86B0);
+            center(ctx, "Автовывод на ×" + String.format(java.util.Locale.ROOT, "%.2f", CasinoMath.CRASH_AUTO[autoIndex] / 100.0), gx + gw / 2, gy + gh / 2 + 12, 0xFF93928E);
         // управление
         int bx = x + w - 98;
         if (!crashRunning()) button(ctx, bx, y + 2, 90, 18, "СТАРТ $" + bet(), 0xFF2E7D32, NovogradClient.data.money >= bet(), () -> {
@@ -289,9 +289,9 @@ public class OnlineCasinoScreen extends LifeScreen {
             String l = v == 0 ? "Выкл" : "×" + (v % 100 == 0 ? String.valueOf(v / 100) : String.format(java.util.Locale.ROOT, "%.1f", v / 100.0));
             button(ctx, bx + (i % 3) * 30, y + 37 + (i / 3) * 16, 28, 13, l, i == autoIndex ? 0xFFFFB300 : 0xFF3D1A55, !crashRunning(), () -> autoIndex = ai);
         }
-        Ui.small(ctx, textRenderer, "3% раундов — краш сразу", bx, y + 74, 0.7f, 0xFF9E86B0, 0);
-        Ui.small(ctx, textRenderer, "Казино ~5% · макс. ×100", bx, y + 83, 0.7f, 0xFF9E86B0, 0);
-        ctx.drawText(textRenderer, "Забери до краша!", gx, gy + gh + 2, 0xFF9E86B0, false);
+        Ui.small(ctx, textRenderer, "3% раундов — краш сразу", bx, y + 74, 0.7f, 0xFF93928E, 0);
+        Ui.small(ctx, textRenderer, "Казино ~5% · макс. ×100", bx, y + 83, 0.7f, 0xFF93928E, 0);
+        ctx.drawText(textRenderer, "Забери до краша!", gx, gy + gh + 2, 0xFF93928E, false);
     }
 
     // ---------------------------------------------------------------- монетка

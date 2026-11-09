@@ -207,7 +207,7 @@ public abstract class MotorVehicle extends CarEntity {
         if (player.shouldCancelInteraction()) return ActionResult.PASS;
         if (getWorld().isClient) return ActionResult.SUCCESS;
         if (wrecked()) {
-            player.sendMessage(Text.literal("🔥 Разбит — уже не починить"), true);
+            player.sendMessage(Text.literal("Разбит — уже не починить"), true);
             return ActionResult.CONSUME;
         }
         if (hasNpcDriver()) {
@@ -216,7 +216,7 @@ public abstract class MotorVehicle extends CarEntity {
         }
         boolean driver = getPassengerList().isEmpty();
         if (driver && getOwner() != null && !getOwner().equals(player.getUuid()) && !player.isCreative() && !stealable()) {
-            player.sendMessage(Text.literal("🔒 Чужой транспорт: управляет только хозяин"), true);
+            player.sendMessage(Text.literal("Чужой транспорт: управляет только хозяин"), true);
             return ActionResult.CONSUME;
         }
         if (player.startRiding(this) && driver) {

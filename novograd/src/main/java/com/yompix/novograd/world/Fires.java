@@ -132,7 +132,7 @@ public final class Fires {
             out++;
             if (p != null) {
                 Life.earn(p, 15, "потушен пожар на улице");
-                p.sendMessage(Text.literal("💧 Огонь потушен").formatted(Formatting.AQUA), true);
+                p.sendMessage(Text.literal("Огонь потушен").formatted(Formatting.AQUA), true);
             }
         }
         return out;

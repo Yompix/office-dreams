@@ -43,10 +43,10 @@ public class PhoneScreen extends LifeScreen {
             new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
             new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2), new App("missions", "Задания", 0xFFD32F2F),
-            new App("style", "Стиль", 0xFFFF2E88), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF28E6FF),
+            new App("style", "Стиль", 0xFFD42A3A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
             new App("auto", "Авто", 0xFF00897B),
-            new App("collect", "Коллекции", 0xFFFF4FB8),
-            new App("skills", "Навыки", 0xFF28E6FF), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
+            new App("collect", "Коллекции", 0xFFC2405A),
+            new App("skills", "Навыки", 0xFF3FB8B0), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
             new App("cnr", "Копы и воры", 0xFF4FA3FF), // «Полицейские и воры» по сети (gta/CopsAndRobbers)
             new App("contacts", "Контакты", 0xFF5AE6A0), // звонки героев и дружба (story/Calls)
             new App("dark", "Дела", 0xFF8A1020));
@@ -139,22 +139,22 @@ public class PhoneScreen extends LifeScreen {
         sy = py + 16;
         sw = pw - 12;
         sh = ph - 30;
-        // корпус: чёрный, с неоновой кромкой (розовый сверху → бирюзовый снизу), боковые кнопки
+        // корпус: чёрный, графитовая кромка, боковые кнопки
         ctx.fill(px + 5, py + 6, px + pw + 5, py + ph + 6, 0x70000000);
-        ctx.fill(px - 1, py + 20, px, py + 34, 0xFF2A2433);
-        ctx.fill(px + pw, py + 26, px + pw + 1, py + 50, 0xFF2A2433);
+        ctx.fill(px - 1, py + 20, px, py + 34, 0xFF282826);
+        ctx.fill(px + pw, py + 26, px + pw + 1, py + 50, 0xFF282826);
         roundRect(ctx, px, py, pw, ph, 0xFF000000);
-        ctx.fillGradient(px + 1, py + 1, px + pw - 1, py + ph - 1, 0xFFFF2E88, 0xFF28E6FF);
-        roundRect(ctx, px + 2, py + 2, pw - 4, ph - 4, 0xFF0A080E);
+        ctx.fillGradient(px + 1, py + 1, px + pw - 1, py + ph - 1, 0xFF4C4C4E, 0xFF1E1E20);
+        roundRect(ctx, px + 2, py + 2, pw - 4, ph - 4, 0xFF090909);
         ctx.fill(px + 3, py + 3, px + pw - 3, py + 4, 0x30FFFFFF);
         ctx.enableScissor(sx, sy, sx + sw, sy + sh);
         if (app == null) {
             // обои: ночное небо, закатное свечение и силуэт города
-            ctx.fillGradient(sx, sy, sx + sw, sy + sh, 0xFF1A0B2E, 0xFF07040C);
-            ctx.fillGradient(sx, sy + sh - 90, sx + sw, sy + sh - 30, 0x00FF2E88, 0x60FF2E88);
+            ctx.fillGradient(sx, sy, sx + sw, sy + sh, 0xFF141313, 0xFF060606);
+            ctx.fillGradient(sx, sy + sh - 90, sx + sw, sy + sh - 30, 0x00B8262F, 0x40B8262F);
             Ui.tex(ctx, Ui.SKYLINE_FG, sx - 20, sy + sh - 52, sw + 40, (sw + 40) / 4f, Ui.FG_SIZE[0], Ui.FG_SIZE[1], 1f);
-            ctx.fill(sx, sy + sh - 10, sx + sw, sy + sh, 0xFF07040C);
-        } else ctx.fill(sx, sy, sx + sw, sy + sh, 0xFF0E0A14);
+            ctx.fill(sx, sy + sh - 10, sx + sw, sy + sh, 0xFF060606);
+        } else ctx.fill(sx, sy, sx + sw, sy + sh, 0xFF0C0C0C);
         // камера-«капля» поверх экрана
         ctx.fill(sx + sw / 2 - 2, sy + 2, sx + sw / 2 + 2, sy + 6, 0xFF000000);
         ctx.fill(sx + sw / 2 - 3, sy + 3, sx + sw / 2 + 3, sy + 5, 0xFF000000);
@@ -167,7 +167,7 @@ public class PhoneScreen extends LifeScreen {
         else {
             App info = APPS.stream().filter(x -> x.id().equals(app)).findFirst().orElse(APPS.get(0));
             // шапка приложения: косая плашка цвета приложения, крупное название
-            ctx.fill(sx, sy + 10, sx + sw, sy + 28, 0xFF15101D);
+            ctx.fill(sx, sy + 10, sx + sw, sy + 28, 0xFF131312);
             Ui.slant(ctx, sx + 18, sy + 12, textRenderer.getWidth(info.title().toUpperCase()) + 12, 14, 4, info.color() | 0xFF000000);
             ctx.fill(sx, sy + 27, sx + sw, sy + 28, info.color() | 0xFF000000);
             boolean backHov = hover(sx, sy + 10, 18, 18);
@@ -221,12 +221,12 @@ public class PhoneScreen extends LifeScreen {
         World w = mc().world;
         // часы крупно, дата
         Ui.big(ctx, textRenderer, LifeHud.clock(w.getTimeOfDay() % 24000), sx + sw / 2f, sy + 14, 2.6f, 0xFFFFFFFF, 1);
-        Ui.small(ctx, textRenderer, ("День " + (w.getTimeOfDay() / 24000 + 1) + " · Новоград").toUpperCase(), sx + sw / 2f, sy + 37, 0.75f, 0xFFD8D0F0, 1);
+        Ui.small(ctx, textRenderer, ("День " + (w.getTimeOfDay() / 24000 + 1) + " · Новоград").toUpperCase(), sx + sw / 2f, sy + 37, 0.75f, 0xFFD8D6D0, 1);
         // виджет баланса: стекло, деньги зелёным
         int by = sy + 47;
-        ctx.fill(sx + 7, by, sx + sw - 7, by + 22, 0x900B0812);
+        ctx.fill(sx + 7, by, sx + sw - 7, by + 22, 0x900A0A0A);
         ctx.fill(sx + 7, by, sx + 9, by + 22, Ui.MONEY);
-        Ui.small(ctx, textRenderer, "БАЛАНС", sx + 13, by + 3, 0.65f, 0xFFB8B2CC, 0);
+        Ui.small(ctx, textRenderer, "БАЛАНС", sx + 13, by + 3, 0.65f, 0xFFB9B7B1, 0);
         Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money), sx + 13, by + 10, 1f, Ui.MONEY, 0);
         String job = Jobs.Job.of(d.job).title;
         Ui.small(ctx, textRenderer, job, sx + sw - 11, by + 12, 0.7f, 0xFFFFFFFF, 2);
@@ -298,12 +298,12 @@ public class PhoneScreen extends LifeScreen {
         ctx.drawText(textRenderer, "НОВОГРАД БАНК •••• 2024", sx + 11, y + 4, 0xFFB8F0C8, false);
         bigText(ctx, "$" + d.money, sx + 11 + textRenderer.getWidth("$" + d.money), y + 16, 1.5f, 0xFFFFFFFF);
         int ly = y + 40;
-        ctx.drawText(textRenderer, "Заработано: $" + d.earned, sx + 8, ly, 0xFFE6E2F0, false);
-        ctx.drawText(textRenderer, "Потрачено: $" + d.spent, sx + 8, ly + 10, 0xFFE6E2F0, false);
+        ctx.drawText(textRenderer, "Заработано: $" + d.earned, sx + 8, ly, 0xFFE7E5DE, false);
+        ctx.drawText(textRenderer, "Потрачено: $" + d.spent, sx + 8, ly + 10, 0xFFE7E5DE, false);
         if (d.casinoWon + d.casinoLost > 0) ctx.drawText(textRenderer, "Казино: +" + d.casinoWon + " / −" + d.casinoLost, sx + 8, ly + 20, 0xFFFF5A7A, false);
         button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, "Снять $50", 0xFF3A7BD5, d.money >= 50, () -> atm("withdraw", 50));
         button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Внести", 0xFF3A7BD5, true, () -> atm("deposit", 0));
-        ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 89, 0xFFB8B2CC, false);
+        ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 89, 0xFFB9B7B1, false);
         button(ctx, sx + 8, y + 150, sw - 16, 14, "Перевести", 0xFF2FA84F, !toField.getText().isEmpty() && !amountField.getText().isEmpty(), () -> {
             NbtCompound n = new NbtCompound();
             n.putString("to", toField.getText());
@@ -350,12 +350,12 @@ public class PhoneScreen extends LifeScreen {
             if (j == Jobs.Job.NONE) continue;
             boolean can = true; // учёбы больше нет — работа открыта всем
             boolean mine = j == cur;
-            roundRect(ctx, sx + 6, yy, sw - 12, 54, mine ? 0xFF22305A : 0xFF1C1626);
-            ctx.drawText(textRenderer, j.title, sx + 10, yy + 3, can ? 0xFFFFFFFF : 0xFF7A748C, false);
+            roundRect(ctx, sx + 6, yy, sw - 12, 54, mine ? 0xFF22305A : 0xFF1A1A19);
+            ctx.drawText(textRenderer, j.title, sx + 10, yy + 3, can ? 0xFFFFFFFF : 0xFF7A7975, false);
             ctx.getMatrices().push();
             ctx.getMatrices().translate(sx + 10, yy + 13, 0);
             ctx.getMatrices().scale(0.75f, 0.75f, 1);
-            wrap(ctx, j.desc, 0, 0, (int) ((sw - 20) / 0.75f), 0xFFA9A3BC);
+            wrap(ctx, j.desc, 0, 0, (int) ((sw - 20) / 0.75f), 0xFFA9A8A3);
             ctx.getMatrices().pop();
             if (mine) button(ctx, sx + sw - 54, yy + 2, 46, 11, "Уволиться", 0xFFE53935, true, () -> NovogradClient.send("job_quit"));
             else if (can) button(ctx, sx + sw - 54, yy + 2, 46, 11, "Устроиться", 0xFF2FA84F, true, () -> {
@@ -377,16 +377,16 @@ public class PhoneScreen extends LifeScreen {
 
     private void messages(DrawContext ctx, int y) {
         List<String> msgs = NovogradClient.data.messages;
-        if (msgs.isEmpty()) center(ctx, "Сообщений нет", sx + sw / 2, y + 20, 0xFF8F89A3);
+        if (msgs.isEmpty()) center(ctx, "Сообщений нет", sx + sw / 2, y + 20, 0xFF8F8E8A);
         int yy = y - scroll;
         for (String m : msgs) {
             String[] parts = m.split("\t");
             String from = parts[0], text = parts.length > 1 ? parts[1] : "", day = parts.length > 2 ? "день " + parts[2] : "";
             int th = textRenderer.wrapLines(Text.literal(text), sw - 22).size() * 10;
-            roundRect(ctx, sx + 6, yy, sw - 12, th + 16, 0xFF1C1626);
+            roundRect(ctx, sx + 6, yy, sw - 12, th + 16, 0xFF1A1A19);
             ctx.drawText(textRenderer, from, sx + 10, yy + 3, 0xFF62E57E, false);
-            ctx.drawText(textRenderer, day, sx + sw - 10 - textRenderer.getWidth(day), yy + 3, 0xFF8A8598, false);
-            wrap(ctx, text, sx + 10, yy + 13, sw - 22, 0xFFE6E2F0);
+            ctx.drawText(textRenderer, day, sx + sw - 10 - textRenderer.getWidth(day), yy + 3, 0xFF8A8985, false);
+            wrap(ctx, text, sx + 10, yy + 13, sw - 22, 0xFFE7E5DE);
             yy += th + 20;
         }
     }
@@ -422,7 +422,7 @@ public class PhoneScreen extends LifeScreen {
                 }
             }
         }
-        ctx.drawBorder(mx - 1, my - 1, size + 2, size + 2, 0xFFE6E2F0);
+        ctx.drawBorder(mx - 1, my - 1, size + 2, size + 2, 0xFFE7E5DE);
         // цель задания
         LifeData d = NovogradClient.data;
         if (d.taskPos != null && !d.taskKind.isEmpty()) {
@@ -439,14 +439,14 @@ public class PhoneScreen extends LifeScreen {
         ctx.fill(0, -2, 1, 2, 0xFF6EC8FF);
         ctx.getMatrices().pop();
         int ly = my + size + 4;
-        ctx.drawText(textRenderer, "X " + cx + "  Z " + cz, sx + 8, ly, 0xFFE6E2F0, false);
+        ctx.drawText(textRenderer, "X " + cx + "  Z " + cz, sx + 8, ly, 0xFFE7E5DE, false);
         if (d.taskPos != null && !d.taskKind.isEmpty())
             ctx.drawText(textRenderer, "● цель: " + d.taskPos.getX() + ", " + d.taskPos.getZ(), sx + 8, ly + 10, 0xFFE53935, false);
     }
 
     private void casino(DrawContext ctx, int y) {
         center(ctx, "18+", sx + sw / 2, y + 10, 0xFFE53935);
-        wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
+        wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
     }
 
     /** «Радио»: станции Новограда в наушниках — слушай пешком; в машине играет та же станция. */
@@ -457,16 +457,16 @@ public class PhoneScreen extends LifeScreen {
         for (int i = 0; i < st.length; i++) {
             boolean on = com.yompix.novograd.client.CarRadio.pocket && cur == i;
             int col = 0xFF000000 | Integer.parseInt(st[i][3], 16);
-            roundRect(ctx, sx + 6, yy, sw - 12, 20, on ? 0xFF4A1830 : 0xFF1C1626);
+            roundRect(ctx, sx + 6, yy, sw - 12, 20, on ? 0xFF3A1418 : 0xFF1A1A19);
             ctx.fill(sx + 8, yy + 3, sx + 10, yy + 17, col);
-            ctx.drawText(textRenderer, (on ? "♪ " : "") + st[i][0], sx + 14, yy + 2, on ? col : 0xFFE6E2F0, false);
-            Ui.small(ctx, textRenderer, st[i][2], sx + 14, yy + 12, 0.7f, 0xFF9A93AE, 0);
+            ctx.drawText(textRenderer, (on ? "♪ " : "") + st[i][0], sx + 14, yy + 2, on ? col : 0xFFE7E5DE, false);
+            Ui.small(ctx, textRenderer, st[i][2], sx + 14, yy + 12, 0.7f, 0xFF9A9894, 0);
             final int idx = i;
             area(sx + 6, yy, sw - 12, 20, () -> com.yompix.novograd.client.CarRadio.pocket(idx));
             yy += 22;
         }
         button(ctx, sx + 8, yy + 2, sw - 16, 14, "Выключить", 0xFF8E8E93, com.yompix.novograd.client.CarRadio.pocket, () -> com.yompix.novograd.client.CarRadio.pocket(-1));
-        Ui.small(ctx, textRenderer, "В машине: колесо мыши или R — станция", sx + sw / 2f, yy + 22, 0.7f, 0xFF9A93AE, 1);
+        Ui.small(ctx, textRenderer, "В машине: колесо мыши или R — станция", sx + sw / 2f, yy + 22, 0.7f, 0xFF9A9894, 1);
     }
 
     public static void play(String id) {
@@ -513,12 +513,12 @@ public class PhoneScreen extends LifeScreen {
         int yy = y + 12 - scroll;
         for (var e : com.yompix.novograd.life.Achievements.ALL.entrySet()) {
             boolean has = d.achievements.contains(e.getKey());
-            roundRect(ctx, sx + 6, yy, sw - 12, 22, has ? 0xFF3A2E10 : 0xFF1C1626);
-            ctx.drawText(textRenderer, (has ? "★ " : "☆ ") + e.getValue()[0], sx + 10, yy + 3, has ? 0xFFFFC428 : 0xFF7A748C, false);
+            roundRect(ctx, sx + 6, yy, sw - 12, 22, has ? 0xFF3A2E10 : 0xFF1A1A19);
+            ctx.drawText(textRenderer, (has ? "★ " : "☆ ") + e.getValue()[0], sx + 10, yy + 3, has ? 0xFFFFC428 : 0xFF7A7975, false);
             ctx.getMatrices().push();
             ctx.getMatrices().translate(sx + 10, yy + 13, 0);
             ctx.getMatrices().scale(0.7f, 0.7f, 1);
-            ctx.drawText(textRenderer, e.getValue()[1], 0, 0, 0xFF9A94AE, false);
+            ctx.drawText(textRenderer, e.getValue()[1], 0, 0, 0xFF9A9994, false);
             ctx.getMatrices().pop();
             yy += 24;
         }
@@ -565,9 +565,9 @@ public class PhoneScreen extends LifeScreen {
             if (yy + 16 >= top && yy <= bottom) {
                 String id = (String) o[0], name = (String) o[1];
                 int price = com.yompix.novograd.life.Taxi.price(me, (Vec3d) o[2]);
-                roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFF1C1626);
+                roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFF1A1A19);
                 String shown = textRenderer.getWidth(name) > nameW ? textRenderer.trimToWidth(name, nameW - 6) + "…" : name;
-                ctx.drawText(textRenderer, shown, sx + 10, yy + 4, 0xFFE6E2F0, false);
+                ctx.drawText(textRenderer, shown, sx + 10, yy + 4, 0xFFE7E5DE, false);
                 if (yy >= top - 2 && yy + 16 <= bottom + 2) button(ctx, sx + sw - bw - 8, yy + 2, bw, 12, "$" + price, 0xFFF7C600, NovogradClient.data.money >= price, () -> callTaxi(id));
             }
             yy += 18;
@@ -596,7 +596,7 @@ public class PhoneScreen extends LifeScreen {
         for (var e : list) {
             String name = e.getProfile().getName();
             var pl = mc().world.getPlayers().stream().filter(p -> p.getGameProfile().getName().equals(name)).findFirst().orElse(null);
-            roundRect(ctx, sx + 6, yy, sw - 12, 26, 0xFF1C1626);
+            roundRect(ctx, sx + 6, yy, sw - 12, 26, 0xFF1A1A19);
             ctx.drawText(textRenderer, name + (name.equals(mc().player.getGameProfile().getName()) ? " (ты)" : ""), sx + 10, yy + 3, 0xFFB79CFF, false);
             String where = pl == null ? "далеко" : (int) pl.distanceTo(mc().player) + " м от тебя";
             for (var el : com.yompix.novograd.client.story.ClientStory.players.getList("list", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
@@ -609,19 +609,19 @@ public class PhoneScreen extends LifeScreen {
                     button(ctx, sx + sw - 46, yy + 6, 38, 13, "Метка", 0xFF7E57C2, true, () -> com.yompix.novograd.client.story.ClientStory.waypoint = at);
                 }
             }
-            ctx.drawText(textRenderer, where, sx + 10, yy + 14, 0xFF9A94AE, false);
+            ctx.drawText(textRenderer, where, sx + 10, yy + 14, 0xFF9A9994, false);
             if (pl != null && pl != mc().player) {
                 final Vec3d at = pl.getPos();
                 button(ctx, sx + sw - 46, yy + 6, 38, 13, "Метка", 0xFF7E57C2, true, () -> com.yompix.novograd.client.story.ClientStory.waypoint = at);
             }
             yy += 28;
         }
-        wrap(ctx, "Сюжет общий: если друг ушёл дальше, ты подхватишь его историю при входе. Деньги можно перевести в «Банке».", sx + 8, yy + 2, sw - 16, 0xFF8F89A3);
+        wrap(ctx, "Сюжет общий: если друг ушёл дальше, ты подхватишь его историю при входе. Деньги можно перевести в «Банке».", sx + 8, yy + 2, sw - 16, 0xFF8F8E8A);
     }
 
     private void homes(DrawContext ctx, int y) {
         LifeData d = NovogradClient.data;
-        wrap(ctx, "Купи свой дом — после сна будешь просыпаться там.", sx + 8, y, sw - 16, 0xFFB8B2CC);
+        wrap(ctx, "Купи свой дом — после сна будешь просыпаться там.", sx + 8, y, sw - 16, 0xFFB9B7B1);
         int yy = y + 24;
         if (d.flags.contains("own_home")) {
             roundRect(ctx, sx + 6, yy, sw - 12, 18, 0xFF143A20);
@@ -630,8 +630,8 @@ public class PhoneScreen extends LifeScreen {
         }
         for (String[] h : com.yompix.novograd.life.CityLife.HOUSES) {
             boolean own = d.flags.contains("house:" + h[0]);
-            roundRect(ctx, sx + 6, yy, sw - 12, 34, own ? 0xFF143A20 : 0xFF1C1626);
-            ctx.drawText(textRenderer, h[1], sx + 10, yy + 4, 0xFFE6E2F0, false);
+            roundRect(ctx, sx + 6, yy, sw - 12, 34, own ? 0xFF143A20 : 0xFF1A1A19);
+            ctx.drawText(textRenderer, h[1], sx + 10, yy + 4, 0xFFE7E5DE, false);
             if (own) ctx.drawText(textRenderer, "Куплен ✔", sx + 10, yy + 18, 0xFF62E57E, false);
             else button(ctx, sx + 10, yy + 16, sw - 28, 13, "Купить $" + h[2], 0xFFA0785A, d.adult() && d.money >= Integer.parseInt(h[2]), () -> {
                 net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
@@ -648,20 +648,20 @@ public class PhoneScreen extends LifeScreen {
         LifeData d = NovogradClient.data;
         if (d.storyDone) {
             center(ctx, "Сюжет пройден!", sx + sw / 2, y + 10, 0xFF2FA84F);
-            wrap(ctx, "Город твой: гоняй, грабь банки, покупай бизнесы и захватывай районы. Ники, Брик и Роза всегда на связи.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
+            wrap(ctx, "Город твой: гоняй, грабь банки, покупай бизнесы и захватывай районы. Ники, Брик и Роза всегда на связи.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
             return;
         }
         if (!o.contains("mission")) {
-            wrap(ctx, "Сюжет начнётся в мире «Новоград: Город».", sx + 8, y + 10, sw - 16, 0xFFD0CBE0);
+            wrap(ctx, "Сюжет начнётся в мире «Новоград: Город».", sx + 8, y + 10, sw - 16, 0xFFD1CFC9);
             return;
         }
         ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFFFFC428, false);
         roundRect(ctx, sx + 6, y + 12, sw - 12, 16, 0xFF3A2E10);
         ctx.drawText(textRenderer, o.getString("mission"), sx + 10, y + 16, 0xFFFFE6A8, false);
         ctx.drawText(textRenderer, "Что делать:", sx + 8, y + 34, 0xFFFFFFFF, false);
-        int h = wrap(ctx, o.getString("hint"), sx + 8, y + 45, sw - 16, 0xFFD0CBE0);
+        int h = wrap(ctx, o.getString("hint"), sx + 8, y + 45, sw - 16, 0xFFD1CFC9);
         if (o.contains("extra")) wrap(ctx, o.getString("extra"), sx + 8, y + 49 + h, sw - 16, 0xFF6EC8FF);
-        wrap(ctx, "Золотой столб света показывает, куда идти. Карта в телефоне тоже.", sx + 8, y + 90 + h, sw - 16, 0xFF8F89A3);
+        wrap(ctx, "Золотой столб света показывает, куда идти. Карта в телефоне тоже.", sx + 8, y + 90 + h, sw - 16, 0xFF8F8E8A);
     }
 
     private void weather(DrawContext ctx, int y) {
@@ -676,7 +676,7 @@ public class PhoneScreen extends LifeScreen {
         ctx.drawText(textRenderer, sky, sx + 62, y + 16, 0xFFFFFFFF, true);
         ctx.drawText(textRenderer, LifeHud.clock(tod), sx + 62, y + 28, 0xFFE0E8FF, false);
         String[] hours = {"Восход 6:00", "Закат 18:30", "Ночью — неон и облавы"};
-        for (int i = 0; i < hours.length; i++) ctx.drawText(textRenderer, hours[i], sx + 8, y + 68 + i * 11, 0xFFD0CBE0, false);
+        for (int i = 0; i < hours.length; i++) ctx.drawText(textRenderer, hours[i], sx + 8, y + 68 + i * 11, 0xFFD1CFC9, false);
     }
 
     @Override
@@ -687,6 +687,6 @@ public class PhoneScreen extends LifeScreen {
 
     @Override
     protected void background(DrawContext ctx) {
-        ctx.fillGradient(0, 0, width, height, 0x40050210, 0x90050210);
+        ctx.fillGradient(0, 0, width, height, 0x40050404, 0x90050404);
     }
 }

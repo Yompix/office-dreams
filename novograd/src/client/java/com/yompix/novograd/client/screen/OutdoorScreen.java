@@ -77,15 +77,15 @@ public class OutdoorScreen extends LifeScreen {
             int bx = x + 10 + i * (cw + 6);
             ctx.fill(bx, cy, bx + cw, cy + 34, now ? Ui.alpha(colors[i], 0.35f) : 0x40202830);
             if (now) ctx.fill(bx, cy, bx + cw, cy + 2, colors[i]);
-            Ui.big(ctx, textRenderer, titles[i], bx + cw / 2f, cy + 8, now ? 1.3f : 1f, now ? 0xFFFFFFFF : 0xFF8A8598, 1);
+            Ui.big(ctx, textRenderer, titles[i], bx + cw / 2f, cy + 8, now ? 1.3f : 1f, now ? 0xFFFFFFFF : 0xFF8A8985, 1);
             if (now) Ui.small(ctx, textRenderer, "день " + (s.getInt("dayIn") + 1) + " из " + s.getInt("len"), bx + cw / 2f, cy + 24, 0.75f, colors[i], 1);
         }
         int ty = cy + 44;
-        ctx.drawText(textRenderer, "Сегодня: день " + s.getLong("day") + (s.getBoolean("real") ? " · время года по настоящему календарю" : " · сезон длится " + s.getInt("len") + " дн."), x + 12, ty, 0xFFE6E2F0, false);
+        ctx.drawText(textRenderer, "Сегодня: день " + s.getLong("day") + (s.getBoolean("real") ? " · время года по настоящему календарю" : " · сезон длится " + s.getInt("len") + " дн."), x + 12, ty, 0xFFE7E5DE, false);
         ty += 14;
         String hol = s.getString("holiday");
         if (!hol.equals("NONE")) {
-            Ui.big(ctx, textRenderer, "🎉 " + s.getString("holidayTitle"), x + 12, ty, 1.3f, hol.equals("HALLOWEEN") ? 0xFFFF8A1E : 0xFFFF3B4A, 0);
+            Ui.big(ctx, textRenderer, s.getString("holidayTitle"), x + 12, ty, 1.3f, hol.equals("HALLOWEEN") ? 0xFFFF8A1E : 0xFFFF3B4A, 0);
             ty += 16;
             String what = switch (hol) {
                 case "NEW_YEAR" -> "Ёлка на площади делового центра · подарки спрятаны по городу (ПКМ — открыть) · салют в полночь";
@@ -148,7 +148,7 @@ public class OutdoorScreen extends LifeScreen {
             var item = Registries.ITEM.get(Identifier.of(p.getString("item")));
             int px = x + 12 + col * ((w - 24) / 2), py = ty + (i / 2) * 18;
             ctx.drawItem(new ItemStack(item), px, py);
-            ctx.drawText(textRenderer, item.getName().getString(), px + 19, py + 4, 0xFFE6E2F0, false);
+            ctx.drawText(textRenderer, item.getName().getString(), px + 19, py + 4, 0xFFE7E5DE, false);
             String pr = "$" + p.getInt("price");
             ctx.drawText(textRenderer, pr, px + (w - 24) / 2 - 10 - textRenderer.getWidth(pr), py + 4, GREEN, false);
             col = 1 - col;
@@ -166,7 +166,7 @@ public class OutdoorScreen extends LifeScreen {
 
     // ------------------------------------------------------------------ рыбалка
     private void fish(DrawContext ctx, int x, int cy, int w, NbtCompound n) {
-        ctx.drawText(textRenderer, "Поймано рыб: " + n.getInt("caught") + (n.getInt("wins") > 0 ? " · побед в турнирах: " + n.getInt("wins") : ""), x + 12, cy, 0xFFE6E2F0, false);
+        ctx.drawText(textRenderer, "Поймано рыб: " + n.getInt("caught") + (n.getInt("wins") > 0 ? " · побед в турнирах: " + n.getInt("wins") : ""), x + 12, cy, 0xFFE7E5DE, false);
         int ty = cy + 14;
         boolean at = shop.equals("fish") && n.getBoolean("fishNear") || shop.equals("hunt");
         if (shop.equals("fish") && n.getBoolean("fishNear")) {
@@ -192,9 +192,9 @@ public class OutdoorScreen extends LifeScreen {
             NbtCompound r = rec.getCompound(i);
             int px = x + 12 + (i % 2) * half, py = ty + (i / 2) * 11;
             int g = r.getInt("g");
-            ctx.drawText(textRenderer, r.getString("name"), px, py, g > 0 ? 0xFFE6E2F0 : 0xFF6E6880, false);
+            ctx.drawText(textRenderer, r.getString("name"), px, py, g > 0 ? 0xFFE7E5DE : 0xFF6E6D69, false);
             String v = g > 0 ? OutdoorClient.kg(g) : "—";
-            ctx.drawText(textRenderer, v, px + half - 12 - textRenderer.getWidth(v), py, g > 0 ? 0xFF26C6DA : 0xFF6E6880, false);
+            ctx.drawText(textRenderer, v, px + half - 12 - textRenderer.getWidth(v), py, g > 0 ? 0xFF26C6DA : 0xFF6E6D69, false);
         }
         ty += (rec.size() + 1) / 2 * 11 + 6;
         // турнир
@@ -207,7 +207,7 @@ public class OutdoorScreen extends LifeScreen {
         if (on)
             for (int i = 0; i < Math.min(5, rows.size()); i++) {
                 NbtCompound r = rows.getCompound(i);
-                int c = r.getBoolean("me") ? Ui.GOLD : 0xFFE6E2F0;
+                int c = r.getBoolean("me") ? Ui.GOLD : 0xFFE7E5DE;
                 ctx.drawText(textRenderer, (i + 1) + ". " + r.getString("name"), x + 16, ty + i * 10, c, false);
                 String v = OutdoorClient.kg(r.getInt("g"));
                 ctx.drawText(textRenderer, v, x + w / 2 - textRenderer.getWidth(v), ty + i * 10, c, false);

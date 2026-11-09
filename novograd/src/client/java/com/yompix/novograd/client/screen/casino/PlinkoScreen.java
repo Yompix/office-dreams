@@ -90,7 +90,7 @@ public class PlinkoScreen extends CasinoScreen {
             float col0 = rights(b.path(), r) - r / 2f, col1 = rights(b.path(), r + 1) - (r + 1) / 2f;
             float bx = cx + (col0 + (col1 - col0) * k) * gap;
             float by = top + (r + k) * gap + gap - 4 - (float) Math.sin(k * Math.PI) * gap * 0.35f;
-            disc(ctx, (int) bx, (int) by, 3, 0xFFFF2E88);
+            disc(ctx, (int) bx, (int) by, 3, 0xFFD42A3A);
             ctx.fill((int) bx - 1, (int) by - 2, (int) bx + 1, (int) by, 0xFFFFC1DA);
         }
         // панель

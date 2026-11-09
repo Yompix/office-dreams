@@ -468,16 +468,16 @@ public final class Housing {
         LifeData d = Life.get(p);
         State st = state(p.getServer());
         if (owns(p, l)) {
-            p.sendMessage(Text.literal("🏠 Это уже твоё жильё").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Это уже твоё жильё").formatted(Formatting.YELLOW), true);
             return;
         }
         UUID other = st.taken.get(l.id);
         if (other != null && !other.equals(p.getUuid()) && l.prop < 0) {
-            p.sendMessage(Text.literal("🏠 Здесь уже живёт другой игрок").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Здесь уже живёт другой игрок").formatted(Formatting.RED), true);
             return;
         }
         if (Economy.act(d) < l.act) {
-            p.sendMessage(Text.literal("🏠 Риелтор: «Этот объект покажем позже — сначала заработай имя в городе» (сюжет, акт " + (l.act + 1) + ")").formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Риелтор: «Этот объект покажем позже — сначала заработай имя в городе» (сюжет, акт " + (l.act + 1) + ")").formatted(Formatting.YELLOW), false);
             return;
         }
         if (rent ? !l.rentable() : !l.buyable()) return;
@@ -535,7 +535,7 @@ public final class Housing {
     // ------------------------------------------------------------------ сейф, сон, гардероб
     private static void safe(ServerPlayerEntity p, boolean in, int amount) {
         if (here(p) == null) {
-            p.sendMessage(Text.literal("💰 Сейф — дома. Приезжай к себе").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Сейф — дома. Приезжай к себе").formatted(Formatting.YELLOW), true);
             return;
         }
         LifeData d = Life.get(p);
@@ -553,8 +553,8 @@ public final class Housing {
         }
         st.markDirty();
         p.playSoundToPlayer(SoundEvents.BLOCK_IRON_DOOR_CLOSE, SoundCategory.BLOCKS, 0.6f, 1.4f);
-        p.sendMessage(Text.literal(in ? "💰 В сейф: $" + take + " грязными (в сейфе $" + o.safe + ") — не пропадут при гибели и аресте"
-                : "💰 Из сейфа: $" + take + " (осталось $" + o.safe + ")").formatted(Formatting.GOLD), true);
+        p.sendMessage(Text.literal(in ? "В сейф: $" + take + " грязными (в сейфе $" + o.safe + ") — не пропадут при гибели и аресте"
+                : "Из сейфа: $" + take + " (осталось $" + o.safe + ")").formatted(Formatting.GOLD), true);
         Life.sync(p);
     }
 
@@ -566,11 +566,11 @@ public final class Housing {
     private static void sleep(ServerPlayerEntity p) {
         Listing l = here(p);
         if (l == null) {
-            p.sendMessage(Text.literal("🛏 Спать — дома. Приезжай к себе").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Спать — дома. Приезжай к себе").formatted(Formatting.YELLOW), true);
             return;
         }
         if (Wanted.stars(p) > 0) {
-            p.sendMessage(Text.literal("🛏 Не уснуть, пока тебя ищет полиция").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Не уснуть, пока тебя ищет полиция").formatted(Formatting.RED), true);
             return;
         }
         ServerWorld w = p.getServerWorld();
@@ -611,7 +611,7 @@ public final class Housing {
         ServerWorld w = p.getServerWorld();
         w.getChunk(BlockPos.ofFloored(best.inside));
         p.teleport(w, best.inside.x, best.inside.y, best.inside.z, p.getYaw(), 0);
-        p.sendMessage(Text.literal("🏠 Тебя выписали из больницы — отлежался дома: " + best.name).formatted(Formatting.GREEN), false);
+        p.sendMessage(Text.literal("Тебя выписали из больницы — отлежался дома: " + best.name).formatted(Formatting.GREEN), false);
     }
 
     // ------------------------------------------------------------------ тик
@@ -634,7 +634,7 @@ public final class Housing {
             String was = INSIDE.put(p.getUuid(), h == null ? "" : h.id);
             if (h != null && !h.id.equals(was)) {
                 p.setSpawnPoint(w.getRegistryKey(), BlockPos.ofFloored(h.inside), 0, true, false);
-                p.sendMessage(Text.literal("🏠 " + h.name + " · телефон → «Дом»: сейф, гардероб, сон, гараж").formatted(Formatting.GREEN), true);
+                p.sendMessage(Text.literal(h.name + " · телефон → «Дом»: сейф, гардероб, сон, гараж").formatted(Formatting.GREEN), true);
             }
             signs(p);
             if (t % 100 == 3) heli(p);
@@ -658,7 +658,7 @@ public final class Housing {
                     d.money -= l.rent;
                     d.spent += l.rent;
                     h.unpaid = 0;
-                    p.sendMessage(Text.literal("🏠 Аренда «" + l.name + "»: −$" + l.rent).formatted(Formatting.GOLD), false);
+                    p.sendMessage(Text.literal("Аренда «" + l.name + "»: −$" + l.rent).formatted(Formatting.GOLD), false);
                 } else if (++h.unpaid >= 3) {
                     evict(p.getServer(), p.getUuid(), l);
                     Life.message(p, "Арендодатель", "Три дня без оплаты — вы выселены из «" + l.name + "». Машины из гаража на штрафстоянке.");
@@ -704,14 +704,14 @@ public final class Housing {
             String name;
             Formatting col;
             if (owns(p, l)) {
-                name = "🏠 " + l.name + " — твой дом";
+                name = l.name + " — твой дом";
                 col = Formatting.GREEN;
             } else if (who != null) {
                 ServerPlayerEntity o = p.getServer().getPlayerManager().getPlayer(who);
-                name = "🏠 " + l.name + " — живёт " + (o != null ? o.getName().getString() : "другой игрок");
+                name = l.name + " — живёт " + (o != null ? o.getName().getString() : "другой игрок");
                 col = Formatting.GRAY;
             } else {
-                name = "🏠 " + (l.buyable() ? "Продаётся $" + l.price : "") + (l.buyable() && l.rentable() ? " · " : "")
+                name = "" + (l.buyable() ? "Продаётся $" + l.price : "") + (l.buyable() && l.rentable() ? " · " : "")
                         + (l.rentable() ? "Сдаётся $" + l.rent + "/сутки" : "") + " — телефон → «Дом»";
                 col = Formatting.GOLD;
             }

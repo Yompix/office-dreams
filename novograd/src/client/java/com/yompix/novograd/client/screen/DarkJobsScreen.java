@@ -17,7 +17,7 @@ import net.minecraft.nbt.NbtList;
  */
 public class DarkJobsScreen extends LifeScreen {
     private static final String[] TABS = {"Ограбления", "Заказы", "Контрабанда"};
-    private static final int[] TAB_COLORS = {0xFFFFC428, 0xFFFF3B4A, 0xFF28E6FF};
+    private static final int[] TAB_COLORS = {0xFFFFC428, 0xFFFF3B4A, 0xFF3FB8B0};
     private static int tab, heist;
 
     public DarkJobsScreen() {
@@ -55,14 +55,14 @@ public class DarkJobsScreen extends LifeScreen {
         float an = openAnim();
         int w = Math.min(410, width - 12), h = Math.min(236, height - 6);
         int x = width / 2 - w / 2, y = (int) (height / 2 - h / 2 + (1 - an) * 24);
-        panel(ctx, x, y, w, h, 0xFF2A0610, 0xFF05030A);
+        panel(ctx, x, y, w, h, 0xFF2A0610, 0xFF040404);
         title(ctx, "ТЁМНЫЕ ДЕЛА", x + 8, y + 7, Ui.RED);
         var d = NovogradClient.data;
         Ui.small(ctx, textRenderer, "на карте $" + d.money + " · грязными $" + d.dirty, x + w - 8, y + 10, 0.7f, Ui.MONEY, 2);
         int tw = (w - 16 - 8) / 3;
         for (int i = 0; i < 3; i++) {
             final int k = i;
-            button(ctx, x + 8 + i * (tw + 4), y + 24, tw, 13, (tab == i ? "▶ " : "") + TABS[i], tab == i ? TAB_COLORS[i] : 0xFF4A3A55, true, () -> tab = k);
+            button(ctx, x + 8 + i * (tw + 4), y + 24, tw, 13, (tab == i ? "▶ " : "") + TABS[i], tab == i ? TAB_COLORS[i] : 0xFF434240, true, () -> tab = k);
         }
         NbtCompound s = UnderworldClient.state;
         int act = s.contains("act") ? s.getInt("act") : com.yompix.novograd.gta.Economy.act(d);
@@ -78,12 +78,12 @@ public class DarkJobsScreen extends LifeScreen {
     private void heists(DrawContext ctx, NbtCompound s, int act, int x, int y, int w, int h) {
         if (act < BigHeists.ACT) {
             wrap(ctx, "Седой: «Большие дела — не для новичков. Когда о тебе заговорит весь город (акт IV), приходи. "
-                    + "Три цели: порт, Сити-Банк и казино „Корона“. Доска планирования будет у тебя дома.»", x + 14, y + 10, w - 28, 0xFFB8A8B8);
+                    + "Три цели: порт, Сити-Банк и казино „Корона“. Доска планирования будет у тебя дома.»", x + 14, y + 10, w - 28, 0xFFB0AFA9);
             return;
         }
         NbtList list = s.getList("heists", NbtElement.COMPOUND_TYPE);
         if (list.isEmpty()) {
-            Ui.small(ctx, textRenderer, "загрузка…", x + w / 2f, y + 20, 0.8f, 0xFF8A8598, 1);
+            Ui.small(ctx, textRenderer, "загрузка…", x + w / 2f, y + 20, 0.8f, 0xFF8A8985, 1);
             return;
         }
         heist = Math.min(heist, list.size() - 1);
@@ -100,11 +100,11 @@ public class DarkJobsScreen extends LifeScreen {
         String id = c.getString("id");
         int iy = y + 54;
         Ui.small(ctx, textRenderer, "Добыча $" + c.getInt("min") / 1000 + "–" + c.getInt("max") / 1000 + " тыс.", x + 10, iy, 0.6f, Ui.MONEY, 0);
-        Ui.small(ctx, textRenderer, "Охрана " + c.getInt("guards") + " · камер " + c.getInt("cams"), x + 10, iy + 8, 0.6f, 0xFFB8A8B8, 0);
-        if (c.getInt("done") > 0) Ui.small(ctx, textRenderer, "Взято раз: " + c.getInt("done"), x + 10, iy + 16, 0.6f, 0xFFB8A8B8, 0);
+        Ui.small(ctx, textRenderer, "Охрана " + c.getInt("guards") + " · камер " + c.getInt("cams"), x + 10, iy + 8, 0.6f, 0xFFB0AFA9, 0);
+        if (c.getInt("done") > 0) Ui.small(ctx, textRenderer, "Взято раз: " + c.getInt("done"), x + 10, iy + 16, 0.6f, 0xFFB0AFA9, 0);
         if (c.getInt("cd") > 0) Ui.small(ctx, textRenderer, "Шум уляжется: " + c.getInt("cd") + " дн.", x + 10, iy + 24, 0.6f, Ui.RED, 0);
         wrap(ctx, board ? "§aТы у доски планирования" : "§7Доска — у тебя дома или в убежище. Подготовку можно и отсюда, старт — только у доски",
-                x + 10, iy + 36, 84, 0xFFB8A8B8);
+                x + 10, iy + 36, 84, 0xFFB0AFA9);
         // справа — доска
         int bx = x + 100, bw = w - 108;
         ctx.fill(bx - 4, y - 2, bx + bw + 2, y + h, 0x30FFC428);
@@ -134,10 +134,10 @@ public class DarkJobsScreen extends LifeScreen {
             for (int t = 0; t < 3; t++) {
                 final int role = r, tier = t;
                 button(ctx, bx + lw + t * (tbw + 3), ry, tbw, 12, BigHeists.CREW_SHORT[r][t] + " " + BigHeists.CUT[t] + "%",
-                        sel == t ? new int[]{0xFF62E57E, Ui.CYAN, Ui.PINK}[r] : 0xFF3A3448, !running, () -> bh(id, BigHeists.ROLES[role], tier));
+                        sel == t ? new int[]{0xFF62E57E, Ui.CYAN, Ui.PINK}[r] : 0xFF393836, !running, () -> bh(id, BigHeists.ROLES[role], tier));
             }
             String info = sel >= 0 ? BigHeists.CREW[r][sel] + ": " + BigHeists.CREW_INFO[r][sel] : "не выбран";
-            Ui.small(ctx, textRenderer, info, bx + lw, ry + 13, 0.55f, 0xFFB8A8B8, 0);
+            Ui.small(ctx, textRenderer, info, bx + lw, ry + 13, 0.55f, 0xFFB0AFA9, 0);
             if (sel >= 0) cut += BigHeists.CUT[sel];
             ry += 20;
         }
@@ -159,7 +159,7 @@ public class DarkJobsScreen extends LifeScreen {
 
     private int step(DrawContext ctx, int x, int y, int w, String name, String sub, boolean done, String btn, boolean enabled, Runnable go) {
         ctx.drawText(textRenderer, (done ? "§a✔ " : "§7○ ") + name, x, y, 0xFFFFFFFF, false);
-        Ui.small(ctx, textRenderer, sub, x + 10, y + 9, 0.55f, 0xFF9A90A8, 0);
+        Ui.small(ctx, textRenderer, sub, x + 10, y + 9, 0.55f, 0xFF979691, 0);
         if (!done) button(ctx, x + w - 62, y, 62, 13, btn, Ui.GOLD, enabled, () -> {
             go.run();
             if (!btn.startsWith("$")) close();
@@ -171,22 +171,22 @@ public class DarkJobsScreen extends LifeScreen {
     // ---------------------------------------------------------------- заказы
     private void contracts(DrawContext ctx, NbtCompound s, int act, int x, int y, int w) {
         if (act < 1) {
-            wrap(ctx, "Неизвестные номера тебе пока не пишут. Пройди немного сюжета (акт II).", x + 14, y + 10, w - 28, 0xFFB8A8B8);
+            wrap(ctx, "Неизвестные номера тебе пока не пишут. Пройди немного сюжета (акт II).", x + 14, y + 10, w - 28, 0xFFB0AFA9);
             return;
         }
-        Ui.small(ctx, textRenderer, "Выполнено заказов: " + s.getInt("done"), x + w - 10, y - 1, 0.6f, 0xFF9A90A8, 2);
+        Ui.small(ctx, textRenderer, "Выполнено заказов: " + s.getInt("done"), x + w - 10, y - 1, 0.6f, 0xFF979691, 2);
         if (s.contains("active")) {
             NbtCompound c = s.getCompound("active");
             int cy = card(ctx, x + 8, y + 6, w - 16, c, Ui.RED, true);
             Ui.small(ctx, textRenderer, "Сейчас цель: " + c.getString("now") + " · осталось " + c.getInt("left") / 60 + " мин", x + 14, cy, 0.7f, Ui.GOLD, 0);
             button(ctx, x + w - 98, cy + 10, 88, 14, "Отказаться", 0xFF8A3040, true, () -> act("uw_ct", "cancel", 0));
             wrap(ctx, "§7Метка на радаре ведёт к цели. Бонусы: способ — как просили; без свидетелей — никто из прохожих не видел; без розыска — через 3 секунды после дела нет звёзд.",
-                    x + 14, cy + 30, w - 28, 0xFF9A90A8);
+                    x + 14, cy + 30, w - 28, 0xFF979691);
             return;
         }
         NbtList l = s.getList("offers", NbtElement.COMPOUND_TYPE);
         if (l.isEmpty()) {
-            wrap(ctx, "Пока тихо. Заказы приходят СМС с неизвестного номера.", x + 14, y + 10, w - 28, 0xFFB8A8B8);
+            wrap(ctx, "Пока тихо. Заказы приходят СМС с неизвестного номера.", x + 14, y + 10, w - 28, 0xFFB0AFA9);
             button(ctx, x + w / 2 - 60, y + 34, 120, 14, "Ждать звонка", Ui.RED, true, () -> act("uw_ct", "refresh", 0));
             return;
         }
@@ -208,9 +208,9 @@ public class DarkJobsScreen extends LifeScreen {
         ctx.fill(x, y, x + w, y + (big ? 44 : 50), 0x30FFFFFF);
         ctx.fill(x, y, x + 2, y + (big ? 44 : 50), color);
         ctx.drawText(textRenderer, "§c" + c.getString("title") + " §f" + c.getString("name"), x + 6, y + 3, 0xFFFFFFFF, false);
-        Ui.small(ctx, textRenderer, c.getString("why"), x + 6, y + 13, 0.6f, 0xFFD0C0C8, 0);
+        Ui.small(ctx, textRenderer, c.getString("why"), x + 6, y + 13, 0.6f, 0xFFC8C6C0, 0);
         Ui.small(ctx, textRenderer, "Днём: " + c.getString("day") + " · ночью: " + c.getString("night") + (c.getInt("guards") > 0 ? " · охрана " + c.getInt("guards") : ""),
-                x + 6, y + 21, 0.6f, 0xFFB8A8B8, 0);
+                x + 6, y + 21, 0.6f, 0xFFB0AFA9, 0);
         Ui.small(ctx, textRenderer, "Способ: " + c.getString("method") + (c.getInt("bonus") > 0 ? " (+" + c.getInt("bonus") + "%: " + c.getString("hint") + ")" : ""),
                 x + 6, y + 29, 0.6f, Ui.GOLD, 0);
         Ui.small(ctx, textRenderer, "$" + c.getInt("pay") + " · " + c.getInt("min") + " мин · от: " + c.getString("client"), x + 6, y + (big ? 37 : 39), 0.65f, Ui.MONEY, 0);
@@ -220,10 +220,10 @@ public class DarkJobsScreen extends LifeScreen {
     // ---------------------------------------------------------------- контрабанда
     private void smuggle(DrawContext ctx, NbtCompound s, int act, int x, int y, int w) {
         if (act < 1) {
-            wrap(ctx, "Рыбак с незнакомыми не работает. Пройди немного сюжета (акт II).", x + 14, y + 10, w - 28, 0xFFB8A8B8);
+            wrap(ctx, "Рыбак с незнакомыми не работает. Пройди немного сюжета (акт II).", x + 14, y + 10, w - 28, 0xFFB0AFA9);
             return;
         }
-        Ui.small(ctx, textRenderer, "Доставлено партий: " + s.getInt("done"), x + w - 10, y - 1, 0.6f, 0xFF9A90A8, 2);
+        Ui.small(ctx, textRenderer, "Доставлено партий: " + s.getInt("done"), x + w - 10, y - 1, 0.6f, 0xFF979691, 2);
         if (s.contains("active")) {
             NbtCompound c = s.getCompound("active");
             int cy = cargo(ctx, x + 8, y + 6, w - 16, c);
@@ -231,12 +231,12 @@ public class DarkJobsScreen extends LifeScreen {
             Ui.small(ctx, textRenderer, "Сейчас: " + st[Math.min(2, c.getInt("stage"))] + " · осталось " + c.getInt("left") / 60 + " мин", x + 14, cy, 0.7f, Ui.CYAN, 0);
             button(ctx, x + w - 98, cy + 10, 88, 14, "Бросить груз", 0xFF8A3040, true, () -> act("uw_sm", "cancel", 0));
             wrap(ctx, "§7Катер: доведи до метки на воде. Самолёт: пролети над меткой ниже 40 м — груз сбросится. Береговая охрана: катера со стрелками и вертолёт. Без хвоста — +20%.",
-                    x + 14, cy + 30, w - 28, 0xFF9A90A8);
+                    x + 14, cy + 30, w - 28, 0xFF979691);
             return;
         }
         NbtList l = s.getList("offers", NbtElement.COMPOUND_TYPE);
         if (l.isEmpty()) {
-            wrap(ctx, "Рыбак пока молчит. Партии приходят СМС.", x + 14, y + 10, w - 28, 0xFFB8A8B8);
+            wrap(ctx, "Рыбак пока молчит. Партии приходят СМС.", x + 14, y + 10, w - 28, 0xFFB0AFA9);
             button(ctx, x + w / 2 - 60, y + 34, 120, 14, "Спросить Рыбака", Ui.CYAN, true, () -> act("uw_sm", "refresh", 0));
             return;
         }
@@ -259,7 +259,7 @@ public class DarkJobsScreen extends LifeScreen {
         ctx.fill(x, y, x + w, y + 40, 0x30FFFFFF);
         ctx.fill(x, y, x + 2, y + 40, rc);
         ctx.drawText(textRenderer, (c.getBoolean("plane") ? "✈ " : "⚓ ") + c.getString("cargo"), x + 6, y + 3, 0xFFFFFFFF, false);
-        Ui.small(ctx, textRenderer, c.getString("from") + " → " + c.getString("to") + " (" + c.getString("who") + ")", x + 6, y + 14, 0.6f, 0xFFD0C0C8, 0);
+        Ui.small(ctx, textRenderer, c.getString("from") + " → " + c.getString("to") + " (" + c.getString("who") + ")", x + 6, y + 14, 0.6f, 0xFFC8C6C0, 0);
         Ui.small(ctx, textRenderer, "Риск: " + c.getString("risk"), x + 6, y + 22, 0.6f, rc, 0);
         Ui.small(ctx, textRenderer, "$" + c.getInt("pay") + " · " + c.getInt("min") + " мин", x + 6, y + 30, 0.65f, Ui.MONEY, 0);
         return y + 44;

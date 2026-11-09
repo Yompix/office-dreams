@@ -419,7 +419,7 @@ public class CarEntity extends Entity {
             if (busR != null) return busR;
         }
         if (wrecked()) {
-            player.sendMessage(Text.literal("🔥 Машина разбита — её починят только в «Нитро-Гараже»"), true);
+            player.sendMessage(Text.literal("Машина разбита — её починят только в «Нитро-Гараже»"), true);
             return ActionResult.CONSUME;
         }
         if (hasNpcDriver() && player instanceof ServerPlayerEntity sp0 && !com.yompix.novograd.life.Taxi.isClientOf(sp0, this) && !player.isSneaking()) {
@@ -445,7 +445,7 @@ public class CarEntity extends Entity {
         }
         if (driver && owner != null && !owner.equals(player.getUuid()) && !player.isCreative()) {
             // за руль чужой машины нельзя; пассажиром — можно, когда хозяин уже сел
-            player.sendMessage(Text.literal("🔒 Это чужая машина: за руль садится только хозяин"), true);
+            player.sendMessage(Text.literal("Это чужая машина: за руль садится только хозяин"), true);
             return ActionResult.CONSUME;
         }
         if (player.startRiding(this) && driver) {
@@ -470,10 +470,10 @@ public class CarEntity extends Entity {
                     removeAllPassengers();
                     discard();
                 } else {
-                    p.sendMessage(Text.literal("🔧 Ещё " + (3 - hits) + " удар(а) — машина уйдёт в инвентарь"), true);
+                    p.sendMessage(Text.literal("Ещё " + (3 - hits) + " удар(а) — машина уйдёт в инвентарь"), true);
                 }
             } else if (!mine && !p.isCreative()) {
-                p.sendMessage(Text.literal("🚨 Это не твоя машина!"), true);
+                p.sendMessage(Text.literal("Это не твоя машина!"), true);
             }
         }
         return true;

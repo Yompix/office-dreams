@@ -11,13 +11,13 @@ import net.minecraft.util.math.MathHelper;
 
 /**
  * Общий стиль «Тёмные улицы»: почти чёрные полупрозрачные панели, косые плашки, жирные заголовки с обводкой,
- * неон (розовый, бирюзовый), золото для денег и титулов, зерно плёнки и полосы «кино».
+ * акценты (тёмно-красный, приглушённый бирюзовый), золото для денег и титулов, зерно плёнки и полосы «кино».
  */
 public final class Ui {
     private Ui() {}
 
-    public static final int PINK = 0xFFFF2E88, CYAN = 0xFF28E6FF, GOLD = 0xFFFFC428, MONEY = 0xFF62E57E, RED = 0xFFFF3B4A,
-            WHITE = 0xFFFFFFFF, DIM = 0xFFA9A3BC, PANEL = 0xE00B0812, PANEL_LIGHT = 0xE0181222, INK = 0xFF07050C;
+    public static final int PINK = 0xFFD42A3A, CYAN = 0xFF3FB8B0, GOLD = 0xFFFFC428, MONEY = 0xFF62E57E, RED = 0xFFE5383B,
+            WHITE = 0xFFFFFFFF, DIM = 0xFFA9A8A3, PANEL = 0xE00A0A0A, PANEL_LIGHT = 0xE0161615, INK = 0xFF060606;
 
     public static final Identifier LOGO = Novograd.id("textures/gui/ui/logo.png"), SUBTITLE = Novograd.id("textures/gui/ui/subtitle.png"),
             PASSED = Novograd.id("textures/gui/ui/passed.png"), PAUSE = Novograd.id("textures/gui/ui/pause.png"),
@@ -269,16 +269,16 @@ public final class Ui {
         x += slide;
         if (hov > 0.01f) {
             int sw = (int) (w * Ui.easeOut(hov));
-            slant(ctx, x - 4, y, sw, h, 6, alpha(0xF0FF2E88, appear));
-            ctx.fill(x - 4, y + h, x - 4 + sw, y + h + 1, alpha(0xFF28E6FF, appear * hov));
+            slant(ctx, x - 4, y, sw, h, 6, alpha(0xF0D42A3A, appear));
+            ctx.fill(x - 4, y + h, x - 4 + sw, y + h + 1, alpha(0xFF3FB8B0, appear * hov));
         }
         ctx.fill(x - 10, y + 2, x - 8, y + h - 2, alpha(hov > 0.5f ? CYAN : 0x40FFFFFF, appear));
         int tx = x + 6 + (int) (6 * hov);
-        int col = !enabled ? 0xFF6E6880 : hov > 0.5f ? WHITE : 0xFFE6E2F0;
+        int col = !enabled ? 0xFF6E6D69 : hov > 0.5f ? WHITE : 0xFFE7E5DE;
         int ty = sub == null || sub.isEmpty() ? y + (int) ((h - 8 * s) / 2) : y + 2;
         big(ctx, tr, label.toUpperCase(), tx, ty, s, alpha(col, appear), 0);
         if (sub != null && !sub.isEmpty())
-            small(ctx, tr, sub, tx + 1, y + 4 + (int) (9 * s), 0.8f, alpha(hov > 0.5f ? 0xFFFFE1EE : 0xFF9C96B0, appear), 0);
+            small(ctx, tr, sub, tx + 1, y + 4 + (int) (9 * s), 0.8f, alpha(hov > 0.5f ? 0xFFF2E4E0 : 0xFF9C9B96, appear), 0);
     }
 
     public static MinecraftClient mc() {

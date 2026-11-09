@@ -140,7 +140,7 @@ public final class Fuel {
         boolean at = car != null && car.usesFuel() && d2 < 8.5 * 8.5 && Math.abs(pos.y - pump.y) < 4;
         if (!at) {
             Integer paid = PAID.remove(p.getUuid());
-            if (paid != null && paid > 0) hint(p, "⛽ Заправлено на $" + paid + ". Счастливого пути!", Formatting.GREEN);
+            if (paid != null && paid > 0) hint(p, "⛽ Заправлено на $" + paid, Formatting.GREEN);
             return;
         }
         int max = CarEntity.FUEL_MAX;

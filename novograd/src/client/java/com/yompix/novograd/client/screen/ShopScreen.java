@@ -54,7 +54,7 @@ public class ShopScreen extends LifeScreen {
             tx += tw + 4;
         }
         if (guns) // «Калибр» → Мастерская: обвесы и окраска
-            button(ctx, x + w - 84, y + 26, 78, 14, "Мастерская", 0xFFFF2E88, true, () -> client.setScreen(new GunTuneScreen()));
+            button(ctx, x + w - 84, y + 26, 78, 14, "Мастерская", 0xFFD42A3A, true, () -> client.setScreen(new GunTuneScreen()));
         ctx.enableScissor(x, y + 44, x + w, y + h - 4);
         int ry = y + 46 - scroll;
         boolean adult = NovogradClient.data.adult();

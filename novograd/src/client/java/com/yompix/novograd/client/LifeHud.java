@@ -86,7 +86,7 @@ public final class LifeHud {
             Ui.small(ctx, tr, "грязные $" + money(d.dirty), r, ty, 0.85f, 0xFFFF5252, 2);
             ty += 10;
         }
-        Ui.small(ctx, tr, time, r, ty, 0.8f, 0xFFE6E2F0, 2);
+        Ui.small(ctx, tr, time, r, ty, 0.8f, 0xFFE7E5DE, 2);
         if (d.unread > 0) {
             String msg = "✉ " + d.unread;
             int mw = tr.getWidth(msg) + 8;
@@ -131,12 +131,12 @@ public final class LifeHud {
         String name = st.getName().getString().toUpperCase();
         int bw = Math.max(70, tr.getWidth(name) + 34);
         int x = right - bw;
-        Ui.slant(ctx, x, y, bw, 22, 6, 0xD00B0812);
+        Ui.slant(ctx, x, y, bw, 22, 6, 0xD00A0A0A);
         ctx.fill(x + 6, y + 21, right, y + 22, ammo == 0 && !mc.player.isCreative() ? Ui.RED : Ui.PINK);
         ctx.drawItem(st, x + 8, y + 3);
         ctx.getMatrices().push();
         ctx.getMatrices().translate(0, 0, 200);
-        Ui.small(ctx, tr, name, right - 4, y + 3, 0.7f, 0xFFB8B2CC, 2);
+        Ui.small(ctx, tr, name, right - 4, y + 3, 0.7f, 0xFFB9B7B1, 2);
         Ui.big(ctx, tr, a, right - 4, y + 10, 1f, ammo == 0 && !mc.player.isCreative() ? Ui.RED : 0xFFFFFFFF, 2);
         ctx.getMatrices().pop();
     }
@@ -147,7 +147,7 @@ public final class LifeHud {
         if (jb != Jobs.Job.NONE) {
             String job = jb.title.toUpperCase();
             int jw = (int) (tr.getWidth(job) * 0.8f) + 14;
-            Ui.slant(ctx, x - 2, y - 2, jw, 12, 3, 0x9A0B0812);
+            Ui.slant(ctx, x - 2, y - 2, jw, 12, 3, 0x9A0A0A0A);
             ctx.fill(x - 2, y - 2, x, y + 10, Ui.CYAN);
             Ui.small(ctx, tr, job, x + 4, y + 1, 0.8f, 0xFFFFFFFF, 0);
             h = 12;

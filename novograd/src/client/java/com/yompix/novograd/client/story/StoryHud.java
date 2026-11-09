@@ -44,7 +44,7 @@ public final class StoryHud {
     private static void compass(DrawContext ctx, TextRenderer tr, int w, Vec3d t, MinecraftClient mc) {
         int cw = 150, cx = w / 2, y = 4;
         float yaw = MathHelper.wrapDegrees(mc.player.getYaw());
-        ctx.fillGradient(cx - cw / 2, y, cx + cw / 2, y + 13, 0x900B0812, 0x600B0812);
+        ctx.fillGradient(cx - cw / 2, y, cx + cw / 2, y + 13, 0x900A0A0A, 0x600A0A0A);
         ctx.fill(cx - cw / 2, y + 13, cx + cw / 2, y + 14, 0x60FFFFFF);
         ctx.enableScissor(cx - cw / 2, y, cx + cw / 2, y + 30);
         String[] names = {"Ю", "ЮЗ", "З", "СЗ", "С", "СВ", "В", "ЮВ"};
@@ -57,7 +57,7 @@ public final class StoryHud {
             if (i % 2 == 0) {
                 String n = names[i / 2];
                 boolean main = n.length() == 1;
-                ctx.drawText(tr, n, x - tr.getWidth(n) / 2, y + 3, main ? (n.equals("С") ? 0xFFFF5A6E : 0xFFFFFFFF) : 0xFFA9A3BC, true);
+                ctx.drawText(tr, n, x - tr.getWidth(n) / 2, y + 3, main ? (n.equals("С") ? 0xFFFF5A6E : 0xFFFFFFFF) : 0xFFA9A8A3, true);
             } else ctx.fill(x, y + 8, x + 1, y + 12, 0x80FFFFFF);
         }
         ctx.disableScissor();
@@ -117,7 +117,7 @@ public final class StoryHud {
             Vec3d t = ClientStory.target();
             String dist = "";
             if (t != null && mc.player != null) dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos())) + " м";
-            String whereLine = where.isEmpty() ? (dist.isEmpty() ? "" : "📍 " + dist) : "📍 " + where + (dist.isEmpty() ? "" : " · " + dist);
+            String whereLine = where.isEmpty() ? (dist.isEmpty() ? "" : dist) : where + (dist.isEmpty() ? "" : " · " + dist);
             float sc = scale();
             var m = ctx.getMatrices();
             // компас сверху
@@ -153,7 +153,7 @@ public final class StoryHud {
             // ярлык миссии
             String mt = mission.toUpperCase();
             int mw = tr.getWidth(mt) + 14;
-            Ui.slant(ctx, -mw / 2, top - 4, mw, 11, 3, 0xE00B0812);
+            Ui.slant(ctx, -mw / 2, top - 4, mw, 11, 3, 0xE00A0A0A);
             ctx.fill(-mw / 2 + 2, top + 6, mw / 2 + 1, top + 7, Ui.GOLD);
             ctx.drawText(tr, mt, -tr.getWidth(mt) / 2 + 1, top - 2, Ui.GOLD, false);
             for (int i = 0; i < lines.size(); i++) {
@@ -168,8 +168,8 @@ public final class StoryHud {
                 int by = h / 3 - 16;
                 int slide = (int) ((1 - Ui.easeOut(bt / 0.4f)) * w);
                 int hw = Math.max(tr.getWidth(hint), (int) (tr.getWidth("НОВАЯ ЦЕЛЬ") * 2f)) + 40;
-                Ui.slant(ctx, w / 2 - hw / 2 - slide, by, hw, 22, 8, Ui.alpha(0xE8FF2E88, a));
-                Ui.slant(ctx, w / 2 - hw / 2 - slide, by + 22, hw, 24, 8, Ui.alpha(0xD00B0812, a));
+                Ui.slant(ctx, w / 2 - hw / 2 - slide, by, hw, 22, 8, Ui.alpha(0xE8D42A3A, a));
+                Ui.slant(ctx, w / 2 - hw / 2 - slide, by + 22, hw, 24, 8, Ui.alpha(0xD00A0A0A, a));
                 Ui.big(ctx, tr, "НОВАЯ ЦЕЛЬ", w / 2f - slide + 4, by + 4, 2f, Ui.alpha(0xFFFFFFFF, a), 1);
                 ctx.drawText(tr, hint, w / 2 - tr.getWidth(hint) / 2 - slide, by + 26, Ui.alpha(0xFFFFFFFF, a), true);
                 if (!whereLine.isEmpty()) ctx.drawText(tr, whereLine, w / 2 - tr.getWidth(whereLine) / 2 - slide, by + 36, Ui.alpha(0xFF7FE3FF, a), true);
@@ -190,7 +190,7 @@ public final class StoryHud {
                     int sw = (int) (tr.getWidth(ClientStory.subtitle) * 1.4f) + 30;
                     int slide = (int) ((1 - Ui.easeOut(MathHelper.clamp(t - 0.8f, 0, 1) / 0.6f)) * 60);
                     Ui.slant(ctx, w / 2 - sw / 2 + slide, h / 2 + 10, sw, 18, 6, Ui.alpha(0xE0FFC428, sub));
-                    Ui.small(ctx, tr, ClientStory.subtitle, w / 2f + slide + 3, h / 2f + 14, 1.4f, Ui.alpha(0xFF07050C, sub), 1);
+                    Ui.small(ctx, tr, ClientStory.subtitle, w / 2f + slide + 3, h / 2f + 14, 1.4f, Ui.alpha(0xFF060606, sub), 1);
                 }
                 Ui.grain(ctx, w, h, 0.3f * alpha);
             }
@@ -231,7 +231,7 @@ public final class StoryHud {
                 float k = t < 0.4f ? Ui.easeOut(t / 0.4f) : t > 4.4f ? (5f - t) / 0.6f : 1;
                 int bw = Math.max(tr.getWidth(ClientStory.achDesc), tr.getWidth(ClientStory.achName) + 50) + 40;
                 int bx = w - (int) (bw * k), by = h / 2 - 50;
-                Ui.slant(ctx, bx, by, bw + 10, 30, 8, 0xE80B0812);
+                Ui.slant(ctx, bx, by, bw + 10, 30, 8, 0xE80A0A0A);
                 ctx.fill(bx + 8, by + 29, bx + bw + 10, by + 30, Ui.GOLD);
                 Ui.tint(ctx, Ui.STAR, bx + 10, by + 7, 16, 16, 32, 32, 1f, 0.84f, 0.3f, 1);
                 ctx.drawText(tr, "НАГРАДА · " + ClientStory.achName, bx + 32, by + 6, Ui.GOLD, true);

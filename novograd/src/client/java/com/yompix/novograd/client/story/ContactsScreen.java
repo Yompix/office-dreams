@@ -41,7 +41,7 @@ public class ContactsScreen extends LifeScreen {
             NbtCompound c = list.getCompound(i);
             int ry = top + (i - scroll) * rowH;
             int col = 0xFF000000 | c.getInt("color");
-            ctx.fill(x + 8, ry, x + w - 8, ry + rowH - 4, 0x60201A2A);
+            ctx.fill(x + 8, ry, x + w - 8, ry + rowH - 4, 0x601E1E1D);
             ctx.fill(x + 8, ry, x + 10, ry + rowH - 4, col);
             // аватар
             ctx.fill(x + 14, ry + 4, x + 42, ry + 32, col);
@@ -50,11 +50,11 @@ public class ContactsScreen extends LifeScreen {
             ctx.drawText(textRenderer, name, x + 48, ry + 4, 0xFFFFFFFF, true);
             int fr = c.getInt("fr");
             String t = c.getString("title") + " · " + fr + "/10" + (c.getInt("help") > 0 ? " · помог " + c.getInt("help") + "×" : "");
-            ctx.drawText(textRenderer, t, x + 48 + textRenderer.getWidth(name) + 6, ry + 4, 0xFF9E9AB0, false);
+            ctx.drawText(textRenderer, t, x + 48 + textRenderer.getWidth(name) + 6, ry + 4, 0xFF9F9E99, false);
             // сердечки дружбы
             for (int k = 0; k < 10; k++) {
                 int hx = x + 48 + k * 8, hy = ry + 15;
-                ctx.fill(hx, hy, hx + 6, hy + 5, k < fr ? 0xFFFF4F8A : 0xFF3A3346);
+                ctx.fill(hx, hy, hx + 6, hy + 5, k < fr ? 0xFFFF4F8A : 0xFF383736);
             }
             if (c.contains("perk")) {
                 boolean on = c.getBoolean("perkOn");

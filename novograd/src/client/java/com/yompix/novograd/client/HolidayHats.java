@@ -69,8 +69,8 @@ public final class HolidayHats {
                 draw("pumpkin_stem", m, buffers, light, 0xFF4A6A20);
                 draw("pumpkin_face", m, buffers, LightmapTextureManager.MAX_LIGHT_COORDINATE, 0xFFFFD040); // светится изнутри
             } else if (roll < 42) {
-                draw("witch_brim", m, buffers, light, 0xFF1C1424);
-                draw("witch_cone", m, buffers, light, 0xFF241A30);
+                draw("witch_brim", m, buffers, light, 0xFF181817);
+                draw("witch_cone", m, buffers, light, 0xFF201F1F);
                 draw("witch_band", m, buffers, light, 0xFF8A3CC8);
             }
         }

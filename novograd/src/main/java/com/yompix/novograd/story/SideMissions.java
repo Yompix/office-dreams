@@ -108,7 +108,7 @@ public final class SideMissions {
             d.sideStep = 0;
             long done = d.flags.stream().filter(f -> f.startsWith("side:")).count();
             if (done == 25 || done == 50 || done == 100)
-                p.sendMessage(Text.literal("🏆 Выполнено заданий: " + done + "!").formatted(Formatting.GOLD), false);
+                p.sendMessage(Text.literal("Выполнено заданий: " + done + "!").formatted(Formatting.GOLD), false);
             backToStory(p, d);
             return;
         }

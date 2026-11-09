@@ -221,7 +221,7 @@ public final class Activities {
             j.dest = null;
             j.timer = 20 * 120;
             target(p, at, "Пассажир");
-            p.sendMessage(Text.literal("🚕 Пассажир ждёт — голубая метка на радаре").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Пассажир ждёт — голубая метка на радаре").formatted(Formatting.YELLOW), true);
         } else {
             Vec3d at = around(p, 70, 120);
             CarEntity car = new CarEntity(ModContent.CAR, w);
@@ -241,7 +241,7 @@ public final class Activities {
             car.setRoute(route, Math.min(0.95f, 0.6f + j.level * 0.04f), null);
             j.car = car.getUuid();
             j.timer = 20 * (150 - Math.min(60, j.level * 5));
-            p.sendMessage(Text.literal("🚔 Уровень " + j.level + ": бандиты на машине — красная метка. Разбей их машину!").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Уровень " + j.level + ": бандиты на машине — красная метка. Разбей их машину!").formatted(Formatting.RED), true);
         }
     }
 
@@ -275,7 +275,7 @@ public final class Activities {
                     double dist = Math.sqrt(j.dest.squaredDistanceTo(p.getPos()));
                     j.timer = (int) (20 * (30 + dist / 6));
                     target(p, j.dest, "Куда везти");
-                    p.sendMessage(Text.literal("🚕 «" + pick(w, "До центра, побыстрее!", "Мне на работу, опаздываю!", "Только не гони, ладно?", "В порт, пожалуйста.") + "»").formatted(Formatting.YELLOW), true);
+                    p.sendMessage(Text.literal("«" + pick(w, "До центра, побыстрее!", "Мне на работу, опаздываю!", "Только не гони, ладно?", "В порт, пожалуйста.") + "»").formatted(Formatting.YELLOW), true);
                 }
             } else if (car != null && j.dest != null && car.squaredDistanceTo(j.dest) < 9 * 9 && car.slow()) {
                 c.stopRiding();
@@ -415,7 +415,7 @@ public final class Activities {
                 it.setCustomNameVisible(true);
                 w.spawnEntity(it);
             } else it = have.get(0);
-            it.setCustomName(Text.literal(own ? "🏠 " + PROPS[i][0] + " — твоё убежище" : "🏠 " + PROPS[i][0] + " — продаётся $" + price)
+            it.setCustomName(Text.literal(own ? PROPS[i][0] + " — твоё убежище" : PROPS[i][0] + " — продаётся $" + price)
                     .formatted(own ? Formatting.GREEN : Formatting.GOLD));
             if (p.squaredDistanceTo(it) < 2.2 * 2.2) inside = i;
         }
@@ -435,7 +435,7 @@ public final class Activities {
             w.playSound(null, p.getBlockPos(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.7f, 1f);
             Life.sync(p);
         } else {
-            p.sendMessage(Text.literal("🏠 " + name + ": нужно $" + price + ", у тебя $" + d.money).formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal(name + ": нужно $" + price + ", у тебя $" + d.money).formatted(Formatting.YELLOW), true);
         }
     }
 

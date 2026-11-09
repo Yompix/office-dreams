@@ -179,13 +179,13 @@ public class LifeMenuScreen extends Screen {
         Ui.slant(ctx, width - bw - 14, 20, bw + 4, 11, 3, Ui.PINK);
         ctx.drawText(textRenderer, badge, width - bw - 10, 22, 0xFFFFFFFF, false);
         // нижняя полоса: совет дня
-        ctx.fill(0, height - 20, width, height, 0xE0050309);
+        ctx.fill(0, height - 20, width, height, 0xE0040404);
         ctx.fill(0, height - 21, width, height - 20, Ui.alpha(Ui.PINK, 0.8f));
         Ui.slant(ctx, 6, height - 17, 50, 14, 4, Ui.CYAN);
-        ctx.drawText(textRenderer, "СОВЕТ", 15, height - 14, 0xFF07050C, false);
+        ctx.drawText(textRenderer, "СОВЕТ", 15, height - 14, 0xFF060606, false);
         String tip = TIPS[(int) (t / 6) % TIPS.length].replace("Совет: ", "");
         float tipA = Math.min(1, Math.min((t % 6) / 0.4f, (6 - t % 6) / 0.4f));
-        ctx.drawText(textRenderer, tip, 64, height - 14, Ui.alpha(0xFFE8E4F2, tipA), false);
+        ctx.drawText(textRenderer, tip, 64, height - 14, Ui.alpha(0xFFE9E7E0, tipA), false);
         String ver = "Minecraft 1.21.1 · создатель и сценарист Yompix · © Yompix Games";
         if (textRenderer.getWidth(tip) + 64 + textRenderer.getWidth(ver) + 20 < width)
             ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 14, 0x80FFFFFF, false);

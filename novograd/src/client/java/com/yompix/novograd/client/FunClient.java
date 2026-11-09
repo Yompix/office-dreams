@@ -246,7 +246,7 @@ public final class FunClient {
         if (open || freefall(mc) && hasChute(mc) || freefall(mc) && mc.player.fallDistance > 12) {
             int ground = mc.world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, mc.player.getBlockX(), mc.player.getBlockZ());
             int alt = Math.max(0, (int) (mc.player.getY() - ground));
-            String s = open ? "☂  " + alt + " м   W/S — скорость · A/D — поворот"
+            String s = open ? "Высота " + alt + " м   W/S — скорость · A/D — поворот"
                     : hasChute(mc) ? "ПРОБЕЛ — РАСКРЫТЬ ПАРАШЮТ   " + alt + " м" : "НЕТ ПАРАШЮТА!   " + alt + " м";
             int col = open ? Ui.CYAN : hasChute(mc) ? ((System.currentTimeMillis() / 300) % 2 == 0 ? Ui.GOLD : Ui.WHITE) : Ui.RED;
             Ui.big(ctx, tr, s, W / 2f, H - 78, 1.25f, col, 1);

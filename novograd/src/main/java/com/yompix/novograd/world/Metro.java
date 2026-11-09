@@ -526,7 +526,7 @@ public final class Metro {
         label(w, stationPoint(k, 0, 0, D + 6.6), Text.literal("Ⓜ " + st.name().toUpperCase()).formatted(Formatting.WHITE, Formatting.BOLD), 2.4f, 0xCC1E5AA8, null);
         for (int sg = -1; sg <= 1; sg += 2) {
             label(w, stationPoint(k, sg * 3, sg * (pb - 1) - sg * 0.2, D + 2.9), board(k), 0.9f, 0xCC101418, "_board");
-            label(w, stationPoint(k, -sg * 6, sg * (pb - 1), D + 2.3), Text.literal("🎫 Билет $5\nПКМ по автомату").formatted(Formatting.YELLOW), 0.7f, 0x99000000, null);
+            label(w, stationPoint(k, -sg * 6, sg * (pb - 1), D + 2.3), Text.literal("Билет $5\nПКМ по автомату").formatted(Formatting.YELLOW), 0.7f, 0x99000000, null);
             Vec3d e = streetEntrance(k, sg);
             label(w, e.add(sg * 0.0, 2.4, 0), Text.literal("Ⓜ Метро «" + st.name() + "»").formatted(Formatting.WHITE, Formatting.BOLD), 1.0f, 0xCC1E5AA8, null);
         }
@@ -727,7 +727,7 @@ public final class Metro {
             else if (i == 1 && Life.pay(p, 40, "проездной на 10 поездок")) setTickets(d, tickets(d) + 10);
             else if (i == 2) p.sendMessage(Text.literal("Ⓜ Линия 1: " + lineText()).formatted(Formatting.AQUA), false);
             if (i <= 1) {
-                p.sendMessage(Text.literal("🎫 Билетов: " + tickets(d) + ". Жди поезд — ПКМ у открытых дверей").formatted(Formatting.GREEN), true);
+                p.sendMessage(Text.literal("Билетов: " + tickets(d) + ". Жди поезд — ПКМ у открытых дверей").formatted(Formatting.GREEN), true);
                 p.playSoundToPlayer(ModContent.CASH, SoundCategory.PLAYERS, 0.7f, 1.2f);
             }
             return;
@@ -801,7 +801,7 @@ public final class Metro {
         LifeData d = Life.get(p);
         int n = tickets(d);
         if (n <= 0) {
-            p.sendMessage(Text.literal("🎫 Нужен билет: автомат на платформе, $5").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Нужен билет: автомат на платформе, $5").formatted(Formatting.YELLOW), true);
             return;
         }
         setTickets(d, n - 1);

@@ -61,7 +61,7 @@ public final class Life {
 
     public static void message(ServerPlayerEntity p, String from, String text) {
         get(p).addMessage(from, text, day(p));
-        p.sendMessage(Text.literal("📱 ").append(Text.literal(from + ": ").formatted(Formatting.AQUA)).append(Text.literal(text)), false);
+        p.sendMessage(Text.literal("").append(Text.literal(from + ": ").formatted(Formatting.AQUA)).append(Text.literal(text)), false);
         sound(p, ModContent.PHONE_NOTIFY, 1f);
         sync(p);
     }

@@ -15,7 +15,7 @@ public final class LoadingOverlay {
     public static void draw(DrawContext ctx, int width, int height, String what) {
         var tr = MinecraftClient.getInstance().textRenderer;
         float t = (System.currentTimeMillis() % 1_000_000L) / 1000f;
-        ctx.fill(0, 0, width, height, 0xFF05030A);
+        ctx.fill(0, 0, width, height, 0xFF040404);
         // большой арт: панель сменяется каждые 5 с и медленно наезжает
         int i = (int) (t / 5) % 4;
         float k = (t % 5) / 5f;

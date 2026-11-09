@@ -92,11 +92,11 @@ public final class Fitness {
             long t = p.getServerWorld().getTimeOfDay() % 24000;
             boolean story = com.yompix.novograd.story.Story.wantsJob(p, "dj");
             if (!story && Jobs.job(p) != Jobs.Job.DJ) {
-                p.sendMessage(Text.literal("🎧 Пульт только для диджея клуба. Работа «Диджей» — в телефоне").formatted(Formatting.LIGHT_PURPLE), false);
+                p.sendMessage(Text.literal("Пульт только для диджея клуба. Работа «Диджей» — в телефоне").formatted(Formatting.LIGHT_PURPLE), false);
                 return;
             }
             if (!story && (t < 12500 || t > 22500)) {
-                p.sendMessage(Text.literal("🎧 Клуб открывается вечером — приходи после 18:30").formatted(Formatting.LIGHT_PURPLE), false);
+                p.sendMessage(Text.literal("Клуб открывается вечером — приходи после 18:30").formatted(Formatting.LIGHT_PURPLE), false);
                 return;
             }
         } else {
@@ -136,7 +136,7 @@ public final class Fitness {
             d.workouts++;
             d.energy = Math.max(0, d.energy - 12);
             d.mood = Math.min(100, d.mood + 4);
-            p.sendMessage(Text.literal("💪 Тренировка: " + score + "%. Сгорело " + String.format("%.1f", burn) + " кг, вес " + String.format("%.1f", shown(d)) + " кг, форма " + d.fitness + "/100")
+            p.sendMessage(Text.literal("Тренировка: " + score + "%. Сгорело " + String.format("%.1f", burn) + " кг, вес " + String.format("%.1f", shown(d)) + " кг, форма " + d.fitness + "/100")
                     .formatted(Formatting.GREEN), false);
             com.yompix.novograd.story.Story.onJobDone(p, "workout");
             if (d.workouts >= 10) Achievements.give(p, "athlete");

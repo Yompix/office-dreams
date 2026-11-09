@@ -99,7 +99,7 @@ public final class Casino {
             d.casinoLost += bet;
         }
         if (win >= bet * 20)
-            p.getServer().getPlayerManager().broadcast(Text.literal("🎰 " + p.getName().getString() + " сорвал куш $" + win + " в казино!").formatted(Formatting.GOLD), false);
+            p.getServer().getPlayerManager().broadcast(Text.literal(p.getName().getString() + " сорвал куш $" + win + " в казино!").formatted(Formatting.GOLD), false);
         Life.sync(p);
     }
 }

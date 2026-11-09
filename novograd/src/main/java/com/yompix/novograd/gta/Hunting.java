@@ -118,14 +118,14 @@ public final class Hunting {
         Vec3d lodge = lodge(w, p);
         if (lodge != null && p.squaredDistanceTo(lodge) < 48 * 48) {
             if (p.age % 40 < 20)
-                FunUtil.marker(w, lodge, "nv_lodge", new ItemStack(Outdoors.PELT_DEER), Text.literal("🦌 Охотничий домик «Берлога»").formatted(Formatting.GOLD), true);
+                FunUtil.marker(w, lodge, "nv_lodge", new ItemStack(Outdoors.PELT_DEER), Text.literal("Охотничий домик «Берлога»").formatted(Formatting.GOLD), true);
             DriveHooks.walkIn(p, "out_lodge", lodge, 1.8, () -> open(p, "hunt"));
         }
         for (String[] f : Fishing.SHOPS) {
             Vec3d at = com.yompix.novograd.story.Story.place(w, f[0]);
             if (at == null || p.squaredDistanceTo(at) > 48 * 48) continue;
             if (p.age % 40 < 20)
-                FunUtil.marker(w, at, "nv_fish_" + f[0], new ItemStack(Outdoors.PIKE), Text.literal("🎣 " + f[1]).formatted(Formatting.AQUA), true);
+                FunUtil.marker(w, at, "nv_fish_" + f[0], new ItemStack(Outdoors.PIKE), Text.literal(f[1]).formatted(Formatting.AQUA), true);
             DriveHooks.walkIn(p, "out_fish_" + f[0], at, 1.8, () -> open(p, "fish"));
         }
     }
@@ -364,7 +364,7 @@ public final class Hunting {
         String why = !licensed(d) ? "охота без лицензии" : r == Region.RESERVE ? "охота в заповеднике"
                 : r == Region.CITY ? "охота в городе" : deer && Seasons.season(w) == Seasons.Season.SPRING ? "олень весной — сезон закрыт" : "";
         if (why.isEmpty()) {
-            p.sendMessage(Text.literal("🦌 Добыча: " + what + ". Шкуры и мясо возьмёт скупщик в «Берлоге»").formatted(Formatting.GREEN), true);
+            p.sendMessage(Text.literal("Добыча: " + what + ". Шкуры и мясо возьмёт скупщик в «Берлоге»").formatted(Formatting.GREEN), true);
             return;
         }
         d.skills.merge("x_poached", 1, Integer::sum);
@@ -373,7 +373,7 @@ public final class Hunting {
         boolean ranger = !cop && rnd.nextFloat() < 0.3f;
         if (cop || ranger) {
             Wanted.add(p, 0, "браконьерство: " + why, 1);
-            p.sendMessage(Text.literal(cop ? "🚓 Полиция видела браконьерство — " + why : "🌲 Егерь заметил браконьера и вызвал полицию — " + why).formatted(Formatting.RED), false);
+            p.sendMessage(Text.literal(cop ? "Полиция видела браконьерство — " + why : "Егерь заметил браконьера и вызвал полицию — " + why).formatted(Formatting.RED), false);
         } else
             p.sendMessage(Text.literal("⚠ Браконьерство (" + why + "). В этот раз никто не видел").formatted(Formatting.GOLD), true);
     }

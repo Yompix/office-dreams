@@ -90,7 +90,7 @@ public final class Jobs {
             return;
         }
         if (d.taskKind.equals("courier") && d.taskPos != null) {
-            p.sendMessage(Text.literal("📦 Посылку ждут: " + TownState.get(p.getServerWorld()).address(d.taskPos) + ". Карта в телефоне покажет путь.").formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Посылку ждут: " + TownState.get(p.getServerWorld()).address(d.taskPos) + ". Карта в телефоне покажет путь.").formatted(Formatting.YELLOW), false);
             return;
         }
         BlockPos target = TownState.get(p.getServerWorld()).randomMailbox(p.getRandom(), p.getBlockPos(), 20);
@@ -113,11 +113,11 @@ public final class Jobs {
     public static void pizzaOrder(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
         if (job(p) != Job.PIZZA) {
-            p.sendMessage(Text.literal("🍕 Дядя Марко: «Хочешь развозить пиццу? Выбери работу «Курьер пиццы» в телефоне»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Дядя Марко: «Хочешь развозить пиццу? Выбери работу «Курьер пиццы» в телефоне»").formatted(Formatting.GOLD), false);
             return;
         }
         if (d.taskKind.equals("pizza") && d.taskPos != null) {
-            p.sendMessage(Text.literal("🍕 Пицца стынет! Адрес: " + TownState.get(p.getServerWorld()).address(d.taskPos)).formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Пицца стынет! Адрес: " + TownState.get(p.getServerWorld()).address(d.taskPos)).formatted(Formatting.YELLOW), false);
             return;
         }
         BlockPos target = TownState.get(p.getServerWorld()).randomMailbox(p.getRandom(), p.getBlockPos(), 25);
@@ -125,7 +125,7 @@ public final class Jobs {
         ItemStack box = new ItemStack(ModContent.PARCEL);
         box.set(ModContent.DELIVERY_TARGET, target);
         String addr = TownState.get(p.getServerWorld()).address(target);
-        box.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("🍕 Горячая пицца: " + addr).formatted(Formatting.GOLD));
+        box.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("Горячая пицца: " + addr).formatted(Formatting.GOLD));
         School.give(p, box);
         d.taskKind = "pizza";
         d.taskPos = target;
@@ -142,7 +142,7 @@ public final class Jobs {
         LifeData d = Life.get(p);
         TownState town = TownState.get(p.getServerWorld());
         if (!stack.isOf(ModContent.PARCEL)) {
-            p.sendMessage(Text.literal("📮 " + town.address(pos)), true);
+            p.sendMessage(Text.literal(town.address(pos)), true);
             return;
         }
         BlockPos target = stack.get(ModContent.DELIVERY_TARGET);
@@ -187,7 +187,7 @@ public final class Jobs {
             return;
         }
         if (d.taskKind.equals("taxi")) {
-            p.sendMessage(Text.literal("🚕 Клиент уже в машине: " + TownState.get(p.getServerWorld()).address(d.taskPos)), true);
+            p.sendMessage(Text.literal("Клиент уже в машине: " + TownState.get(p.getServerWorld()).address(d.taskPos)), true);
             return;
         }
         BlockPos target = TownState.get(p.getServerWorld()).randomMailbox(p.getRandom(), p.getBlockPos(), 40);
@@ -282,7 +282,7 @@ public final class Jobs {
 
     public static void computer(ServerPlayerEntity p) {
         if (job(p) != Job.PROGRAMMER) {
-            p.sendMessage(Text.literal("💻 Компьютер. Работать здесь могут только программисты — устройся в приложении «Работа».").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("Компьютер. Работать здесь могут только программисты — устройся в приложении «Работа».").formatted(Formatting.GRAY), true);
             return;
         }
         if (!cooldownOk(p)) return;
@@ -304,7 +304,7 @@ public final class Jobs {
         LifeData d = Life.get(p);
         long wait = d.lastWork + SHIFT_COOLDOWN - p.getServerWorld().getTime();
         if (wait > 0) {
-            p.sendMessage(Text.literal("☕ Перерыв: следующая смена через " + (wait / 20 + 1) + " с").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Перерыв: следующая смена через " + (wait / 20 + 1) + " с").formatted(Formatting.YELLOW), true);
             return false;
         }
         return true;

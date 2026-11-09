@@ -154,9 +154,9 @@ public final class PulseClient {
             double x = e.getInt("x") + 0.5, z = e.getInt("z") + 0.5;
             if (Math.abs(x - px) > 110 / zoom || Math.abs(z - pz) > 110 / zoom) continue;
             int col = switch (e.getString("k")) {
-                case "tag" -> 0xFFFF4FB8;
+                case "tag" -> 0xFFC2405A;
                 case "pkg" -> 0xFF6BFF6B;
-                case "photo" -> 0xFF4FE3FF;
+                case "photo" -> 0xFF4FB8C0;
                 default -> 0xFFFFA726;
             };
             float s = 2.0f / zoom;
@@ -187,14 +187,14 @@ public final class PulseClient {
             double want = Math.toDegrees(Math.atan2(-(e.getDouble("sx") - mc.player.getX()), e.getDouble("sz") - mc.player.getZ()));
             float diff = MathHelper.wrapDegrees((float) (want - mc.player.getYaw()));
             String arrow = Math.abs(diff) < 30 ? "✔ в кадре" : diff > 0 ? "→ поверни вправо" : "← поверни влево";
-            hint = "📷 Фото-точка «" + e.getString("name") + "»: G → «Камера» · " + arrow;
+            hint = "Фото-точка «" + e.getString("name") + "»: G → «Камера» · " + arrow;
         }
         if (hint == null) return;
         var tr = mc.textRenderer;
         int W = ctx.getScaledWindowWidth(), H = ctx.getScaledWindowHeight();
         int w = tr.getWidth(hint) + 12, y = H - 78;
         ctx.fill(W / 2 - w / 2, y - 3, W / 2 + w / 2, y + 11, 0xB0000000);
-        ctx.drawText(tr, hint, W / 2 - w / 2 + 6, y, 0xFF4FE3FF, false);
+        ctx.drawText(tr, hint, W / 2 - w / 2 + 6, y, 0xFF4FB8C0, false);
     }
 
     // ------------------------------------------------------------------ бой: полоски здоровья сверху

@@ -58,7 +58,7 @@ public final class Economy {
         if (d.dirty <= 0) return;
         int lost = busted ? d.dirty : d.dirty / 2;
         d.dirty -= lost;
-        p.sendMessage(Text.literal((busted ? "🚔 Полиция изъяла" : "💀 Потеряно") + " $" + lost + " грязных денег. Деньги на карте целы.").formatted(Formatting.RED), false);
+        p.sendMessage(Text.literal((busted ? "Полиция изъяла" : "Потеряно") + " $" + lost + " грязных денег. Деньги на карте целы.").formatted(Formatting.RED), false);
         Life.sync(p);
     }
 

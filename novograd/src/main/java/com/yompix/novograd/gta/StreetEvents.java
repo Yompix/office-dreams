@@ -255,7 +255,7 @@ public final class StreetEvents {
                 bag.setPickupDelayInfinite();
                 bag.setNeverDespawn();
                 bag.setGlowing(true);
-                bag.setCustomName(Text.literal("👜 Сумка").formatted(Formatting.GOLD));
+                bag.setCustomName(Text.literal("Сумка").formatted(Formatting.GOLD));
                 bag.setCustomNameVisible(true);
                 w.spawnEntity(bag);
                 e.bag = bag.getUuid();
@@ -731,7 +731,7 @@ public final class StreetEvents {
         CitizenEntity h = FunUtil.citizen(w, at, CitizenEntity.Role.CITIZEN, null);
         h.setStationary(true);
         h.lockActivity(CitizenEntity.Activity.WAVE);
-        h.setCustomName(Text.literal("👍 " + h.getCustomName().getString()));
+        h.setCustomName(Text.literal(h.getCustomName().getString() + " · автостоп"));
         h.setCustomNameVisible(true);
         h.face(p);
         e.victim = h.getUuid();
@@ -739,7 +739,7 @@ public final class StreetEvents {
         e.name = HITCH_NAMES.getOrDefault(dest, dest);
         e.flag = w.getRandom().nextInt(5) == 0; // за ним «хвост»
         e.timer = 20 * 45;
-        FunUtil.hint(p, "👍 Впереди голосует автостопщик — притормози рядом, если подвезёшь", Formatting.YELLOW);
+        FunUtil.hint(p, "Впереди голосует автостопщик — притормози рядом, если подвезёшь", Formatting.YELLOW);
         return true;
     }
 

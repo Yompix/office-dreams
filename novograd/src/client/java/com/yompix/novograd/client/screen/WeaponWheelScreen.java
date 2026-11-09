@@ -140,7 +140,7 @@ public class WeaponWheelScreen extends Screen {
             boolean on = i == hovered;
             float a0 = i * seg - seg / 2 + gap, a1 = i * seg + seg / 2 - gap;
             float out = on ? r2 + 6 : r2;
-            ArsenalClient.ring(m, cx, cy, r1, out, a0, a1, on ? 0xE0241030 : 0xC0101018, 12);
+            ArsenalClient.ring(m, cx, cy, r1, out, a0, a1, on ? 0xE01A1A19 : 0xC0101018, 12);
             ArsenalClient.ring(m, cx, cy, out - (on ? 4 : 2), out, a0, a1, on ? c.accent : (c.accent & 0x00FFFFFF) | 0x70000000, 12);
         }
         ArsenalClient.ring(m, cx, cy, 0, r1 - 4, 0, (float) (Math.PI * 2), 0xD80A0A12, 40);

@@ -173,7 +173,7 @@ public final class VehicleJobs {
                 Vec3d hosp = hospital(w);
                 j.timer += (int) (20 * (25 + sum / 6 + (hosp == null ? 60 : Math.sqrt(hosp.squaredDistanceTo(p.getPos())) / 6)));
                 j.stage = 0;
-                FunUtil.hint(p, "🚑 Уровень " + j.level + ": раненых " + k + " — голубая метка на радаре", Formatting.AQUA);
+                FunUtil.hint(p, "Уровень " + j.level + ": раненых " + k + " — голубая метка на радаре", Formatting.AQUA);
             }
             case FIRE -> {
                 Vec3d at = FunUtil.curbAround(p, 90, 220);
@@ -195,14 +195,14 @@ public final class VehicleJobs {
                 }
                 j.dest = base;
                 j.timer = 20 * (int) (35 + Math.sqrt(base.squaredDistanceTo(p.getPos())) / 5 + n * 14);
-                FunUtil.hint(p, "🚒 Уровень " + j.level + ": горят машины (" + n + ") — голубая метка", Formatting.RED);
+                FunUtil.hint(p, "Уровень " + j.level + ": горят машины (" + n + ") — голубая метка", Formatting.RED);
             }
             case PIZZA -> {
                 Vec3d shop = Story.place(w, "pizza_door");
                 if (j.stage == 0 && shop != null && shop.squaredDistanceTo(p.getPos()) > 40 * 40) {
                     j.dest = shop;
                     j.timer = 20 * (int) (40 + Math.sqrt(shop.squaredDistanceTo(p.getPos())) / 6);
-                    FunUtil.hint(p, "🍕 Заскочи в пиццерию «Мама Мия» за пиццами", Formatting.GOLD);
+                    FunUtil.hint(p, "Заскочи в пиццерию «Мама Мия» за пиццами", Formatting.GOLD);
                     j.stage = -1; // едем за пиццей
                     return;
                 }
@@ -220,7 +220,7 @@ public final class VehicleJobs {
         CitizenEntity c = FunUtil.citizen(w, at, CitizenEntity.Role.CITIZEN, null);
         c.setStationary(true);
         c.lockActivity(CitizenEntity.Activity.WAVE);
-        c.setCustomName(Text.literal("🍕 Заказ"));
+        c.setCustomName(Text.literal("Заказ"));
         c.setCustomNameVisible(true);
         j.people.clear();
         j.people.add(c.getUuid());
@@ -398,7 +398,7 @@ public final class VehicleJobs {
                 w.spawnParticles(ParticleTypes.POOF, f.at.x, f.at.y + 1, f.at.z, 30, 1, 0.6, 1, 0.05);
                 w.playSound(null, net.minecraft.util.math.BlockPos.ofFloored(f.at), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.2f, 1f);
                 if (f.car != null && w.getEntity(f.car) instanceof CarEntity c) c.paint(0x2A2522);
-                FunUtil.hint(p, "💧 Потушено!", Formatting.AQUA);
+                FunUtil.hint(p, "Потушено!", Formatting.AQUA);
                 hud(p, j);
             }
         }
@@ -420,7 +420,7 @@ public final class VehicleJobs {
                 j.stage = 1;
                 j.timer = 0;
                 w.playSound(null, p.getBlockPos(), SoundEvents.ITEM_BUNDLE_INSERT, SoundCategory.PLAYERS, 1f, 1f);
-                FunUtil.hint(p, "🍕 Пиццы в коробе: " + (j.level - j.done) + " — вперёд по адресам!", Formatting.GOLD);
+                FunUtil.hint(p, "Пиццы в коробе: " + (j.level - j.done) + " — вперёд по адресам!", Formatting.GOLD);
                 address(p, j);
                 hud(p, j);
             }

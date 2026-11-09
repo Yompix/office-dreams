@@ -236,7 +236,7 @@ public final class StreetPerformers {
         LifeData d = Life.get(p);
         int coin = 1 + w.getRandom().nextInt(10);
         if (d.money < coin) {
-            p.sendMessage(Text.literal("🎵 В карманах пусто — даже монетки нет").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("В карманах пусто — даже монетки нет").formatted(Formatting.GRAY), true);
             return;
         }
         d.money -= coin;
@@ -255,7 +255,7 @@ public final class StreetPerformers {
         w.playSound(null, c.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.NEUTRAL, 0.6f, 1.6f);
         String name = c.getCustomName() == null ? "Артист" : c.getCustomName().getString().replace(" · ПКМ — монетка", "");
         String[] thanks = {"Спасибо, дружище!", "Благодарю! Хорошего вечера!", "О, спасибо! Эта — для тебя!", "Ты лучший слушатель за сегодня!", "Мерси! Заходи ещё!"};
-        p.sendMessage(Text.literal("🎵 " + name + ": «" + thanks[w.getRandom().nextInt(thanks.length)] + "»  (−$" + coin + ")").formatted(Formatting.LIGHT_PURPLE), true);
+        p.sendMessage(Text.literal(name + ": «" + thanks[w.getRandom().nextInt(thanks.length)] + "»  (−$" + coin + ")").formatted(Formatting.LIGHT_PURPLE), true);
         // постоянный слушатель: каждая пятая монетка этому артисту — посвящение, десятая за всё время — «карма» в городе
         String key = p.getUuidAsString() + "|" + name;
         int n = FANS.merge(key, 1, Integer::sum);

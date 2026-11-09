@@ -164,8 +164,8 @@ public final class CopsClient {
         long ms = System.currentTimeMillis();
         if (jailOn) {
             long left = Math.max(0, jailLeft - (ms - jailAt) / 1000);
-            String s = jailStage >= 3 ? "🚨 ПОБЕГ — беги от охраны и собак!" : jailStage > 0 ? "🔓 Побег: " + (jailStage == 1 ? "ковыряй решётку вентиляции (Shift)" : "к лестнице у стены — тихо!")
-                    : "🔒 Колония №7 · осталось " + left / 60 + ":" + String.format("%02d", left % 60) + " · G — меню камеры";
+            String s = jailStage >= 3 ? "ПОБЕГ — беги от охраны и собак!" : jailStage > 0 ? "Побег: " + (jailStage == 1 ? "ковыряй решётку вентиляции (Shift)" : "к лестнице у стены — тихо!")
+                    : "Колония №7 · осталось " + left / 60 + ":" + String.format("%02d", left % 60) + " · G — меню камеры";
             int w = tr.getWidth(s) + 12;
             ctx.fill(W / 2 - w / 2, 4, W / 2 + w / 2, 18, 0xC0000000);
             ctx.fill(W / 2 - w / 2, 17, W / 2 + w / 2, 18, jailStage >= 3 ? 0xFFFF3030 : 0xFFFF7043);
@@ -193,7 +193,7 @@ public final class CopsClient {
                 NbtCompound q = sc.getCompound(i);
                 String role = q.getString("r");
                 int col = role.equals("cop") ? 0xFF8FC6FF : role.equals("caught") ? 0xFF888888 : role.equals("escaped") ? 0xFF7CFF8A : 0xFFFF8A8A;
-                String tag = role.equals("cop") ? "🚓 " : role.equals("caught") ? "⛓ " : role.equals("escaped") ? "💰 " : "🏃 ";
+                String tag = role.equals("cop") ? "◆ " : role.equals("caught") ? "⛓ " : role.equals("escaped") ? "$ " : "» ";
                 ctx.drawText(tr, tag + q.getString("n"), x + 5, y + 46 + i * 10, col, true);
                 String s = String.valueOf(q.getInt("s"));
                 ctx.drawText(tr, s, x + w - 6 - tr.getWidth(s), y + 46 + i * 10, 0xFFFFFFFF, true);

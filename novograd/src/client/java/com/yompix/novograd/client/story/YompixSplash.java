@@ -74,7 +74,7 @@ public class YompixSplash extends Screen {
         // ждём, пока уйдёт экран загрузки игры: заставка начинается с чистого чёрного кадра
         if (MinecraftClient.getInstance().getOverlay() != null) {
             start = System.currentTimeMillis();
-            ctx.fill(0, 0, width, height, 0xFF05040A);
+            ctx.fill(0, 0, width, height, 0xFF050505);
             return;
         }
         long t = System.currentTimeMillis() - start;
@@ -98,7 +98,7 @@ public class YompixSplash extends Screen {
             mc.send(() -> net.minecraft.client.util.ScreenshotRecorder.saveScreenshot(mc.runDirectory, String.format("intro_%02d.png", n), mc.getFramebuffer(), m -> {}));
             if (t > TOTAL - 400) mc.send(mc::scheduleStop);
         }
-        ctx.fill(0, 0, width, height, 0xFF05040A);
+        ctx.fill(0, 0, width, height, 0xFF050505);
         // виньетка: края темнее
         for (int i = 0; i < 6; i++) {
             int a = 18 + i * 6, inset = i * Math.min(width, height) / 30;
@@ -304,7 +304,7 @@ public class YompixSplash extends Screen {
         int bx = (int) (24 - (1 - in) * 120), by = (int) (height * 0.78f);
         String cap = MONT[i][1];
         int cw = textRenderer.getWidth(cap) * 2 + 18;
-        ctx.fill(bx, by, bx + cw, by + 24, 0xE8FF2E88);
+        ctx.fill(bx, by, bx + cw, by + 24, 0xE8D42A3A);
         ctx.getMatrices().push();
         ctx.getMatrices().translate(bx + 9, by + 5, 0);
         ctx.getMatrices().scale(2f, 2f, 1);
@@ -333,7 +333,7 @@ public class YompixSplash extends Screen {
         float panelsOut = Ui.easeOut((t - 1750) / 450f);
         if (panelsOut < 1 && !afterMontage) {
             // за панелями — тёмный растр-фон
-            ctx.fill(0, 0, width, height, 0xFF0A0612);
+            ctx.fill(0, 0, width, height, 0xFF090908);
             for (int i = 0; i < 3; i++) {
                 float k = (t - at[i]) / 240f;
                 if (k <= 0) continue;

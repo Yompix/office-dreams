@@ -26,7 +26,7 @@ public class CollectionsScreen extends LifeScreen {
             "Голубые столбы «◉ ФОТО» у достопримечательностей: встань и сними камерой телефона.",
             "Трамплины за городом с полосатыми столбиками: разгонись и прыгай прямо.",
     };
-    private static final int[] COLORS = {0xFFFF4FB8, 0xFF6BFF6B, 0xFF4FE3FF, 0xFFFFA726};
+    private static final int[] COLORS = {0xFFC2405A, 0xFF6BFF6B, 0xFF4FB8C0, 0xFFFFA726};
 
     public CollectionsScreen() {
         super("Коллекции");
@@ -38,12 +38,12 @@ public class CollectionsScreen extends LifeScreen {
         NbtCompound st = PulseClient.colState;
         int w = Math.min(460, width - 30), h = Math.min(300, height - 24);
         int x = width / 2 - w / 2, y = height / 2 - h / 2;
-        panel(ctx, x, y, w, h, 0xF0121020, 0xF0080610);
-        title(ctx, "КОЛЛЕКЦИИ", x + 10, y + 8, 0xFFFF4FB8);
+        panel(ctx, x, y, w, h, 0xF0131212, 0xF0080808);
+        title(ctx, "КОЛЛЕКЦИИ", x + 10, y + 8, 0xFFC2405A);
         String[] tabs = {"Наборы", "Фото-точки", "Хаос"};
         for (int i = 0; i < tabs.length; i++) {
             final int k = i;
-            button(ctx, x + w - 10 - (3 - i) * 74, y + 6, 70, 14, tabs[i], i == tab ? 0xFFFF4FB8 : 0xFF5A4F7A, true, () -> { tab = k; scroll = 0; });
+            button(ctx, x + w - 10 - (3 - i) * 74, y + 6, 70, 14, tabs[i], i == tab ? 0xFFC2405A : 0xFF5A4F7A, true, () -> { tab = k; scroll = 0; });
         }
         int cy = y + 30;
         switch (tab) {

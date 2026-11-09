@@ -30,13 +30,13 @@ public final class LifeCommands {
                 .then(literal("info").executes(ctx -> {
                     ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
                     LifeData d = Life.get(p);
-                    ctx.getSource().sendFeedback(() -> Text.literal("💰 $" + d.money + (d.dirty > 0 ? "  грязные $" + d.dirty : "") + "  💼 " + com.yompix.novograd.life.Jobs.job(p).title + "  заработано всего $" + d.earned), false);
+                    ctx.getSource().sendFeedback(() -> Text.literal("$" + d.money + (d.dirty > 0 ? "  грязные $" + d.dirty : "") + "  " + com.yompix.novograd.life.Jobs.job(p).title + "  заработано всего $" + d.earned), false);
                     return 1;
                 }))
                 .then(literal("town").requires(s -> s.hasPermissionLevel(2)).executes(ctx -> {
                     ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
                     BlockPos at = p.getBlockPos();
-                    ctx.getSource().sendFeedback(() -> Text.literal("🏗 Строю город вокруг тебя (160×160)…"), true);
+                    ctx.getSource().sendFeedback(() -> Text.literal("Строю город вокруг тебя (160×160)…"), true);
                     TownBuilder.build(p.getServerWorld(), at, true);
                     p.requestTeleport(at.getX() + 0.5, at.getY(), at.getZ() + 9.5);
                     ctx.getSource().sendFeedback(() -> Text.literal("✅ Город готов!"), true);
@@ -71,7 +71,7 @@ public final class LifeCommands {
                     for (int i = 0; i < kinds.length; i++)
                         spots.add(new ShopBuilder.Spot(kinds[i], base.offset(side, (i - 1) * 24 - 12), f.getOpposite()));
                     ShopBuilder.placeAll(p.getServerWorld(), spots);
-                    ctx.getSource().sendFeedback(() -> Text.literal("👕 Магазины стиля построены перед тобой"), true);
+                    ctx.getSource().sendFeedback(() -> Text.literal("Магазины стиля построены перед тобой"), true);
                     return 1;
                 }))));
     }

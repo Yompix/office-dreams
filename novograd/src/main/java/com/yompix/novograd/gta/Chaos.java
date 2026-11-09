@@ -88,7 +88,7 @@ public final class Chaos {
                 nx[1] = now + 20 * (140 + R.nextInt(120));
                 if (free && Wanted.stars(p) == 0 && Economy.act(d) >= 1 && Island.urban(Island.zone(p.getBlockX(), p.getBlockZ()))) {
                     Wanted.add(p, 2, "патруль узнал тебя по репортажу «Новоград-24»", 2);
-                    p.sendMessage(Text.literal("🚨 «Это он, из новостей!» — патруль сел на хвост").formatted(Formatting.RED), false);
+                    p.sendMessage(Text.literal("«Это он, из новостей!» — патруль сел на хвост").formatted(Formatting.RED), false);
                     if (R.nextBoolean()) News.post(p.getServer(), "Погоня в прямом эфире: полиция преследует подозреваемого из вчерашнего выпуска", "ЭКСТРЕННО");
                 }
             }

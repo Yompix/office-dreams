@@ -130,7 +130,7 @@ public class WheelScreen extends CasinoScreen {
         Ui.big(ctx, textRenderer, mult > 1 ? "×" + mult : "★", cx, cy - 6, mult > 1 ? 1.4f : 1.6f, Ui.GOLD, 1);
         // стрелка сверху
         for (int i = 0; i < 8; i++) ctx.fill(cx - 8 + i, cy - R - 10 + i, cx + 9 - i, cy - R - 9 + i, 0xFFFFFFFF);
-        ctx.fill(cx - 1, cy - R - 12, cx + 2, cy - R - 2, 0xFFFF2E88);
+        ctx.fill(cx - 1, cy - R - 12, cx + 2, cy - R - 2, 0xFFD42A3A);
         // правая панель: ставки
         int px = cx + R + 16, pw = x + w - px;
         ctx.drawText(textRenderer, "Ставлю на число:", px, y + 2, 0xFFFFFFFF, false);

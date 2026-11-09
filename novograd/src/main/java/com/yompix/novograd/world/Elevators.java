@@ -195,7 +195,7 @@ public final class Elevators {
                 p.teleport(r.world(), r.x() + 0.5, r.floorY() + 1, r.z() + 0.5, r.exit().asRotation(), 0);
                 r.world().playSound(null, new BlockPos(r.x(), r.floorY() + 1, r.z()), SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), SoundCategory.BLOCKS, 0.8f, 1.5f);
                 r.world().playSound(null, new BlockPos(r.x(), r.floorY() + 1, r.z()), SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.25f, 1.6f);
-                p.sendMessage(Text.literal("🛗 " + r.label()).formatted(Formatting.GOLD), true);
+                p.sendMessage(Text.literal(r.label()).formatted(Formatting.GOLD), true);
                 COOLDOWN.put(id, now + 25);
                 SNEAK.put(id, true); // отпусти Shift, прежде чем ехать дальше вниз
                 continue;

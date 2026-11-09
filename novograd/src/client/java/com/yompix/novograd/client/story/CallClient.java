@@ -227,7 +227,7 @@ public final class CallClient {
         int a = (int) (out * 255);
         if (a < 8) return;
         ctx.fill(x + 3, y + 3, x + w + 3, y + h + 3, Ui.alpha(0x60000000, out));
-        ctx.fill(x, y, x + w, y + h, Ui.alpha(0xEE0E0A14, out));
+        ctx.fill(x, y, x + w, y + h, Ui.alpha(0xEE0C0C0C, out));
         ctx.fill(x, y, x + 2, y + h, Ui.alpha(color, out));
         ctx.fillGradient(x + 2, y, x + w, y + 1, Ui.alpha(Ui.PINK, out), Ui.alpha(Ui.CYAN, out));
         // аватар: круг цвета героя с первой буквой, пока звонит — пульсирует
@@ -247,7 +247,7 @@ public final class CallClient {
             case END -> "звонок завершён";
             default -> "";
         };
-        ctx.drawText(tr, status, tx, y + 19, Ui.alpha(phase == Phase.RING ? Ui.MONEY : 0xFFB8B2CC, out), false);
+        ctx.drawText(tr, status, tx, y + 19, Ui.alpha(phase == Phase.RING ? Ui.MONEY : 0xFFB9B7B1, out), false);
         if (phase == Phase.RING) {
             int bx = tx, by = y + 31;
             bx = key(ctx, tr, "Y", "принять", bx, by, Ui.MONEY, out);
@@ -292,7 +292,7 @@ public final class CallClient {
     private static int key(DrawContext ctx, TextRenderer tr, String k, String label, int x, int y, int color, float out) {
         int kw = tr.getWidth(k) + 6;
         ctx.fill(x, y - 1, x + kw, y + 10, Ui.alpha(color, out));
-        ctx.drawText(tr, k, x + 3, y + 1, Ui.alpha(0xFF0E0A14, out), false);
+        ctx.drawText(tr, k, x + 3, y + 1, Ui.alpha(0xFF0C0C0C, out), false);
         ctx.drawText(tr, label, x + kw + 3, y + 1, Ui.alpha(0xFFFFFFFF, out), true);
         return x + kw + 3 + tr.getWidth(label);
     }

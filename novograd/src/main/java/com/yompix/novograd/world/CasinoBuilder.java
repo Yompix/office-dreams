@@ -242,7 +242,7 @@ public final class CasinoBuilder {
             set(w, cx + I, s + 6, cz + t, facing(ModContent.NEON, Direction.WEST).with(NeonBlock.COLOR, c));
             if (Math.abs(t) > 3) set(w, cx + t, s + 6, cz + I, facing(ModContent.NEON, Direction.NORTH).with(NeonBlock.COLOR, c));
         }
-        label(w, cx, s + 9, cz + half + 1, "👑 КАЗИНО «ЗОЛОТАЯ КОРОНА»", Formatting.GOLD);
+        label(w, cx, s + 9, cz + half + 1, "КАЗИНО «ЗОЛОТАЯ КОРОНА»", Formatting.GOLD);
         label(w, cx, s + 4, cz, "Поговори с крупье или дилером — выбери игру", Formatting.LIGHT_PURPLE);
     }
 

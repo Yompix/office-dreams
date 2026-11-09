@@ -54,7 +54,8 @@ public final class NewsHud {
         ctx.drawText(tr, chan, bx + 5, y + h + 1, al | 0xFFC83D, false);
         // бегущая строка внутри плашки
         int lx = bx + tw + 6, lw = bw - tw - 10;
-        ctx.enableScissor(lx, y, lx + lw, y + h);
+        // ножницы — в экранных координатах (масштаб K вокруг (W/2, y) на них не действует)
+        ctx.enableScissor((int) (W / 2f + (lx - W / 2f) * K), y, (int) Math.ceil(W / 2f + (lx + lw - W / 2f) * K), y + (int) Math.ceil(h * K));
         int textW = tr.getWidth(cur[0]);
         int off = textW <= lw ? 0 : (int) Math.min(textW - lw + 20, Math.max(0, (age - 1.2f) * 38));
         ctx.drawText(tr, cur[0], lx - off, y + 3, al | 0xFFFFFF, false);

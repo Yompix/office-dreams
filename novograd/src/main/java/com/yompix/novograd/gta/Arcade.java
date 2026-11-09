@@ -51,7 +51,7 @@ public final class Arcade {
                 boolean darts = SPOTS[i][1].equals("darts");
                 int bet = (int) SPOTS[i][2];
                 ItemEntity it = FunUtil.marker(w, at, "fun_" + SPOTS[i][1] + "_" + i, new ItemStack(darts ? Items.TARGET : Items.REDSTONE_LAMP),
-                        Text.literal(darts ? "🎯 Дартс — партия на $" + bet : "🕹 Автомат «Неон-Погоня» — $5").formatted(darts ? Formatting.GOLD : Formatting.LIGHT_PURPLE), false);
+                        Text.literal(darts ? "Дартс — партия на $" + bet : "Автомат «Неон-Погоня» — $5").formatted(darts ? Formatting.GOLD : Formatting.LIGHT_PURPLE), false);
                 if (p.squaredDistanceTo(it) < 2 * 2) inside = i;
             }
             Integer was = AT.put(p.getUuid(), inside);
@@ -104,7 +104,7 @@ public final class Arcade {
                 int prize = Math.min(250, score / 10);
                 if (prize > 0) Life.earn(p, prize, "рекорд автомата: " + score);
                 FunUtil.title(p, "НОВЫЙ РЕКОРД!", score + " очков" + (prize > 0 ? " · автомат выплюнул $" + prize : ""));
-            } else FunUtil.hint(p, "🕹 " + score + " очков (рекорд " + best + ")", Formatting.LIGHT_PURPLE);
+            } else FunUtil.hint(p, score + " очков (рекорд " + best + ")", Formatting.LIGHT_PURPLE);
             Life.sync(p);
             return;
         }

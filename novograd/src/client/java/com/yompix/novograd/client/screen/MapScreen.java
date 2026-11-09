@@ -166,11 +166,11 @@ public class MapScreen extends LifeScreen {
             ctx.getMatrices().multiply(RotationAxis.POSITIVE_Z.rotationDegrees(p.getYaw() + 180));
             int c = me ? 0xFFFFFFFF : 0xFF7E57C2;
             for (int i = 0; i < 5; i++) ctx.fill(-i, -5 + i * 2, i + 1, -3 + i * 2, c);
-            ctx.fill(-1, -5, 2, 4, me ? 0xFF1E88E5 : 0xFFD1C4E9);
+            ctx.fill(-1, -5, 2, 4, me ? 0xFF1E88E5 : 0xFFCECCC6);
             ctx.getMatrices().pop();
             if (!me) {
                 String n = p.getName().getString();
-                ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 14, 0xFFD1C4E9, true);
+                ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 14, 0xFFCECCC6, true);
             }
         }
         // друзья далеко (их нет в прогруженном мире) — по данным сервера
@@ -182,7 +182,7 @@ public class MapScreen extends LifeScreen {
             int x = sx(f.getDouble("x")), y = sy(f.getDouble("z"));
             ctx.fill(x - 3, y - 3, x + 4, y + 4, 0xFF7E57C2);
             ctx.fill(x - 1, y - 1, x + 2, y + 2, 0xFFFFFFFF);
-            ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 13, 0xFFD1C4E9, true);
+            ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 13, 0xFFCECCC6, true);
         }
         ctx.disableScissor();
         panel(ctx, width - panelW - 8, mapY, panelW, mapH);

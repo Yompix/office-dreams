@@ -103,11 +103,11 @@ public abstract class CasinoScreen extends LifeScreen {
         h = Math.min(228, height - 10);
         x = width / 2 - w / 2;
         y = (int) (height / 2 - h / 2 + (1 - a) * 30);
-        panel(ctx, x, y, w, h, darken(accent, 0.75f), 0xFF0A0610);
+        panel(ctx, x, y, w, h, darken(accent, 0.75f), 0xFF080808);
         // шапка
         ctx.fill(x, y + 3, x + w, y + 19, darken(accent, 0.55f));
         Ui.slant(ctx, x + 4, y + 5, textRenderer.getWidth(getTitle().getString()) + 14, 12, 4, accent);
-        ctx.drawText(textRenderer, getTitle().getString(), x + 10, y + 7, 0xFF0A0610, false);
+        ctx.drawText(textRenderer, getTitle().getString(), x + 10, y + 7, 0xFF080808, false);
         String bal = "$" + money();
         ctx.drawText(textRenderer, bal, x + w - 8 - textRenderer.getWidth(bal), y + 7, Ui.MONEY, true);
         button(ctx, x + w - 62 - textRenderer.getWidth(bal), y + 5, 50, 12, "◂ Лобби", 0xFF5B2A86, !busy(), () -> mc().setScreen(new CasinoLobbyScreen()));
@@ -126,7 +126,7 @@ public abstract class CasinoScreen extends LifeScreen {
             float fade = t > 4500 ? Math.max(0, 1 - (t - 4500) / 600f) : 1;
             if (fade > 0) {
                 int bw = textRenderer.getWidth(banner) + 20, bx = x + w - bw - 8, byy = by - 1;
-                Ui.slant(ctx, bx, byy, (int) (bw * Ui.easeOut(k)), 15, 4, Ui.alpha(0xF0120D1A, fade));
+                Ui.slant(ctx, bx, byy, (int) (bw * Ui.easeOut(k)), 15, 4, Ui.alpha(0xF010100F, fade));
                 ctx.fill(bx, byy + 14, bx + (int) (bw * Ui.easeOut(k)), byy + 15, Ui.alpha(bannerColor, fade));
                 if (k >= 1) ctx.drawText(textRenderer, banner, bx + 10, byy + 4, Ui.alpha(bannerColor, fade), true);
             }

@@ -218,7 +218,7 @@ public final class Wanted {
             boolean slow = p.getVelocity().horizontalLengthSquared() < 0.01 && (!(p.getVehicle() instanceof CarEntity car) || car.slow());
             boolean grabbed = cops.stream().anyMatch(c -> c.distanceTo(p) < 2.2 && !c.hasVehicle());
             x.arrest = grabbed && slow ? x.arrest + 1 : 0;
-            if (x.arrest == 2) p.sendMessage(Text.literal("🚔 «Руки за голову!» — беги, иначе задержат!").formatted(Formatting.RED), true);
+            if (x.arrest == 2) p.sendMessage(Text.literal("«Руки за голову!» — беги, иначе задержат!").formatted(Formatting.RED), true);
             if (x.arrest >= 4) busted(p);
         }
     }
@@ -282,7 +282,7 @@ public final class Wanted {
             CitizenEntity cop = cop(w, bx, y, bz);
             cop.attack(p);
         }
-        p.sendMessage(Text.literal("🚧 Впереди полицейский блокпост!").formatted(Formatting.RED), true);
+        p.sendMessage(Text.literal("Впереди полицейский блокпост!").formatted(Formatting.RED), true);
         return true;
     }
 

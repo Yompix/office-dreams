@@ -186,7 +186,7 @@ public final class Fishing {
             boolean rec = g > d.skills.getOrDefault(key, 0);
             if (rec) d.skills.put(key, g);
             d.skills.merge("x_fish", 1, Integer::sum);
-            String msg = "🎣 " + sp.name + " — " + kg(g) + (rec ? "  · личный рекорд!" : "");
+            String msg = sp.name + " — " + kg(g) + (rec ? "  · личный рекорд!" : "");
             if (tourOn && atLake(p)) {
                 TOUR.merge(p.getUuid(), g, Integer::sum);
                 NAMES.put(p.getUuid(), p.getName().getString());

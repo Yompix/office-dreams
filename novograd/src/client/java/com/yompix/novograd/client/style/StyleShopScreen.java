@@ -312,7 +312,7 @@ public class StyleShopScreen extends LifeScreen {
             case "barber" -> "стрижки · цвет · бороды · внешность";
             default -> "переодеться бесплатно";
         };
-        Ui.small(ctx, textRenderer, sub, 14, hy + 12 * hs + 10, 0.8f, 0xFFD8D2EA, 0);
+        Ui.small(ctx, textRenderer, sub, 14, hy + 12 * hs + 10, 0.8f, 0xFFD9D7D0, 0);
         Ui.big(ctx, textRenderer, "$" + LifeHud.money(d().money), width - 12, hy + 4, 1.5f, Ui.MONEY, 2);
 
         // ---- сцена с героем
@@ -332,9 +332,9 @@ public class StyleShopScreen extends LifeScreen {
             }
             boolean hov = hover(tx, ty, tw, 14);
             tabAnim[i] = Ui.approach(tabAnim[i], i == tab ? 1 : hov ? 0.4f : 0, 0.3f);
-            Ui.slant(ctx, tx, ty, tw, 14, 4, 0xC0181222);
+            Ui.slant(ctx, tx, ty, tw, 14, 4, 0xC0161615);
             if (tabAnim[i] > 0.02f) Ui.slant(ctx, tx, ty, (int) (tw * tabAnim[i]), 14, 4, i == tab ? acc : Ui.alpha(acc, 0.5f));
-            ctx.drawText(textRenderer, tabs[i], tx + 6, ty + 3, i == tab ? (Ui.WHITE) : 0xFFB8B2CC, i == tab);
+            ctx.drawText(textRenderer, tabs[i], tx + 6, ty + 3, i == tab ? (Ui.WHITE) : 0xFFB9B7B1, i == tab);
             final int t = i;
             area(tx, ty, tw, 14, () -> setTab(t));
             tx += tw + 3;
@@ -354,7 +354,7 @@ public class StyleShopScreen extends LifeScreen {
             boolean s = i == sel;
             if (i < rowAnim.length) rowAnim[i] = Ui.approach(rowAnim[i], s ? 1 : 0, 0.35f);
             float k = i < rowAnim.length ? rowAnim[i] : (s ? 1 : 0);
-            if (k > 0.02f) Ui.slant(ctx, listX, ry, (int) (listW * Ui.easeOut(k)), ROW_H - 1, 4, Ui.alpha(0xE0FF2E88, k));
+            if (k > 0.02f) Ui.slant(ctx, listX, ry, (int) (listW * Ui.easeOut(k)), ROW_H - 1, 4, Ui.alpha(0xE0D42A3A, k));
             else if (i % 2 == 1) ctx.fill(listX, ry, listX + listW, ry + ROW_H - 1, 0x12FFFFFF);
             int nx = listX + 6 + (int) (k * 3);
             if (r.swatch() != 0) {
@@ -365,7 +365,7 @@ public class StyleShopScreen extends LifeScreen {
             String label = r.name();
             int maxW = listW - (nx - listX) - textRenderer.getWidth(r.right()) - 12;
             if (textRenderer.getWidth(label) > maxW) label = textRenderer.trimToWidth(label, maxW - 6) + "…";
-            ctx.drawText(textRenderer, label, nx, ry + 4, s ? Ui.WHITE : 0xFFDCD8E8, s);
+            ctx.drawText(textRenderer, label, nx, ry + 4, s ? Ui.WHITE : 0xFFDDDBD4, s);
             ctx.drawText(textRenderer, r.right(), listX + listW - 6 - textRenderer.getWidth(r.right()), ry + 4, s ? Ui.WHITE : r.rightColor(), s);
             final int idx = i;
             area(listX, ry, listW, ROW_H - 1, () -> select(idx, rows.size()));
@@ -377,7 +377,7 @@ public class StyleShopScreen extends LifeScreen {
             ctx.fill(listX + listW, listY, listX + listW + 2, listY + visible * ROW_H, 0x30FFFFFF);
             ctx.fill(listX + listW, by, listX + listW + 2, by + bh, acc);
         }
-        if (rows.isEmpty()) center(ctx, kind.equals("wardrobe") ? "Здесь пока пусто — купи что-нибудь в магазине" : "Пусто", px + pw / 2, listY + 20, 0xFFB8B2CC);
+        if (rows.isEmpty()) center(ctx, kind.equals("wardrobe") ? "Здесь пока пусто — купи что-нибудь в магазине" : "Пусто", px + pw / 2, listY + 20, 0xFFB9B7B1);
 
         // ---- цвета, описание и кнопка
         int by = py + ph - bottomBlock + 4;
@@ -386,7 +386,7 @@ public class StyleShopScreen extends LifeScreen {
             if (!barber() && !kind.equals("wardrobe")) {
                 StyleCatalog.Wear w = StyleCatalog.of(slot(), tier()).get(sel);
                 if (w.colors().length > 1) {
-                    Ui.small(ctx, textRenderer, "ЦВЕТ", cx, by + 3, 0.75f, 0xFFB8B2CC, 0);
+                    Ui.small(ctx, textRenderer, "ЦВЕТ", cx, by + 3, 0.75f, 0xFFB9B7B1, 0);
                     cx += 24;
                     for (int c = 0; c < w.colors().length; c++) {
                         boolean on = c == color;
@@ -406,12 +406,12 @@ public class StyleShopScreen extends LifeScreen {
                     ctx.getMatrices().push();
                     ctx.getMatrices().translate(cx, by + i * 8, 0);
                     ctx.getMatrices().scale(0.8f, 0.8f, 1);
-                    ctx.drawText(textRenderer, lines.get(i), 0, 0, 0xFFC8C2DA, false);
+                    ctx.drawText(textRenderer, lines.get(i), 0, 0, 0xFFC9C7C1, false);
                     ctx.getMatrices().pop();
                 }
             } else {
                 String desc = textRenderer.trimToWidth(cur.desc(), (int) ((listW - (cx - listX) - 6) / 0.75f));
-                Ui.small(ctx, textRenderer, desc, cx + 4, by + 3, 0.75f, 0xFFC8C2DA, 0);
+                Ui.small(ctx, textRenderer, desc, cx + 4, by + 3, 0.75f, 0xFFC9C7C1, 0);
             }
             int bw = listW - 4, bh = 20, bx = listX + 2, byy = py + ph - 28;
             button(ctx, bx, byy, bw, bh, cur.action(), acc, cur.enabled(), cur.run());
@@ -424,7 +424,7 @@ public class StyleShopScreen extends LifeScreen {
         }
 
         // ---- нижняя полоса
-        ctx.fill(0, height - 18, width, height, 0xE0050309);
+        ctx.fill(0, height - 18, width, height, 0xE0040404);
         ctx.fill(0, height - 19, width, height - 18, Ui.alpha(acc, 0.8f));
         String hint = barber() ? "↑↓ выбор   Tab раздел   Enter оплатить   мышь — повернуть героя" : "↑↓ выбор   ← → цвет   Tab раздел   Enter купить/надеть   мышь — повернуть";
         Ui.small(ctx, textRenderer, hint, 10, height - 13, width < 420 ? 0.7f : 0.85f, 0xB0FFFFFF, 0);
@@ -438,7 +438,7 @@ public class StyleShopScreen extends LifeScreen {
 
     private void drawStage(DrawContext ctx, int x, int y, int w, int h, int acc, float a) {
         // подиум: прожектор сверху, пол, отражение
-        ctx.fill(x, y, x + w, y + h, 0x90060410);
+        ctx.fill(x, y, x + w, y + h, 0x90060606);
         int cx = x + w / 2;
         for (int i = 0; i < 18; i++) {
             float k = i / 18f;

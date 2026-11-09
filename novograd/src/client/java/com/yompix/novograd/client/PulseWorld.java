@@ -105,7 +105,7 @@ public final class PulseWorld {
                     if (p.squaredDistanceTo(cam) > 90 * 90) continue;
                     if (!done) beam(m, imm, cam, p, 0x4FE3FF, 14);
                     label(mc, m, imm, cam, p.add(0, 2.2, 0), done ? "✔ " + e.getString("name") : "◉ ФОТО: " + e.getString("name"),
-                            done ? 0xFF9E9E9E : 0xFF4FE3FF, done ? 0.6f : 1f);
+                            done ? 0xFF9E9E9E : 0xFF4FB8C0, done ? 0.6f : 1f);
                 }
                 case "jump" -> {
                     int[][] dirs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};

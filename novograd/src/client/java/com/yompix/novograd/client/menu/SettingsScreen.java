@@ -151,9 +151,9 @@ public class SettingsScreen extends Screen {
             int tw = textRenderer.getWidth(TABS[i]) + 20;
             boolean hov = mouseX >= tx && mouseX < tx + tw && mouseY >= hy && mouseY < hy + 16;
             tabAnim[i] = Ui.approach(tabAnim[i], i == tab ? 1 : hov ? 0.4f : 0, 0.3f);
-            Ui.slant(ctx, tx, hy, tw, 16, 5, Ui.alpha(0xC0181222, a));
-            if (tabAnim[i] > 0.02f) Ui.slant(ctx, tx, hy, (int) (tw * tabAnim[i]), 16, 5, Ui.alpha(i == tab ? Ui.PINK : 0x80FF2E88, a));
-            ctx.drawText(textRenderer, TABS[i], tx + 10, hy + 4, Ui.alpha(i == tab ? 0xFFFFFFFF : 0xFFB8B2CC, a), i == tab);
+            Ui.slant(ctx, tx, hy, tw, 16, 5, Ui.alpha(0xC0161615, a));
+            if (tabAnim[i] > 0.02f) Ui.slant(ctx, tx, hy, (int) (tw * tabAnim[i]), 16, 5, Ui.alpha(i == tab ? Ui.PINK : 0x80D42A3A, a));
+            ctx.drawText(textRenderer, TABS[i], tx + 10, hy + 4, Ui.alpha(i == tab ? 0xFFFFFFFF : 0xFFB9B7B1, a), i == tab);
             tx += tw + 4;
         }
         // строки
@@ -172,11 +172,11 @@ public class SettingsScreen extends Screen {
             if (moved && mouseX >= px && mouseX < px + pw && mouseY >= ry && mouseY < ry + ROW_H - 1) selected = i;
             anim[i] = Ui.approach(anim[i], i == selected ? 1 : 0, 0.35f);
             if (anim[i] > 0.02f) {
-                Ui.slant(ctx, px + 4, ry, (int) ((pw - 8) * Ui.easeOut(anim[i])), ROW_H - 2, 4, Ui.alpha(0xE0FF2E88, a * anim[i]));
+                Ui.slant(ctx, px + 4, ry, (int) ((pw - 8) * Ui.easeOut(anim[i])), ROW_H - 2, 4, Ui.alpha(0xE0D42A3A, a * anim[i]));
             } else if (i % 2 == 1) ctx.fill(px + 4, ry, px + pw - 4, ry + ROW_H - 2, 0x14FFFFFF);
             int ty = ry + (ROW_H - 2 - 8) / 2;
             boolean sel = i == selected;
-            ctx.drawText(textRenderer, r.label(), px + 12 + (int) (anim[i] * 4), ty, sel ? 0xFFFFFFFF : 0xFFDCD8E8, sel);
+            ctx.drawText(textRenderer, r.label(), px + 12 + (int) (anim[i] * 4), ty, sel ? 0xFFFFFFFF : 0xFFDDDBD4, sel);
             int right = px + pw - 12;
             if (r.slider() != null) {
                 int bw = 90, bx = right - bw - 34;
@@ -184,7 +184,7 @@ public class SettingsScreen extends Screen {
                 ctx.fill(bx, ty + 2, bx + bw, ty + 6, sel ? 0x60000000 : 0x40FFFFFF);
                 ctx.fill(bx, ty + 2, bx + (int) (bw * v), ty + 6, sel ? 0xFFFFFFFF : Ui.CYAN);
                 int hx = bx + (int) (bw * v);
-                ctx.fill(hx - 2, ty - 1, hx + 2, ty + 9, sel ? 0xFF07050C : 0xFFFFFFFF);
+                ctx.fill(hx - 2, ty - 1, hx + 2, ty + 9, sel ? 0xFF060606 : 0xFFFFFFFF);
                 String val = r.value().get();
                 ctx.drawText(textRenderer, val, right - textRenderer.getWidth(val), ty, 0xFFFFFFFF, sel);
             } else {
@@ -203,12 +203,12 @@ public class SettingsScreen extends Screen {
         if (!rows.isEmpty()) {
             Row r = rows.get(selected);
             int dy = py + ph + 6;
-            ctx.fill(px, dy, px + pw, dy + 18, Ui.alpha(0xC0050309, a));
+            ctx.fill(px, dy, px + pw, dy + 18, Ui.alpha(0xC0040404, a));
             ctx.fill(px, dy, px + 2, dy + 18, Ui.GOLD);
-            ctx.drawText(textRenderer, r.desc(), px + 8, dy + 5, Ui.alpha(0xFFE8E4F2, a), false);
+            ctx.drawText(textRenderer, r.desc(), px + 8, dy + 5, Ui.alpha(0xFFE9E7E0, a), false);
         }
         // нижняя полоса с подсказками
-        ctx.fill(0, height - 18, width, height, 0xE0050309);
+        ctx.fill(0, height - 18, width, height, 0xE0040404);
         ctx.fill(0, height - 19, width, height - 18, Ui.alpha(Ui.PINK, 0.8f));
         String hint = "↑↓ выбор   ← → изменить   Tab вкладка   Esc назад";
         ctx.drawText(textRenderer, hint, 10, height - 13, 0xB0FFFFFF, false);

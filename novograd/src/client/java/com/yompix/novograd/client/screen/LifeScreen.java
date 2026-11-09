@@ -96,19 +96,19 @@ public abstract class LifeScreen extends Screen {
         int key = x * 31 + y * 17 + w;
         float k = Ui.approach(hoverAnim.getOrDefault(key, 0f), hov ? 1 : 0, 0.4f);
         hoverAnim.put(key, k);
-        int c = enabled ? (color | 0xFF000000) : 0xFF4A4658;
+        int c = enabled ? (color | 0xFF000000) : 0xFF4A4947;
         int skew = Math.min(4, h / 3);
         ctx.fill(x + 2, y + 2, x + w + 2, y + h + 2, 0x50000000);
-        Ui.slant(ctx, x, y, w - skew, h, skew, enabled ? 0xF0120D1A : 0xC0120D1A);
+        Ui.slant(ctx, x, y, w - skew, h, skew, enabled ? 0xF010100F : 0xC010100F);
         if (k > 0.02f) Ui.slant(ctx, x, y, (int) ((w - skew) * Ui.easeOut(k)), h, skew, c);
         Ui.slant(ctx, x, y, 2, h, skew, enabled ? lighten(c, 0.2f) : c);
-        ctx.fill(x + skew / 2, y + h - 1, x + w - skew / 2, y + h, enabled ? c : 0xFF35313F);
+        ctx.fill(x + skew / 2, y + h - 1, x + w - skew / 2, y + h, enabled ? c : 0xFF343432);
         int tw = textRenderer.getWidth(label);
         float fs = tw > w - 6 ? Math.max(0.6f, (w - 6) / (float) tw) : 1f;
         ctx.getMatrices().push();
         ctx.getMatrices().translate(x + w / 2f + k * 1.5f, y + h / 2f - 4 * fs + 0.5f, 0);
         ctx.getMatrices().scale(fs, fs, 1);
-        ctx.drawText(textRenderer, label, -tw / 2, 0, enabled ? 0xFFFFFFFF : 0xFF8A8598, enabled);
+        ctx.drawText(textRenderer, label, -tw / 2, 0, enabled ? 0xFFFFFFFF : 0xFF8A8985, enabled);
         ctx.getMatrices().pop();
         if (enabled) area(x, y, w, h, action);
     }
@@ -134,7 +134,7 @@ public abstract class LifeScreen extends Screen {
         if (luma(top) > 0.6f) {
             ctx.fillGradient(x, y, x + w, y + h, top, bottom);
         } else {
-            int glass = mix(0xF00B0812, top, 0.22f), glass2 = mix(0xF406040A, bottom, 0.12f);
+            int glass = mix(0xF00A0A0A, top, 0.22f), glass2 = mix(0xF4050505, bottom, 0.12f);
             ctx.fillGradient(x, y, x + w, y + h, glass, glass2);
             ctx.fill(x, y + 3, x + 1, y + h, 0x30FFFFFF);
             ctx.fill(x + w - 1, y + 3, x + w, y + h, 0x18FFFFFF);

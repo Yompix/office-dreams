@@ -31,7 +31,7 @@ public class GarageScreen extends LifeScreen {
         int x = width / 2 - w / 2, y = height / 2 - h / 2 + (int) ((1 - openAnim()) * 30);
         panel(ctx, x, y, w, h, 0xFF2A2116, 0xFF15110B);
         ctx.fillGradient(x, y, x + w, y + 22, 0xFFFFB300, 0xFFFF8F00);
-        center(ctx, "🔧 НИТРО-ГАРАЖ · $" + info.getInt("money"), x + w / 2, y + 7, 0xFF1A1200);
+        center(ctx, "НИТРО-ГАРАЖ · $" + info.getInt("money"), x + w / 2, y + 7, 0xFF1A1200);
         // машина сбоку
         int color = 0xFF000000 | info.getInt("color");
         int cx = x + 14, cy = y + 34;

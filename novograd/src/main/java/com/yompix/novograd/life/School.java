@@ -86,18 +86,18 @@ public final class School {
     public static void start(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
         if (d.edu > LifeData.UNI_END) {
-            p.sendMessage(Text.literal("🎓 Ты уже закончил университет. Пора работать!").formatted(Formatting.GOLD), true);
+            p.sendMessage(Text.literal("Ты уже закончил университет. Пора работать!").formatted(Formatting.GOLD), true);
             return;
         }
         boolean story = com.yompix.novograd.story.Story.forcedLesson(p);
         if (!story && !schoolTime(p)) {
-            p.sendMessage(Text.literal("🔔 Уроки с 8:00 до 18:00. Ночью можно поспать — кровать перемотает время.").formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Уроки с 8:00 до 18:00. Ночью можно поспать — кровать перемотает время.").formatted(Formatting.YELLOW), false);
             return;
         }
         long now = p.getServerWorld().getTime();
         long wait = d.lastLesson + LESSON_COOLDOWN - now;
         if (wait > 0 && !story) {
-            p.sendMessage(Text.literal("☕ Перемена! Следующий урок через " + (wait / 20 + 1) + " с").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Перемена! Следующий урок через " + (wait / 20 + 1) + " с").formatted(Formatting.YELLOW), true);
             return;
         }
         Lesson lesson = create(d.edu, p.getRandom(), now);

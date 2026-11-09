@@ -39,7 +39,7 @@ public final class Police {
             int warn = WARNINGS.merge(p.getUuid(), 1, Integer::sum);
             p.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.MASTER, 1f, 0.5f);
             if (warn < 3) {
-                p.sendMessage(Text.literal("📷 Камера: " + (int) kmh + " км/ч при лимите " + LIMIT_KMH + "! Сбавь скорость").formatted(Formatting.RED), true);
+                p.sendMessage(Text.literal("Камера: " + (int) kmh + " км/ч при лимите " + LIMIT_KMH + "! Сбавь скорость").formatted(Formatting.RED), true);
                 LAST_FINE.put(p.getUuid(), time - 300);
             } else {
                 WARNINGS.put(p.getUuid(), 0);

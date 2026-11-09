@@ -114,8 +114,8 @@ public class RaceScreen extends CasinoScreen {
             boolean on = pick == lane;
             roundRect(ctx, px, by, pw, 16, on ? 0xFFFFB300 : 0xFF3A2620);
             ctx.fill(px + 2, by + 3, px + 5, by + 13, COLORS[lane]);
-            Ui.small(ctx, textRenderer, CasinoMath.RUNNERS[names[lane]], px + 8, by + 4, 0.7f, on ? 0xFF1A0A24 : 0xFFFFFFFF, 0);
-            Ui.small(ctx, textRenderer, "×" + odds[lane] / 10 + "." + odds[lane] % 10, px + pw - 3, by + 4, 0.75f, on ? 0xFF1A0A24 : Ui.GOLD, 2);
+            Ui.small(ctx, textRenderer, CasinoMath.RUNNERS[names[lane]], px + 8, by + 4, 0.7f, on ? 0xFF121211 : 0xFFFFFFFF, 0);
+            Ui.small(ctx, textRenderer, "×" + odds[lane] / 10 + "." + odds[lane] % 10, px + pw - 3, by + 4, 0.75f, on ? 0xFF121211 : Ui.GOLD, 2);
             if (!busy()) area(px, by, pw, 16, () -> pick = l);
         }
         button(ctx, px, y + h - 22, pw, 18, racing() ? "Бегут!" : "СТАРТ $" + bet(), 0xFF2E7D32, !busy() && names.length == 5 && money() >= bet(), () -> {

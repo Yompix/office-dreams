@@ -89,7 +89,7 @@ public class LifePauseScreen extends Screen {
         menu.render(ctx, textRenderer, lx + 10, my, 170, mouseX, mouseY);
         card(ctx, a);
         // нижняя полоса
-        ctx.fill(0, height - 18, width, height, 0xE0050309);
+        ctx.fill(0, height - 18, width, height, 0xE0040404);
         ctx.fill(0, height - 19, width, height - 18, Ui.alpha(Ui.PINK, 0.8f));
         ctx.drawText(textRenderer, "↑↓ выбор   Enter открыть   Esc вернуться в игру", 10, height - 13, 0xB0FFFFFF, false);
         Ui.grain(ctx, width, height, 0.25f);
@@ -104,10 +104,10 @@ public class LifePauseScreen extends Screen {
         var d = NovogradClient.data;
         var o = ClientStory.objective;
         // деньги — крупно, зелёным
-        Ui.slant(ctx, cx, cy, cw, 26, 6, 0xE00B0812);
+        Ui.slant(ctx, cx, cy, cw, 26, 6, 0xE00A0A0A);
         ctx.fill(cx, cy + 26, cx + cw, cy + 27, Ui.MONEY);
         Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money), cx + cw - 10, cy + 6, 2f, Ui.MONEY, 2);
-        ctx.drawText(textRenderer, "НАЛИЧНЫЕ", cx + 10, cy + 10, 0xFF9C96B0, false);
+        ctx.drawText(textRenderer, "НАЛИЧНЫЕ", cx + 10, cy + 10, 0xFF9C9B96, false);
         int y = cy + 34;
         int ch = 96;
         Ui.panel(ctx, cx, y, cw, ch, Ui.GOLD);
@@ -115,19 +115,19 @@ public class LifePauseScreen extends Screen {
             Ui.small(ctx, textRenderer, o.getString("chapter").toUpperCase(), cx + 8, y + 7, 0.8f, Ui.GOLD, 0);
             Ui.big(ctx, textRenderer, trim(o.getString("mission"), (int) ((cw - 16) / 1.3f)), cx + 8, y + 17, 1.3f, 0xFFFFFFFF, 0);
             var lines = textRenderer.wrapLines(Text.literal("▶ " + o.getString("hint")), cw - 16);
-            for (int i = 0; i < lines.size() && i < 4; i++) ctx.drawText(textRenderer, lines.get(i), cx + 8, y + 34 + i * 10, 0xFFDCD8E8, false);
+            for (int i = 0; i < lines.size() && i < 4; i++) ctx.drawText(textRenderer, lines.get(i), cx + 8, y + 34 + i * 10, 0xFFDDDBD4, false);
         } else {
             Ui.small(ctx, textRenderer, "СВОБОДНАЯ ИГРА", cx + 8, y + 7, 0.8f, Ui.GOLD, 0);
             Ui.big(ctx, textRenderer, "Новоград твой", cx + 8, y + 17, 1.3f, 0xFFFFFFFF, 0);
-            ctx.drawText(textRenderer, "Работай, катайся, ищи задания в телефоне.", cx + 8, y + 34, 0xFFDCD8E8, false);
+            ctx.drawText(textRenderer, "Работай, катайся, ищи задания в телефоне.", cx + 8, y + 34, 0xFFDDDBD4, false);
         }
         int sy = y + ch + 6;
         Ui.panel(ctx, cx, sy, cw, 44, Ui.CYAN);
         var w = MinecraftClient.getInstance().world;
         String day = w == null ? "" : "ДЕНЬ " + (w.getTimeOfDay() / 24000 + 1) + " · " + LifeHud.clock(w.getTimeOfDay() % 24000);
         ctx.drawText(textRenderer, day, cx + 8, sy + 7, 0xFFFFFFFF, true);
-        ctx.drawText(textRenderer, "Работа: " + Jobs.Job.of(d.job).title, cx + 8, sy + 19, 0xFFB8B2CC, false);
-        ctx.drawText(textRenderer, "Розыск", cx + 8, sy + 30, 0xFF8A8598, false);
+        ctx.drawText(textRenderer, "Работа: " + Jobs.Job.of(d.job).title, cx + 8, sy + 19, 0xFFB9B7B1, false);
+        ctx.drawText(textRenderer, "Розыск", cx + 8, sy + 30, 0xFF8A8985, false);
         int stars = NovogradClient.wantedStars;
         for (int i = 0; i < 5; i++)
             Ui.tex(ctx, i < stars ? Ui.STAR : Ui.STAR_EMPTY, cx + 50 + i * 11, sy + 29, 10, 10, 32, 32, a);
