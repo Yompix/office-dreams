@@ -181,10 +181,117 @@ if ($n -gt 0) {
     }
 }
 
+# ============================================================
+#   Шаг 3. Освободить больше места и ускорить ноутбук
+#   Каждый пункт: что делает, сколько даст, чем платишь. 1 — сделать, 0 — пропустить.
+# ============================================================
+function Ask($title, $what, $cost) {
+    Write-Host ''
+    Write-Host $title -ForegroundColor White
+    Write-Host ('    Что делает: ' + $what)
+    Write-Host ('    Минус: ' + $cost) -ForegroundColor Yellow
+    $a = Read-Host '    Сделать? 1/0'
+    return $a.Trim() -eq '1'
+}
+
+Write-Host ''
+Write-Host '============================================' -ForegroundColor Cyan
+Write-Host '   Шаг 3. Больше места на C и быстрее ноутбук' -ForegroundColor Cyan
+Write-Host '============================================' -ForegroundColor Cyan
+
+# 3.1 Гибернация: файл C:\hiberfil.sys размером с половину оперативной памяти
+$hib = Get-Item 'C:\hiberfil.sys' -Force -ErrorAction SilentlyContinue
+if ($hib -and $hib.Length -gt 100MB) {
+    if (Ask ('[3.1] Отключить гибернацию — освободит ' + (GB $hib.Length)) 'удаляет файл гибернации C:\hiberfil.sys' 'пропадёт режим «Гибернация» и «Быстрый запуск»; обычный «Сон» работает как раньше') {
+        powercfg /h off
+        Write-Host '    готово' -ForegroundColor Green
+    }
+}
+
+# 3.2 Старые копии обновлений Windows (папка WinSxS)
+if (Ask '[3.2] Очистить старые копии обновлений Windows — обычно 1–5 ГБ' 'встроенная очистка Windows (DISM): удаляет заменённые версии системных файлов' 'идёт 5–20 минут; установленные обновления нельзя будет удалить') {
+    Write-Host '    Работаю, не закрывай окно...'
+    Dism.exe /Online /Cleanup-Image /StartComponentCleanup /NoRestart | Out-Null
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.3 Кэш «Оптимизации доставки» (раздача обновлений другим компьютерам)
+if (Ask '[3.3] Очистить кэш раздачи обновлений' 'удаляет скачанные куски обновлений из кэша оптимизации доставки' 'нет') {
+    try { Delete-DeliveryOptimizationCache -Force -ErrorAction Stop } catch { Remove-Item "$env:WINDIR\SoftwareDistribution\DeliveryOptimization\*" -Recurse -Force }
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.4 Папка старой Windows после обновления
+$old = 'C:\Windows.old'
+if (Test-Path $old) {
+    $s = (Get-ChildItem $old -Recurse -Force -File | Measure-Object Length -Sum).Sum
+    if (Ask ('[3.4] Удалить C:\Windows.old — освободит ' + (GB $s)) 'удаляет копию прошлой версии Windows, оставшуюся после большого обновления' 'вернуться к прошлой версии Windows будет нельзя') {
+        takeown /F $old /R /A /D Y | Out-Null
+        icacls $old /grant '*S-1-5-32-544:F' /T /C /Q | Out-Null
+        Remove-Item $old -Recurse -Force
+        Write-Host '    готово' -ForegroundColor Green
+    }
+}
+
+# 3.5 Точки восстановления: ограничить место
+if (Ask '[3.5] Ограничить точки восстановления до 5% диска' 'Windows хранит копии системы для отката; часто они занимают 10% диска и больше' 'старые точки восстановления удалятся, останутся самые свежие') {
+    vssadmin resize shadowstorage /for=C: /on=C: /maxsize=5% | Out-Null
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.6 Сжатие системных файлов
+if (Ask '[3.6] Сжать файлы Windows (CompactOS) — обычно 2–4 ГБ' 'Windows хранит свои файлы сжатыми; включается встроенной командой compact' 'идёт 10–20 минут; процессор чуть больше работает при запуске программ (почти незаметно)') {
+    Write-Host '    Работаю, не закрывай окно...'
+    compact.exe /CompactOS:always | Out-Null
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.7 Контроль памяти: Windows сама чистит мусор
+if (Ask '[3.7] Включить «Контроль памяти»' 'Windows сама раз в месяц очищает временные файлы и корзину старше 30 дней' 'файлы в корзине старше 30 дней удаляются сами') {
+    $k = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+    New-Item -Path $k -Force | Out-Null
+    Set-ItemProperty -Path $k -Name '01' -Value 1 -Type DWord
+    Set-ItemProperty -Path $k -Name '2048' -Value 30 -Type DWord
+    Write-Host '    готово (Параметры — Система — Память)' -ForegroundColor Green
+}
+
+# 3.8 Электропитание
+if (Ask '[3.8] Режим «Высокая производительность»' 'процессор не сбавляет частоту — игры и программы работают быстрее' 'от батареи ноутбук разряжается быстрее (на зарядке — разницы нет)') {
+    powercfg -setactive SCHEME_MIN
+    Write-Host '    готово (вернуть: Панель управления — Электропитание — Сбалансированная)' -ForegroundColor Green
+}
+
+# 3.9 Визуальные эффекты
+if (Ask '[3.9] Отключить анимации и прозрачность Windows' 'окна открываются без анимации, нет прозрачности — меньше нагрузка на встроенную видеокарту' 'Windows выглядит проще; изменения видны после перезахода в систему') {
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2 -Type DWord
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name EnableTransparency -Value 0 -Type DWord
+    Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name MinAnimate -Value '0'
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.10 Игровой режим
+if (Ask '[3.10] Включить «Игровой режим» Windows' 'во время игры Windows не ставит обновления и отдаёт игре больше ресурсов' 'нет') {
+    New-Item -Path 'HKCU:\Software\Microsoft\GameBar' -Force | Out-Null
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\GameBar' -Name AutoGameModeEnabled -Value 1 -Type DWord
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\GameBar' -Name AllowAutoGameMode -Value 1 -Type DWord
+    Write-Host '    готово' -ForegroundColor Green
+}
+
+# 3.11 Автозагрузка — только показываю
+$start = @(Get-CimInstance Win32_StartupCommand | Select-Object Name, Command)
+if ($start.Count -gt 0) {
+    Write-Host ''
+    Write-Host '[3.11] Программы, которые запускаются вместе с Windows (сам их не выключаю):' -ForegroundColor White
+    foreach ($s in $start) { Write-Host ('    • ' + $s.Name) }
+    Write-Host '    Выключить лишние: Ctrl+Shift+Esc — вкладка «Автозагрузка» — ПКМ — «Отключить».' -ForegroundColor Yellow
+    Write-Host '    Оставь антивирус и драйверы звука/видео (Realtek, AMD). Discord, Steam, лаунчеры — можно отключить.'
+}
+
 $free1 = FreeC
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ('   ГОТОВО. Было свободно: ' + (GB $free0) + ', стало: ' + (GB $free1)) -ForegroundColor Cyan
 Write-Host ('   Освобождено: ' + (GB ([math]::Max(0, $free1 - $free0)))) -ForegroundColor Green
 Write-Host '   Твои документы, фото, игры, сохранения миров и пароли не трогались.'
+Write-Host '   Совет: перезагрузи компьютер, чтобы все изменения заработали.'
 Write-Host '============================================' -ForegroundColor Cyan
