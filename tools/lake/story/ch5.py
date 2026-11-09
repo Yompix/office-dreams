@@ -711,7 +711,7 @@ SC['c5_visit_full'] = {'beats': [
     {'fx': 'drawing_dock', 'shot': 'visit_table', **N('Она кладёт на стол рисунок: они вдвоём на мостках, лето.', 'She puts a drawing on the table: the two of them on the dock, summer.', 3.0)},
     S('noah', 'Ты нарисовала нас?', 'You drew us?', shot='noah_visit'),
     S('iris', 'Я нарисовала, как будет.', 'I drew how it’s going to be.', shot='iris_visit'),
-    N('Рядом с Айрис сидит Зоя — и Айрис впервые не отодвигается.', 'Zoe sits next to Iris — and for the first time, Iris doesn’t move away.', 3.0, shot='visit', **{'if': {'romance': '>0', 'zoe_died': '==0'}}),
+    N('Рядом с Айрис сидит Зоя — и Айрис впервые не отодвигается.', 'Zoe sits next to Iris — and for the first time, Iris doesn’t move away.', 3.0, shot='visit', **{'if': {'romance': '>0', 'zoe_died': '==0', 'zoe': '>0', 'zoe_gone': '==0'}}),
     {'go': 'c5_cards'}]}
 
 SC['c5_visit_cold'] = {'beats': [

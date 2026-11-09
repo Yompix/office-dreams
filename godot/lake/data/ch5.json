@@ -5779,7 +5779,9 @@
      "shot": "visit",
      "if": {
       "romance": ">0",
-      "zoe_died": "==0"
+      "zoe_died": "==0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
      }
     },
     {
@@ -5788,7 +5790,9 @@
      "en": "Hey, stranger. We made a deal, her and me: we wait together.",
      "if": {
       "romance": ">0",
-      "zoe_died": "==0"
+      "zoe_died": "==0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
      }
     },
     {

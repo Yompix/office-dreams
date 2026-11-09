@@ -352,8 +352,12 @@ def present(who, f, sid):
     g = lambda k: float(f.get(k, 0)) > 0
     ch = int(sid[1]) if sid.startswith('c') and sid[1].isdigit() else 1
     if who == 'zoe':
+        if sid.startswith('c5_visit'):   # эпилог через месяцы: заложниц уже отпустили, рядом — если жива и не ушла
+            return g('zoe') and not g('zoe_gone') and not g('zoe_died')
         return g('zoe') and not g('zoe_gone') and not g('zoe_taken') and not g('zoe_taken4') and not g('zoe_died')
     if who == 'danny':
+        if g('danny_hale') and sid.startswith(('c5_shore', 'c5_oblivion')):   # заложник Хейла на берегу (chapter5.gd ставит его у седана)
+            return True
         return g('danny') and not g('danny_lost') and not g('danny_hale')   # danny_stayed — остался с ними (гл. 4)
     if who == 'eva':
         if ch == 2:
