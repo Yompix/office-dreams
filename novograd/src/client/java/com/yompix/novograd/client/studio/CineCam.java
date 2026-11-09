@@ -16,13 +16,49 @@ public final class CineCam {
     public static float roll, fov = Float.NaN;
     private static String applied = null;
 
+    /** «Потрачено» как в GTA: чёрно-белый кадр, медленный наезд и крен камеры на несколько секунд. */
+    private static long fxStart, fxUntil;
+    private static boolean fxFilter;
+
+    public static void wasted(MinecraftClient mc) {
+        fxStart = System.currentTimeMillis();
+        fxUntil = fxStart + 4800;
+        if (!cutscene) {
+            filter(mc, "film_noir");
+            fxFilter = true;
+        }
+        if (mc.player != null) {
+            mc.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_BEACON_DEACTIVATE, 1.0f, 0.5f); // глухой «провал» звука
+            mc.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_WARDEN_HEARTBEAT, 1.0f, 0.8f);
+        }
+    }
+
+    private static float fx() {
+        long now = System.currentTimeMillis();
+        if (now >= fxUntil) return -1;
+        float k = Math.min(1f, (now - fxStart) / 2500f);
+        return k * k * (3 - 2 * k);
+    }
+
+    /** Каждый кадр: эффект кончился — вернуть обычную картинку. */
+    public static void tickFx(MinecraftClient mc) {
+        if (fxFilter && System.currentTimeMillis() >= fxUntil) {
+            fxFilter = false;
+            if (!cutscene) filter(mc, null);
+        }
+    }
+
     public static float roll(float delta) {
         if (Studio.active()) return Studio.roll(delta);
+        float f = fx();
+        if (f >= 0 && !cutscene) return 3.5f * f;
         return cutscene ? roll : 0;
     }
 
     public static double fov(double vanilla, float delta) {
         if (Studio.active()) return Studio.fov(vanilla, delta);
+        float f = fx();
+        if (f >= 0 && !cutscene) return vanilla * (1 - 0.22 * f);
         return cutscene && !Float.isNaN(fov) ? fov : vanilla;
     }
 

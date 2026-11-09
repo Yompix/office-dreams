@@ -24,7 +24,9 @@ public final class StoryHud {
     public static void gtaTitle(String t, String sub) {
         gtaTitle = t;
         gtaSub = sub;
-        gtaAt = System.currentTimeMillis();
+        // как в GTA: сначала мир «проваливается» (чёрно-белый кадр, наезд, глухой звук), надпись — через секунду
+        gtaAt = System.currentTimeMillis() + 1000;
+        com.yompix.novograd.client.studio.CineCam.wasted(net.minecraft.client.MinecraftClient.getInstance());
     }
 
     private static long bannerAt = -1;
@@ -80,6 +82,7 @@ public final class StoryHud {
     }
 
     public static void render(DrawContext ctx) {
+        com.yompix.novograd.client.studio.CineCam.tickFx(net.minecraft.client.MinecraftClient.getInstance());
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer tr = mc.textRenderer;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
@@ -92,7 +95,7 @@ public final class StoryHud {
         if (gtaAt > 0) {
             float gt = (now - gtaAt) / 1000f;
             if (gt > 5) gtaAt = -1;
-            else {
+            else if (gt >= 0) {
                 // «ЗАДЕРЖАН» / «ТЫ ПОГИБ»: тёмный кадр, полоса через экран, крупные буквы с обводкой
                 float a = gt < 0.4f ? gt / 0.4f : gt > 4.2f ? (5 - gt) / 0.8f : 1;
                 boolean dead = gtaTitle.startsWith("ТЫ");
