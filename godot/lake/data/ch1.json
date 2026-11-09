@@ -81,12 +81,31 @@
      "fx": "lullaby"
     },
     {
-     "text": {
-      "ru": "Женский голос тихо напевает колыбельную.",
-      "en": "A woman’s voice softly hums a lullaby."
-     },
-     "dur": 3.5,
-     "note": true
+     "say": "mom",
+     "ru": "Спи, мой маленький, озеро спит…",
+     "en": "Hush now, little one, the lake is asleep…",
+     "name": {
+      "ru": "ЖЕНСКИЙ ГОЛОС · поёт",
+      "en": "A WOMAN’S VOICE · singing"
+     }
+    },
+    {
+     "say": "mom",
+     "ru": "Что уронили — оно сохранит…",
+     "en": "Whatever falls in, the water will keep…",
+     "name": {
+      "ru": "ЖЕНСКИЙ ГОЛОС · поёт",
+      "en": "A WOMAN’S VOICE · singing"
+     }
+    },
+    {
+     "say": "mom",
+     "ru": "Сиди тихо, как мышка. Что бы ни случилось.",
+     "en": "Quiet as a mouse. No matter what happens.",
+     "name": {
+      "ru": "ЖЕНСКИЙ ГОЛОС · шёпотом",
+      "en": "A WOMAN’S VOICE · whispering"
+     }
     },
     {
      "fx": "flash_dock"
@@ -101,8 +120,8 @@
     },
     {
      "text": {
-      "ru": "Детские глаза смотрят из щели в досках сарая.",
-      "en": "A child’s eyes watch through a gap in the boathouse boards."
+      "ru": "Из щели в досках сарая смотрят детские глаза. Не моргают.",
+      "en": "Through a gap in the boathouse boards, a child’s eyes are watching. Not blinking."
      },
      "dur": 3.0,
      "note": true
@@ -122,6 +141,11 @@
    "loc": "car",
    "time": "03:12",
    "beats": [
+    {
+     "say": "iris",
+     "ru": "Ной!.. Ной! Руль!",
+     "en": "Noah! Noah! The wheel!"
+    },
     {
      "fx": "wake"
     },
@@ -165,19 +189,42 @@
     {
      "fx": "fade_in",
      "shot": "two",
-     "note": {
-      "ru": "Тишина. Мотор заглох. Айрис вцепилась в ручку двери — не кричит, только дышит.",
-      "en": "Silence. The engine has stalled. Iris is gripping the door handle — not screaming, just breathing."
-     },
-     "dur": 3.2
+     "dur": 3.2,
+     "say": "noah",
+     "thought": true,
+     "ru": "Тишина. Мотор заглох. Мы в канаве.",
+     "en": "Silence. The engine’s dead. We’re in a ditch."
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис! Айрис, ты цела?",
+     "en": "Iris! Iris, are you hurt?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты меня не слышал. Я кричала, а ты смотрел прямо и не слышал.",
+     "en": "You didn’t hear me. I was screaming, and you just stared straight ahead.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Я не помню, как сел за руль.",
+     "en": "I don’t remember getting behind the wheel.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Потом. Заводи. Ной, заводи!",
+     "en": "Later. Start the car. Noah, start it!",
+     "shot": "iris"
     },
     {
      "shot": "pov",
-     "note": {
-      "ru": "Мотор схватывает со второго раза. Колёса воют, машина задом выползает на дорогу. Минут десять потеряно.",
-      "en": "The engine catches on the second try. The wheels howl as the car backs up onto the road. Ten minutes lost."
-     },
-     "dur": 3.4
+     "dur": 3.4,
+     "say": "noah",
+     "ru": "Ну давай… давай же… Есть. Выползли.",
+     "en": "Come on… come on… There. We’re out."
     },
     {
      "go": "s1_talk"
@@ -186,6 +233,16 @@
   },
   "s1_talk": {
    "beats": [
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Дорога. Снег. Ночь. Я за рулём… а когда я сел?",
+     "en": "Road. Snow. Night. I’m behind the wheel… since when?",
+     "shot": "pov",
+     "if": {
+      "ditch": "==0"
+     }
+    },
     {
      "shot": "hands",
      "dur": 2.6,
@@ -204,23 +261,278 @@
      "if": {
       "ditch": ">0"
      },
-     "note": {
-      "ru": "Айрис так и не отпустила ручку двери. Пальцы у неё белые.",
-      "en": "Iris still hasn’t let go of the door handle. Her knuckles are white."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Айрис так и не отпустила ручку. Пальцы белые.",
+     "en": "Iris still hasn’t let go of the handle. Her knuckles are white."
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Руки липкие. Кровь. Ничего не болит — значит, не моя.",
+     "en": "My hands are sticky. Blood. Nothing hurts — so it isn’t mine.",
+     "shot": "hands"
     },
     {
      "say": "noah",
      "shot": "noah",
-     "ru": "Айрис?.. Где мы? Чья это кровь?",
-     "en": "Iris? Where are we? …Whose blood is this?"
+     "ru": "Айрис?.. Что происходит?",
+     "en": "Iris…? What’s going on?"
     },
     {
      "say": "iris",
      "shot": "iris",
-     "ru": "Езжай. На север.",
-     "en": "Drive. North.",
-     "look": "notebook"
+     "ru": "О. Вернулся. Только не тормози, ладно?",
+     "en": "Oh. You’re back. Just don’t stop, okay?",
+     "look": "notebook",
+     "if": {
+      "ditch": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Я тут. Едем дальше. Только больше так не пугай.",
+     "en": "I’m here. We keep going. Just don’t scare me like that again.",
+     "shot": "iris",
+     "if": {
+      "ditch": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Ничего не помнишь, да? Спрашивай. Только руль не отпускай.",
+     "en": "You don’t remember anything, do you? Go ahead, ask. Just keep your hands on the wheel.",
+     "shot": "iris",
+     "look": "noah"
+    },
+    {
+     "ask": {
+      "id": "wake",
+      "max": 3,
+      "shot": "two",
+      "opts": [
+       {
+        "ru": "«Где мы?»",
+        "en": "“Where are we?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Где мы вообще?",
+          "en": "Where even are we?",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Северная трасса. Где именно — не знаю. Я перестала смотреть на столбы.",
+          "en": "The north highway. Where exactly — no idea. I stopped watching the mile markers.",
+          "shot": "iris"
+         },
+         {
+          "say": "noah",
+          "ru": "А сколько я так еду?",
+          "en": "And how long have I been driving?",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Часа два. Молча. Смотришь вперёд и не моргаешь.",
+          "en": "About two hours. Not a word. Just staring ahead, not blinking.",
+          "shot": "iris",
+          "look": "noah"
+         },
+         {
+          "say": "noah",
+          "thought": true,
+          "ru": "Два часа. Я не помню ни одной минуты.",
+          "en": "Two hours. I don’t remember a single minute.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Не делай такое лицо. Водишь ты, кстати, лучше, когда тебя нет.",
+          "en": "Don’t make that face. You drive better when you’re not here, by the way.",
+          "shot": "iris",
+          "look": "notebook"
+         }
+        ]
+       },
+       {
+        "ru": "«Чья это кровь?»",
+        "en": "“Whose blood is this?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Айрис. Чья это кровь?",
+          "en": "Iris. Whose blood is this?",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Твоя. Ты порезался.",
+          "en": "Yours. You cut yourself.",
+          "shot": "iris",
+          "look": "window"
+         },
+         {
+          "say": "noah",
+          "thought": true,
+          "ru": "Ладони целые. Ни царапины.",
+          "en": "My palms are fine. Not a scratch.",
+          "shot": "hands"
+         },
+         {
+          "say": "noah",
+          "ru": "Тут нет пореза, Айрис.",
+          "en": "There’s no cut, Iris.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Значит, не порезался. Ной, я не могу сейчас. Спроси что-нибудь другое.",
+          "en": "Then you didn’t. Noah, I can’t do this right now. Ask me something else.",
+          "shot": "iris",
+          "look": "noah"
+         }
+        ]
+       },
+       {
+        "ru": "«Что с папой?»",
+        "en": "“What about Dad?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "А папа? Он знает, что мы уехали? Он же нас убьёт.",
+          "en": "What about Dad? Does he know we left? He’ll kill us.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Не убьёт.",
+          "en": "He won’t.",
+          "shot": "iris",
+          "look": "window"
+         },
+         {
+          "say": "noah",
+          "ru": "Ты его не знаешь, Айрис.",
+          "en": "You don’t know him, Iris.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Я его знаю лучше, чем ты думаешь. …Смотри на дорогу. Там знак.",
+          "en": "I know him better than you think. …Watch the road. There’s a sign.",
+          "shot": "iris",
+          "look": "notebook"
+         },
+         {
+          "say": "noah",
+          "thought": true,
+          "ru": "Никакого знака там нет.",
+          "en": "There’s no sign.",
+          "shot": "road"
+         }
+        ]
+       },
+       {
+        "ru": "«Куда мы едем?»",
+        "en": "“Where are we going?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Куда мы едем?",
+          "en": "Where are we going?",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "На север.",
+          "en": "North.",
+          "shot": "iris"
+         },
+         {
+          "say": "noah",
+          "ru": "Айрис. Север большой.",
+          "en": "Iris. North is a big place.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "К озеру. Там была наша дача. Мы ездили туда летом, с мамой.",
+          "en": "To the lake. We had a cabin there. We used to go every summer, with Mom.",
+          "shot": "iris"
+         },
+         {
+          "say": "noah",
+          "thought": true,
+          "ru": "Озеро. Почему от этого слова у меня стынут руки?",
+          "en": "The lake. Why does that word make my hands go cold?",
+          "shot": "hands"
+         },
+         {
+          "say": "iris",
+          "ru": "И дачу не помнишь? Ничего. Я помню за двоих.",
+          "en": "You don’t remember the cabin either? That’s okay. I remember for both of us.",
+          "shot": "iris",
+          "look": "noah"
+         }
+        ]
+       },
+       {
+        "ru": "«Ты как?»",
+        "en": "“Are you okay?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "А ты? Ты цела?",
+          "en": "What about you? Are you hurt?",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Я? Прекрасно. Ночь, трасса, брат в крови. Всю жизнь о таком мечтала.",
+          "en": "Me? Great. Night, highway, brother covered in blood. Living the dream.",
+          "shot": "iris"
+         },
+         {
+          "say": "noah",
+          "ru": "Айрис.",
+          "en": "Iris.",
+          "shot": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "…Цела. Ты меня не тронул. Ты бы никогда.",
+          "en": "…I’m fine. You didn’t touch me. You never would.",
+          "shot": "iris",
+          "look": "noah"
+         },
+         {
+          "say": "iris",
+          "ru": "Всё, хватит нежностей. Рули давай.",
+          "en": "Okay, enough of the mushy stuff. Just drive.",
+          "look": "notebook"
+         },
+         {
+          "say": "noah",
+          "thought": true,
+          "ru": "«Ты бы никогда». Зачем это говорить, если ничего не было?",
+          "en": "“You never would.” Why say that, if nothing happened?",
+          "shot": "noah"
+         }
+        ]
+       }
+      ],
+      "end": [
+       {
+        "say": "noah",
+        "thought": true,
+        "ru": "Она отвечает на всё. Кроме главного.",
+        "en": "She answers everything. Except what matters.",
+        "shot": "two"
+       }
+      ]
+     }
     },
     {
      "choice": {
@@ -252,8 +564,8 @@
     {
      "say": "noah",
      "shot": "noah",
-     "ru": "Что случилось дома?",
-     "en": "What happened at home?"
+     "ru": "Хватит. Айрис, что случилось дома?",
+     "en": "Enough. Iris, what happened at home?"
     },
     {
      "fx": "iris_stop_drawing"
@@ -261,21 +573,40 @@
     {
      "say": "iris",
      "shot": "iris",
-     "ru": "Ты правда не помнишь?",
-     "en": "You really don’t remember?",
+     "ru": "Ты правда хочешь знать? Прямо сейчас?",
+     "en": "You really want to know? Right now?",
      "look": "noah"
     },
     {
      "say": "noah",
      "shot": "noah",
-     "ru": "Нет.",
-     "en": "No."
+     "ru": "Я ничего не помню, Айрис. До дороги — пусто. Как стёрли.",
+     "en": "I don’t remember anything, Iris. Before the road — nothing. Like it’s been wiped."
     },
     {
      "say": "iris",
      "shot": "iris",
-     "ru": "…Тогда езжай.",
-     "en": "…Then drive.",
+     "ru": "Может, оно и к лучшему. Пока.",
+     "en": "Maybe that’s for the best. For now.",
+     "look": "notebook"
+    },
+    {
+     "say": "noah",
+     "ru": "У меня руки в крови. Мне надо знать.",
+     "en": "There’s blood on my hands. I need to know.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Я расскажу. Обещаю. Только не здесь, не на дороге.",
+     "en": "I’ll tell you. I promise. Just not here, not on the road.",
+     "shot": "iris",
+     "look": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "А сейчас просто езжай. Ной, ну пожалуйста.",
+     "en": "For now, just drive. Noah, please.",
      "look": "notebook"
     },
     {
@@ -297,8 +628,8 @@
     {
      "say": "noah",
      "shot": "noah",
-     "ru": "Мы возвращаемся.",
-     "en": "We’re going back."
+     "ru": "Всё. Разворачиваюсь. Мы едем домой.",
+     "en": "That’s it. I’m turning around. We’re going home."
     },
     {
      "fx": "u_turn"
@@ -314,11 +645,37 @@
      "fx": "skid"
     },
     {
+     "say": "noah",
+     "ru": "Ты что творишь?! Мы чуть не улетели с дороги!",
+     "en": "What are you doing?! We almost went off the road!",
+     "shot": "noah"
+    },
+    {
      "say": "iris",
      "shot": "iris",
-     "ru": "Вернёмся — тебя посадят, а меня в детдом. Езжай, Ной!",
-     "en": "If we go back, they’ll lock you up and put me in a home. Drive, Noah!",
+     "ru": "Вернёмся — тебя посадят. А меня сдадут в детдом. Ты этого хочешь?",
+     "en": "If we go back, they’ll lock you up. And I’ll end up in a group home. Is that what you want?",
      "look": "noah"
+    },
+    {
+     "say": "noah",
+     "ru": "Посадят? За что, Айрис?",
+     "en": "Lock me up? For what, Iris?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "…Просто езжай. На север.",
+     "en": "…Just drive. North.",
+     "shot": "iris",
+     "look": "notebook"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "За что? Что я сделал?",
+     "en": "For what? What did I do?",
+     "shot": "noah"
     },
     {
      "set": {
@@ -339,10 +696,9 @@
     {
      "shot": "iris",
      "dur": 1.6,
-     "note": {
-      "ru": "Айрис косится на него.",
-      "en": "Iris glances at him."
-     }
+     "say": "iris",
+     "ru": "Не спрашиваешь. …Спасибо.",
+     "en": "You’re not asking. …Thank you."
     },
     {
      "fx": "notebook_dash"
@@ -350,10 +706,16 @@
     {
      "shot": "notebook",
      "dur": 3.0,
-     "note": {
-      "ru": "В блокноте у Айрис — их дом. Одно окно закрашено красным.",
-      "en": "Iris’s notebook is open to a drawing of their house. One window is colored in red."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "В блокноте — наш дом. Одно окно закрашено красным. До дыр.",
+     "en": "In her notebook — our house. One window is colored red. Pressed right through the paper."
+    },
+    {
+     "say": "iris",
+     "ru": "Не смотри. Это я так. Чтобы руки занять.",
+     "en": "Don’t look. It’s nothing. Just keeping my hands busy.",
+     "shot": "iris"
     },
     {
      "set": {
@@ -375,10 +737,15 @@
     {
      "shot": "two",
      "dur": 2.4,
-     "note": {
-      "ru": "Тишина давит.",
-      "en": "The silence presses in."
-     }
+     "say": "noah",
+     "ru": "Включу радио. Не могу в этой тишине.",
+     "en": "I’m putting the radio on. I can’t stand this quiet."
+    },
+    {
+     "say": "iris",
+     "ru": "Не надо, Ной…",
+     "en": "Don’t, Noah…",
+     "shot": "iris"
     },
     {
      "fx": "radio_on"
@@ -390,8 +757,19 @@
     {
      "say": "radio",
      "shot": "two",
-     "ru": "…в своём доме найден мёртвым Виктор, сорок девять лет. Полиция разыскивает его детей — сына Ноя, девятнадцать лет, и дочь Айрис, пятнадцать. Сын может быть опасен. Если вы видели…",
-     "en": "…Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen…"
+     "ru": "…в своём доме найден мёртвым Виктор, сорок девять лет.",
+     "en": "…Victor, forty-nine, was found dead in his home."
+    },
+    {
+     "say": "radio",
+     "ru": "Полиция разыскивает его детей — сына Ноя, девятнадцати лет, и дочь Айрис, пятнадцати.",
+     "en": "Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen."
+    },
+    {
+     "say": "radio",
+     "ru": "Сын может быть опасен. Если вы видели…",
+     "en": "The son may be dangerous. If you have seen…",
+     "shot": "noah"
     },
     {
      "fx": "pencil_break"
@@ -399,10 +777,17 @@
     {
      "shot": "notebook",
      "dur": 1.4,
-     "note": {
-      "ru": "У Айрис ломается карандаш.",
-      "en": "Iris’s pencil snaps."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Найден мёртвым. Папа.",
+     "en": "Found dead. Dad."
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "«Сын может быть опасен». Сын — это я.",
+     "en": "“The son may be dangerous.” The son is me.",
+     "shot": "noah"
     },
     {
      "choice": {
@@ -442,10 +827,41 @@
     {
      "shot": "iris",
      "dur": 2.0,
-     "note": {
-      "ru": "Айрис выдыхает.",
-      "en": "Iris lets out a breath."
-     }
+     "say": "iris",
+     "ru": "…Спасибо.",
+     "en": "…Thank you."
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис. Папа… умер.",
+     "en": "Iris. Dad’s… dead.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Да.",
+     "en": "Yes.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Ты знала. Всё это время.",
+     "en": "You knew. This whole time.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Знала. Не хотела, чтобы ты услышал вот так. По радио.",
+     "en": "I knew. I didn’t want you to hear it like that. On the radio.",
+     "shot": "iris",
+     "look": "noah"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Мне должно быть больно. А мне просто холодно.",
+     "en": "It should hurt. I just feel cold.",
+     "shot": "noah"
     },
     {
      "set": {
@@ -472,11 +888,11 @@
     {
      "shot": "iris",
      "dur": 2.2,
-     "note": {
-      "ru": "Айрис зажимает уши и тихо напевает колыбельную — ту самую.",
-      "en": "Iris covers her ears and quietly hums the lullaby — the same one."
-     },
-     "fx": "lullaby_iris"
+     "fx": "lullaby_iris",
+     "say": "noah",
+     "thought": true,
+     "ru": "Айрис зажала уши и что-то напевает. Я знаю эту песню. Откуда?",
+     "en": "Iris has her hands over her ears, humming. I know that song. How?"
     },
     {
      "fx": "flash_dock"
@@ -488,6 +904,31 @@
      },
      "dur": 2.2,
      "note": true
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис. Что ты сейчас пела?",
+     "en": "Iris. What were you just singing?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Мамину колыбельную. Она нам её пела. Обоим.",
+     "en": "Mom’s lullaby. She used to sing it to us. Both of us.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Я сейчас видел мостки. Фонарь. Воду.",
+     "en": "I just saw a dock. A lantern. Water.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "…Правда?",
+     "en": "…You did?",
+     "shot": "iris",
+     "look": "noah"
     },
     {
      "set": {
@@ -522,9 +963,29 @@
     {
      "say": "iris",
      "shot": "iris",
-     "ru": "Ты не помнишь. Значит, так надо.",
-     "en": "You don’t remember. Then that’s how it has to be.",
+     "ru": "Ты его не… Не надо, Ной. Не спрашивай меня так.",
+     "en": "You didn’t… Don’t, Noah. Don’t ask me like that.",
      "look": "window"
+    },
+    {
+     "say": "noah",
+     "ru": "Это не «нет».",
+     "en": "That’s not a no.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Это «смотри на дорогу».",
+     "en": "It’s a “watch the road.”",
+     "shot": "iris",
+     "look": "window"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Пусть бы она соврала. Так было бы легче.",
+     "en": "I wish she’d just lie. It would be easier.",
+     "shot": "noah"
     },
     {
      "set": {
@@ -548,10 +1009,29 @@
      "fx": "fade_in",
      "shot": "road",
      "dur": 2.4,
-     "note": {
-      "ru": "Лесная трасса. Снег летит в фары.",
-      "en": "A forest highway. Snow streams into the headlights."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Лес. Снег летит в фары. Не спать. Только не спать.",
+     "en": "Forest. Snow streaming into the headlights. Stay awake. Just stay awake."
+    },
+    {
+     "say": "iris",
+     "ru": "Ной. Ты здесь? Скажи что-нибудь.",
+     "en": "Noah. Are you here? Say something.",
+     "shot": "iris",
+     "look": "noah"
+    },
+    {
+     "say": "noah",
+     "ru": "Здесь. Рулю.",
+     "en": "I’m here. Driving.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Вот и рули. И моргай иногда, а то жутко.",
+     "en": "Then drive. And blink once in a while, it’s creepy.",
+     "shot": "iris"
     },
     {
      "fx": "deer_road",
@@ -576,10 +1056,10 @@
      "fx": "deer_look",
      "shot": "deer_eye",
      "dur": 2.8,
-     "note": {
-      "ru": "Машина замирает в метре. Олень смотрит в лобовое.",
-      "en": "The car stops a yard short. The deer stares in through the windshield."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "В метре. Он стоит в метре и смотрит прямо на меня.",
+     "en": "A yard away. It’s standing a yard away, looking right at me."
     },
     {
      "shot": "deer_face",
@@ -594,10 +1074,28 @@
      "fx": "deer_walk_off",
      "shot": "deer_walk",
      "dur": 3.6,
-     "note": {
-      "ru": "Потом уходит в лес.",
-      "en": "Then it walks off into the woods."
-     }
+     "say": "iris",
+     "ru": "Уходит… Просто взял и ушёл.",
+     "en": "It’s leaving… It just walked away."
+    },
+    {
+     "say": "iris",
+     "ru": "Ты успел. Ной, ты успел.",
+     "en": "You stopped. Noah, you stopped in time.",
+     "shot": "iris",
+     "look": "noah"
+    },
+    {
+     "say": "noah",
+     "ru": "Руки трясутся.",
+     "en": "My hands are shaking.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Пусть трясутся. Зато все живы. И он тоже.",
+     "en": "Let them shake. Everyone’s alive. Him too.",
+     "shot": "iris"
     },
     {
      "fx": "drive_on",
@@ -629,27 +1127,26 @@
      "fx": "fade_in",
      "shot": "deer_lie",
      "dur": 3.2,
-     "note": {
-      "ru": "Олень бьётся на дороге. Ноги сломаны. Он ещё дышит — и кричит.",
-      "en": "The deer thrashes on the road. Its legs are broken. It’s still breathing — and screaming."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Он живой. Ноги сломаны. И он кричит — как человек.",
+     "en": "It’s alive. Its legs are broken. And it’s screaming — like a person."
     },
     {
      "shot": "lamp",
      "dur": 2.0,
-     "note": {
-      "ru": "Одна фара разбита.",
-      "en": "One headlight is smashed."
-     }
+     "say": "noah",
+     "ru": "Фару разбил…",
+     "en": "Smashed the headlight…"
     },
     {
      "shot": "deer_walk_in",
      "dur": 4.2,
-     "note": {
-      "ru": "Ной выходит. Снег. Кровь на белом.",
-      "en": "Noah gets out. Snow. Blood on the white."
-     },
-     "fx": "noah_to_deer"
+     "fx": "noah_to_deer",
+     "say": "noah",
+     "thought": true,
+     "ru": "Снег. Кровь на снегу. Опять кровь.",
+     "en": "Snow. Blood on the snow. Blood again."
     },
     {
      "say": "iris",
@@ -709,10 +1206,9 @@
      "shot": "iris",
      "look": "deer",
      "dur": 2.4,
-     "note": {
-      "ru": "Ной идёт к багажнику. Возвращается с монтировкой.",
-      "en": "Noah walks to the trunk. He comes back with the tire iron."
-     }
+     "say": "iris",
+     "ru": "Ной? Ной, что у тебя в руке?",
+     "en": "Noah? Noah, what’s that in your hand?"
     },
     {
      "fx": "thud",
@@ -731,10 +1227,9 @@
      "fx": "thud",
      "shot": "iris",
      "dur": 1.0,
-     "note": {
-      "ru": "Ещё один.",
-      "en": "Another."
-     }
+     "say": "iris",
+     "ru": "Не смотри. Не смотри…",
+     "en": "Don’t look. Don’t look…"
     },
     {
      "fx": "thud",
@@ -753,10 +1248,28 @@
      },
      "shot": "iris",
      "dur": 2.4,
-     "note": {
-      "ru": "Тишина. Айрис не открывает глаз.",
-      "en": "Silence. Iris keeps her eyes shut."
-     }
+     "say": "iris",
+     "ru": "Всё?.. Уже всё?",
+     "en": "Is it… is it over?"
+    },
+    {
+     "say": "noah",
+     "ru": "Всё.",
+     "en": "It’s over.",
+     "shot": "noah"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Три удара. Руки сами знали, куда бить.",
+     "en": "Three blows. My hands knew exactly where to hit.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Не говори ничего. Просто поехали.",
+     "en": "Don’t say anything. Let’s just go.",
+     "shot": "iris"
     },
     {
      "set": {
@@ -785,10 +1298,28 @@
       "set": "pain"
      },
      "dur": 2.6,
-     "note": {
-      "ru": "Крик оленя тянется за машиной. Айрис зажимает уши.",
-      "en": "The deer’s scream trails after the car. Iris covers her ears."
-     }
+     "say": "iris",
+     "ru": "Он кричит… Ной, он же ещё кричит!",
+     "en": "It’s screaming… Noah, it’s still screaming!"
+    },
+    {
+     "say": "noah",
+     "ru": "Я не могу, Айрис. Не могу я его… Не могу.",
+     "en": "I can’t, Iris. I can’t… I just can’t.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты его просто бросил.",
+     "en": "You just left it there.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Не смотреть в зеркало. Только не в зеркало.",
+     "en": "Don’t look in the mirror. Just don’t.",
+     "shot": "noah"
     },
     {
      "shot": "iris",
@@ -829,28 +1360,33 @@
      "fx": "fade_in",
      "shot": "deer_side",
      "dur": 3.4,
-     "note": {
-      "ru": "Ной сидит в снегу. Ладонь на шее оленя.",
-      "en": "Noah sits in the snow, his palm on the deer’s neck."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Тёплый. Под ладонью ещё стучит — всё тише.",
+     "en": "Warm. Under my palm it’s still beating — slower and slower."
     },
     {
      "shot": "iris_glass",
      "look": "deer",
      "dur": 2.6,
-     "note": {
-      "ru": "Айрис смотрит. Потом рисует.",
-      "en": "Iris watches. Then she draws."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Айрис за стеклом. Рисует. Она всегда рисует, когда страшно.",
+     "en": "Iris behind the glass. Drawing. She always draws when she’s scared."
     },
     {
      "fx": "deer_quiet",
      "shot": "deer_side",
      "dur": 4.6,
-     "note": {
-      "ru": "Олень дышит всё реже. Затихает.",
-      "en": "The deer’s breaths come slower. Then it’s still."
-     }
+     "say": "noah",
+     "ru": "Тише. Тише… Я здесь. Ты не один.",
+     "en": "Easy. Easy… I’m here. You’re not alone."
+    },
+    {
+     "say": "iris",
+     "ru": "Ной… Пойдём. Ты весь заледенеешь.",
+     "en": "Noah… Come on. You’ll freeze out there.",
+     "shot": "iris_glass"
     },
     {
      "set": {
@@ -878,20 +1414,29 @@
     {
      "shot": "deer_noah",
      "dur": 3.0,
-     "note": {
-      "ru": "Ной не может пошевелиться.",
-      "en": "Noah can’t move."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Ноги не идут. Руки не идут. Я просто стою и смотрю.",
+     "en": "My legs won’t move. Neither will my hands. I just stand there, watching."
     },
     {
      "fx": "deer_quiet",
      "shot": "iris",
      "look": "noah",
      "dur": 4.4,
-     "note": {
-      "ru": "Олень кричит. Хрипит. Затихает сам.",
-      "en": "The deer screams. Rasps. Goes still on its own."
-     }
+     "say": "iris",
+     "ru": "Всё… Он сам. Ной? Ной, ты меня слышишь?",
+     "en": "It’s over… on its own. Noah? Noah, can you hear me?"
+    },
+    {
+     "say": "noah",
+     "ru": "Слышу. Я… не смог.",
+     "en": "I hear you. I… couldn’t."
+    },
+    {
+     "say": "iris",
+     "ru": "Я знаю. Садись. Садись в машину, Ной.",
+     "en": "I know. Get in. Get in the car, Noah."
     },
     {
      "set": {
@@ -914,6 +1459,15 @@
    "save": true,
    "beats": [
     {
+     "say": "iris",
+     "ru": "Я его нарисовала. Оленя. Чтобы он хоть где-то остался.",
+     "en": "I drew him. The deer. So he’d stay somewhere, at least.",
+     "shot": "iris",
+     "if": {
+      "deer": "==4"
+     }
+    },
+    {
      "shot": "road",
      "dur": 2.2
     },
@@ -921,19 +1475,25 @@
      "fx": "fuel_light",
      "shot": "cluster",
      "dur": 2.2,
-     "note": {
-      "ru": "Мигает лампочка бензина.",
-      "en": "The fuel light is blinking."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Лампочка бензина. Отлично. Просто отлично.",
+     "en": "The fuel light. Great. Just great."
     },
     {
      "fx": "hum_up",
      "shot": "noah",
      "dur": 2.6,
-     "note": {
-      "ru": "В голове у Ноя нарастает гул. По краям в глазах пульсирует темнота.",
-      "en": "A hum builds inside Noah’s head. Darkness pulses at the edges of his vision."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "И гул в голове. Опять. По краям всё темнеет.",
+     "en": "And the hum in my head. Again. The edges are going dark."
+    },
+    {
+     "say": "noah",
+     "ru": "Бензин кончается. Нужна заправка.",
+     "en": "We’re running out of gas. We need a station.",
+     "shot": "noah"
     },
     {
      "say": "iris",
@@ -950,19 +1510,30 @@
     {
      "shot": "pills",
      "dur": 3.2,
-     "note": {
-      "ru": "Пузырёк таблеток. «Ной. Д-р С. Хейл. 1 таб. при головной боли».",
-      "en": "A bottle of pills. “Noah. Dr. S. Hale. 1 tablet for headaches.”"
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Мои таблетки. «Ной. Д-р С. Хейл. 1 таб. при головной боли».",
+     "en": "My pills. “Noah. Dr. S. Hale. 1 tablet for headaches.”"
     },
     {
      "shot": "iris",
      "look": "noah",
      "dur": 2.4,
-     "note": {
-      "ru": "Айрис смотрит на пузырёк. Потом на брата.",
-      "en": "Iris looks at the bottle. Then at her brother."
-     }
+     "say": "iris",
+     "ru": "Голова болит, да? Я же вижу.",
+     "en": "Your head hurts, doesn’t it? I can tell."
+    },
+    {
+     "say": "noah",
+     "ru": "Гудит. Как трансформатор под окном.",
+     "en": "It’s humming. Like a transformer outside the window.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Это твоя голова. Тебе решать.",
+     "en": "It’s your head. Your call.",
+     "shot": "iris"
     },
     {
      "choice": {
@@ -1000,10 +1571,10 @@
      "fx": "pills_take",
      "shot": "noah",
      "dur": 2.4,
-     "note": {
-      "ru": "Ной глотает таблетку. Гул стихает.",
-      "en": "Noah swallows a pill. The hum fades."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Глотаю всухую. Гул уходит. Тихо — как под водой.",
+     "en": "I swallow it dry. The hum fades. Quiet — like being underwater."
     },
     {
      "fx": "hum_down"
@@ -1013,10 +1584,21 @@
      "shot": "iris",
      "look": "window",
      "dur": 2.2,
-     "note": {
-      "ru": "Айрис отворачивается.",
-      "en": "Iris turns away."
-     }
+     "say": "iris",
+     "ru": "Ну конечно.",
+     "en": "Of course."
+    },
+    {
+     "say": "noah",
+     "ru": "Что «конечно»?",
+     "en": "What’s that supposed to mean?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ничего. Теперь ты опять будешь… тихий.",
+     "en": "Nothing. Now you’ll be all… quiet again.",
+     "shot": "iris"
     },
     {
      "set": {
@@ -1048,6 +1630,18 @@
      "look": "noah"
     },
     {
+     "say": "noah",
+     "ru": "Ненавидел. Только голова от этого не проходит.",
+     "en": "I did. Doesn’t make the headache go away.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Потерпи. Мне нужно, чтобы ты был здесь. Настоящий.",
+     "en": "Hang in there. I need you here. The real you.",
+     "shot": "iris"
+    },
+    {
      "set": {
       "trust": 1
      }
@@ -1067,10 +1661,10 @@
      "fx": "pills_throw",
      "shot": "two",
      "dur": 2.4,
-     "note": {
-      "ru": "Пузырёк исчезает в снегу за окном.",
-      "en": "The bottle vanishes into the snow outside."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Одиннадцать лет таблеток — в сугроб.",
+     "en": "Eleven years of pills — into a snowbank."
     },
     {
      "fx": "glove_close",
@@ -1081,10 +1675,21 @@
       "set": "smile"
      },
      "dur": 2.2,
-     "note": {
-      "ru": "Айрис почти улыбается.",
-      "en": "Iris almost smiles."
-     }
+     "say": "iris",
+     "ru": "Ого. Сам выбросил. Без меня.",
+     "en": "Whoa. You threw them out. All by yourself."
+    },
+    {
+     "say": "noah",
+     "ru": "Завтра голова скажет, зря или нет.",
+     "en": "My head will tell me tomorrow if that was dumb.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Голова у тебя и без таблеток дурная.",
+     "en": "Your head’s dumb enough without the pills.",
+     "shot": "iris"
     },
     {
      "expr": {
@@ -1343,6 +1948,12 @@
      }
     },
     {
+     "say": "noah",
+     "thought": true,
+     "ru": "Пацан. Один. Почти четыре утра.",
+     "en": "A kid. Alone. Almost four in the morning."
+    },
+    {
      "look": {
       "who": "danny",
       "at": "iris"
@@ -1376,6 +1987,24 @@
      "shot": "st_danny",
      "ru": "Мама сказала ждать. Её… уже долго нет.",
      "en": "Mom told me to wait. She’s been gone… a long time."
+    },
+    {
+     "say": "iris",
+     "ru": "У тебя руки ледяные. Совсем замёрз.",
+     "en": "Your hands are like ice. You’re frozen.",
+     "shot": "st_two"
+    },
+    {
+     "say": "danny",
+     "ru": "Мне нельзя уходить. Мама сказала — ни шагу.",
+     "en": "I can’t go anywhere. Mom said don’t move a step.",
+     "shot": "st_danny"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Сначала бензин. Потом всё остальное.",
+     "en": "Gas first. Everything else later."
     },
     {
      "if": {
@@ -1508,6 +2137,25 @@
    "loc": "station",
    "beats": [
     {
+     "say": "roman",
+     "ru": "Это ведь ты. Там, в новостях.",
+     "en": "That’s you, isn’t it? On the news.",
+     "shot": "st_roman"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "На экране — моё лицо. Под ним: «Может быть опасен».",
+     "en": "My face is on the screen. Under it: “May be dangerous.”",
+     "shot": "st_tv"
+    },
+    {
+     "say": "roman",
+     "ru": "Я сейчас позвоню, парень. А ты стой, где стоишь.",
+     "en": "I’m going to make a call, kid. You stay right where you are.",
+     "shot": "st_roman"
+    },
+    {
      "ref": "shop",
      "fx": "roman_pickup"
     },
@@ -1553,6 +2201,12 @@
       "do": "palms_out",
       "dur": 2.0
      }
+    },
+    {
+     "say": "roman",
+     "ru": "Клади на стойку. И иди, парень. Иди.",
+     "en": "Leave it on the counter. And go, kid. Just go.",
+     "shot": "st_roman"
     },
     {
      "ref": "shop",
@@ -1610,6 +2264,19 @@
    "loc": "station",
    "beats": [
     {
+     "say": "noah",
+     "thought": true,
+     "ru": "Скажи что-нибудь. Хоть что-нибудь…",
+     "en": "Say something. Anything…",
+     "shot": "st_noah_face"
+    },
+    {
+     "say": "roman",
+     "ru": "Молчишь? Ну молчи.",
+     "en": "Not talking? Suit yourself.",
+     "shot": "st_roman"
+    },
+    {
      "ref": "shop",
      "fx": "noah_bills",
      "cam": [
@@ -1664,6 +2331,18 @@
   "s5_cord": {
    "loc": "station",
    "beats": [
+    {
+     "say": "noah",
+     "ru": "Положи трубку.",
+     "en": "Put the phone down.",
+     "shot": "st_noah_face"
+    },
+    {
+     "say": "roman",
+     "ru": "Парень, не дури…",
+     "en": "Kid, don’t do anything stupid…",
+     "shot": "st_roman"
+    },
     {
      "ref": "shop",
      "fx": "cord_rip",
@@ -1747,6 +2426,18 @@
     },
     {
      "say": "roman",
+     "ru": "Сестра — это девчонка там, с пацаном?",
+     "en": "Your sister — that’s the girl out there with the kid?",
+     "shot": "st_roman"
+    },
+    {
+     "say": "noah",
+     "ru": "Да. Ей пятнадцать.",
+     "en": "Yes. She’s fifteen.",
+     "shot": "st_noah_face"
+    },
+    {
+     "say": "roman",
      "shot": "st_roman",
      "ru": "Езжай, парень. Позвоню через десять минут.",
      "en": "Go, kid. I’ll make the call in ten minutes.",
@@ -1754,6 +2445,11 @@
       "who": "roman",
       "at": "noah"
      }
+    },
+    {
+     "say": "roman",
+     "ru": "Больше не могу, парень. У меня у самого дети.",
+     "en": "That’s all I can do, kid. I’ve got kids of my own."
     },
     {
      "ref": "shop",
@@ -1782,6 +2478,19 @@
   "s5_lapse": {
    "loc": "station",
    "beats": [
+    {
+     "say": "roman",
+     "ru": "Это ведь ты. Там, в новостях.",
+     "en": "That’s you, isn’t it? On the news.",
+     "shot": "st_roman"
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Гул. Громче. Ещё громче.",
+     "en": "The hum. Louder. Louder still.",
+     "shot": "st_noah_face"
+    },
     {
      "fx": "ring",
      "shot": "st_noah_face",
@@ -1892,6 +2601,17 @@
      "dur": 3.0
     },
     {
+     "say": "noah",
+     "thought": true,
+     "ru": "Я был у кассы. А теперь стою у машины. Как?",
+     "en": "I was at the counter. Now I’m standing by the car. How?"
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис… что там было?",
+     "en": "Iris… what happened in there?"
+    },
+    {
      "say": "iris",
      "ru": "Садись. Быстро.",
      "en": "Get in. Now.",
@@ -1909,6 +2629,11 @@
       ],
       18
      ]
+    },
+    {
+     "say": "iris",
+     "ru": "Не спрашивай. Садись в машину. Сейчас же.",
+     "en": "Don’t ask. Get in the car. Right now."
     },
     {
      "ref": "lapse",
@@ -2046,6 +2771,40 @@
      ]
     },
     {
+     "say": "danny",
+     "ru": "А у вас в машине тепло?",
+     "en": "Is it warm in your car?",
+     "if": {
+      "lapse1": "==0"
+     }
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Тепло. И руль в крови.",
+     "en": "It’s warm. And there’s blood on the wheel.",
+     "if": {
+      "lapse1": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Его тут оставлять нельзя. Не после этого.",
+     "en": "We can’t leave him here. Not after that.",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Почему он так на меня смотрит? Что я сделал?",
+     "en": "Why is he looking at me like that? What did I do?",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
      "choice": {
       "t": 8,
       "opts": [
@@ -2104,6 +2863,22 @@
      ]
     },
     {
+     "say": "danny",
+     "ru": "А мама? Как она меня найдёт?",
+     "en": "What about Mom? How will she find me?",
+     "if": {
+      "lapse1": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "У тебя же рация. Мама нажмёт — и ты услышишь.",
+     "en": "You’ve got the walkie-talkie. Mom presses the button — you’ll hear her.",
+     "if": {
+      "lapse1": "==0"
+     }
+    },
+    {
      "ref": "ep7",
      "if": {
       "lapse1": ">0"
@@ -2153,6 +2928,22 @@
       ],
       40
      ]
+    },
+    {
+     "say": "danny",
+     "ru": "…Ты со мной сядешь?",
+     "en": "…Will you sit with me?",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Сяду. Обещаю.",
+     "en": "I will. I promise.",
+     "if": {
+      "lapse1": ">0"
+     }
     },
     {
      "ref": "ep7",
@@ -2223,6 +3014,16 @@
      ]
     },
     {
+     "say": "noah",
+     "ru": "Нас ищет полиция, Айрис. С нами ему будет только хуже.",
+     "en": "The police are after us, Iris. He’s only worse off with us."
+    },
+    {
+     "say": "iris",
+     "ru": "А тут ему лучше? Одному, ночью, на морозе?",
+     "en": "And he’s better off here? Alone, at night, in the cold?"
+    },
+    {
      "ref": "ep7",
      "look": {
       "who": "danny",
@@ -2289,6 +3090,19 @@
      ]
     },
     {
+     "say": "danny",
+     "ru": "Я тихо буду. Честно.",
+     "en": "I’ll be quiet. Promise.",
+     "if": {
+      "lapse1": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Спасибо, Ной.",
+     "en": "Thanks, Noah."
+    },
+    {
      "ref": "ep7",
      "fx": "danny_climb_in",
      "cam": [
@@ -2338,6 +3152,26 @@
      ]
     },
     {
+     "say": "iris",
+     "ru": "Ты серьёзно?",
+     "en": "Are you serious?"
+    },
+    {
+     "say": "noah",
+     "ru": "Серьёзно. Его мама вернётся.",
+     "en": "I’m serious. His mom will come back."
+    },
+    {
+     "say": "iris",
+     "ru": "Посмотри на него и скажи это ещё раз.",
+     "en": "Look at him and say that again."
+    },
+    {
+     "say": "danny",
+     "ru": "Ничего. Мама скоро придёт.",
+     "en": "It’s okay. Mom’s coming soon."
+    },
+    {
      "ref": "ep7",
      "fx": "iris_release",
      "cam": [
@@ -2377,6 +3211,17 @@
   "s6_c": {
    "loc": "station",
    "beats": [
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Решай. Ну же. Я не могу ничего решить.",
+     "en": "Decide. Come on. I can’t decide anything."
+    },
+    {
+     "say": "iris",
+     "ru": "Понятно. Сама решу.",
+     "en": "Got it. I’ll decide myself."
+    },
     {
      "ref": "ep7",
      "look": {
@@ -2562,10 +3407,10 @@
      "fx": "fade_in",
      "shot": "two",
      "dur": 2.6,
-     "note": {
-      "ru": "Отъезжают.",
-      "en": "They pull away."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Заправка уходит назад. Не оглядывайся.",
+     "en": "The station falls away behind us. Don’t look back."
     },
     {
      "peek": "mirror",
@@ -2585,28 +3430,45 @@
     {
      "shot": "mirror",
      "dur": 2.4,
-     "note": {
-      "ru": "На краю площадки, в темноте — чёрный седан. Фары выключены.",
-      "en": "At the edge of the lot, in the dark — a black sedan. Its lights are off."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "В зеркале — чёрная машина. Стоит в темноте, без фар.",
+     "en": "In the mirror — a black car. Parked in the dark, lights off."
     },
     {
      "fx": "blackcar_lights",
      "shot": "mirror",
      "dur": 2.4,
-     "note": {
-      "ru": "Когда они проезжают — фары загораются.",
-      "en": "As they pass, its headlights come on."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Фары зажглись. Будто ждали, пока мы отъедем.",
+     "en": "Its headlights come on. Like it was waiting for us to leave."
     },
     {
      "fx": "blackcar_turn",
      "shot": "mirror",
      "dur": 2.8,
-     "note": {
-      "ru": "Он не едет за ними. Он подъезжает к заправке.",
-      "en": "It doesn’t follow them. It pulls up to the gas station."
-     }
+     "say": "iris",
+     "ru": "Ной? Что там?",
+     "en": "Noah? What is it?"
+    },
+    {
+     "say": "noah",
+     "ru": "Машина. Свернула к заправке. Не за нами.",
+     "en": "A car. It pulled into the station. It’s not after us.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Точно не за нами?",
+     "en": "You sure it’s not after us?",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Точно.",
+     "en": "I’m sure.",
+     "shot": "noah"
     },
     {
      "if": {
@@ -2622,6 +3484,13 @@
       "ru": "Дэнни смотрит на Ноя — и сразу опускает глаза.",
       "en": "Danny looks at Noah — and drops his eyes at once."
      }
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Ни в чём я не уверен. Особенно в себе.",
+     "en": "I’m not sure of anything. Least of all myself.",
+     "shot": "noah"
     },
     {
      "set": {
@@ -2645,6 +3514,97 @@
    "loc": "car",
    "beats": [
     {
+     "say": "noah",
+     "ru": "Айрис. Там, в магазине, стекло было разбито. Это я?",
+     "en": "Iris. In the store — the glass was smashed. Was that me?",
+     "shot": "noah",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Рули, Ной. Просто рули.",
+     "en": "Drive, Noah. Just drive.",
+     "shot": "iris",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "thought": true,
+     "ru": "Она даже не стала врать.",
+     "en": "She didn’t even try to lie.",
+     "shot": "noah",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Он звонил в полицию. Я видел, как он набирает.",
+     "en": "He called the police. I watched him dial.",
+     "shot": "noah",
+     "if": {
+      "police": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Значит, скоро нас будут ждать. Везде.",
+     "en": "So soon they’ll be waiting for us. Everywhere.",
+     "shot": "iris",
+     "if": {
+      "police": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Кассир сказал — позвонит через десять минут.",
+     "en": "The cashier said he’d call in ten minutes.",
+     "shot": "noah",
+     "if": {
+      "roman_ally": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Десять минут. Это много?",
+     "en": "Ten minutes. Is that a lot?",
+     "shot": "iris",
+     "if": {
+      "roman_ally": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Это всё, что у нас есть.",
+     "en": "It’s all we’ve got.",
+     "shot": "noah",
+     "if": {
+      "roman_ally": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Я вырвал у него провод. Из телефона.",
+     "en": "I ripped his phone cord out.",
+     "shot": "noah",
+     "if": {
+      "police_late": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Ты… Ладно. Ладно. Значит, позвонит позже. Но позвонит.",
+     "en": "You… Okay. Okay. So he’ll call later. But he’ll call.",
+     "shot": "iris",
+     "if": {
+      "police_late": ">0"
+     }
+    },
+    {
      "shot": "iris",
      "expr": {
       "who": "iris",
@@ -2652,10 +3612,10 @@
      },
      "look": "window",
      "dur": 2.8,
-     "note": {
-      "ru": "Айрис беззвучно плачет.",
-      "en": "Iris is crying silently."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Айрис плачет. Беззвучно, в окно — чтобы я не видел.",
+     "en": "Iris is crying. Silently, into the window — so I won’t see."
     },
     {
      "choice": {
@@ -2693,10 +3653,21 @@
     {
      "shot": "iris",
      "dur": 2.4,
-     "note": {
-      "ru": "Айрис слышит, что это ложь.",
-      "en": "Iris can hear that it’s a lie."
-     }
+     "say": "iris",
+     "ru": "Ты сам в это не веришь.",
+     "en": "You don’t even believe that."
+    },
+    {
+     "say": "noah",
+     "ru": "Не верю. Но кто-то же должен это сказать.",
+     "en": "I don’t. But somebody has to say it.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ну спасибо. Очень успокоил.",
+     "en": "Gee, thanks. Very comforting.",
+     "shot": "iris"
     },
     {
      "go": "s7_talk"
@@ -2716,10 +3687,26 @@
      "shot": "iris",
      "look": "noah",
      "dur": 2.4,
-     "note": {
-      "ru": "Айрис поворачивается к нему.",
-      "en": "Iris turns to him."
-     }
+     "say": "iris",
+     "ru": "Вот. Наконец-то честно.",
+     "en": "There. Finally, something honest."
+    },
+    {
+     "say": "iris",
+     "ru": "Я тоже не знаю, Ной. Но я рядом. Слышишь?",
+     "en": "I don’t know either, Noah. But I’m right here. You hear me?"
+    },
+    {
+     "say": "noah",
+     "ru": "Слышу.",
+     "en": "I hear you.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Всё. Не смотри на меня так. Смотри на дорогу.",
+     "en": "Good. Now stop looking at me like that. Eyes on the road.",
+     "shot": "iris"
     },
     {
      "set": {
@@ -2743,14 +3730,31 @@
      },
      "shot": "back",
      "dur": 2.8,
-     "note": {
-      "ru": "Айрис протягивает Дэнни свои варежки.",
-      "en": "Iris hands Danny her mittens."
-     },
      "gesture": {
       "who": "iris",
       "do": "give",
       "dur": 2.2
+     },
+     "say": "iris",
+     "ru": "На. Надень, у тебя пальцы синие.",
+     "en": "Here. Put these on, your fingers are blue."
+    },
+    {
+     "say": "danny",
+     "ru": "А ты?",
+     "en": "What about you?",
+     "shot": "back",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "А у меня карманы. Надевай.",
+     "en": "I’ve got pockets. Put them on.",
+     "shot": "back",
+     "if": {
+      "danny": ">0"
      }
     },
     {
@@ -2759,10 +3763,10 @@
      },
      "shot": "two",
      "dur": 2.2,
-     "note": {
-      "ru": "Молчание.",
-      "en": "Silence."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Надо что-то сказать. Ничего не идёт в голову.",
+     "en": "I should say something. Nothing comes."
     },
     {
      "go": "s7_talk"
@@ -2773,12 +3777,18 @@
    "loc": "car",
    "beats": [
     {
-     "note": {
-      "ru": "Полчаса пустой дороги. Дворники, снег, гул мотора.",
-      "en": "Half an hour of empty road. Wipers, snow, the drone of the engine."
-     },
      "dur": 2.8,
-     "shot": "road"
+     "shot": "road",
+     "say": "noah",
+     "thought": true,
+     "ru": "Полчаса — ни одной машины. Дворники. Снег. Мотор.",
+     "en": "Half an hour and not one car. Wipers. Snow. The engine."
+    },
+    {
+     "say": "iris",
+     "ru": "Ной. Поговори со мной. О чём угодно.",
+     "en": "Noah. Talk to me. About anything.",
+     "shot": "iris"
     },
     {
      "ask": {
@@ -2798,10 +3808,9 @@
          },
          {
           "say": "iris",
-          "ru": "Немножко. Руки. …А ты?",
-          "en": "A little. Her hands. …You?",
-          "shot": "iris",
-          "vo": "s7_talk_a089597"
+          "ru": "Чуть-чуть. Руки. Как она мне косы плела. …А ты?",
+          "en": "A little. Her hands. How she used to braid my hair. …You?",
+          "shot": "iris"
          },
          {
           "say": "noah",
@@ -2811,47 +3820,56 @@
           "vo": "s7_talk_a3bc038"
          },
          {
-          "note": {
-           "ru": "Айрис долго смотрит на него. И ничего не говорит.",
-           "en": "Iris looks at him for a long time. She says nothing."
-          },
           "dur": 2.6,
           "shot": "iris",
-          "look": "noah"
+          "look": "noah",
+          "say": "noah",
+          "thought": true,
+          "ru": "Айрис смотрит на меня так, будто я сказал что-то страшное.",
+          "en": "Iris looks at me like I just said something terrible."
+         },
+         {
+          "say": "iris",
+          "ru": "Ну, мы же летом у озера жили. Вот тебе и вода.",
+          "en": "Well, we spent summers at a lake. So — water.",
+          "shot": "iris"
          }
         ]
        },
        {
-        "ru": "Куда мы едем",
-        "en": "Where we’re going",
+        "ru": "Про блокнот",
+        "en": "About the notebook",
         "beats": [
          {
           "say": "noah",
-          "ru": "Что там, на севере?",
-          "en": "What’s up north?",
-          "shot": "noah",
-          "vo": "s7_talk_a9d3a10"
+          "ru": "Что ты там всё рисуешь?",
+          "en": "What do you keep drawing in there?",
+          "shot": "noah"
          },
          {
           "say": "iris",
-          "ru": "Там нас никто не ищет.",
-          "en": "No one’s looking for us there.",
-          "shot": "iris",
-          "vo": "s7_talk_a978b90"
+          "ru": "Всё подряд. Дорогу. Оленя. Тебя — как ты рулишь с открытым ртом.",
+          "en": "Whatever. The road. The deer. You — driving with your mouth hanging open.",
+          "shot": "iris"
          },
          {
           "say": "noah",
-          "ru": "Это не ответ.",
-          "en": "That’s not an answer.",
-          "shot": "noah",
-          "vo": "s7_talk_ae86bae"
+          "ru": "Покажешь?",
+          "en": "Can I see?",
+          "shot": "noah"
          },
          {
           "say": "iris",
-          "ru": "Другого пока нет.",
-          "en": "It’s the only one I’ve got.",
+          "ru": "Нет.",
+          "en": "No.",
+          "shot": "iris"
+         },
+         {
+          "say": "iris",
+          "ru": "Потом. Когда-нибудь. Там есть такое, что тебе пока рано.",
+          "en": "Later. Someday. There’s stuff in there you’re not ready for.",
           "shot": "iris",
-          "vo": "s7_talk_ab7bd9b"
+          "look": "notebook"
          }
         ]
        },
@@ -2868,33 +3886,31 @@
          },
          {
           "say": "iris",
-          "ru": "Не надо.",
-          "en": "Don’t.",
+          "ru": "Ты уже спрашивал. Я помню.",
+          "en": "You already asked. I remember.",
           "shot": "iris",
           "if": {
            "asked": ">0"
-          },
-          "vo": "s7_talk_a805a24"
+          }
          },
          {
           "say": "iris",
-          "ru": "Не сейчас. Пожалуйста.",
-          "en": "Not now. Please.",
-          "shot": "iris",
-          "vo": "s7_talk_a2960c7"
+          "ru": "Не в машине, Ной. Не сегодня. Пожалуйста.",
+          "en": "Not in the car, Noah. Not tonight. Please.",
+          "shot": "iris"
          },
          {
-          "note": {
-           "ru": "Она прижимает блокнот к груди обеими руками.",
-           "en": "She clutches the notebook to her chest with both hands."
-          },
           "dur": 2.4,
           "shot": "notebook",
           "gesture": {
            "who": "iris",
            "do": "chest",
            "dur": 2.6
-          }
+          },
+          "say": "noah",
+          "thought": true,
+          "ru": "Она прижимает блокнот к себе. Будто ответ — там.",
+          "en": "She hugs the notebook to her chest. As if the answer’s in there."
          },
          {
           "if": {
@@ -2926,6 +3942,12 @@
           "en": "I don’t know. But we’re not leaving him.",
           "shot": "iris",
           "vo": "s7_talk_a257470"
+         },
+         {
+          "say": "noah",
+          "ru": "Мы сами еле держимся, Айрис.",
+          "en": "We can barely hold it together ourselves, Iris.",
+          "shot": "noah"
          },
          {
           "say": "danny",
@@ -2964,15 +3986,15 @@
           "vo": "s7_talk_a15958b"
          },
          {
-          "note": {
-           "ru": "С заднего сиденья — ни звука. Дэнни не спит: смотрит Ною в затылок.",
-           "en": "Not a sound from the back seat. Danny isn’t asleep: he’s staring at the back of Noah’s head."
-          },
           "dur": 3.0,
           "shot": "back",
           "if": {
            "lapse1": ">0"
-          }
+          },
+          "say": "noah",
+          "thought": true,
+          "ru": "Сзади — ни звука. Но он не спит. Я чувствую, как он смотрит мне в затылок.",
+          "en": "Not a sound from the back. But he’s not asleep. I can feel him staring at the back of my head."
          },
          {
           "expr": {
@@ -3061,12 +4083,12 @@
       ],
       "end": [
        {
-        "note": {
-         "ru": "Дальше едут молча.",
-         "en": "They drive on in silence."
-        },
         "dur": 2.2,
-        "shot": "two"
+        "shot": "two",
+        "say": "noah",
+        "thought": true,
+        "ru": "Дальше молчим. Но это уже другое молчание.",
+        "en": "We drive on without talking. But it’s a different kind of quiet now."
        }
       ]
      }
@@ -3099,10 +4121,15 @@
     {
      "shot": "road",
      "dur": 2.6,
-     "note": {
-      "ru": "«Север — 640». Снег всё гуще: впереди буран.",
-      "en": "“North — 400.” The snow is getting heavier: a blizzard ahead."
-     }
+     "say": "iris",
+     "ru": "Шестьсот сорок. К утру не доедем.",
+     "en": "Four hundred miles. We won’t make it by morning."
+    },
+    {
+     "say": "noah",
+     "ru": "Доедем. Если буран пустит.",
+     "en": "We will. If the storm lets us.",
+     "shot": "noah"
     },
     {
      "if": {
@@ -3120,10 +4147,14 @@
      "shot": "iris",
      "look": "noah",
      "dur": 2.6,
-     "note": {
-      "ru": "Айрис достаёт дневник матери. Открывает последнюю страницу.",
-      "en": "Iris takes out their mother’s diary and opens it to the last page."
-     }
+     "say": "iris",
+     "ru": "Ной. Я тебе кое-что покажу. Только не останавливайся.",
+     "en": "Noah. I’m going to show you something. Just don’t stop the car."
+    },
+    {
+     "say": "iris",
+     "ru": "Это мамин дневник. Я нашла его месяц назад. Вот, последняя страница.",
+     "en": "It’s Mom’s diary. I found it a month ago. Here — the last page."
     },
     {
      "fx": "diary",
@@ -3134,10 +4165,23 @@
      "fx": "diary_off",
      "shot": "noah",
      "dur": 2.6,
-     "note": {
-      "ru": "Почерк мамы.",
-      "en": "Mom’s handwriting."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Мамин почерк. «Ной всё видел». Что — всё?",
+     "en": "Mom’s handwriting. “Noah saw everything.” Saw what?"
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис, что я видел?",
+     "en": "Iris, what did I see?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Не знаю. Честно. Я думала, ты мне скажешь.",
+     "en": "I don’t know. Honestly. I was hoping you’d tell me.",
+     "shot": "iris",
+     "look": "noah"
     },
     {
      "set": {
@@ -3156,10 +4200,23 @@
      "shot": "iris",
      "look": "window",
      "dur": 3.2,
-     "note": {
-      "ru": "Айрис прячет дневник под куртку. Ной замечает только уголок.",
-      "en": "Iris slips the diary under her jacket. Noah only glimpses a corner of it."
-     }
+     "say": "noah",
+     "thought": true,
+     "ru": "Айрис что-то прячет под куртку. Не блокнот — другое. Старое.",
+     "en": "Iris tucks something under her jacket. Not her sketchbook — something else. Something old."
+    },
+    {
+     "say": "noah",
+     "ru": "Что там у тебя?",
+     "en": "What’ve you got there?",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ничего. Рули.",
+     "en": "Nothing. Drive.",
+     "shot": "iris",
+     "look": "window"
     },
     {
      "go": "end"

@@ -323,6 +323,10 @@ func line(who: String, name_d, text_d) -> void:
 	sub_name.text = T(name_d)
 	sub_name.add_theme_color_override("font_color", NAME_COL.get(who, Color.WHITE))
 	sub_text.text = T(text_d)
+	if text_d is Dictionary and bool(text_d.get("thought", false)):   # мысли — приглушённым холодным цветом
+		sub_text.add_theme_color_override("font_color", Color(0.74, 0.8, 0.9))
+	else:
+		sub_text.remove_theme_color_override("font_color")
 	note.text = ""
 	_fit_subs()
 

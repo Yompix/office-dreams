@@ -16,16 +16,30 @@ NAMES = {'story': 'сюжет (реплики, ремарки, паузы)', 'ch
          'walk': 'прогулки: ходьба и подход', 'spot': 'прогулки: что в точках', 'talk': 'разговоры с темами'}
 
 
+NOVO = os.environ.get('VO') == '1'   # 8 ноя: озвучка выключена по умолчанию — время реплики по тексту (как game.gd), VO=1 — по голосу
+
+
+def _txt_line(b):   # game.gd 8 ноя: 1,4 + знаки/11,5 (2,2…12 с) + вдох 0,3 с
+    return max(2.2, min(12.0, 1.4 + len(b.get('ru', '')) / 11.5)) + 0.3
+
+
+def _note(b):   # ремарка/титр: не короче, чем прочесть (game.gd _read_t)
+    t = b.get('note') or b.get('text')
+    n = len(t.get('ru', '')) if isinstance(t, dict) else 0
+    d = float(b.get('dur', 2.0 if 'note' in b else 2.5))
+    return max(d * 1.3, 1.6 + n / 12.0) if isinstance(t, dict) else d
+
+
 def _line(b, vo, key):
-    return float(vo[key]['dur']) + 0.35 if key in vo else max(1.4, min(9.0, 0.9 + len(b.get('ru', '')) / 15.0))
+    return float(vo[key]['dur']) + 0.35 if (key in vo and NOVO) else _txt_line(b)
 
 
 def _beats(beats, acc, kind):
     for x in beats:
         if 'say' in x:
-            acc[kind] += max(1.4, min(9.0, 0.9 + len(x.get('ru', '')) / 15.0))
+            acc[kind] += _txt_line(x)
         elif 'note' in x or 'text' in x or 'dur' in x:
-            acc[kind] += float(x.get('dur', 2.0 if 'note' in x else 2.5))
+            acc[kind] += _note(x)
 
 
 def _ask(q, acc):
@@ -67,7 +81,7 @@ def main():
                 if 'say' in b:
                     acc['story'] += _line(b, vo, keys.get((sid, i)))
                 elif 'note' in b or 'text' in b or 'dur' in b:
-                    acc['story'] += float(b.get('dur', 2.0 if 'note' in b else 2.5))
+                    acc['story'] += _note(b)
                 if 'explore' in b:
                     _explore(data.get('explore', {}).get(b['explore'], {}), acc)
                 if 'ask' in b:

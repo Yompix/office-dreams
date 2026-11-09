@@ -8,6 +8,7 @@ game.gd показывает реплику по времени чтения).
 ничего не дублируется. Если генераторы глав (chN.py, chN_walk.py, gestures.py, fixes_mp.py) пересобрали данные —
 запустить снова:
     python3 tools/lake/story/flag_responses.py
+ВАЖНО (8 ноя): поверх уже применённого сценария v2 НЕ запускать — только на свежих данных, затем script_edits.py и script_v2.py.
 Условия: кроме флага решения — кто жив и рядом (как в tools/lake/story_audit.py, present()).
 """
 import json
@@ -128,7 +129,13 @@ def _alts(anchor):
         edits = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'script_edits.json'), encoding='utf-8'))
     except OSError:
         edits = []
-    return [anchor] + [e['new_ru'] for e in edits if e['old_ru'].startswith(anchor)]
+    alts = [anchor] + [e['new_ru'] for e in edits if e['old_ru'].startswith(anchor)]
+    v2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'script_v2')   # сценарий v2: якорь мог стать мыслью/репликой
+    for f in sorted(os.listdir(v2)) if os.path.isdir(v2) else []:
+        for op in json.load(open(os.path.join(v2, f), encoding='utf-8')):
+            if op.get('op') == 'replace' and any(op['find'].startswith(a) for a in alts):
+                alts.append(op['ru'])
+    return alts
 
 
 def main():

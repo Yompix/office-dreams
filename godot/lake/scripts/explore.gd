@@ -294,13 +294,17 @@ func _input_vec() -> Vector2:
 
 
 func _free(x: float, z: float) -> bool:
-	var inside := false
-	for w in d.get("walk", []):
-		if x >= float(w[0]) + RAD and x <= float(w[2]) - RAD and z >= float(w[1]) + RAD and z <= float(w[3]) - RAD:
-			inside = true
-			break
-	if not inside:
-		return false
+	# тело (центр и четыре края на RAD) — внутри объединения прямоугольников «walk». Раньше отступ RAD брался от каждого
+	# прямоугольника отдельно — на стыке двух соседних оставалась полоса 2·RAD, куда шагнуть нельзя: «невидимая стена»
+	# (кафе, 8 ноя: из коридора у туалета нельзя было выйти в зал)
+	for pt in [Vector2(x, z), Vector2(x - RAD, z), Vector2(x + RAD, z), Vector2(x, z - RAD), Vector2(x, z + RAD)]:
+		var ok := false
+		for w in d.get("walk", []):
+			if pt.x >= float(w[0]) and pt.x <= float(w[2]) and pt.y >= float(w[1]) and pt.y <= float(w[3]):
+				ok = true
+				break
+		if not ok:
+			return false
 	for b in d.get("block", []):
 		if b.size() > 4 and not g._cond(b[4]):   # [x0, z0, x1, z1, условие] — препятствие только при условии
 			continue
