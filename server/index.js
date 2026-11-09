@@ -17,7 +17,21 @@ function main() {
   }
   if (cfg.devAuth) console.warn('⚠  DEV_AUTH=1: unsigned logins are accepted. Never use this in production.');
   const { ctx, handler } = createApp(cfg);
-  const server = http.createServer(handler);
+  // LANTERN (приложение «мультиплеер для Minecraft»): ретранслятор живёт на том же сервере,
+  // но отдельно от игры — только /lantern/* и WebSocket /lantern/ws. Ошибка в нём сайт не роняет.
+  let lantern = null;
+  const server = http.createServer((req, res) => {
+    if (lantern && (req.url === '/lantern' || req.url.startsWith('/lantern/'))) {
+      try { return lantern.http(req, res, req.url.slice('/lantern'.length) || '/'); } catch (e) { ctx.log('lantern http', e.message); res.writeHead(500); return res.end(); }
+    }
+    return handler(req, res);
+  });
+  if (process.env.LANTERN !== 'off') {
+    try {
+      const dbPath = cfg.dbPath === ':memory:' ? ':memory:' : require('path').join(require('path').dirname(cfg.dbPath), 'lantern.sqlite');
+      lantern = require('../apps/lantern/relay/server.js').attach(server, { wsPath: '/lantern/ws', dbPath });
+    } catch (e) { lantern = null; ctx.log('lantern relay disabled:', e.message); }
+  }
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 70000;
   server.listen(cfg.port, cfg.host, () => ctx.log(`Office Dreams listening on http://${cfg.host}:${cfg.port}  (public: ${cfg.publicUrl || 'not set'})`));
@@ -63,6 +77,7 @@ function main() {
     ctx.log('shutting down');
     timers.forEach(clearInterval);
     if (poller) poller.stop();
+    if (lantern) try { lantern.close(); } catch (_) { /* ignore */ }
     server.close(() => { ctx.db.close(); process.exit(0); });
     setTimeout(() => process.exit(0), 5000).unref();
   };

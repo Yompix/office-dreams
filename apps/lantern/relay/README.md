@@ -11,7 +11,14 @@ curl http://127.0.0.1:8080/healthz
 npm test            # самопроверка: хост-эхо, два друга, TCP/UDP-потоки, ошибки
 ```
 
-## Railway (новый сервис из этого же репозитория)
+## Где работает сейчас
+Relay подключён к серверу сайта Office Dreams (`server/index.js` → `attach(server, { wsPath: '/lantern/ws' })`)
+и выкладывается вместе с ним после push в `main`, без отдельного сервиса:
+- приложение: `wss://office-dreams-production.up.railway.app/lantern/ws`;
+- проверка: `https://office-dreams-production.up.railway.app/lantern/healthz`, открытые миры — `/lantern/rooms`;
+- база профилей и друзей — `lantern.sqlite` рядом с базой сайта; выключить relay — переменная `LANTERN=off`.
+
+## Railway отдельным сервисом (если трафика станет много)
 1. Railway → проект → **New → GitHub Repo** → этот репозиторий (существующий сервис Office Dreams не трогать).
 2. В настройках нового сервиса: **Root Directory = `relay`**, **Start Command = `node server.js`**
    (Build Command не нужен — Railway сам выполнит `npm install`). Node ≥ 20.

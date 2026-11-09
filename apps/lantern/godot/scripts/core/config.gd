@@ -6,8 +6,9 @@ const APP_NAME := "LANTERN"
 const APP_VERSION := "1.0.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
-## Адрес relay по умолчанию. После деплоя на Railway впишите сюда домен сервиса (см. relay/README.md).
-const DEFAULT_RELAY := "wss://lantern-relay.up.railway.app/ws"
+## Адрес relay по умолчанию: ретранслятор работает на нашем сервере Railway вместе с сайтом
+## (apps/lantern/relay подключён в server/index.js, путь /lantern/ws). Свой отдельный сервис — см. relay/README.md.
+const DEFAULT_RELAY := "wss://office-dreams-production.up.railway.app/lantern/ws"
 
 const ACCENTS := {
 	"amber": Color("ffb648"),
