@@ -1,0 +1,47 @@
+/* ===== АНІМАЦІЇ (легкі): без мерехтіння, лише transform/opacity ===== */
+
+/* іконки плиток плавно похитуються */
+.quick4 .qt img,.cduo .tile img,.mode img,.meth button img{animation:bob 3.6s ease-in-out infinite}
+.quick4 .qt:nth-child(2) img{animation-delay:-.9s}
+.quick4 .qt:nth-child(3) img{animation-delay:-1.8s}
+.quick4 .qt:nth-child(4) img{animation-delay:-2.7s}
+
+/* монета в балансі зрідка повертається ребром (плавно) */
+.bal .coin,.wtop .coin{animation:cspin 5s ease-in-out infinite}
+@keyframes cspin{0%,82%,100%{transform:scaleX(1)}91%{transform:scaleX(-1)}}
+.bal.hit{animation:balHit .28s ease-out}
+@keyframes balHit{40%{transform:scale(1.1)}}
+
+/* нижнє меню */
+.nb.on svg{animation:navPop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes navPop{from{transform:translateY(6px) scale(.7)}}
+
+/* поява вмісту при вході у вкладку */
+.view.enter .tlist>.row,.view.enter .packs>.pack,.view.enter .meth>button,.view.enter .stats>.stat,.view.enter .grid3>.gt{animation:rowIn .45s cubic-bezier(.2,.9,.25,1.05) backwards}
+.view.enter .grid3>.gt{animation-name:popIn}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(2){animation-delay:.04s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(3){animation-delay:.08s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(4){animation-delay:.12s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(5){animation-delay:.16s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(6){animation-delay:.2s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(n+7){animation-delay:.24s}
+@keyframes rowIn{from{opacity:0;transform:translateY(12px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}}
+.stat b.cnt{animation:bump .5s cubic-bezier(.2,1.6,.4,1) .5s}
+@keyframes bump{40%{transform:scale(1.25)}}
+
+/* ---------- зарахування монет ---------- */
+#depfx{position:fixed;inset:0;z-index:65;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(closest-side,#2a0f66f0,#0b0624f5);overflow:hidden;text-align:center}
+#depfx.on{display:flex;animation:fade .25s}
+#depfx.out{animation:dOut .4s ease-in forwards}
+@keyframes dOut{to{opacity:0}}
+#depfx .rays{position:absolute;left:50%;top:44%;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;background:radial-gradient(closest-side,transparent 20%,#0b0624 70%),repeating-conic-gradient(#ffc93324 0 8deg,transparent 8deg 20deg);animation:rays 16s linear infinite}
+@keyframes rays{to{transform:rotate(360deg)}}
+#depfx .dc{position:relative;width:132px;height:132px;margin-top:-6vh;animation:dcIn .7s cubic-bezier(.2,1.5,.4,1) backwards}
+#depfx .dc i{position:absolute;inset:0;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;filter:drop-shadow(0 0 22px #ffc933aa);animation:cspin 2.4s ease-in-out infinite}
+@keyframes dcIn{from{transform:scale(0) rotate(-180deg)}}
+#depfx .lbl2{font:400 17px var(--fd);color:#e6dcff;letter-spacing:.5px;animation:rowIn .5s .35s backwards}
+#depfx .amt{font:400 52px/1 var(--fd);color:var(--gold);text-shadow:0 0 22px #ffc933aa,0 4px 0 #8a4a00;animation:amtIn .6s cubic-bezier(.2,1.6,.4,1) .3s backwards}
+@keyframes amtIn{from{opacity:0;transform:scale(.3)}}
+#depfx .tap{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));font:400 12px var(--fd);color:#8a7cc0}
+.fcn{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;z-index:66;pointer-events:none;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;will-change:transform}

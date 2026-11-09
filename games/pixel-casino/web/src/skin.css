@@ -1,0 +1,153 @@
+/* ===== ОФОРМЛЕННЯ ЗА КОНЦЕПТОМ: неонові рамки зі скругленням, світіння, глянцеві кнопки ===== */
+:root{
+  --bg:#08051c;--bg2:#120a33;--panel:#160c3e;--line:#3b2a8f;--line2:#2c1f6e;
+  --pink:#ff2fd0;--cyan:#2fd8ff;--gold:#ffc933;--mint:#45ff6a;--red:#ff4d5e;--violet:#a03dff;--orange:#ff7a2f;
+  --fd:"Russo One","Exo 2",system-ui,sans-serif;
+  --r:12px;
+}
+html,body{background:var(--bg)}
+#app{background:
+  radial-gradient(120% 45% at 50% -6%,#3a1290 0%,transparent 60%),
+  radial-gradient(80% 35% at 100% 40%,#2a0f6a55 0%,transparent 70%),
+  radial-gradient(90% 40% at 50% 112%,#5a0f6e 0%,transparent 70%),var(--bg)}
+
+/* єдина неонова рамка: колір задає --nc (за замовчуванням — тьмяно-фіолетовий) */
+.px,.tile,.qt,.gt,.ib,.chip,.row,.fld,.seg,.card,.meth button,.pack,.stat,.empty,.copy{
+  --nc:var(--bc,var(--line));border-radius:var(--r);
+  box-shadow:0 0 0 2px var(--nc),0 0 14px -2px color-mix(in srgb,var(--nc) 70%,transparent),inset 0 0 18px color-mix(in srgb,var(--nc) 22%,transparent)}
+.row,.fld,.copy,.empty,.stat{--nc:var(--line2)}
+
+/* ---------- верхня панель ---------- */
+#top{padding:10px 14px 8px;gap:8px}
+.ib{border-radius:10px;background:linear-gradient(#1c1150,#0f0830)}
+#who canvas{border-radius:50%;box-shadow:0 0 0 2px var(--pink),0 0 12px #ff2fd088}
+#who b{font:400 15px/1.1 var(--fd)}
+.bal{border-radius:12px;padding:0 4px 0 10px;background:linear-gradient(#1c1150,#0f0830);box-shadow:0 0 0 2px #6a4ad8,0 0 14px -2px #a03dffaa}
+.bal b{font:400 17px var(--fd);color:#fff;text-shadow:none}
+.bal .plus{border-radius:8px;background:linear-gradient(#7d5aff,#4a26c8);color:#fff;box-shadow:0 0 0 2px #b8a2ff,inset 0 -3px 0 #2f128a;font:400 20px/1 var(--fd)}
+
+/* ---------- лобі ---------- */
+.hero{--nc:var(--pink);border-radius:16px;box-shadow:0 0 0 2px #ff5fe0,0 0 22px -2px #ff2fd0aa,0 0 50px -10px #a03dff}
+.hero img{border-radius:16px}
+.hero::after{border-radius:16px;background:linear-gradient(transparent 50%,#08051cbb)}
+.onl,.age18{border-radius:8px}
+
+.tile{border-radius:14px;background:linear-gradient(165deg,color-mix(in srgb,var(--nc) 26%,#1a0f4a),#0e0730 75%)}
+.tile::after{border-radius:14px;background:linear-gradient(#ffffff14,transparent 40%)}
+.tile b{font:400 22px/1 var(--fd);text-shadow:0 0 12px var(--nc),0 2px 0 #0009;text-transform:uppercase}
+.tile small{font:500 12px var(--fb)}
+.t-cards{--bc:var(--pink)}
+.t-pvp{--bc:var(--cyan)}
+
+/* 4 швидкі ігри — кольорові картки з неоновою табличкою, як у концепті */
+.quick4 .qt{border-radius:12px;background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 22%,#160c40),#0b0628 80%)}
+.quick4 .qt:nth-child(1){--bc:var(--cyan)}
+.quick4 .qt:nth-child(2){--bc:var(--orange)}
+.quick4 .qt:nth-child(3){--bc:var(--violet)}
+.quick4 .qt:nth-child(4){--bc:var(--mint)}
+.qt span{font:400 11px var(--fd);text-transform:uppercase;letter-spacing:.3px;color:#fff;text-shadow:0 0 8px var(--nc)}
+
+
+.t-jp{--bc:var(--gold);border-radius:14px;background:linear-gradient(100deg,#5a3a0a,#2a1050 55%,#160c40)}
+.t-jp .bar{border-radius:0 0 14px 14px;overflow:hidden}
+.t-jp .pot{font:400 20px var(--fd)}
+
+/* ---------- 1 на 1 ---------- */
+.h1 h2{font:400 26px/1.1 var(--fd);text-transform:uppercase;text-shadow:0 0 16px #ff2fd099}
+.gt{border-radius:14px;background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 22%,#160c40),#0b0628 80%)}
+.grid3 .gt:nth-child(6n+1){--bc:var(--cyan)}
+.grid3 .gt:nth-child(6n+2){--bc:var(--orange)}
+.grid3 .gt:nth-child(6n+3){--bc:var(--violet)}
+.grid3 .gt:nth-child(6n+4){--bc:var(--red)}
+.grid3 .gt:nth-child(6n+5){--bc:var(--pink)}
+.grid3 .gt:nth-child(6n){--bc:var(--gold)}
+.gt b{font:400 13px/1.1 var(--fd);text-transform:uppercase;text-shadow:0 0 8px var(--nc)}
+.gt small{font:500 11px var(--fb)}
+.gt.hot{--bc:var(--mint);animation:none;box-shadow:0 0 0 2px var(--mint),0 0 20px -2px #45ff6acc,inset 0 0 20px #45ff6a33}
+.gt.train{--bc:#2fd8a0;background:linear-gradient(170deg,#0f3a3a,#081a24)}
+
+/* ---------- карти ---------- */
+.mode{border-radius:14px}
+.mode.on{--bc:var(--pink)}
+.mode:not(.on){--bc:var(--line2);opacity:.8}
+.cduo .tile{--bc:var(--violet)}
+.cduo .tile:nth-child(2){--bc:var(--cyan)}
+.row{border-radius:12px;background:linear-gradient(90deg,#1a0f48,#110838)}
+.row b{font:400 15px var(--fd)}
+.seatsMini i{border-radius:3px}
+.sec{font:400 13px var(--fd);text-transform:uppercase;letter-spacing:.6px;color:#b4a6f0}
+
+/* ---------- кнопки: глянцеві, зі світлом, як «КРУТИТЬ» і «ЗАБРАТЬ» ---------- */
+.btn{border-radius:12px;font:400 17px var(--fd);text-transform:uppercase;letter-spacing:.3px;
+  --g:#ffc933;color:#3a1c00;background:linear-gradient(#fff07a,#ffc21f 45%,#f09a00);
+  box-shadow:0 0 0 2px #fff3b0,0 4px 0 #a85a00,0 0 18px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn:active{transform:translateY(2px);box-shadow:0 0 0 2px #fff3b0,0 2px 0 #a85a00,0 0 12px -2px var(--g)}
+.btn.gr{--g:#45ff6a;color:#05300a;background:linear-gradient(#a6ff6a,#45e83a 45%,#1fae22);box-shadow:0 0 0 2px #d6ffb8,0 4px 0 #0f6a14,0 0 20px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn.pk{--g:#c84dff;color:#fff;text-shadow:0 1px 0 #4a0a7a;background:linear-gradient(#e07aff,#b03dff 45%,#7a1fe0);box-shadow:0 0 0 2px #f0c8ff,0 4px 0 #46108a,0 0 20px -2px var(--g),inset 0 2px 0 #ffffff88}
+.btn.cy{--g:#2fd8ff;color:#022a3a;background:linear-gradient(#a8f4ff,#3fd6ff 45%,#139ad0);box-shadow:0 0 0 2px #d4fbff,0 4px 0 #0a5a80,0 0 20px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn.rd{--g:#ff4d5e;color:#fff;background:linear-gradient(#ff8a96,#ff3d54 45%,#c41a32);box-shadow:0 0 0 2px #ffc8d0,0 4px 0 #6a0a1a,0 0 20px -2px var(--g),inset 0 2px 0 #ffffff88}
+.btn.dk{--g:#3b6cff;color:#cfe0ff;background:linear-gradient(#1d1458,#120a3a);box-shadow:0 0 0 2px #4a6cff,0 4px 0 #0a0628,0 0 14px -4px var(--g)}
+.btn.xs{box-shadow:0 0 0 2px #4a6cff}
+.btn:disabled{filter:grayscale(.7) brightness(.6)}
+
+/* ---------- перемикачі, поля, панелі ---------- */
+.seg{border-radius:12px;padding:4px;gap:4px;background:#0e0730}
+.seg button{border-radius:9px;font:400 13px var(--fd);text-transform:uppercase}
+.seg button.on{background:linear-gradient(#ff6ae0,#d01aa8);color:#fff;box-shadow:0 0 0 2px #ffb0ee,0 0 14px #ff2fd088}
+.chip{border-radius:10px;font:400 14px var(--fd)}
+.chip.on{border-radius:10px;box-shadow:0 0 0 2px #fff3b0,0 0 14px #ffc93388}
+.fld{border-radius:12px;background:#0d0629}
+.fld:focus-within{--nc:var(--cyan)}
+.card{border-radius:14px;background:linear-gradient(170deg,#1c104e,#0e0730)}
+.copy{border-radius:10px;background:#0b0526}
+.copy button{border-radius:8px}
+.empty{border-radius:12px}
+.kv b{font:400 14px var(--fd)}
+.lbl{font:500 12px var(--fb)}
+
+/* ---------- нижнє меню ---------- */
+#nav{background:linear-gradient(#120a38,#08051c);border-top:0;box-shadow:0 -2px 0 #3b2a8f,0 -10px 30px #a03dff22}
+.nb{font:400 10px var(--fd);text-transform:uppercase;color:#8576c8}
+.nb.on{color:#fff}
+.nb.on::before{left:24%;right:24%;top:-5px;border-radius:3px}
+.nb.on svg{color:var(--pink);filter:drop-shadow(0 0 6px var(--pink))}
+
+/* ---------- шторка, модалка, оверлеї ---------- */
+.sh{border-radius:20px 20px 0 0;border-top:0;box-shadow:0 -2px 0 var(--pink),0 -12px 40px #ff2fd033}
+#mbox{border-radius:18px;box-shadow:0 0 0 2px var(--pink),0 0 40px #ff2fd055}
+.x{border-radius:10px}
+.pill{border-radius:10px}
+.tst{border-radius:12px;font:400 14px var(--fd)}
+#drawer .pn{border-right:0;box-shadow:2px 0 0 var(--cyan),10px 0 40px #2fd8ff22}
+
+/* ---------- гаманець ---------- */
+.wtop{--bc:var(--gold);border-radius:16px;background:linear-gradient(110deg,#4a2f0a,#1c104e 55%)}
+.wtop b{font:400 30px/1 var(--fd)}
+.meth button{border-radius:14px;font:400 13px var(--fd);text-transform:uppercase}
+.meth button:nth-child(1){--bc:var(--cyan)}
+.meth button:nth-child(2){--bc:var(--violet)}
+.meth button:nth-child(3){--bc:var(--pink)}
+.meth button:not(.on){opacity:.7}
+.meth button.on{background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 30%,#1a0f4a),#0e0730 80%)}
+.pack{border-radius:12px}
+.pack b{font:400 16px var(--fd)}
+
+/* ---------- профіль ---------- */
+.prof{--bc:var(--pink);border-radius:16px;background:linear-gradient(110deg,#3a0f5a,#160c40 60%)}
+.prof canvas{border-radius:50%;box-shadow:0 0 0 3px var(--gold),0 0 18px #ffc93377}
+.prof b{font:400 22px/1.1 var(--fd)}
+.stat{border-radius:12px;background:linear-gradient(#1a0f48,#0e0730)}
+.stat b{font:400 18px var(--fd)}
+.stat small{font:500 11px var(--fb)}
+.refh b{font:400 17px var(--fd)}
+
+/* ---------- ігрові оверлеї ---------- */
+.pl canvas,.seat canvas{border-radius:50%}
+.ring{box-shadow:0 0 10px #45ff6a55}
+.flag{border-radius:10px}
+.ovH h3{font:400 18px var(--fd);text-transform:uppercase}
+.b8,.b4,.bm{border-radius:10px}
+.bm button{border-radius:8px}
+.rps .hand,.rps .pick button{border-radius:14px}
+.res{font:400 28px var(--fd);text-transform:uppercase}
+#gate .b18{font:400 64px/1 var(--fd)}
