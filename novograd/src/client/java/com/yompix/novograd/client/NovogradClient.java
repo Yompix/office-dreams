@@ -217,6 +217,7 @@ public class NovogradClient implements ClientModInitializer {
             case "news_feed" -> com.yompix.novograd.client.screen.NewsScreen.feed = n;
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
+            case "cut_music" -> com.yompix.novograd.client.story.CutsceneMusic.handle(n); // музыка кат-сцены (story/DirectorCues)
             case "cutscene" -> show(client, new com.yompix.novograd.client.story.CutsceneScreen(n));
             case "credits" -> show(client, new com.yompix.novograd.client.story.CreditsScreen());
             case "objective" -> com.yompix.novograd.client.story.ClientStory.objective = n;

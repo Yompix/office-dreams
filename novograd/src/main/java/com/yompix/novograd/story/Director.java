@@ -177,6 +177,15 @@ public final class Director {
             boolean still = c.getVelocity().horizontalLengthSquared() < 0.003;
             if (en.getKey().equals(who)) {
                 c.lockActivity(CitizenEntity.Activity.TALK);
+                // говорящий смотрит на ближайшего собеседника (как в GTA: разговор лицом к лицу)
+                if (still) {
+                    Entity near = null;
+                    for (UUID u : sc.actors.values()) {
+                        Entity o = w.getEntity(u);
+                        if (o instanceof CitizenEntity && o != c && o.squaredDistanceTo(c) < 8 * 8 && (near == null || o.squaredDistanceTo(c) < near.squaredDistanceTo(c))) near = o;
+                    }
+                    if (near != null) c.face(near);
+                }
             } else {
                 c.lockActivity(null);
                 if (speaker != null && still && speaker != c && speaker.squaredDistanceTo(c) < 24 * 24) c.face(speaker);
@@ -454,7 +463,7 @@ public final class Director {
                 Vec3d v = pos(w, a.get(1).getAsString());
                 if (v != null) w.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, v.x, v.y + 1, v.z, 25, 0.8, 0.5, 0.8, 0.02);
             }
-            default -> Actions.run(p, Life.get(p), a);
+            default -> { if (!DirectorCues.handle(p, a, id -> id.equals("player") ? p : actor(w, sc, id))) Actions.run(p, Life.get(p), a); } // sfx, music, give, door… (DirectorCues)
         }
     }
 

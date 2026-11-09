@@ -104,6 +104,18 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (a.walking()) WALK_ACTS.put(a, software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen." + a.name().toLowerCase() + (a == Activity.JOG ? "" : "_walk")));
     }
 
+    /** Мокап-жесты в кат-сценах (CMU, tools/gen_mocap.py): варианты «говорит» и «слушает». */
+    private static final software.bernie.geckolib.animation.RawAnimation[] CINE_TALK = new software.bernie.geckolib.animation.RawAnimation[4];
+    private static final software.bernie.geckolib.animation.RawAnimation[] CINE_LISTEN = new software.bernie.geckolib.animation.RawAnimation[3];
+
+    static {
+        for (int i = 0; i < CINE_TALK.length; i++) CINE_TALK[i] = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.talk_" + (i + 1));
+        for (int i = 0; i < CINE_LISTEN.length; i++) CINE_LISTEN[i] = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.listen_" + (i + 1));
+    }
+
+    /** Только клиент: роль в текущей реплике кат-сцены (вариант жеста или −1) и до какого age это действует. */
+    public int cineTalk = -1, cineListen = -1, cineUntil;
+
     /** Клиент: сглаженный квадрат скорости по позиции (блоки за тик). */
     private double clientSpeedSq;
 
@@ -125,6 +137,12 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
             double v = animSpeedSq();
             boolean moving = v > 2.5e-4; // ~0.016 блока за тик — уже шаг
+            // кат-сцена (клиент, CutsceneScreen): говорящий жестикулирует своим вариантом на каждую реплику, остальные слушают
+            if (!moving && age < cineUntil && (a == Activity.IDLE || a == Activity.TALK)) {
+                state.getController().transitionLength(8);
+                if (cineTalk >= 0) return state.setAndContinue(CINE_TALK[cineTalk % CINE_TALK.length]);
+                if (cineListen >= 0) return state.setAndContinue(CINE_LISTEN[cineListen % CINE_LISTEN.length]);
+            }
             if (moving && a.walking()) return state.setAndContinue(WALK_ACTS.get(a));
             if (a != Activity.IDLE && (!moving || a.pose())) return state.setAndContinue(ACTS.get(a));
             if (moving) return state.setAndContinue(v > 0.012 ? RUN : WALK);

@@ -328,6 +328,7 @@ public class CutsceneScreen extends LifeScreen {
         black += ((waitTicks > 10 ? 1 : 0) - black) * 0.12f;
         float time = elapsed();
         com.yompix.novograd.client.studio.CineCam.filter(mc(), grade);
+        bodyLanguage();
         // камера — в preFrame каждый кадр
         // субтитры идут по очереди: следующая — когда голос закончился
         if (subIndex < 0 || (!Voice.playing() && System.currentTimeMillis() - subAt > 1200)) {
@@ -340,6 +341,36 @@ public class CutsceneScreen extends LifeScreen {
                 NovogradClient.send("cut_line", ln);
             } else if (time >= total) {
                 end();
+            }
+        }
+    }
+
+    /**
+     * Язык тела в диалоге (как в GTA): говорящий жестикулирует мокап-жестом — вариант по реплике, чтобы
+     * каждая фраза шла своими руками; остальные актёры слушают (переминаются, кивают). Поворот к говорящему
+     * делает сервер (Director.speak). Метка живёт полсекунды — после сцены жители сами вернутся к обычным позам.
+     */
+    private void bodyLanguage() {
+        var w = mc().world;
+        if (w == null || subIndex < 0 || subIndex >= subs.size()) return;
+        var sp = speaker();
+        Sub sub = subs.get(subIndex);
+        int line = (sub.text().hashCode() ^ subIndex * 31) & 0x7fffffff;
+        java.util.Set<net.minecraft.entity.Entity> cast = new java.util.HashSet<>();
+        for (Integer id : ACTORS.values()) {
+            var e = w.getEntityById(id);
+            if (e != null) cast.add(e);
+        }
+        if (sp != null) cast.add(sp);
+        for (var e : cast) {
+            if (!(e instanceof com.yompix.novograd.entity.CitizenEntity c)) continue;
+            c.cineUntil = c.age + 10;
+            if (e == sp) {
+                c.cineTalk = line % 4;
+                c.cineListen = -1;
+            } else {
+                c.cineTalk = -1;
+                c.cineListen = Math.floorMod(c.getUuid().hashCode(), 3);
             }
         }
     }

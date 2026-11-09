@@ -771,8 +771,14 @@ def main():
         name = 'citizen_slim' if slim else 'citizen'
         with open(f'{ROOT}/geo/{name}.geo.json', 'w') as f:
             json.dump(model(slim), f)
+    out = {f'animation.citizen.{k}': v for k, v in ANIMS.items()}
+    # мокап CMU (walk, run, idle, talk…): готовые клипы из tools/gen_mocap.py поверх ручных
+    mocap = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mocap_anims.json')
+    if os.path.exists(mocap):
+        with open(mocap) as f:
+            out.update(json.load(f))
     with open(f'{ROOT}/animations/citizen.animation.json', 'w') as f:
-        json.dump({'format_version': '1.8.0', 'animations': {f'animation.citizen.{k}': v for k, v in ANIMS.items()}}, f)
+        json.dump({'format_version': '1.8.0', 'animations': out}, f)
     print('ok', len(ANIMS), 'анимаций')
 
 

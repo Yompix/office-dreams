@@ -20,6 +20,7 @@ for f in ('java/com/yompix/novograd/ModContent.java', 'java/com/yompix/novograd/
     if os.path.exists(p):
         items |= set(re.findall(r'item\("([a-z_0-9]+)"', open(p, encoding='utf-8').read()))
 
+SOUNDS = set(json.load(open(os.path.join(SRC, 'resources/assets/novograd/sounds.json'), encoding='utf-8')))
 STEP_TYPES = {'dialog', 'talk', 'goto', 'lesson', 'job', 'money', 'buy', 'sleep', 'collect', 'race', 'drivetest', 'party', 'cutscene', 'title',
               'credits', 'phone', 'ball', 'carrace', 'tune', 'escape', 'steal', 'clear', 'chase'}
 REQ = {'goto': ['place'], 'talk': ['npc'], 'collect': ['clues'], 'carrace': ['start', 'points'], 'steal': ['place', 'to'], 'clear': ['place'],
@@ -96,8 +97,20 @@ def check_steps(where, steps, spawned):
                         if not place_ok(pt): problems.append(f'{w}: drive — нет точки «{pt}»')
                 elif kind in ('boom', 'smoke') and not place_ok(cue[2]):
                     problems.append(f'{w}: {kind} — нет места «{cue[2]}»')
+                elif kind in ('sfx', 'door', 'glass', 'flash', 'turn', 'tp'):  # story/DirectorCues
+                    ref = cue[3] if kind in ('turn', 'tp') else cue[2]
+                    if ref not in actors and ref not in CHARS and ref != 'player' and not place_ok(ref):
+                        problems.append(f'{w}: {kind} — нет места или актёра «{ref}»')
+                    if kind == 'sfx' and cue[3].startswith('novograd:') and cue[3].split(':')[1] not in SOUNDS:
+                        problems.append(f'{w}: sfx — нет звука {cue[3]}')
+                elif kind == 'music' and cue[2] != 'stop' and cue[2] not in SOUNDS:
+                    problems.append(f'{w}: music — нет звука {cue[2]}')
+                elif kind in ('hold', 'give'):
+                    it = cue[-1]
+                    if it != 'none' and it.startswith('novograd:') and it.split(':')[1] not in items:
+                        problems.append(f'{w}: {kind} — нет предмета {it}')
                 for ref in cue[2:4]:
-                    if kind in ('act', 'face', 'ride', 'shoot', 'die', 'fight', 'despawn', 'drive', 'exit', 'walk', 'run') and isinstance(ref, str) \
+                    if (kind in ('act', 'face', 'ride', 'shoot', 'die', 'fight', 'despawn', 'drive', 'exit', 'walk', 'run', 'give') or kind in ('hold', 'anim', 'turn', 'tp') and ref is cue[2]) and isinstance(ref, str) \
                             and ref not in actors and ref not in CHARS and ref != 'player' and not place_ok(ref) and not ref.isupper() and ref != 'none':
                         problems.append(f'{w}: «{kind}» — неизвестный актёр «{ref}»')
             for sh in s.get('shots', []):

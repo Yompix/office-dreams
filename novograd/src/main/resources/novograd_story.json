@@ -135,37 +135,52 @@
         {
          "from": "cam_island_far",
          "to": "cam_dt_a",
-         "sec": 9
+         "sec": 6
         },
         {
          "follow": "racer",
-         "sec": 7,
+         "sec": 5,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.35
         },
         {
          "from": "dt_2+0,30,3",
          "to": "dt_2+0,16,2.5",
+         "sec": 3.5,
+         "track": "cop"
+        },
+        {
+         "from": "port_warehouse+12,8,5",
+         "to": "port_warehouse+7,5,2.5",
+         "sec": 4.5,
+         "track": "s1"
+        },
+        {
+         "from": "gang_yard+10,8,6",
+         "to": "gang_yard+6,5,2.5",
+         "sec": 4.5,
+         "track": "g1"
+        },
+        {
+         "from": "garage_door+10,6,3",
+         "to": "garage_door+6,4,2",
          "sec": 4,
-         "track": "racer"
+         "track": "gl"
         },
         {
-         "from": "cam_dt_a",
-         "to": "cam_dt_b",
-         "sec": 7
-        },
-        {
-         "from": "cam_port_a",
-         "to": "cam_port_b",
-         "sec": 7
-        },
-        {
-         "from": "cam_ind_a",
-         "to": "cam_ind_b",
-         "sec": 7
+         "follow": "gl",
+         "sec": 3.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.8
+         ],
+         "fov": 50,
+         "fov2": 44
         }
        ],
        "lines": [
@@ -187,11 +202,57 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_0",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "racer",
          "dt_1",
          2
+        ],
+        [
+         0.0,
+         "spawn",
+         "s1",
+         "port_warehouse+4,3",
+         "gang",
+         "Грузчик"
+        ],
+        [
+         0.0,
+         "spawn",
+         "s2",
+         "port_warehouse+-2,-1",
+         "gang",
+         "Синий"
+        ],
+        [
+         0.0,
+         "spawn",
+         "g1",
+         "gang_yard+1,1",
+         "gang",
+         "Ящер"
+        ],
+        [
+         0.0,
+         "spawn",
+         "g2",
+         "gang_yard+3,2",
+         "gang",
+         "Ящер"
+        ],
+        [
+         0.0,
+         "spawn",
+         "gl",
+         "garage_door+2,1",
+         "c25",
+         "Джейк"
         ],
         [
          0.2,
@@ -202,6 +263,105 @@
           "dt_3"
          ],
          0.95
+        ],
+        [
+         2.5,
+         "car",
+         "cop",
+         "dt_1",
+         6
+        ],
+        [
+         2.6,
+         "drive",
+         "cop",
+         [
+          "dt_2",
+          "dt_3"
+         ],
+         0.95
+        ],
+        [
+         6.5,
+         "sfx",
+         "cop",
+         "novograd:siren",
+         3.0
+        ],
+        [
+         9.5,
+         "sfx",
+         "cop",
+         "novograd:siren",
+         3.0
+        ],
+        [
+         12,
+         "walk",
+         "s1",
+         "port_warehouse+-1,-3"
+        ],
+        [
+         12.1,
+         "act",
+         "s1",
+         "CARRY"
+        ],
+        [
+         12.2,
+         "act",
+         "s2",
+         "POINT",
+         "s1"
+        ],
+        [
+         16,
+         "act",
+         "g1",
+         "LAUGH",
+         "g2"
+        ],
+        [
+         16.1,
+         "hold",
+         "g1",
+         "novograd:bat"
+        ],
+        [
+         16.2,
+         "act",
+         "g2",
+         "SMOKE"
+        ],
+        [
+         20,
+         "act",
+         "gl",
+         "PHONEWALK"
+        ],
+        [
+         20.1,
+         "walk",
+         "gl",
+         "garage_door+5,2"
+        ],
+        [
+         23,
+         "act",
+         "gl",
+         "UPSET"
+        ],
+        [
+         25.5,
+         "turn",
+         "gl",
+         "garage_door+12,8"
+        ],
+        [
+         26,
+         "act",
+         "gl",
+         "PHONE"
         ]
        ],
        "grade": "film_blockbuster",
@@ -311,40 +471,95 @@
         {
          "from": "race_start+22,-5,3",
          "to": "race_start+12,-4,2.5",
-         "sec": 6,
+         "sec": 5.5,
          "track": "storm_car"
         },
         {
          "follow": "shtorm",
-         "sec": 4,
+         "sec": 3,
          "off": [
-          3.5,
-          1.6,
-          1.5
-         ]
+          -3.0,
+          0.45,
+          1.2
+         ],
+         "fov": 62,
+         "fov2": 56
         },
         {
-         "from": "race_start+4,6,2",
-         "to": "race_start+2,4,2",
-         "sec": 5,
-         "track": "nika"
+         "follow": "nika",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          -0.7
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "race_start+5,2,1.2",
+         "to": "race_start+5.5,2.5,1.2",
+         "sec": 4,
+         "track": "nika",
+         "fov": 55,
+         "fov2": 48
+        },
+        {
+         "from": "race_start+12,6,4",
+         "to": "race_start+16,8,6",
+         "sec": 3,
+         "track": "shtorm"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "nika",
-         "race_start+2,-3"
+         "race_start+0,-4"
         ],
         [
-         0,
+         0.0,
          "act",
          "nika",
-         "TALK"
+         "LEAN"
         ],
         [
-         0,
+         0.0,
+         "spawn",
+         "f1",
+         "race_start+-3,-2",
+         "citizen",
+         "Фанат"
+        ],
+        [
+         0.0,
+         "act",
+         "f1",
+         "CHEER"
+        ],
+        [
+         0.0,
+         "spawn",
+         "f2",
+         "race_start+-2,-6",
+         "citizen",
+         "Фанатка"
+        ],
+        [
+         0.0,
+         "act",
+         "f2",
+         "DANCE"
+        ],
+        [
+         0.0,
          "car",
          "storm_car",
          "race_start+60,0",
@@ -358,39 +573,125 @@
          [
           "race_start+6,0"
          ],
-         0.7
+         0.75
         ],
         [
-         5.5,
+         3.2,
+         "sfx",
+         "storm_car",
+         "novograd:car_horn",
+         2.0
+        ],
+        [
+         3.3,
+         "act",
+         "f1",
+         "POINT",
+         "storm_car"
+        ],
+        [
+         5.0,
          "spawn",
          "shtorm",
          "race_start+6,2"
         ],
         [
-         5.6,
-         "walk",
+         5.1,
+         "sfx",
          "shtorm",
-         "race_start+3,-2"
+         "minecraft:block.iron_door.close",
+         1.2,
+         0.8
         ],
         [
-         8,
+         5.3,
+         "walk",
+         "shtorm",
+         "race_start+3,-1"
+        ],
+        [
+         5.4,
+         "act",
+         "nika",
+         "none"
+        ],
+        [
+         5.5,
          "face",
          "nika",
          "shtorm"
         ],
         [
-         9,
+         6.95,
          "act",
          "shtorm",
          "ARGUE",
          "nika"
         ],
         [
-         11,
+         7.65,
+         "act",
+         "nika",
+         "SHRUG",
+         "shtorm"
+        ],
+        [
+         8.95,
+         "act",
+         "shtorm",
+         "POINT",
+         "nika"
+        ],
+        [
+         11.5,
+         "walk",
+         "nika",
+         "race_start+2,-2"
+        ],
+        [
+         12.5,
          "act",
          "nika",
          "LAUGH",
          "shtorm"
+        ],
+        [
+         16.15,
+         "turn",
+         "nika",
+         "race_start+-4,-6"
+        ],
+        [
+         16.25,
+         "walk",
+         "nika",
+         "race_start+-3,-6"
+        ],
+        [
+         16.55,
+         "act",
+         "shtorm",
+         "none"
+        ],
+        [
+         16.65,
+         "walk",
+         "shtorm",
+         "race_start+6,1"
+        ],
+        [
+         17.75,
+         "anim",
+         "shtorm",
+         "kick"
+        ],
+        [
+         17.85,
+         "sfx",
+         "storm_car",
+         "minecraft:entity.zombie.attack_iron_door",
+         0.9,
+         1.2
         ]
        ],
        "lines": [
@@ -520,7 +821,7 @@
        ]
       }
      ],
-     "start": "race_start+2,-3"
+     "start": "race_start+0,-4"
     },
     {
      "id": "a1m2b",
@@ -562,19 +863,53 @@
         {
          "from": "cam_suburb",
          "to": "suburb_street+10,8,3",
-         "sec": 6,
+         "sec": 4,
          "track": "client"
+        },
+        {
+         "follow": "client",
+         "sec": 4,
+         "off": [
+          4.5,
+          2.2,
+          2.2
+         ]
+        },
+        {
+         "follow": "client",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         },
         {
          "from": "suburb_street+3,4,2",
          "to": "suburb_street+2,3,2",
-         "sec": 5,
+         "sec": 3.5,
          "track": "client"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.klassika_1",
+         0.25
+        ],
+        [
+         0.0,
+         "car",
+         "tcar",
+         "suburb_street+2,-1",
+         1,
+         0
+        ],
+        [
+         0.0,
          "spawn",
          "client",
          "suburb_house",
@@ -582,24 +917,109 @@
          "Мистер Тейлор"
         ],
         [
-         0.5,
-         "walk",
-         "client",
-         "suburb_street+2,2"
+         0.0,
+         "door",
+         "suburb_house",
+         "open"
         ],
         [
-         6,
+         0.0,
+         "spawn",
+         "wife",
+         "suburb_house+2,1",
+         "citizen",
+         "Миссис Тейлор"
+        ],
+        [
+         0.4,
+         "walk",
+         "client",
+         "suburb_street+4,2"
+        ],
+        [
+         0.5,
+         "act",
+         "wife",
+         "WAVE",
+         "client"
+        ],
+        [
+         2.6,
+         "door",
+         "suburb_house",
+         "close"
+        ],
+        [
+         3.6,
+         "walk",
+         "client",
+         "suburb_street+5,-2"
+        ],
+        [
+         5.2,
+         "walk",
+         "client",
+         "suburb_street+0,-3"
+        ],
+        [
+         6.6,
+         "walk",
+         "client",
+         "suburb_street+0,1"
+        ],
+        [
+         7.6,
+         "anim",
+         "client",
+         "kick"
+        ],
+        [
+         7.7,
+         "sfx",
+         "tcar",
+         "minecraft:entity.zombie.attack_wooden_door",
+         0.6,
+         1.4
+        ],
+        [
+         8.2,
+         "act",
+         "client",
+         "LAUGH",
+         "player"
+        ],
+        [
+         9.6,
          "act",
          "client",
          "HANDSHAKE",
          "player"
         ],
         [
-         9,
+         11.0,
          "act",
          "client",
-         "LAUGH",
+         "TALK",
          "player"
+        ],
+        [
+         11.1,
+         "hold",
+         "client",
+         "novograd:banknote_100"
+        ],
+        [
+         11.2,
+         "sfx",
+         "client",
+         "novograd:cash",
+         0.8
+        ],
+        [
+         11.5,
+         "act",
+         "wife",
+         "CLAP"
         ]
        ],
        "lines": [
@@ -739,94 +1159,213 @@
         {
          "from": "cam_club",
          "to": "club_neon+6,14,6",
-         "sec": 7
+         "sec": 5
         },
         {
-         "from": "club_neon+5,-3,2",
-         "to": "club_neon+3,-2,2",
-         "sec": 5,
-         "track": "rosa"
+         "from": "club_neon+-3,-2,1.4",
+         "to": "club_neon+-2,-3,1.4",
+         "sec": 3,
+         "track": "drunk",
+         "roll": -8
         },
         {
          "follow": "rosa",
          "sec": 4,
          "off": [
-          3,
-          1.7,
-          -1.2
-         ]
+          3.4,
+          2.2,
+          -1.0
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "rosa",
+         "sec": 4.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.7
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "club_neon+8,6,3",
+         "to": "club_neon+12,9,5",
+         "sec": 3,
+         "track": "rosa"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.neon88_0",
+         0.38
+        ],
+        [
+         0.0,
          "spawn",
          "d1",
          "club_neon+2,-3",
          "citizen"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "d2",
          "club_neon+-2,-4",
          "citizen"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "d3",
          "club_neon+0,-6",
          "citizen"
         ],
         [
-         0,
+         0.0,
          "act",
          "d1",
          "DANCE"
         ],
         [
-         0,
+         0.0,
          "act",
          "d2",
-         "DANCE"
+         "DANCE2"
         ],
         [
-         0,
+         0.0,
          "act",
          "d3",
-         "DANCE"
+         "DANCE3"
         ],
         [
-         0,
-         "spawn",
-         "rosa",
-         "club_neon+4,-8"
-        ],
-        [
-         0,
+         0.0,
          "spawn",
          "nika",
          "club_neon+1,-1"
         ],
         [
-         0,
+         0.0,
          "act",
          "nika",
          "DANCE"
         ],
         [
-         7,
+         0.0,
+         "spawn",
+         "bouncer",
+         "club_neon+3,-6",
+         "c39",
+         "Вышибала"
+        ],
+        [
+         0.0,
+         "spawn",
+         "drunk",
+         "club_neon+2,-5",
+         "citizen",
+         "Пьяный"
+        ],
+        [
+         0.0,
+         "spawn",
+         "rosa",
+         "club_neon+4,-8"
+        ],
+        [
+         0.3,
+         "act",
+         "drunk",
+         "ARGUE",
+         "bouncer"
+        ],
+        [
+         0.4,
+         "act",
+         "bouncer",
+         "POINT",
+         "drunk"
+        ],
+        [
+         5.2,
+         "anim",
+         "bouncer",
+         "kick"
+        ],
+        [
+         5.3,
+         "anim",
+         "drunk",
+         "hit"
+        ],
+        [
+         5.4,
+         "sfx",
+         "drunk",
+         "minecraft:entity.player.attack.strong",
+         1.0
+        ],
+        [
+         5.8,
+         "walk",
+         "drunk",
+         "club_neon+-6,-1"
+        ],
+        [
+         6.0,
+         "act",
+         "bouncer",
+         "SHRUG"
+        ],
+        [
+         6.8,
          "walk",
          "rosa",
          "club_neon+1,0"
         ],
         [
-         12,
+         6.9,
+         "hold",
+         "rosa",
+         "novograd:cola"
+        ],
+        [
+         7.45,
+         "act",
+         "nika",
+         "WAVE",
+         "rosa"
+        ],
+        [
+         8.55,
          "act",
          "rosa",
          "TALK",
          "player"
+        ],
+        [
+         8.65,
+         "hold",
+         "rosa",
+         "novograd:cola"
+        ],
+        [
+         12.6,
+         "act",
+         "rosa",
+         "LAUGH",
+         "player"
+        ],
+        [
+         12.7,
+         "hold",
+         "rosa",
+         "novograd:cola"
         ]
        ],
        "lines": [
@@ -913,22 +1452,57 @@
         {
          "from": "hw_west+16,6,3",
          "to": "hw_west+8,-4,2",
-         "sec": 5,
+         "sec": 3,
+         "track": "vince"
+        },
+        {
+         "follow": "vince",
+         "sec": 3,
+         "off": [
+          -3.0,
+          0.45,
+          -1.0
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "follow": "vince",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "hw_west+-4,3,1.5",
+         "to": "hw_west+-3,4,1.5",
+         "sec": 2.5,
          "track": "vince"
         },
         {
          "follow": "vince_car",
-         "sec": 5,
+         "sec": 4,
          "off": [
           8,
           2.2,
           -2.5
-         ]
+         ],
+         "shake": 0.3
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.rock_volna_1",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "vince_car",
          "hw_west+3,0",
@@ -936,32 +1510,112 @@
          180
         ],
         [
-         0,
+         0.0,
          "spawn",
          "vince",
          "hw_west+5,-2"
         ],
         [
-         0.3,
+         0.0,
+         "act",
+         "vince",
+         "LEAN"
+        ],
+        [
+         0.0,
+         "spawn",
+         "girl",
+         "hw_west+6,1",
+         "citizen",
+         "Подружка Винса"
+        ],
+        [
+         0.0,
+         "act",
+         "girl",
+         "SMOKE"
+        ],
+        [
+         0.6,
          "act",
          "vince",
          "ARGUE",
          "player"
         ],
         [
-         4,
+         2.2,
+         "walk",
+         "vince",
+         "hw_west+6,-4"
+        ],
+        [
+         3.6,
+         "act",
+         "vince",
+         "POINT",
+         "player"
+        ],
+        [
+         5.0,
+         "act",
+         "vince",
+         "LAUGH",
+         "player"
+        ],
+        [
+         5.2,
+         "act",
+         "girl",
+         "LAUGH",
+         "vince"
+        ],
+        [
+         7.05,
+         "walk",
+         "vince",
+         "hw_west+4,-1"
+        ],
+        [
+         8.65,
          "ride",
          "vince",
          "vince_car"
         ],
         [
-         5,
+         8.75,
+         "sfx",
+         "vince_car",
+         "minecraft:block.iron_door.close",
+         1.2,
+         0.8
+        ],
+        [
+         9.25,
+         "sfx",
+         "vince_car",
+         "novograd:car_start",
+         1.6
+        ],
+        [
+         9.65,
+         "smoke",
+         "hw_west+3,1"
+        ],
+        [
+         9.75,
          "drive",
          "vince_car",
          [
           "hw_west+0,-60"
          ],
-         0.6
+         0.9
+        ],
+        [
+         10.05,
+         "act",
+         "girl",
+         "WAVE",
+         "vince_car"
         ]
        ],
        "lines": [
@@ -1028,28 +1682,61 @@
         {
          "from": "garage_door+12,10,4",
          "to": "garage_door+8,6,3",
-         "sec": 5,
-         "track": "vince"
-        },
-        {
-         "from": "garage_door+3,3,1.6",
-         "to": "garage_door+2,2,1.5",
          "sec": 4,
          "track": "vince"
         },
         {
          "follow": "vince",
-         "sec": 4,
+         "sec": 3.5,
          "off": [
-          4,
-          2,
-          0
-         ]
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "vince",
+         "sec": 3,
+         "off": [
+          -2.0,
+          0.7,
+          1.3
+         ],
+         "fov": 55,
+         "fov2": 48
+        },
+        {
+         "from": "garage_door+3,3,1.6",
+         "to": "garage_door+2,2,1.5",
+         "sec": 2,
+         "track": "vince",
+         "roll": 10
+        },
+        {
+         "from": "garage_door+6,-2,2",
+         "to": "garage_door+8,-4,3",
+         "sec": 3.5,
+         "track": "vince"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
+         "car",
+         "jake_car",
+         "garage_door",
+         1
+        ],
+        [
+         0.0,
          "spawn",
          "vince",
          "garage_door+14,8"
@@ -1058,29 +1745,86 @@
          0.2,
          "walk",
          "vince",
+         "garage_door+6,4"
+        ],
+        [
+         3.6,
+         "turn",
+         "vince",
+         "garage_door+14,10"
+        ],
+        [
+         4.4,
+         "walk",
+         "vince",
          "garage_door+1,1"
         ],
         [
-         0,
-         "car",
-         "jake_car",
-         "garage_door",
-         1
-        ],
-        [
-         6,
+         7.0,
          "act",
          "vince",
-         "AIM",
-         "jake_car"
+         "RUMMAGE"
         ],
         [
-         7,
+         7.1,
+         "hold",
+         "vince",
+         "minecraft:shears"
+        ],
+        [
+         7.6,
+         "sfx",
+         "jake_car",
+         "minecraft:block.chain.hit",
+         1.2
+        ],
+        [
+         8.6,
+         "sfx",
+         "jake_car",
+         "minecraft:block.chain.break",
+         1.2
+        ],
+        [
+         9.6,
+         "sfx",
+         "garage_door+10,-6",
+         "minecraft:entity.wolf.growl",
+         2.0
+        ],
+        [
+         9.9,
+         "act",
+         "vince",
+         "none"
+        ],
+        [
+         10.0,
+         "sfx",
+         "garage_door+10,-6",
+         "minecraft:entity.wolf.ambient",
+         2.0,
+         0.8
+        ],
+        [
+         10.0,
+         "turn",
+         "vince",
+         "garage_door+10,-6"
+        ],
+        [
+         10.1,
+         "act",
+         "vince",
+         "UPSET"
+        ],
+        [
+         11.2,
          "smoke",
          "garage_door"
         ],
         [
-         9,
+         11.4,
          "run",
          "vince",
          "garage_door+30,-20"
@@ -1098,7 +1842,7 @@
          "voice": "a1m3ds_02"
         }
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_noir",
        "card": true
       },
       {
@@ -1178,31 +1922,98 @@
        "type": "cutscene",
        "shots": [
         {
+         "from": "race_start+6,6,2",
+         "to": "race_start+8,8,3",
+         "sec": 3,
+         "track": "nika"
+        },
+        {
          "from": "race_start+30,-5,8",
          "to": "race_start+18,-4,5",
-         "sec": 5,
+         "sec": 3.5,
          "track": "cop_car1"
         },
         {
-         "follow": "cop_car2",
-         "sec": 4,
+         "follow": "nika",
+         "sec": 2,
          "off": [
-          7,
-          2.5,
-          3
+          -2.3,
+          1.6,
+          0.6
          ],
-         "shake": 0.6
+         "shake": 0.4,
+         "fov": 50,
+         "fov2": 44
         },
         {
-         "from": "race_start+8,10,2",
-         "to": "race_start+5,6,2",
-         "sec": 4,
-         "track": "cop1"
+         "follow": "cop_car2",
+         "sec": 2.5,
+         "off": [
+          9,
+          2.6,
+          3
+         ],
+         "shake": 0.35
+        },
+        {
+         "from": "race_start+2,4,0.4",
+         "to": "race_start+3,5,0.6",
+         "sec": 3.5,
+         "track": "petrov",
+         "shake": 0.3,
+         "fov": 58,
+         "roll": -8
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_2",
+         0.32
+        ],
+        [
+         0.0,
+         "spawn",
+         "nika",
+         "race_start+2,-3"
+        ],
+        [
+         0.0,
+         "act",
+         "nika",
+         "DANCE"
+        ],
+        [
+         0.0,
+         "spawn",
+         "r1",
+         "race_start+-2,-1",
+         "citizen",
+         "Гонщик"
+        ],
+        [
+         0.0,
+         "act",
+         "r1",
+         "CHEER"
+        ],
+        [
+         0.0,
+         "spawn",
+         "r2",
+         "race_start+0,-6",
+         "citizen",
+         "Фанатка"
+        ],
+        [
+         0.0,
+         "act",
+         "r2",
+         "DANCE2"
+        ],
+        [
+         0.0,
          "car",
          "cop_car1",
          "race_start+90,4",
@@ -1210,7 +2021,7 @@
          90
         ],
         [
-         0,
+         0.0,
          "car",
          "cop_car2",
          "race_start+110,-4",
@@ -1218,50 +2029,127 @@
          90
         ],
         [
-         0.1,
+         1.6,
+         "sfx",
+         "race_start+20,0",
+         "novograd:siren",
+         3.0
+        ],
+        [
+         2.0,
          "drive",
          "cop_car1",
          [
           "race_start+10,3"
          ],
-         0.9
+         0.95
         ],
         [
-         0.6,
+         2.4,
          "drive",
          "cop_car2",
          [
           "race_start+14,-4"
          ],
-         0.9
+         0.95
         ],
         [
-         8.5,
+         2.6,
+         "act",
+         "nika",
+         "none"
+        ],
+        [
+         2.7,
+         "turn",
+         "nika",
+         "race_start+30,0"
+        ],
+        [
+         3.0,
+         "act",
+         "nika",
+         "UPSET"
+        ],
+        [
+         3.4,
+         "run",
+         "r1",
+         "race_start+-20,-10"
+        ],
+        [
+         3.6,
+         "run",
+         "r2",
+         "race_start+-18,8"
+        ],
+        [
+         6.2,
+         "run",
+         "nika",
+         "race_start+-8,-9"
+        ],
+        [
+         8.2,
          "spawn",
          "cop1",
          "race_start+8,4",
          "police"
         ],
         [
-         8.5,
+         8.2,
          "spawn",
          "cop2",
          "race_start+12,-2",
          "police"
         ],
         [
-         8.8,
+         8.2,
+         "spawn",
+         "petrov",
+         "race_start+9,1"
+        ],
+        [
+         8.3,
+         "sfx",
+         "cop1",
+         "minecraft:block.iron_door.close",
+         1.2,
+         0.8
+        ],
+        [
+         8.6,
          "act",
          "cop1",
          "AIM",
          "player"
         ],
         [
-         9,
+         8.8,
          "act",
          "cop2",
          "AIM",
          "player"
+        ],
+        [
+         8.9,
+         "sfx",
+         "cop2",
+         "novograd:gun_slide_back",
+         1.2
+        ],
+        [
+         9.2,
+         "act",
+         "petrov",
+         "POINT",
+         "nika"
+        ],
+        [
+         10.5,
+         "walk",
+         "petrov",
+         "race_start+5,0"
         ]
        ],
        "lines": [
@@ -1347,53 +2235,109 @@
         {
          "from": "cam_ind_a",
          "to": "gang_yard+12,10,12",
-         "sec": 6
+         "sec": 4.5
         },
         {
-         "from": "gang_yard+4,10,15",
-         "to": "gang_yard+2,7,13",
-         "sec": 6,
-         "track": "kirpich"
+         "follow": "kirpich",
+         "sec": 3.5,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
         },
         {
-         "from": "gang_yard+-4,6,11",
-         "to": "gang_yard+-2,4,10",
-         "sec": 4,
-         "track": "kirpich"
+         "follow": "gleb",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          -0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "gang_yard+-2,-3,0.4",
+         "to": "gang_yard+-1.5,-2.5,0.5",
+         "sec": 3.5,
+         "track": "kirpich",
+         "fov": 58,
+         "roll": -7
+        },
+        {
+         "from": "gang_yard+4,3,1.5",
+         "to": "gang_yard+3,4,1.4",
+         "sec": 2,
+         "track": "gleb",
+         "shake": 0.6
+        },
+        {
+         "follow": "gleb",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.7
+         ],
+         "fov": 50,
+         "fov2": 44,
+         "roll": 5
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_1",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "gleb",
          "gang_yard+0,2"
         ],
         [
-         0,
+         0.0,
          "act",
          "gleb",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "kirpich",
          "gang_yard+8,-6"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g1",
          "gang_yard+-3,4",
          "gang"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g2",
          "gang_yard+3,4",
          "gang"
+        ],
+        [
+         0.0,
+         "spawn",
+         "g3",
+         "gang_yard+2,-3",
+         "gang"
+        ],
+        [
+         0.0,
+         "act",
+         "g3",
+         "SMOKE"
         ],
         [
          0.5,
@@ -1410,23 +2354,82 @@
          "gleb"
         ],
         [
-         3,
+         2.0,
+         "sfx",
+         "kirpich",
+         "minecraft:block.iron_door.close",
+         1.3,
+         0.7
+        ],
+        [
+         2.6,
+         "walk",
+         "kirpich",
+         "gang_yard+2,-2"
+        ],
+        [
+         5.0,
+         "give",
+         "g3",
+         "kirpich",
+         "novograd:bat"
+        ],
+        [
+         5.6,
          "walk",
          "kirpich",
          "gang_yard+1,0"
         ],
         [
-         8,
+         6.55,
          "act",
          "kirpich",
          "LAUGH",
          "gleb"
         ],
         [
-         12,
+         6.65,
+         "hold",
+         "kirpich",
+         "novograd:bat"
+        ],
+        [
+         9.55,
+         "anim",
+         "kirpich",
+         "kick"
+        ],
+        [
+         9.75,
+         "anim",
+         "gleb",
+         "hit"
+        ],
+        [
+         9.85,
+         "sfx",
+         "gleb",
+         "minecraft:entity.player.attack.strong",
+         1.4
+        ],
+        [
+         10.15,
          "act",
          "kirpich",
          "ARGUE",
+         "gleb"
+        ],
+        [
+         10.25,
+         "hold",
+         "kirpich",
+         "novograd:bat"
+        ],
+        [
+         10.35,
+         "act",
+         "g3",
+         "LAUGH",
          "gleb"
         ]
        ],
@@ -1448,7 +2451,7 @@
          "gleb"
         ]
        ],
-       "grade": "film_cine",
+       "grade": "film_blockbuster",
        "card": true
       },
       {
@@ -1595,15 +2598,32 @@
         {
          "from": "cam_chop",
          "to": "chop_shop+10,10,4",
-         "sec": 4,
-         "track": "marco_car"
+         "sec": 3,
+         "track": "marco"
+        },
+        {
+         "follow": "marco",
+         "sec": 3,
+         "off": [
+          -3.0,
+          0.45,
+          -1.0
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "from": "chop_shop+-2,-3,1.6",
+         "to": "chop_shop+-1,-4,1.6",
+         "sec": 2.5,
+         "track": "marco"
         },
         {
          "follow": "marco_car",
-         "sec": 5,
+         "sec": 4.5,
          "off": [
           9,
-          2.5,
+          2.6,
           3
          ],
          "shake": 0.4
@@ -1611,7 +2631,31 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.rock_volna_2",
+         0.32
+        ],
+        [
+         0.0,
+         "smoke",
+         "chop_shop+-3,2"
+        ],
+        [
+         0.0,
+         "boom",
+         "chop_shop+-8,6"
+        ],
+        [
+         0.0,
+         "spawn",
+         "body",
+         "chop_shop+-1,3",
+         "gang",
+         "Синий"
+        ],
+        [
+         0.0,
          "car",
          "marco_car",
          "chop_shop+6,4",
@@ -1619,26 +2663,88 @@
          0
         ],
         [
-         0,
+         0.0,
          "spawn",
          "marco",
-         "chop_shop+4,2"
+         "chop_shop+2,-1"
+        ],
+        [
+         0.1,
+         "act",
+         "body",
+         "SLEEP"
         ],
         [
          0.3,
+         "walk",
+         "marco",
+         "chop_shop+4,1"
+        ],
+        [
+         2.6,
+         "act",
+         "marco",
+         "SMOKE"
+        ],
+        [
+         3.0,
+         "smoke",
+         "chop_shop+-8,6"
+        ],
+        [
+         4.4,
+         "face",
+         "marco",
+         "player"
+        ],
+        [
+         5.6,
+         "act",
+         "marco",
+         "LAUGH",
+         "player"
+        ],
+        [
+         6.6,
+         "walk",
+         "marco",
+         "chop_shop+5,3"
+        ],
+        [
+         7.6,
          "ride",
          "marco",
          "marco_car"
         ],
         [
-         0.5,
+         7.7,
+         "sfx",
+         "marco_car",
+         "minecraft:block.iron_door.close",
+         1.2,
+         0.8
+        ],
+        [
+         7.9,
+         "sfx",
+         "marco_car",
+         "novograd:car_start",
+         1.5
+        ],
+        [
+         8.1,
          "drive",
          "marco_car",
          [
           "chop_shop+6,60",
           "hw_south"
          ],
-         0.9
+         0.95
+        ],
+        [
+         8.2,
+         "smoke",
+         "chop_shop+6,4"
         ]
        ],
        "lines": [
@@ -1806,33 +2912,75 @@
         {
          "from": "cam_beach",
          "to": "beach_lot+12,6,4",
-         "sec": 5,
+         "sec": 3.5,
          "track": "marco"
+        },
+        {
+         "follow": "b1",
+         "sec": 2.5,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "marco",
+         "sec": 3,
+         "off": [
+          -2.6,
+          1.6,
+          0.8
+         ],
+         "fov": 55,
+         "fov2": 50
         },
         {
          "from": "beach_lot+6,3,2",
          "to": "beach_lot+5,2,2",
-         "sec": 6,
+         "sec": 3,
          "track": "marco"
         }
        ],
        "actors": [
         [
-         0,
-         "spawn",
-         "marco",
-         "beach_lot+8,-6"
+         0.0,
+         "music",
+         "radio.jazz_polnoch_0",
+         0.28
         ],
         [
-         0,
+         0.0,
+         "car",
+         "mcar",
+         "beach_lot+10,-8",
+         4,
+         0
+        ],
+        [
+         0.0,
+         "spawn",
+         "marco",
+         "beach_lot+8,-5"
+        ],
+        [
+         0.0,
+         "act",
+         "marco",
+         "LEAN"
+        ],
+        [
+         0.0,
          "spawn",
          "b1",
-         "beach_lot+10,-8",
+         "beach_lot+10,-4",
          "gang",
          "Синий"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "b2",
          "beach_lot+12,-4",
@@ -1840,16 +2988,55 @@
          "Синий"
         ],
         [
+         0.4,
+         "act",
+         "marco",
+         "TALK",
+         "player"
+        ],
+        [
          0.5,
+         "walk",
+         "b1",
+         "beach_lot+2,2"
+        ],
+        [
+         0.7,
+         "act",
+         "b2",
+         "SMOKE"
+        ],
+        [
+         3.4,
+         "act",
+         "b1",
+         "POINT",
+         "player"
+        ],
+        [
+         4.6,
+         "act",
+         "b1",
+         "SHRUG",
+         "marco"
+        ],
+        [
+         5.2,
          "walk",
          "marco",
          "beach_lot+3,0"
         ],
         [
-         6,
+         6.0,
+         "walk",
+         "b1",
+         "beach_lot+7,-3"
+        ],
+        [
+         8.3,
          "act",
          "marco",
-         "TALK",
+         "HANDSHAKE",
          "player"
         ]
        ],
@@ -1908,32 +3095,83 @@
        "type": "cutscene",
        "shots": [
         {
+         "from": "beach_lot+12,8,3",
+         "to": "beach_lot+9,5,2",
+         "sec": 2.5,
+         "track": "mc"
+        },
+        {
          "from": "beach_lot+16,8,3",
          "to": "beach_lot+10,4,2",
-         "sec": 5,
+         "sec": 2.5,
          "track": "l_car",
          "shake": 0.5
         },
         {
          "from": "beach_lot+-4,6,2",
          "to": "beach_lot+-3,4,2",
-         "sec": 6,
+         "sec": 2.5,
          "track": "b1",
-         "shake": 0.8
+         "shake": 0.8,
+         "roll": 10
         },
         {
          "follow": "marco_car",
-         "sec": 4,
+         "sec": 2.5,
          "off": [
-          8,
-          2.5,
+          9,
+          2.6,
           2
-         ]
+         ],
+         "shake": 0.5
+        },
+        {
+         "follow": "brik",
+         "sec": 3,
+         "off": [
+          -3.0,
+          0.45,
+          -1.1
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "follow": "brik",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_3",
+         0.32
+        ],
+        [
+         0.0,
+         "spawn",
+         "mc",
+         "beach_lot+3,0",
+         "c33",
+         "Марко «Синий»"
+        ],
+        [
+         0.0,
+         "act",
+         "mc",
+         "TALK",
+         "player"
+        ],
+        [
+         0.0,
          "spawn",
          "b1",
          "beach_lot+6,-4",
@@ -1941,7 +3179,7 @@
          "Синий"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "b2",
          "beach_lot+8,2",
@@ -1949,7 +3187,15 @@
          "Синий"
         ],
         [
-         0,
+         0.0,
+         "car",
+         "marco_car",
+         "beach_lot+10,-8",
+         4,
+         0
+        ],
+        [
+         0.0,
          "car",
          "l_car",
          "beach_lot+0,70",
@@ -1957,7 +3203,21 @@
          180
         ],
         [
-         0.1,
+         0.0,
+         "spawn",
+         "brik",
+         "beach_lot+0,70",
+         "c39",
+         "Брик"
+        ],
+        [
+         0.05,
+         "ride",
+         "brik",
+         "l_car"
+        ],
+        [
+         0.6,
          "drive",
          "l_car",
          [
@@ -1966,7 +3226,33 @@
          0.95
         ],
         [
-         4.5,
+         1.2,
+         "sfx",
+         "l_car",
+         "novograd:car_horn",
+         2.5
+        ],
+        [
+         1.6,
+         "act",
+         "mc",
+         "none"
+        ],
+        [
+         1.7,
+         "turn",
+         "mc",
+         "beach_lot+0,30"
+        ],
+        [
+         1.8,
+         "act",
+         "b1",
+         "AIM",
+         "l_car"
+        ],
+        [
+         3.4,
          "spawn",
          "l1",
          "beach_lot+-2,10",
@@ -1974,7 +3260,7 @@
          "Ящер"
         ],
         [
-         4.5,
+         3.4,
          "spawn",
          "l2",
          "beach_lot+3,11",
@@ -1982,7 +3268,7 @@
          "Ящер"
         ],
         [
-         5,
+         3.8,
          "shoot",
          "l1",
          "b1",
@@ -1990,15 +3276,7 @@
          0
         ],
         [
-         5.4,
-         "shoot",
-         "l2",
-         "b2",
-         5,
-         0
-        ],
-        [
-         5.3,
+         4.0,
          "shoot",
          "b1",
          "l1",
@@ -2006,36 +3284,106 @@
          0
         ],
         [
-         7,
+         4.2,
+         "shoot",
+         "l2",
+         "b2",
+         5,
+         0
+        ],
+        [
+         4.3,
+         "run",
+         "mc",
+         "beach_lot+9,-6"
+        ],
+        [
+         4.6,
+         "glass",
+         "l_car"
+        ],
+        [
+         5.55,
+         "exit",
+         "brik"
+        ],
+        [
+         5.65,
+         "sfx",
+         "l_car",
+         "minecraft:block.iron_door.close",
+         1.3,
+         0.8
+        ],
+        [
+         5.8,
          "die",
          "b1"
         ],
         [
-         8,
+         5.85,
+         "walk",
+         "brik",
+         "beach_lot+2,4"
+        ],
+        [
+         6.4,
+         "ride",
+         "mc",
+         "marco_car"
+        ],
+        [
+         6.6,
          "die",
          "b2"
         ],
         [
-         0,
-         "car",
+         6.6,
+         "sfx",
          "marco_car",
-         "beach_lot+10,-8",
-         4,
-         0
+         "novograd:car_start",
+         1.6
         ],
         [
-         6,
-         "despawn",
-         "marco"
-        ],
-        [
-         11,
+         6.8,
          "drive",
          "marco_car",
          [
           "beach_lot+10,-90"
          ],
          0.95
+        ],
+        [
+         7.0,
+         "smoke",
+         "beach_lot+10,-8"
+        ],
+        [
+         8.45,
+         "act",
+         "brik",
+         "ARGUE",
+         "player"
+        ],
+        [
+         8.85,
+         "anim",
+         "l1",
+         "kick"
+        ],
+        [
+         9.45,
+         "act",
+         "l2",
+         "LAUGH",
+         "brik"
+        ],
+        [
+         11.7,
+         "act",
+         "brik",
+         "LAUGH",
+         "player"
         ]
        ],
        "lines": [
@@ -2177,12 +3525,33 @@
         {
          "from": "cam_casino",
          "to": "casino_dt+14,12,5",
-         "sec": 4,
+         "sec": 3,
          "track": "van"
         },
         {
+         "follow": "gd1",
+         "sec": 2.5,
+         "off": [
+          -2.6,
+          1.3,
+          1.0
+         ],
+         "fov": 58
+        },
+        {
+         "follow": "sp",
+         "sec": 3,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
          "follow": "van",
-         "sec": 6,
+         "sec": 5,
          "off": [
           10,
           3,
@@ -2192,7 +3561,13 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "van",
          "casino_dt",
@@ -2200,7 +3575,90 @@
          0
         ],
         [
-         0.5,
+         0.0,
+         "spawn",
+         "gd1",
+         "casino_dt+-3,-4",
+         "police",
+         "Инкассатор"
+        ],
+        [
+         0.0,
+         "spawn",
+         "gd2",
+         "casino_dt+-2,2",
+         "police",
+         "Инкассатор"
+        ],
+        [
+         0.0,
+         "spawn",
+         "sp",
+         "casino_dt+10,8",
+         "gang",
+         "Ящер"
+        ],
+        [
+         0.1,
+         "act",
+         "sp",
+         "PHONE"
+        ],
+        [
+         0.2,
+         "walk",
+         "gd1",
+         "casino_dt+-1.5,-1"
+        ],
+        [
+         0.2,
+         "turn",
+         "sp",
+         "casino_dt"
+        ],
+        [
+         0.3,
+         "act",
+         "gd1",
+         "CARRY"
+        ],
+        [
+         0.4,
+         "act",
+         "gd2",
+         "AIM",
+         "casino_dt+-8,4"
+        ],
+        [
+         3.0,
+         "act",
+         "gd1",
+         "none"
+        ],
+        [
+         3.2,
+         "sfx",
+         "van",
+         "minecraft:block.iron_door.close",
+         1.6,
+         0.7
+        ],
+        [
+         3.8,
+         "anim",
+         "gd1",
+         "highfive"
+        ],
+        [
+         3.9,
+         "sfx",
+         "van",
+         "minecraft:entity.zombie.attack_iron_door",
+         0.6,
+         1.3
+        ],
+        [
+         5.0,
          "drive",
          "van",
          [
@@ -2208,6 +3666,19 @@
           "dt_3"
          ],
          0.7
+        ],
+        [
+         5.5,
+         "sfx",
+         "van",
+         "novograd:car_start",
+         1.4
+        ],
+        [
+         6.0,
+         "walk",
+         "sp",
+         "casino_dt+8,14"
         ]
        ],
        "lines": [
@@ -2316,25 +3787,98 @@
         {
          "from": "police_station+8,8,3",
          "to": "police_station+5,5,2",
-         "sec": 5,
+         "sec": 3.5,
          "track": "petrov"
         },
         {
-         "follow": "petrov",
-         "sec": 4,
+         "follow": "harris",
+         "sec": 3,
          "off": [
-          3.2,
-          1.7,
-          1.4
-         ]
+          -2.6,
+          1.6,
+          0.8
+         ],
+         "fov": 58
+        },
+        {
+         "from": "police_station+4,2,1.6",
+         "to": "police_station+3.5,2.5,1.6",
+         "sec": 3,
+         "track": "harris"
+        },
+        {
+         "follow": "harris",
+         "sec": 2.5,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "petrov",
+         "sec": 3.55,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.nochnoy_port_0",
+         0.28
+        ],
+        [
+         0.0,
          "spawn",
          "petrov",
          "police_station+10,6"
+        ],
+        [
+         0.0,
+         "spawn",
+         "harris",
+         "police_station+-4,2"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cop1",
+         "police_station+-6,-2",
+         "police"
+        ],
+        [
+         0.0,
+         "act",
+         "cop1",
+         "TYPE"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cop2",
+         "police_station+4,-3",
+         "police"
+        ],
+        [
+         0.0,
+         "act",
+         "cop2",
+         "PHONE"
+        ],
+        [
+         0.1,
+         "hold",
+         "harris",
+         "novograd:cola"
         ],
         [
          0.2,
@@ -2343,23 +3887,75 @@
          "police_station+1,1"
         ],
         [
-         0,
-         "spawn",
+         3.2,
+         "walk",
          "harris",
-         "police_station+-4,2"
+         "police_station+-1,1.5"
         ],
         [
-         0,
+         3.3,
+         "hold",
+         "harris",
+         "novograd:cola"
+        ],
+        [
+         6.35,
          "act",
          "harris",
-         "TALK",
+         "ARGUE",
          "petrov"
         ],
         [
-         6,
-         "face",
+         6.45,
+         "hold",
+         "harris",
+         "minecraft:paper"
+        ],
+        [
+         8.55,
+         "give",
+         "harris",
          "petrov",
+         "minecraft:paper"
+        ],
+        [
+         8.65,
+         "sfx",
+         "petrov",
+         "minecraft:item.book.put",
+         1.2
+        ],
+        [
+         9.55,
+         "walk",
+         "harris",
+         "police_station+-9,2"
+        ],
+        [
+         9.75,
+         "act",
+         "cop2",
+         "SHRUG",
+         "harris"
+        ],
+        [
+         10.9,
+         "turn",
+         "petrov",
+         "police_station+-6,-4"
+        ],
+        [
+         11.5,
+         "act",
+         "petrov",
+         "TALK",
          "player"
+        ],
+        [
+         11.6,
+         "hold",
+         "petrov",
+         "minecraft:paper"
         ]
        ],
        "lines": [
@@ -2379,7 +3975,7 @@
          "voice": "a3m1s_03"
         }
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_noir",
        "card": true
       },
       {
@@ -2541,27 +4137,72 @@
        "type": "cutscene",
        "shots": [
         {
-         "from": "dt_alley+14,6,3",
-         "to": "dt_alley+12,4,2.5",
-         "sec": 6,
-         "track": "harris"
+         "from": "dt_alley+16,7,3",
+         "to": "dt_alley+13,5,2.5",
+         "sec": 3.5,
+         "track": "harris",
+         "fov": 34,
+         "fov2": 30
+        },
+        {
+         "follow": "courier",
+         "sec": 3,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
         },
         {
          "from": "dt_alley+4,-5,2",
          "to": "dt_alley+3,-4,1.8",
-         "sec": 5,
+         "sec": 3,
          "track": "courier"
+        },
+        {
+         "follow": "harris",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "dt_alley+2,-3,0.4",
+         "to": "dt_alley+2.2,-3.2,0.4",
+         "sec": 3,
+         "track": "harris",
+         "fov": 60,
+         "fov2": 36,
+         "roll": -9
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "harris",
          "dt_alley+-6,-2"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "harris",
+         "SMOKE"
+        ],
+        [
+         0.0,
          "spawn",
          "courier",
          "dt_alley+-14,0",
@@ -2572,34 +4213,98 @@
          0.3,
          "walk",
          "courier",
+         "dt_alley+-9,-1"
+        ],
+        [
+         2.8,
+         "turn",
+         "courier",
+         "dt_alley+4,-3"
+        ],
+        [
+         3.5,
+         "walk",
+         "courier",
          "dt_alley+-7,-1"
         ],
         [
-         4,
+         5.0,
          "act",
          "courier",
          "HANDSHAKE",
          "harris"
         ],
         [
-         4,
+         5.0,
          "act",
          "harris",
          "HANDSHAKE",
          "courier"
         ],
         [
-         8,
+         6.4,
+         "give",
+         "courier",
+         "harris",
+         "novograd:banknote_100"
+        ],
+        [
+         6.95,
          "act",
          "harris",
          "LAUGH",
          "courier"
         ],
         [
-         10,
-         "walk",
+         7.05,
+         "hold",
+         "harris",
+         "novograd:banknote_100"
+        ],
+        [
+         7.15,
+         "sfx",
+         "harris",
+         "novograd:cash",
+         0.9
+        ],
+        [
+         11.8,
+         "flash",
+         "dt_alley+2,-3"
+        ],
+        [
+         11.85,
+         "sfx",
+         "dt_alley+2,-3",
+         "minecraft:block.lever.click",
+         1.6,
+         1.6
+        ],
+        [
+         12.2,
+         "act",
+         "harris",
+         "POINT",
+         "player"
+        ],
+        [
+         12.3,
+         "act",
          "courier",
-         "dt_alley+-20,0"
+         "UPSET"
+        ],
+        [
+         13.2,
+         "run",
+         "courier",
+         "dt_alley+-24,0"
+        ],
+        [
+         14.2,
+         "walk",
+         "harris",
+         "dt_alley+-2,-2"
         ]
        ],
        "lines": [
@@ -2614,7 +4319,7 @@
          "voice": "a3m2bs_02"
         }
        ],
-       "grade": "film_cine",
+       "grade": "film_noir",
        "card": true
       },
       {
@@ -2708,41 +4413,85 @@
         {
          "from": "cam_club",
          "to": "club_neon+8,10,4",
-         "sec": 4,
+         "sec": 2.5,
          "track": "lena"
+        },
+        {
+         "follow": "k1",
+         "sec": 2.5,
+         "off": [
+          3,
+          1.8,
+          1.0
+         ],
+         "shake": 0.4
+        },
+        {
+         "follow": "lena",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.4,
+         "fov": 50,
+         "fov2": 44
         },
         {
          "from": "club_neon+4,4,2",
          "to": "club_neon+3,3,2",
-         "sec": 5,
+         "sec": 2.5,
          "track": "lena",
-         "shake": 0.4
+         "shake": 0.6,
+         "roll": -9
         },
         {
          "follow": "kid_car",
-         "sec": 5,
+         "sec": 4.5,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.4
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_0",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "lena",
          "club_neon+0,2"
         ],
         [
-         0,
+         0.0,
          "act",
          "lena",
-         "TALK"
+         "PHONE"
         ],
         [
-         0,
+         0.0,
+         "spawn",
+         "by",
+         "club_neon+-3,3",
+         "citizen",
+         "Прохожий"
+        ],
+        [
+         0.0,
+         "act",
+         "by",
+         "BAGS"
+        ],
+        [
+         0.0,
          "car",
          "kid_car",
          "club_neon+8,6",
@@ -2750,7 +4499,14 @@
          90
         ],
         [
-         1,
+         0.8,
+         "sfx",
+         "kid_car",
+         "novograd:car_start",
+         1.8
+        ],
+        [
+         1.0,
          "spawn",
          "k1",
          "club_neon+10,4",
@@ -2758,12 +4514,20 @@
          "Ящер"
         ],
         [
-         1,
+         1.0,
          "spawn",
          "k2",
          "club_neon+10,8",
          "gang",
          "Ящер"
+        ],
+        [
+         1.0,
+         "sfx",
+         "kid_car",
+         "minecraft:block.iron_door.open",
+         1.2,
+         0.8
         ],
         [
          1.2,
@@ -2778,36 +4542,83 @@
          "club_neon+0,3"
         ],
         [
-         4.5,
+         2.6,
+         "turn",
+         "lena",
+         "club_neon+8,6"
+        ],
+        [
+         3.0,
          "act",
          "lena",
          "UPSET"
         ],
         [
-         6,
+         3.1,
+         "sfx",
+         "lena",
+         "minecraft:entity.item.break",
+         1.0
+        ],
+        [
+         3.4,
+         "act",
+         "by",
+         "UPSET"
+        ],
+        [
+         3.9,
+         "run",
+         "by",
+         "club_neon+-16,6"
+        ],
+        [
+         4.4,
          "fight",
          "k1",
          "lena",
-         40
+         30
         ],
         [
-         8,
+         4.6,
+         "anim",
+         "k2",
+         "drag"
+        ],
+        [
+         5.2,
+         "anim",
+         "lena",
+         "hit"
+        ],
+        [
+         6.65,
+         "ride",
+         "k2",
+         "kid_car"
+        ],
+        [
+         6.75,
          "ride",
          "lena",
          "kid_car"
         ],
         [
-         8.3,
-         "despawn",
-         "k1"
+         6.85,
+         "ride",
+         "k1",
+         "kid_car"
         ],
         [
-         8.3,
-         "despawn",
-         "k2"
+         6.95,
+         "sfx",
+         "kid_car",
+         "minecraft:block.iron_door.close",
+         1.6,
+         0.7
         ],
         [
-         9,
+         7.35,
          "drive",
          "kid_car",
          [
@@ -2815,6 +4626,11 @@
           "dt_2"
          ],
          0.95
+        ],
+        [
+         7.55,
+         "smoke",
+         "club_neon+8,6"
         ]
        ],
        "lines": [
@@ -2925,38 +4741,89 @@
         {
          "from": "police_station+10,6,3",
          "to": "police_station+7,4,2",
-         "sec": 5,
+         "sec": 3,
          "track": "harris"
+        },
+        {
+         "follow": "harris",
+         "sec": 1.8,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "police_station+-1,-2,1.6",
+         "to": "police_station+-1.5,-1.5,1.6",
+         "sec": 2.2,
+         "track": "harris",
+         "roll": 8
         },
         {
          "from": "police_station+3,-3,2",
          "to": "police_station+2,-2,1.8",
-         "sec": 6,
+         "sec": 3,
          "track": "harris"
+        },
+        {
+         "follow": "petrov",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "harris",
+         "sec": 3,
+         "off": [
+          3.4,
+          2.0,
+          1.3
+         ]
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_2",
+         0.28
+        ],
+        [
+         0.0,
          "spawn",
          "harris",
          "police_station+-6,4"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "harris",
+         "PHONE"
+        ],
+        [
+         0.0,
          "spawn",
          "petrov",
          "police_station+3,2"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c1",
          "police_station+6,-3",
          "police"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c2",
          "police_station+7,3",
@@ -2966,46 +4833,121 @@
          0.5,
          "walk",
          "petrov",
-         "police_station+-4,3"
+         "police_station+-3,3"
         ],
         [
          0.8,
          "walk",
          "c1",
-         "police_station+-5,1"
+         "police_station+-4,1"
         ],
         [
-         1,
+         1.0,
          "walk",
          "c2",
-         "police_station+-5,6"
+         "police_station+-4,6"
         ],
         [
-         4,
+         2.4,
          "act",
          "harris",
-         "UPSET"
+         "none"
         ],
         [
-         5,
+         2.5,
+         "face",
+         "harris",
+         "petrov"
+        ],
+        [
+         3.0,
+         "hold",
+         "harris",
+         "novograd:pistol"
+        ],
+        [
+         3.3,
          "act",
          "c1",
          "AIM",
          "harris"
         ],
         [
-         5,
+         3.4,
          "act",
          "c2",
          "AIM",
          "harris"
         ],
         [
-         6,
+         3.5,
+         "sfx",
+         "c1",
+         "novograd:gun_slide_back",
+         1.4
+        ],
+        [
+         4.3,
+         "act",
+         "harris",
+         "SHRUG"
+        ],
+        [
+         5.45,
+         "act",
+         "harris",
+         "ARGUE",
+         "petrov"
+        ],
+        [
+         6.85,
+         "walk",
+         "c1",
+         "police_station+-5,3"
+        ],
+        [
+         8.05,
+         "anim",
+         "c1",
+         "drag"
+        ],
+        [
+         8.15,
+         "sfx",
+         "harris",
+         "minecraft:block.chain.place",
+         1.5
+        ],
+        [
+         9.7,
          "act",
          "petrov",
-         "ARGUE",
+         "POINT",
          "harris"
+        ],
+        [
+         10.2,
+         "act",
+         "harris",
+         "UPSET"
+        ],
+        [
+         12.69,
+         "walk",
+         "harris",
+         "police_station+10,6"
+        ],
+        [
+         12.79,
+         "walk",
+         "c1",
+         "police_station+9,5"
+        ],
+        [
+         13.09,
+         "act",
+         "c2",
+         "none"
         ]
        ],
        "lines": [
@@ -3031,7 +4973,7 @@
          "harris"
         ]
        ],
-       "grade": "film_cine",
+       "grade": "film_noir",
        "card": true
       }
      ],
@@ -3087,27 +5029,46 @@
         {
          "from": "airfield_hangar+14,8,3",
          "to": "airfield_hangar+9,5,2",
-         "sec": 6,
+         "sec": 2.5,
          "track": "kirpich"
         },
         {
-         "follow": "cop_car",
+         "follow": "kirpich",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.5,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "garage_door+10,6,3",
+         "to": "garage_door+7,4,2",
          "sec": 6,
+         "track": "gl"
+        },
+        {
+         "follow": "cop_car",
+         "sec": 3.5,
          "off": [
           9,
-          3,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.2
         },
         {
          "from": "cam_air_a",
          "to": "cam_island_far",
-         "sec": 10
+         "sec": 8
         },
         {
          "from": "cam_dt_a",
          "to": "cam_dt_b",
-         "sec": 8
+         "sec": 6
         }
        ],
        "lines": [
@@ -3129,33 +5090,39 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.klassika_3",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "kirpich",
          "airfield_hangar+2,4"
         ],
         [
-         0,
+         0.0,
          "act",
          "kirpich",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c1",
          "airfield_hangar+4,3",
          "police"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c2",
          "airfield_hangar+0,3",
          "police"
         ],
         [
-         0,
+         0.0,
          "car",
          "cop_car",
          "airfield_hangar+6,12",
@@ -3163,31 +5130,101 @@
          0
         ],
         [
-         0.5,
+         0.0,
+         "car",
+         "gcar",
+         "garage_door",
+         1
+        ],
+        [
+         0.0,
+         "spawn",
+         "gl",
+         "garage_door+2,1",
+         "c25",
+         "Джейк"
+        ],
+        [
+         0.0,
+         "act",
+         "gl",
+         "HAMMER"
+        ],
+        [
+         0.0,
+         "spawn",
+         "nk",
+         "garage_door+4,2",
+         "c20",
+         "Ники «Нитро»"
+        ],
+        [
+         0.0,
+         "act",
+         "nk",
+         "LEAN"
+        ],
+        [
+         0.4,
+         "act",
+         "c2",
+         "AIM",
+         "kirpich"
+        ],
+        [
+         1.0,
+         "fight",
+         "kirpich",
+         "c1",
+         30
+        ],
+        [
+         2.4,
+         "anim",
+         "c1",
+         "kick"
+        ],
+        [
+         2.5,
+         "anim",
+         "kirpich",
+         "hit"
+        ],
+        [
+         2.6,
+         "sfx",
+         "kirpich",
+         "minecraft:entity.player.attack.strong",
+         1.4
+        ],
+        [
+         3.0,
          "walk",
          "kirpich",
          "airfield_hangar+5,11"
         ],
         [
-         0.6,
+         3.1,
          "walk",
          "c1",
          "airfield_hangar+7,10"
         ],
         [
-         0.6,
-         "walk",
-         "c2",
-         "airfield_hangar+3,10"
-        ],
-        [
-         5.5,
+         5.2,
          "ride",
          "kirpich",
          "cop_car"
         ],
         [
-         6,
+         5.4,
+         "sfx",
+         "cop_car",
+         "minecraft:block.iron_door.close",
+         1.4,
+         0.8
+        ],
+        [
+         5.8,
          "drive",
          "cop_car",
          [
@@ -3195,9 +5232,44 @@
           "airfield"
          ],
          0.6
+        ],
+        [
+         6.0,
+         "sfx",
+         "cop_car",
+         "novograd:siren",
+         2.0
+        ],
+        [
+         6.0,
+         "sfx",
+         "gcar",
+         "minecraft:block.anvil.use",
+         0.6,
+         1.4
+        ],
+        [
+         7.5,
+         "act",
+         "nk",
+         "LAUGH",
+         "gl"
+        ],
+        [
+         8.6,
+         "act",
+         "gl",
+         "LAUGH",
+         "nk"
+        ],
+        [
+         10.0,
+         "act",
+         "gl",
+         "HAMMER"
         ]
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_sunset",
        "card": true
       },
       {
@@ -3271,15 +5343,131 @@
         {
          "from": "cam_bridge",
          "to": "bridge_n+30,0,12",
-         "sec": 7
+         "sec": 5.5
+        },
+        {
+         "from": "bridge_n+-20,6,3",
+         "to": "bridge_n+-40,8,4",
+         "sec": 3.5,
+         "track": "tc1"
         },
         {
          "from": "cam_riv_far",
          "to": "cam_riv_strip",
-         "sec": 9
+         "sec": 5.5
+        },
+        {
+         "from": "riv_casino+12,8,4",
+         "to": "riv_casino+6,5,2.5",
+         "sec": 4,
+         "track": "vip"
         }
        ],
-       "actors": [],
+       "actors": [
+        [
+         0.0,
+         "music",
+         "radio.palma_fm_1",
+         0.3
+        ],
+        [
+         0.0,
+         "car",
+         "tc1",
+         "bridge_n+40,2",
+         2,
+         90
+        ],
+        [
+         0.0,
+         "car",
+         "tc2",
+         "bridge_n+-70,-2",
+         5,
+         270
+        ],
+        [
+         0.0,
+         "spawn",
+         "vip",
+         "riv_casino+3,3",
+         "citizen",
+         "Игрок"
+        ],
+        [
+         0.0,
+         "act",
+         "vip",
+         "CHEER"
+        ],
+        [
+         0.0,
+         "spawn",
+         "gf",
+         "riv_casino+4,4",
+         "citizen",
+         "Спутница"
+        ],
+        [
+         0.0,
+         "act",
+         "gf",
+         "DANCE"
+        ],
+        [
+         0.0,
+         "spawn",
+         "valet",
+         "riv_casino+0,1",
+         "citizen",
+         "Швейцар"
+        ],
+        [
+         0.2,
+         "drive",
+         "tc1",
+         [
+          "bridge_n+-160,2"
+         ],
+         0.8
+        ],
+        [
+         0.4,
+         "drive",
+         "tc2",
+         [
+          "bridge_n+120,-2"
+         ],
+         0.7
+        ],
+        [
+         14.6,
+         "give",
+         "vip",
+         "valet",
+         "novograd:banknote_100"
+        ],
+        [
+         14.8,
+         "sfx",
+         "valet",
+         "novograd:cash",
+         1.0
+        ],
+        [
+         15.6,
+         "act",
+         "valet",
+         "CLAP"
+        ],
+        [
+         16.0,
+         "act",
+         "vip",
+         "LAUGH",
+         "valet"
+        ]
+       ],
        "lines": [
         {
          "who": "narrator",
@@ -3353,23 +5541,41 @@
        "shots": [
         {
          "follow": "nika_car",
-         "sec": 6,
+         "sec": 2.5,
+         "off": [
+          -5.2,
+          1.7,
+          0.6
+         ],
+         "fov": 58,
+         "fov2": 54
+        },
+        {
+         "follow": "nika_car",
+         "sec": 4.5,
          "off": [
           9,
-          3,
+          2.6,
           3
-         ]
+         ],
+         "shake": 0.35
         },
         {
          "from": "bridge_n+-60,10,4",
          "to": "bridge_n+-90,8,3",
-         "sec": 5,
+         "sec": 4,
          "track": "nika_car"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_1",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "nika_car",
          "bridge_n+-6,2",
@@ -3377,14 +5583,47 @@
          90
         ],
         [
-         0.1,
+         0.0,
+         "spawn",
+         "nk",
+         "bridge_n+-6,2",
+         "c20",
+         "Ники «Нитро»"
+        ],
+        [
+         0.05,
+         "ride",
+         "nk",
+         "nika_car"
+        ],
+        [
+         0.4,
+         "sfx",
+         "nika_car",
+         "novograd:car_start",
+         1.8
+        ],
+        [
+         1.2,
+         "smoke",
+         "bridge_n+-5,2"
+        ],
+        [
+         1.4,
+         "sfx",
+         "nika_car",
+         "novograd:car_horn",
+         1.5
+        ],
+        [
+         1.8,
          "drive",
          "nika_car",
          [
           "bridge_n+-200,2",
           "riv_ring_e+0,-444"
          ],
-         0.9
+         0.95
         ]
        ],
        "lines": [
@@ -3416,34 +5655,76 @@
         {
          "from": "riv_casino+12,10,4",
          "to": "riv_casino+6,6,2.5",
-         "sec": 6,
+         "sec": 3.5,
          "track": "crow"
         },
         {
          "follow": "crow",
-         "sec": 4,
+         "sec": 3,
          "off": [
-          3,
-          1.8,
-          1.4
-         ]
+          -3.0,
+          0.45,
+          -1.2
+         ],
+         "fov": 62,
+         "fov2": 56
         },
         {
          "from": "riv_casino+3,4,2",
          "to": "riv_casino+2,3,1.8",
-         "sec": 5,
+         "sec": 3,
          "track": "sofi"
+        },
+        {
+         "follow": "sofi",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44,
+         "roll": 6
+        },
+        {
+         "follow": "crow",
+         "sec": 2.5,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "sofi",
+         "sec": 3.5,
+         "off": [
+          -2.3,
+          1.6,
+          -0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "crow",
          "riv_casino+8,-6"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g1",
          "riv_casino+10,-7",
@@ -3451,7 +5732,7 @@
          "Охрана Кроу"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g2",
          "riv_casino+6,-8",
@@ -3459,47 +5740,172 @@
          "Охрана Кроу"
         ],
         [
-         0.3,
-         "walk",
-         "crow",
-         "riv_casino+1,1"
-        ],
-        [
-         0.5,
-         "walk",
-         "g1",
-         "riv_casino+3,0"
-        ],
-        [
-         0.5,
-         "walk",
-         "g2",
-         "riv_casino+-1,0"
-        ],
-        [
-         0,
+         0.0,
          "spawn",
          "sofi",
          "riv_casino+0,3"
         ],
         [
-         6,
+         0.0,
+         "spawn",
+         "gm",
+         "riv_casino+1,5",
+         "citizen",
+         "Игрок"
+        ],
+        [
+         0.0,
+         "spawn",
+         "valet",
+         "riv_casino+5,-3",
+         "citizen",
+         "Швейцар"
+        ],
+        [
+         0.2,
          "act",
-         "crow",
+         "sofi",
          "TALK",
+         "gm"
+        ],
+        [
+         0.2,
+         "act",
+         "gm",
+         "LAUGH",
          "sofi"
         ],
         [
-         8,
+         0.3,
+         "walk",
+         "crow",
+         "riv_casino+4,-2"
+        ],
+        [
+         0.5,
+         "walk",
+         "g1",
+         "riv_casino+6,-3"
+        ],
+        [
+         0.5,
+         "walk",
+         "g2",
+         "riv_casino+3,-4"
+        ],
+        [
+         3.0,
+         "give",
+         "crow",
+         "valet",
+         "novograd:banknote_100"
+        ],
+        [
+         3.6,
+         "walk",
+         "crow",
+         "riv_casino+1,1"
+        ],
+        [
+         3.8,
+         "act",
+         "valet",
+         "WAVE",
+         "crow"
+        ],
+        [
+         4.0,
+         "walk",
+         "g1",
+         "riv_casino+3,0"
+        ],
+        [
+         4.0,
+         "walk",
+         "g2",
+         "riv_casino+-1,0"
+        ],
+        [
+         5.0,
+         "act",
+         "gm",
+         "UPSET"
+        ],
+        [
+         5.4,
+         "walk",
+         "gm",
+         "riv_casino+-7,8"
+        ],
+        [
+         6.65,
+         "act",
+         "crow",
+         "ARGUE",
+         "sofi"
+        ],
+        [
+         6.65,
          "act",
          "sofi",
          "UPSET"
         ],
         [
-         10,
+         9.25,
+         "anim",
+         "crow",
+         "highfive"
+        ],
+        [
+         9.45,
+         "anim",
+         "sofi",
+         "hit"
+        ],
+        [
+         9.55,
+         "sfx",
+         "sofi",
+         "minecraft:entity.zombie.attack_wooden_door",
+         0.9,
+         1.3
+        ],
+        [
+         11.65,
+         "act",
+         "crow",
+         "LAUGH",
+         "sofi"
+        ],
+        [
+         11.75,
+         "act",
+         "g1",
+         "SMOKE"
+        ],
+        [
+         15.1,
          "walk",
          "crow",
          "riv_casino+20,-10"
+        ],
+        [
+         15.4,
+         "walk",
+         "g1",
+         "riv_casino+21,-8"
+        ],
+        [
+         15.5,
+         "walk",
+         "g2",
+         "riv_casino+19,-12"
+        ],
+        [
+         17.65,
+         "act",
+         "sofi",
+         "THINK"
         ]
        ],
        "lines": [
@@ -3588,33 +5994,108 @@
         {
          "from": "riv_strip+16,0,4",
          "to": "riv_strip+8,0,3",
-         "sec": 5,
+         "sec": 3,
          "track": "shakal"
         },
         {
          "follow": "shakal",
-         "sec": 4,
+         "sec": 3,
          "off": [
-          3,
-          1.7,
+          -2.6,
+          1.6,
+          0.8
+         ],
+         "fov": 58
+        },
+        {
+         "follow": "shakal",
+         "sec": 2,
+         "off": [
+          -3.0,
+          0.45,
           1.2
-         ]
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "from": "riv_strip+3,10,1.6",
+         "to": "riv_strip+2,11,1.6",
+         "sec": 2,
+         "track": "fl"
+        },
+        {
+         "follow": "sh_car",
+         "sec": 3,
+         "off": [
+          -5.2,
+          1.7,
+          0.6
+         ],
+         "fov": 58,
+         "fov2": 54
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.rock_volna_0",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "shakal",
          "riv_strip+10,6"
         ],
         [
-         0,
+         0.0,
          "car",
          "sh_car",
          "riv_strip+4,3",
          3,
          270
+        ],
+        [
+         0.0,
+         "spawn",
+         "fl",
+         "riv_strip+0,8",
+         "citizen",
+         "Стартёрша"
+        ],
+        [
+         0.0,
+         "act",
+         "fl",
+         "CHEER"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cr1",
+         "riv_strip+-2,9",
+         "citizen"
+        ],
+        [
+         0.0,
+         "act",
+         "cr1",
+         "DANCE2"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cr2",
+         "riv_strip+2,10",
+         "citizen"
+        ],
+        [
+         0.0,
+         "act",
+         "cr2",
+         "CLAP"
         ],
         [
          0.2,
@@ -3623,11 +6104,63 @@
          "riv_strip+5,5"
         ],
         [
-         5,
+         2.6,
+         "act",
+         "shakal",
+         "POINT",
+         "player"
+        ],
+        [
+         4.2,
          "act",
          "shakal",
          "LAUGH",
          "player"
+        ],
+        [
+         7.15,
+         "walk",
+         "shakal",
+         "riv_strip+4,4"
+        ],
+        [
+         8.55,
+         "ride",
+         "shakal",
+         "sh_car"
+        ],
+        [
+         8.65,
+         "sfx",
+         "sh_car",
+         "minecraft:block.iron_door.close",
+         1.2,
+         0.8
+        ],
+        [
+         9.15,
+         "sfx",
+         "sh_car",
+         "novograd:car_start",
+         1.8
+        ],
+        [
+         9.55,
+         "smoke",
+         "riv_strip+4,3"
+        ],
+        [
+         9.75,
+         "act",
+         "fl",
+         "WAVE"
+        ],
+        [
+         9.95,
+         "sfx",
+         "sh_car",
+         "novograd:car_horn",
+         1.4
         ]
        ],
        "lines": [
@@ -3975,43 +6508,125 @@
         {
          "from": "riv_casino+10,8,3",
          "to": "riv_casino+5,5,2",
-         "sec": 5,
+         "sec": 3,
          "track": "sofi"
         },
         {
-         "follow": "sofi",
-         "sec": 4,
+         "follow": "gd",
+         "sec": 2.5,
          "off": [
-          3,
-          1.7,
-          -1.3
-         ]
+          -2.4,
+          1.6,
+          0.7
+         ],
+         "fov": 55
+        },
+        {
+         "follow": "sofi",
+         "sec": 2.5,
+         "off": [
+          3.4,
+          2.2,
+          -1.2
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "sofi",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "sofi",
          "riv_casino+3,2"
         ],
         [
-         0.5,
-         "walk",
-         "sofi",
-         "riv_casino+0,-2"
+         0.0,
+         "spawn",
+         "gd",
+         "riv_casino+-1,-3",
+         "gang",
+         "Охрана Кроу"
         ],
         [
-         3,
+         0.0,
+         "act",
+         "gd",
+         "SMOKE"
+        ],
+        [
+         0.4,
+         "walk",
+         "sofi",
+         "riv_casino+0,-1"
+        ],
+        [
+         2.2,
+         "act",
+         "sofi",
+         "LAUGH",
+         "gd"
+        ],
+        [
+         2.3,
+         "act",
+         "gd",
+         "LAUGH",
+         "sofi"
+        ],
+        [
+         3.0,
+         "give",
+         "sofi",
+         "gd",
+         "novograd:cola"
+        ],
+        [
+         4.0,
+         "walk",
+         "gd",
+         "riv_casino+-12,-2"
+        ],
+        [
+         5.6,
+         "door",
+         "riv_casino+0,-4",
+         "open"
+        ],
+        [
+         6.0,
          "act",
          "sofi",
          "WAVE",
          "player"
         ],
         [
-         6,
+         7.0,
          "smoke",
          "riv_casino+0,-4"
+        ],
+        [
+         9.0,
+         "walk",
+         "sofi",
+         "riv_casino+0,-5"
         ]
        ],
        "lines": [
@@ -4087,52 +6702,99 @@
         {
          "from": "riv_docks+14,8,3",
          "to": "riv_docks+8,5,2",
-         "sec": 5,
+         "sec": 4,
          "track": "crow"
+        },
+        {
+         "follow": "crow",
+         "sec": 3,
+         "off": [
+          -3.0,
+          0.45,
+          -1.0
+         ],
+         "fov": 62,
+         "fov2": 56
         },
         {
          "from": "riv_docks+3,3,2",
          "to": "riv_docks+2,2,1.8",
-         "sec": 5,
+         "sec": 4,
          "track": "sofi",
          "shake": 0.4
         },
         {
+         "follow": "sofi",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44,
+         "roll": -6
+        },
+        {
+         "from": "riv_docks+6,-1,1.2",
+         "to": "riv_docks+5,0,1.2",
+         "sec": 2.5,
+         "track": "g1",
+         "shake": 0.8,
+         "roll": 9
+        },
+        {
          "follow": "crow_car",
-         "sec": 5,
+         "sec": 4,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.4
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "crow",
          "riv_docks+10,-6"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "sofi",
          "riv_docks+9,-5"
         ],
         [
-         0,
+         0.0,
          "act",
          "sofi",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g1",
          "riv_docks+12,-3",
          "gang",
          "Охрана Кроу"
+        ],
+        [
+         0.0,
+         "car",
+         "crow_car",
+         "riv_docks+14,-8",
+         3,
+         0
         ],
         [
          0.3,
@@ -4142,34 +6804,92 @@
          "player"
         ],
         [
-         0,
-         "car",
-         "crow_car",
-         "riv_docks+14,-8",
-         3,
-         0
+         0.4,
+         "act",
+         "crow",
+         "AIM",
+         "player"
         ],
         [
-         2,
+         2.2,
+         "anim",
+         "crow",
+         "drag"
+        ],
+        [
+         2.4,
+         "anim",
+         "sofi",
+         "hit"
+        ],
+        [
+         7.15,
          "act",
          "crow",
          "ARGUE",
          "player"
         ],
         [
-         8,
-         "ride",
-         "sofi",
-         "crow_car"
+         7.25,
+         "hold",
+         "crow",
+         "novograd:pistol"
         ],
         [
-         8.3,
+         10.15,
+         "walk",
+         "crow",
+         "riv_docks+11,-7"
+        ],
+        [
+         13.9,
+         "fight",
+         "sofi",
+         "crow",
+         24
+        ],
+        [
+         14.2,
+         "anim",
+         "sofi",
+         "kick"
+        ],
+        [
+         15.1,
+         "shoot",
+         "g1",
+         "riv_docks+3,3",
+         4,
+         0
+        ],
+        [
+         17.59,
          "ride",
          "crow",
          "crow_car"
         ],
         [
-         9,
+         17.69,
+         "ride",
+         "sofi",
+         "crow_car"
+        ],
+        [
+         17.89,
+         "ride",
+         "g1",
+         "crow_car"
+        ],
+        [
+         17.99,
+         "sfx",
+         "crow_car",
+         "minecraft:block.iron_door.close",
+         1.6,
+         0.7
+        ],
+        [
+         18.29,
          "drive",
          "crow_car",
          [
@@ -4177,6 +6897,11 @@
           "bridge_n"
          ],
          0.95
+        ],
+        [
+         18.49,
+         "smoke",
+         "riv_docks+14,-8"
         ]
        ],
        "lines": [
@@ -4258,10 +6983,134 @@
         {
          "from": "cam_mtn",
          "to": "mtn_road+20,0,30",
-         "sec": 9
+         "sec": 6
+        },
+        {
+         "from": "mtn_road+10,-34,3",
+         "to": "mtn_road+7,-37,2",
+         "sec": 3,
+         "track": "cr"
+        },
+        {
+         "follow": "cr",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "mtn_road+12,-30,4",
+         "to": "mtn_road+16,-26,6",
+         "sec": 3.5,
+         "track": "crow_car"
         }
        ],
-       "actors": [],
+       "actors": [
+        [
+         0.0,
+         "music",
+         "radio.klassika_0",
+         0.3
+        ],
+        [
+         0.0,
+         "car",
+         "crow_car",
+         "mtn_road+0,-40",
+         3,
+         180
+        ],
+        [
+         0.0,
+         "spawn",
+         "cr",
+         "mtn_road+2,-38",
+         "c37",
+         "Виктор Кроу"
+        ],
+        [
+         0.0,
+         "act",
+         "cr",
+         "PHONE"
+        ],
+        [
+         0.0,
+         "spawn",
+         "gd",
+         "mtn_road+-2,-37",
+         "gang",
+         "Охрана Кроу"
+        ],
+        [
+         0.0,
+         "act",
+         "gd",
+         "SMOKE"
+        ],
+        [
+         8.6,
+         "sfx",
+         "mtn_road+0,-10",
+         "novograd:siren",
+         3.0
+        ],
+        [
+         8.8,
+         "act",
+         "cr",
+         "none"
+        ],
+        [
+         8.9,
+         "turn",
+         "cr",
+         "mtn_road+0,0"
+        ],
+        [
+         9.4,
+         "act",
+         "cr",
+         "UPSET"
+        ],
+        [
+         9.6,
+         "act",
+         "gd",
+         "AIM",
+         "mtn_road+0,0"
+        ],
+        [
+         11.0,
+         "walk",
+         "cr",
+         "mtn_road+1,-40"
+        ],
+        [
+         12.0,
+         "ride",
+         "cr",
+         "crow_car"
+        ],
+        [
+         12.2,
+         "ride",
+         "gd",
+         "crow_car"
+        ],
+        [
+         12.4,
+         "sfx",
+         "crow_car",
+         "minecraft:block.iron_door.close",
+         1.4,
+         0.8
+        ]
+       ],
        "lines": [
         {
          "who": "narrator",
@@ -4305,27 +7154,94 @@
        "type": "cutscene",
        "shots": [
         {
+         "from": "mtn_road+6,-46,0.3",
+         "to": "mtn_road+5,-48,0.5",
+         "sec": 2.5,
+         "track": "crow_car",
+         "fov": 60
+        },
+        {
+         "from": "mtn_road+-8,-52,2",
+         "to": "mtn_road+-7,-50,2",
+         "sec": 2.5,
+         "track": "cp1",
+         "shake": 0.5,
+         "roll": -8
+        },
+        {
          "follow": "crow_car",
-         "sec": 6,
+         "sec": 4.5,
          "off": [
-          10,
-          3,
+          9,
+          2.6,
           3
          ],
-         "shake": 0.3
+         "shake": 0.4
+        },
+        {
+         "follow": "crow_car",
+         "sec": 3,
+         "off": [
+          0.5,
+          1.5,
+          5.5
+         ],
+         "shake": 0.2,
+         "fov": 70
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_0",
+         0.32
+        ],
+        [
+         0.0,
+         "spawn",
+         "cp1",
+         "mtn_road+5,-50",
+         "police"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cp2",
+         "mtn_road+-5,-52",
+         "police"
+        ],
+        [
+         0.0,
          "car",
          "crow_car",
-         "mtn_road+0,-40",
+         "mtn_road+0,-30",
          3,
          180
         ],
         [
-         0.1,
+         0.3,
+         "act",
+         "cp1",
+         "AIM",
+         "mtn_road+0,-30"
+        ],
+        [
+         0.3,
+         "act",
+         "cp2",
+         "AIM",
+         "mtn_road+0,-30"
+        ],
+        [
+         0.6,
+         "sfx",
+         "crow_car",
+         "novograd:car_start",
+         1.8
+        ],
+        [
+         0.8,
          "drive",
          "crow_car",
          [
@@ -4333,6 +7249,35 @@
           "outer_nw"
          ],
          0.95
+        ],
+        [
+         1.6,
+         "shoot",
+         "cp1",
+         "crow_car",
+         5,
+         0
+        ],
+        [
+         1.9,
+         "shoot",
+         "cp2",
+         "crow_car",
+         4,
+         0
+        ],
+        [
+         2.6,
+         "glass",
+         "crow_car"
+        ],
+        [
+         3.2,
+         "sfx",
+         "crow_car",
+         "minecraft:entity.zombie.attack_iron_door",
+         1.0,
+         0.8
         ]
        ],
        "lines": [
@@ -4342,7 +7287,7 @@
          "voice": "a5m2s_01"
         }
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_sunset",
        "card": true
       },
       {
@@ -4385,10 +7330,123 @@
         {
          "from": "cam_desert",
          "to": "desert_mesa+20,10,10",
-         "sec": 8
+         "sec": 4.5
+        },
+        {
+         "from": "desert_mesa+26,6,3",
+         "to": "desert_mesa+20,5,2",
+         "sec": 3.5,
+         "track": "m1"
+        },
+        {
+         "follow": "m2",
+         "sec": 3,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "from": "desert_mesa+14,-6,1.2",
+         "to": "desert_mesa+16,-8,1.4",
+         "sec": 2.5,
+         "track": "m3",
+         "fov": 58
         }
        ],
-       "actors": [],
+       "actors": [
+        [
+         0.0,
+         "music",
+         "radio.country_road_1",
+         0.3
+        ],
+        [
+         0.0,
+         "car",
+         "trk",
+         "desert_mesa+16,0",
+         4,
+         90
+        ],
+        [
+         0.0,
+         "spawn",
+         "m1",
+         "desert_mesa+14,2",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.0,
+         "spawn",
+         "m2",
+         "desert_mesa+10,-4",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.0,
+         "spawn",
+         "m3",
+         "desert_mesa+15,-3",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.0,
+         "act",
+         "m3",
+         "SMOKE"
+        ],
+        [
+         0.2,
+         "walk",
+         "m1",
+         "desert_mesa+6,2"
+        ],
+        [
+         0.3,
+         "act",
+         "m1",
+         "CARRY"
+        ],
+        [
+         0.4,
+         "walk",
+         "m2",
+         "desert_mesa+2,-6"
+        ],
+        [
+         5.0,
+         "walk",
+         "m1",
+         "desert_mesa+14,2"
+        ],
+        [
+         5.1,
+         "act",
+         "m1",
+         "CARRY"
+        ],
+        [
+         8.0,
+         "act",
+         "m2",
+         "AIM",
+         "desert_mesa+30,-6"
+        ],
+        [
+         9.5,
+         "act",
+         "m3",
+         "LAUGH",
+         "m1"
+        ]
+       ],
        "lines": [
         {
          "who": "narrator",
@@ -4631,28 +7689,73 @@
         {
          "from": "airfield_hangar+20,10,4",
          "to": "airfield_hangar+12,6,3",
-         "sec": 5,
+         "sec": 3.5,
          "track": "crow"
         },
         {
          "follow": "crow",
-         "sec": 4,
+         "sec": 3,
          "off": [
-          3,
-          1.8,
-          1.5
+          -3.0,
+          0.45,
+          -1.0
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "follow": "crow",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "m1",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.2,
+         "fov": 52
+        },
+        {
+         "follow": "crow",
+         "sec": 2.5,
+         "off": [
+          3.5,
+          1.9,
+          1.4
          ]
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "crow",
          "airfield_hangar+2,4"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "crow",
+         "PHONE"
+        ],
+        [
+         0.0,
          "spawn",
          "m1",
          "airfield_hangar+5,3",
@@ -4660,12 +7763,39 @@
          "Наёмник"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "m2",
          "airfield_hangar+-2,3",
          "gang",
          "Наёмник"
+        ],
+        [
+         0.0,
+         "spawn",
+         "m3",
+         "airfield_hangar+8,6",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.2,
+         "walk",
+         "m3",
+         "airfield_hangar+-4,8"
+        ],
+        [
+         0.2,
+         "sfx",
+         "airfield_hangar+-6,10",
+         "novograd:plane_engine",
+         2.5
+        ],
+        [
+         0.3,
+         "act",
+         "m3",
+         "CARRY"
         ],
         [
          0.5,
@@ -4682,11 +7812,64 @@
          "player"
         ],
         [
-         2,
+         0.6,
+         "act",
+         "crow",
+         "none"
+        ],
+        [
+         0.7,
+         "face",
+         "crow",
+         "player"
+        ],
+        [
+         1.2,
          "act",
          "crow",
          "ARGUE",
          "player"
+        ],
+        [
+         3.6,
+         "walk",
+         "crow",
+         "airfield_hangar+3,2"
+        ],
+        [
+         6.85,
+         "act",
+         "crow",
+         "POINT",
+         "player"
+        ],
+        [
+         7.25,
+         "sfx",
+         "m1",
+         "novograd:gun_slide_back",
+         1.4
+        ],
+        [
+         7.55,
+         "sfx",
+         "m2",
+         "novograd:gun_slide_back",
+         1.4,
+         0.9
+        ],
+        [
+         8.45,
+         "walk",
+         "crow",
+         "airfield_hangar+-6,10"
+        ],
+        [
+         9.05,
+         "sfx",
+         "airfield_hangar+-6,10",
+         "novograd:plane_engine",
+         2.5
         ]
        ],
        "lines": [
@@ -4717,57 +7900,88 @@
         {
          "from": "airfield_hangar+14,8,3",
          "to": "airfield_hangar+9,5,2",
-         "sec": 6,
+         "sec": 3,
          "track": "crow"
         },
         {
-         "follow": "cop_car",
-         "sec": 6,
+         "follow": "crow",
+         "sec": 2,
          "off": [
-          9,
-          3,
-          2.5
-         ]
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.5,
+         "fov": 50,
+         "fov2": 44
         },
         {
-         "from": "cam_air_a",
-         "to": "cam_island_far",
-         "sec": 10
+         "follow": "cop_car",
+         "sec": 3,
+         "off": [
+          9,
+          2.6,
+          2.5
+         ],
+         "shake": 0.2
+        },
+        {
+         "from": "riv_strip+12,4,3",
+         "to": "riv_strip+8,1,2",
+         "sec": 6,
+         "track": "sf"
+        },
+        {
+         "follow": "sf",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
         },
         {
          "from": "cam_riv_far",
          "to": "cam_riv_strip",
-         "sec": 9
+         "sec": 8
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.klassika_3",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "crow",
          "airfield_hangar+2,4"
         ],
         [
-         0,
+         0.0,
          "act",
          "crow",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "petrov",
          "airfield_hangar+5,6"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c1",
          "airfield_hangar+4,3",
          "police"
         ],
         [
-         0,
+         0.0,
          "car",
          "cop_car",
          "airfield_hangar+6,12",
@@ -4775,25 +7989,109 @@
          0
         ],
         [
-         0.5,
+         0.0,
+         "spawn",
+         "sf",
+         "riv_strip+6,-2",
+         "c26",
+         "Софи"
+        ],
+        [
+         0.0,
+         "act",
+         "sf",
+         "TALK",
+         "cu1"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cu1",
+         "riv_strip+7,0",
+         "citizen",
+         "Гость"
+        ],
+        [
+         0.0,
+         "act",
+         "cu1",
+         "DRINK"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cu2",
+         "riv_strip+4,0",
+         "citizen",
+         "Гостья"
+        ],
+        [
+         0.0,
+         "act",
+         "cu2",
+         "DANCE"
+        ],
+        [
+         0.8,
+         "fight",
+         "crow",
+         "c1",
+         24
+        ],
+        [
+         2.0,
+         "anim",
+         "c1",
+         "kick"
+        ],
+        [
+         2.1,
+         "anim",
+         "crow",
+         "hit"
+        ],
+        [
+         2.2,
+         "sfx",
+         "crow",
+         "minecraft:entity.player.attack.strong",
+         1.4
+        ],
+        [
+         2.4,
+         "act",
+         "petrov",
+         "POINT",
+         "cop_car"
+        ],
+        [
+         3.0,
          "walk",
          "crow",
          "airfield_hangar+5,11"
         ],
         [
-         0.6,
+         3.1,
          "walk",
          "c1",
          "airfield_hangar+7,10"
         ],
         [
-         5.5,
+         5.0,
          "ride",
          "crow",
          "cop_car"
         ],
         [
-         6,
+         5.2,
+         "sfx",
+         "cop_car",
+         "minecraft:block.iron_door.close",
+         1.4,
+         0.8
+        ],
+        [
+         5.5,
          "drive",
          "cop_car",
          [
@@ -4801,6 +8099,33 @@
           "airfield"
          ],
          0.6
+        ],
+        [
+         5.7,
+         "sfx",
+         "cop_car",
+         "novograd:siren",
+         2.0
+        ],
+        [
+         9.5,
+         "give",
+         "sf",
+         "cu1",
+         "novograd:cola"
+        ],
+        [
+         10.5,
+         "act",
+         "sf",
+         "LAUGH",
+         "cu1"
+        ],
+        [
+         12.0,
+         "act",
+         "cu1",
+         "CHEER"
         ]
        ],
        "lines": [
@@ -4927,57 +8252,90 @@
         {
          "from": "police_station+14,8,3",
          "to": "police_station+8,5,2",
-         "sec": 6,
+         "sec": 4,
          "track": "petrov"
         },
         {
          "follow": "diaz",
-         "sec": 5,
+         "sec": 3.5,
          "off": [
-          3.2,
-          1.7,
-          -1.4
-         ]
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "from": "police_station+-1,-5,2",
+         "to": "police_station+0,-6,2.2",
+         "sec": 3.5,
+         "track": "c1"
         },
         {
          "follow": "petrov",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "diaz",
          "sec": 4,
          "off": [
-          3.2,
-          1.7,
-          1.4
-         ]
+          -2.3,
+          1.6,
+          -0.7
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "police_station+8,6,4",
+         "to": "police_station+12,9,6",
+         "sec": 3.85,
+         "track": "diaz"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.klassika_1",
+         0.25
+        ],
+        [
+         0.0,
          "spawn",
          "petrov",
          "police_station+-2,2"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "diaz",
-         "police_station+6,-2"
+         "police_station+8,-3"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c1",
          "police_station+-4,-2",
          "police"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c2",
          "police_station+-5,1",
          "police"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c3",
          "police_station+-4,4",
@@ -4987,15 +8345,15 @@
          0.5,
          "act",
          "c1",
-         "CHEER",
-         "petrov"
+         "LAUGH",
+         "c2"
         ],
         [
          0.5,
          "act",
          "c2",
-         "CHEER",
-         "petrov"
+         "TALK",
+         "c1"
         ],
         [
          0.5,
@@ -5005,22 +8363,82 @@
          "c2"
         ],
         [
-         5,
+         2.6,
+         "give",
+         "c3",
+         "petrov",
+         "novograd:cola"
+        ],
+        [
+         4.0,
          "walk",
          "diaz",
          "police_station+2,0"
         ],
         [
-         9,
+         7.95,
          "act",
-         "diaz",
-         "WAVE",
+         "petrov",
+         "POINT",
          "player"
         ],
         [
-         11,
+         9.95,
+         "act",
+         "c1",
+         "CLAP"
+        ],
+        [
+         10.05,
+         "act",
+         "c2",
+         "CLAP"
+        ],
+        [
+         10.15,
+         "act",
+         "c3",
+         "CLAP"
+        ],
+        [
+         11.45,
          "face",
          "petrov",
+         "player"
+        ],
+        [
+         11.55,
+         "act",
+         "petrov",
+         "LAUGH",
+         "player"
+        ],
+        [
+         14.3,
+         "act",
+         "diaz",
+         "SHRUG",
+         "petrov"
+        ],
+        [
+         16.5,
+         "act",
+         "diaz",
+         "POINT",
+         "player"
+        ],
+        [
+         20.05,
+         "act",
+         "c1",
+         "LAUGH",
+         "diaz"
+        ],
+        [
+         20.35,
+         "act",
+         "diaz",
+         "LAUGH",
          "player"
         ]
        ],
@@ -5041,7 +8459,7 @@
          "voice": "a6m1s_03"
         }
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_cine",
        "card": true
       },
       {
@@ -5192,35 +8610,113 @@
        "type": "cutscene",
        "shots": [
         {
+         "follow": "pcar",
+         "sec": 2.5,
+         "off": [
+          -5.2,
+          1.7,
+          0.6
+         ],
+         "fov": 58,
+         "fov2": 54
+        },
+        {
          "from": "dt_3+18,6,3",
          "to": "dt_3+10,4,2",
-         "sec": 4,
+         "sec": 2.5,
          "track": "speeder"
         },
         {
          "follow": "speeder",
-         "sec": 5,
+         "sec": 3,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
+         ],
+         "shake": 0.4
+        },
+        {
+         "follow": "pcar",
+         "sec": 3.5,
+         "off": [
+          8,
+          2.5,
+          -2.5
          ],
          "shake": 0.4
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_2",
+         0.32
+        ],
+        [
+         0.0,
+         "car",
+         "pcar",
+         "dt_3+5,10",
+         6,
+         180
+        ],
+        [
+         0.0,
+         "spawn",
+         "dz",
+         "dt_3+5,10",
+         "c24",
+         "Сержант Диас"
+        ],
+        [
+         0.0,
          "car",
          "speeder",
-         "dt_3+0,70",
+         "dt_3+0,90",
          2,
          180
         ],
         [
-         0.1,
+         0.05,
+         "ride",
+         "dz",
+         "pcar"
+        ],
+        [
+         0.6,
          "drive",
          "speeder",
+         [
+          "dt_3+0,-40",
+          "dt_4"
+         ],
+         0.95
+        ],
+        [
+         2.0,
+         "sfx",
+         "speeder",
+         "novograd:car_horn",
+         2.5
+        ],
+        [
+         4.4,
+         "sfx",
+         "pcar",
+         "novograd:siren",
+         3.0
+        ],
+        [
+         4.8,
+         "smoke",
+         "dt_3+5,10"
+        ],
+        [
+         5.0,
+         "drive",
+         "pcar",
          [
           "dt_3+0,-40",
           "dt_4"
@@ -5303,19 +8799,55 @@
         {
          "from": "bank_tower+22,10,4",
          "to": "bank_tower+12,6,3",
-         "sec": 5,
+         "sec": 3,
          "track": "r1"
         },
         {
-         "from": "bank_tower+6,4,2",
-         "to": "bank_tower+4,3,1.8",
-         "sec": 5,
-         "track": "lena"
+         "follow": "r1",
+         "sec": 2.5,
+         "off": [
+          3,
+          1.8,
+          1.0
+         ],
+         "shake": 0.4
+        },
+        {
+         "from": "bank_tower+3,4,0.6",
+         "to": "bank_tower+2,4,0.8",
+         "sec": 2.5,
+         "track": "gu",
+         "shake": 0.6,
+         "roll": 8
+        },
+        {
+         "follow": "lena",
+         "sec": 4,
+         "off": [
+          -2.3,
+          1.6,
+          0.5
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "bank_tower+12,8,1.6",
+         "to": "bank_tower+11,8,1.6",
+         "sec": 3.8,
+         "track": "lena",
+         "fov": 50
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_3",
+         0.28
+        ],
+        [
+         0.0,
          "spawn",
          "r1",
          "bank_tower+14,-6",
@@ -5323,12 +8855,42 @@
          "Грабитель в маске"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "r2",
          "bank_tower+16,-3",
          "gang",
          "Грабитель в маске"
+        ],
+        [
+         0.0,
+         "spawn",
+         "r3",
+         "bank_tower+15,-8",
+         "gang",
+         "Грабитель в маске"
+        ],
+        [
+         0.0,
+         "spawn",
+         "gu",
+         "bank_tower+0,1",
+         "police",
+         "Охранник банка"
+        ],
+        [
+         0.0,
+         "spawn",
+         "lena",
+         "bank_tower+8,6"
+        ],
+        [
+         0.0,
+         "spawn",
+         "cm",
+         "bank_tower+10,7",
+         "citizen",
+         "Оператор"
         ],
         [
          0.2,
@@ -5337,30 +8899,118 @@
          "bank_tower+1,0"
         ],
         [
+         0.2,
+         "face",
+         "cm",
+         "lena"
+        ],
+        [
+         0.3,
+         "act",
+         "lena",
+         "TALK",
+         "cm"
+        ],
+        [
          0.4,
          "run",
          "r2",
          "bank_tower+2,2"
         ],
         [
-         0,
-         "spawn",
-         "lena",
-         "bank_tower+8,6"
+         0.6,
+         "run",
+         "r3",
+         "bank_tower+0,-2"
         ],
         [
-         4,
+         3.0,
+         "flash",
+         "cm"
+        ],
+        [
+         3.4,
+         "fight",
+         "r1",
+         "gu",
+         20
+        ],
+        [
+         4.6,
+         "act",
+         "gu",
+         "SLEEP"
+        ],
+        [
+         4.8,
+         "glass",
+         "bank_tower+1,-1"
+        ],
+        [
+         5.0,
+         "sfx",
+         "bank_tower",
+         "minecraft:block.bell.use",
+         2.5
+        ],
+        [
+         5.4,
+         "shoot",
+         "r2",
+         "bank_tower+0,9",
+         3,
+         0
+        ],
+        [
+         5.6,
+         "sfx",
+         "bank_tower",
+         "minecraft:block.bell.use",
+         2.5
+        ],
+        [
+         6.0,
+         "flash",
+         "cm"
+        ],
+        [
+         6.4,
          "act",
          "r1",
          "AIM",
          "lena"
         ],
         [
-         5,
+         8.05,
          "act",
          "lena",
          "TALK",
-         "player"
+         "cm"
+        ],
+        [
+         9.45,
+         "act",
+         "cm",
+         "UPSET"
+        ],
+        [
+         10.05,
+         "run",
+         "r3",
+         "bank_tower+-6,-2"
+        ],
+        [
+         11.25,
+         "flash",
+         "cm"
+        ],
+        [
+         11.35,
+         "sfx",
+         "cm",
+         "minecraft:block.lever.click",
+         1.4,
+         1.6
         ]
        ],
        "lines": [
@@ -5375,7 +9025,7 @@
          "voice": "a6m3s_02"
         }
        ],
-       "grade": "film_cine",
+       "grade": "film_blockbuster",
        "card": true
       },
       {
@@ -5462,25 +9112,69 @@
         {
          "from": "dt_alley+16,7,3",
          "to": "dt_alley+13,5,2.5",
-         "sec": 6,
-         "track": "marco"
+         "sec": 4,
+         "track": "marco",
+         "fov": 32,
+         "fov2": 28
         },
         {
          "from": "dt_alley+3,-5,2",
          "to": "dt_alley+2,-4,1.8",
-         "sec": 5,
+         "sec": 3.5,
          "track": "courier"
+        },
+        {
+         "follow": "marco",
+         "sec": 3.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "dt_alley+16,7,3",
+         "to": "dt_alley+15,6,2.8",
+         "sec": 3.5,
+         "track": "marco",
+         "fov": 34,
+         "fov2": 20
+        },
+        {
+         "follow": "courier",
+         "sec": 2.5,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "marco",
          "dt_alley+-6,-2"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "marco",
+         "PHONE"
+        ],
+        [
+         0.0,
          "spawn",
          "courier",
          "dt_alley+-14,0",
@@ -5494,30 +9188,68 @@
          "dt_alley+-7,-1"
         ],
         [
-         4,
+         3.0,
          "act",
          "courier",
          "HANDSHAKE",
          "marco"
         ],
         [
-         4,
+         3.0,
          "act",
          "marco",
          "HANDSHAKE",
          "courier"
         ],
         [
-         7,
+         4.4,
+         "give",
+         "courier",
+         "marco",
+         "novograd:parcel"
+        ],
+        [
+         5.4,
+         "act",
+         "courier",
+         "POINT",
+         "dt_alley+-20,0"
+        ],
+        [
+         5.85,
          "act",
          "marco",
          "PHONE"
         ],
         [
-         10,
+         7.05,
          "walk",
          "courier",
          "dt_alley+-20,0"
+        ],
+        [
+         9.45,
+         "act",
+         "marco",
+         "none"
+        ],
+        [
+         9.55,
+         "turn",
+         "marco",
+         "dt_alley+16,7"
+        ],
+        [
+         10.05,
+         "act",
+         "marco",
+         "THINK"
+        ],
+        [
+         14.1,
+         "walk",
+         "marco",
+         "dt_alley+-12,-2"
         ]
        ],
        "lines": [
@@ -5538,7 +9270,7 @@
          "marco"
         ]
        ],
-       "grade": "film_cine",
+       "grade": "film_noir",
        "card": true
       },
       {
@@ -5655,34 +9387,82 @@
         {
          "from": "hw_south+20,10,4",
          "to": "hw_south+10,6,3",
-         "sec": 5,
+         "sec": 3,
          "track": "convoy"
         },
         {
          "follow": "convoy",
-         "sec": 4,
+         "sec": 3,
          "off": [
           9,
-          3,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.35
         },
         {
-         "from": "hw_south+6,4,2",
-         "to": "hw_south+4,3,2",
-         "sec": 5,
-         "track": "harris",
-         "shake": 0.6
+         "from": "hw_south+-4,4,1",
+         "to": "hw_south+-3,5,1.2",
+         "sec": 2,
+         "track": "g1",
+         "shake": 0.7,
+         "roll": 8
+        },
+        {
+         "follow": "harris",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "harris",
+         "sec": 2,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "blocker",
+         "sec": 3.5,
+         "off": [
+          9,
+          2.6,
+          2.5
+         ],
+         "shake": 0.4
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_1",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "convoy",
          "hw_south+0,-80",
          6,
          0
+        ],
+        [
+         0.0,
+         "car",
+         "blocker",
+         "hw_south+6,6",
+         4,
+         90
         ],
         [
          0.1,
@@ -5694,15 +9474,14 @@
          0.7
         ],
         [
-         0,
-         "car",
-         "blocker",
-         "hw_south+6,6",
-         4,
-         90
+         3.6,
+         "sfx",
+         "convoy",
+         "novograd:car_horn",
+         2.5
         ],
         [
-         6,
+         5.0,
          "spawn",
          "g1",
          "hw_south+5,3",
@@ -5710,7 +9489,7 @@
          "Наёмник"
         ],
         [
-         6,
+         5.0,
          "spawn",
          "g2",
          "hw_south+8,1",
@@ -5718,14 +9497,14 @@
          "Наёмник"
         ],
         [
-         6.2,
+         5.1,
          "spawn",
          "cop",
          "hw_south+-2,-2",
          "police"
         ],
         [
-         6.5,
+         5.3,
          "shoot",
          "g1",
          "cop",
@@ -5733,31 +9512,90 @@
          0
         ],
         [
-         7.5,
+         5.6,
+         "shoot",
+         "g2",
+         "convoy",
+         4,
+         0
+        ],
+        [
+         6.0,
+         "glass",
+         "convoy"
+        ],
+        [
+         6.6,
          "die",
          "cop"
         ],
         [
-         8,
+         6.75,
+         "sfx",
+         "convoy",
+         "minecraft:block.iron_door.open",
+         1.6,
+         0.7
+        ],
+        [
+         6.95,
          "spawn",
          "harris",
          "hw_south+-1,-1"
         ],
         [
-         9,
+         7.15,
+         "act",
+         "harris",
+         "STRETCH"
+        ],
+        [
+         8.15,
+         "give",
+         "g1",
+         "harris",
+         "novograd:pistol"
+        ],
+        [
+         8.75,
          "act",
          "harris",
          "LAUGH",
          "player"
         ],
         [
-         11,
+         8.85,
+         "hold",
+         "harris",
+         "novograd:pistol"
+        ],
+        [
+         12.0,
+         "walk",
+         "harris",
+         "hw_south+6,4"
+        ],
+        [
+         13.4,
          "ride",
          "harris",
          "blocker"
         ],
         [
-         11.5,
+         13.5,
+         "ride",
+         "g1",
+         "blocker"
+        ],
+        [
+         13.7,
+         "sfx",
+         "blocker",
+         "novograd:car_start",
+         1.6
+        ],
+        [
+         14.0,
          "drive",
          "blocker",
          [
@@ -5765,6 +9603,11 @@
           "port_gate"
          ],
          0.95
+        ],
+        [
+         14.1,
+         "smoke",
+         "hw_south+6,6"
         ]
        ],
        "lines": [
@@ -5893,22 +9736,63 @@
         {
          "from": "riv_casino+10,6,3",
          "to": "riv_casino+6,4,2",
-         "sec": 5,
+         "sec": 3,
          "track": "lenny"
         },
         {
          "follow": "sofi",
-         "sec": 4,
+         "sec": 2.5,
          "off": [
           3,
           1.7,
           -1.3
          ]
+        },
+        {
+         "follow": "lenny",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "riv_casino+1,1,1.4",
+         "to": "riv_casino+0.5,0.5,1.4",
+         "sec": 2.5,
+         "track": "sofi"
+        },
+        {
+         "follow": "dz",
+         "sec": 3.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "riv_casino+4,3,2",
+         "to": "riv_casino+7,5,3",
+         "sec": 2,
+         "track": "sofi"
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.jazz_polnoch_3",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "lenny",
          "riv_casino+-2,-4",
@@ -5916,7 +9800,13 @@
          "Ленни"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "lenny",
+         "DRINK"
+        ],
+        [
+         0.0,
          "spawn",
          "g1",
          "riv_casino+-4,-5",
@@ -5924,10 +9814,38 @@
          "Охрана Ленни"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "g1",
+         "LEAN"
+        ],
+        [
+         0.0,
          "spawn",
          "sofi",
          "riv_casino+4,1"
+        ],
+        [
+         0.0,
+         "car",
+         "van",
+         "riv_casino+16,8",
+         4,
+         0
+        ],
+        [
+         0.0,
+         "spawn",
+         "dz",
+         "riv_casino+15,6",
+         "c24",
+         "Сержант Диас"
+        ],
+        [
+         0.0,
+         "act",
+         "dz",
+         "PHONE"
         ],
         [
          0.4,
@@ -5936,17 +9854,63 @@
          "riv_casino+-1,-3"
         ],
         [
-         4,
+         0.5,
+         "hold",
+         "sofi",
+         "novograd:cola"
+        ],
+        [
+         3.0,
+         "anim",
+         "sofi",
+         "hit"
+        ],
+        [
+         3.1,
+         "sfx",
+         "lenny",
+         "minecraft:entity.generic.splash",
+         1.2
+        ],
+        [
+         3.2,
+         "act",
+         "lenny",
+         "UPSET"
+        ],
+        [
+         3.6,
+         "act",
+         "g1",
+         "POINT",
+         "sofi"
+        ],
+        [
+         4.0,
          "act",
          "sofi",
          "LAUGH",
          "lenny"
         ],
         [
-         5,
+         5.2,
+         "give",
+         "lenny",
+         "sofi",
+         "novograd:bank_card"
+        ],
+        [
+         8.15,
+         "walk",
+         "sofi",
+         "riv_casino+4,1"
+        ],
+        [
+         8.35,
          "act",
          "lenny",
-         "UPSET"
+         "ARGUE",
+         "sofi"
         ]
        ],
        "lines": [
@@ -6047,29 +10011,59 @@
         {
          "from": "desert_mesa+40,14,8",
          "to": "desert_mesa+26,10,6",
-         "sec": 6,
+         "sec": 3.5,
          "track": "swat1"
         },
         {
          "follow": "swat2",
-         "sec": 5,
+         "sec": 3,
          "off": [
-          10,
-          3,
+          9,
+          2.6,
           3
+         ],
+         "shake": 0.5
+        },
+        {
+         "follow": "diaz",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "s1",
+         "sec": 3,
+         "off": [
+          3,
+          1.8,
+          1.0
          ],
          "shake": 0.5
         },
         {
          "from": "desert_mesa+10,6,3",
          "to": "desert_mesa+8,4,2",
-         "sec": 4,
-         "track": "s1"
+         "sec": 3,
+         "track": "m1",
+         "shake": 0.4,
+         "roll": -8
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_3",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "swat1",
          "desert_mesa+80,0",
@@ -6077,12 +10071,20 @@
          90
         ],
         [
-         0,
+         0.0,
          "car",
          "swat2",
          "desert_mesa+95,6",
          17,
          90
+        ],
+        [
+         0.0,
+         "spawn",
+         "m1",
+         "desert_mesa+-2,0",
+         "gang",
+         "Наёмник"
         ],
         [
          0.1,
@@ -6103,7 +10105,30 @@
          0.9
         ],
         [
-         10,
+         1.5,
+         "smoke",
+         "desert_mesa+60,2"
+        ],
+        [
+         3.0,
+         "smoke",
+         "desert_mesa+40,2"
+        ],
+        [
+         4.5,
+         "smoke",
+         "desert_mesa+25,2"
+        ],
+        [
+         6.2,
+         "sfx",
+         "swat1",
+         "minecraft:block.iron_door.open",
+         1.6,
+         0.7
+        ],
+        [
+         6.3,
          "spawn",
          "s1",
          "desert_mesa+14,2",
@@ -6111,7 +10136,7 @@
          "Спецназ"
         ],
         [
-         10,
+         6.3,
          "spawn",
          "s2",
          "desert_mesa+15,-2",
@@ -6119,31 +10144,77 @@
          "Спецназ"
         ],
         [
-         10.5,
-         "act",
-         "s1",
-         "AIM",
-         "desert_mesa"
+         6.3,
+         "spawn",
+         "s3",
+         "desert_mesa+17,4",
+         "police",
+         "Спецназ"
         ],
         [
-         10.5,
-         "act",
-         "s2",
-         "AIM",
-         "desert_mesa"
-        ],
-        [
-         10,
+         6.3,
          "spawn",
          "diaz",
          "desert_mesa+16,4"
         ],
         [
-         11,
+         6.55,
          "act",
          "diaz",
-         "AIM",
+         "POINT",
          "desert_mesa"
+        ],
+        [
+         7.75,
+         "run",
+         "s1",
+         "desert_mesa+4,2"
+        ],
+        [
+         7.85,
+         "run",
+         "s2",
+         "desert_mesa+5,-2"
+        ],
+        [
+         7.95,
+         "run",
+         "s3",
+         "desert_mesa+6,4"
+        ],
+        [
+         8.15,
+         "run",
+         "diaz",
+         "desert_mesa+7,1"
+        ],
+        [
+         9.75,
+         "act",
+         "m1",
+         "AIM",
+         "s1"
+        ],
+        [
+         10.35,
+         "shoot",
+         "m1",
+         "s1",
+         3,
+         0
+        ],
+        [
+         10.75,
+         "shoot",
+         "s2",
+         "m1",
+         4,
+         0
+        ],
+        [
+         11.95,
+         "die",
+         "m1"
         ]
        ],
        "lines": [
@@ -6158,7 +10229,7 @@
          "voice": "a6m8s_02"
         }
        ],
-       "grade": "film_sunset",
+       "grade": "film_noir",
        "card": true
       },
       {
@@ -6252,15 +10323,49 @@
         {
          "from": "police_station+10,6,3",
          "to": "police_station+7,4,2",
-         "sec": 4,
+         "sec": 2,
          "track": "cole"
         },
         {
+         "follow": "cole",
+         "sec": 1.6,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.4,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "cole",
+         "sec": 2,
+         "off": [
+          3,
+          1.8,
+          1.0
+         ],
+         "shake": 0.4
+        },
+        {
+         "follow": "dz",
+         "sec": 2.2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44
+        },
+        {
          "follow": "cole_car",
-         "sec": 5,
+         "sec": 4,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
          ],
          "shake": 0.4
@@ -6268,7 +10373,13 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_0",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "cole",
          "police_station+2,-1",
@@ -6276,7 +10387,13 @@
          "Сержант Коул"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "cole",
+         "RUMMAGE"
+        ],
+        [
+         0.0,
          "car",
          "cole_car",
          "police_station+10,6",
@@ -6284,25 +10401,77 @@
          90
         ],
         [
-         0.5,
+         0.0,
+         "spawn",
+         "dz",
+         "police_station+-3,1",
+         "c24",
+         "Сержант Диас"
+        ],
+        [
+         0.9,
+         "act",
+         "cole",
+         "none"
+        ],
+        [
+         1.0,
+         "face",
+         "cole",
+         "player"
+        ],
+        [
+         1.2,
          "act",
          "cole",
          "UPSET"
         ],
         [
-         1.5,
+         2.0,
          "run",
          "cole",
          "police_station+9,5"
         ],
         [
-         3.5,
+         2.2,
+         "sfx",
+         "police_station+6,3",
+         "minecraft:block.wooden_door.open",
+         1.4
+        ],
+        [
+         2.3,
+         "door",
+         "police_station+6,3",
+         "open"
+        ],
+        [
+         2.4,
+         "run",
+         "dz",
+         "police_station+6,3"
+        ],
+        [
+         4.2,
          "ride",
          "cole",
          "cole_car"
         ],
         [
-         4,
+         4.3,
+         "sfx",
+         "cole_car",
+         "minecraft:block.iron_door.close",
+         1.4,
+         0.8
+        ],
+        [
+         4.6,
+         "smoke",
+         "police_station+10,6"
+        ],
+        [
+         4.8,
          "drive",
          "cole_car",
          [
@@ -6310,6 +10479,20 @@
           "dt_4"
          ],
          0.95
+        ],
+        [
+         4.9,
+         "sfx",
+         "cole_car",
+         "novograd:car_start",
+         1.6
+        ],
+        [
+         5.2,
+         "act",
+         "dz",
+         "AIM",
+         "cole_car"
         ]
        ],
        "lines": [
@@ -6374,38 +10557,79 @@
         {
          "from": "club_neon+10,5,3",
          "to": "club_neon+7,4,2",
-         "sec": 5,
+         "sec": 2.5,
          "track": "harris"
+        },
+        {
+         "follow": "harris",
+         "sec": 2.5,
+         "off": [
+          -3.0,
+          0.45,
+          -0.9
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "follow": "lena",
+         "sec": 2.5,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.3,
+         "fov": 50,
+         "fov2": 44,
+         "roll": 8
+        },
+        {
+         "follow": "g1",
+         "sec": 2,
+         "off": [
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
         },
         {
          "from": "club_neon+3,3,1.8",
          "to": "club_neon+2,2,1.7",
-         "sec": 5,
-         "track": "lena",
+         "sec": 3,
+         "track": "harris",
          "shake": 0.3
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_2",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "harris",
          "club_neon+0,-3"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "lena",
          "club_neon+1,-3"
         ],
         [
-         0,
+         0.0,
          "act",
          "lena",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g1",
          "club_neon+3,-6",
@@ -6413,12 +10637,19 @@
          "Наёмник"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "g2",
          "club_neon+-3,-5",
          "gang",
          "Наёмник"
+        ],
+        [
+         0.3,
+         "act",
+         "harris",
+         "AIM",
+         "player"
         ],
         [
          0.5,
@@ -6435,11 +10666,66 @@
          "player"
         ],
         [
-         2,
+         1.4,
+         "anim",
+         "harris",
+         "drag"
+        ],
+        [
+         1.6,
+         "anim",
+         "lena",
+         "hit"
+        ],
+        [
+         5.05,
+         "anim",
+         "lena",
+         "kick"
+        ],
+        [
+         5.45,
          "act",
          "harris",
          "ARGUE",
-         "player"
+         "lena"
+        ],
+        [
+         5.55,
+         "hold",
+         "harris",
+         "novograd:pistol"
+        ],
+        [
+         6.45,
+         "walk",
+         "g1",
+         "club_neon+2,-2"
+        ],
+        [
+         6.65,
+         "walk",
+         "g2",
+         "club_neon+-2,-1"
+        ],
+        [
+         7.45,
+         "sfx",
+         "g1",
+         "novograd:gun_slide_back",
+         1.4
+        ],
+        [
+         8.88,
+         "walk",
+         "harris",
+         "club_neon+-1,-7"
+        ],
+        [
+         8.98,
+         "walk",
+         "lena",
+         "club_neon+0,-7"
         ]
        ],
        "lines": [
@@ -6479,15 +10765,39 @@
         {
          "from": "club_neon+12,8,3",
          "to": "club_neon+8,5,2",
-         "sec": 4,
-         "track": "h_car"
+         "sec": 2.5,
+         "track": "harris"
+        },
+        {
+         "follow": "harris",
+         "sec": 2,
+         "off": [
+          -2.6,
+          1.6,
+          0.7
+         ],
+         "shake": 0.3,
+         "fov": 56
+        },
+        {
+         "follow": "lena",
+         "sec": 1.6,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "shake": 0.5,
+         "fov": 50,
+         "fov2": 44,
+         "roll": -8
         },
         {
          "follow": "h_car",
-         "sec": 5,
+         "sec": 4.5,
          "off": [
           9,
-          2.5,
+          2.6,
           2.5
          ],
          "shake": 0.4
@@ -6495,7 +10805,13 @@
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.trassa128_1",
+         0.32
+        ],
+        [
+         0.0,
          "car",
          "h_car",
          "club_neon+8,6",
@@ -6503,31 +10819,83 @@
          90
         ],
         [
-         0,
+         0.0,
          "spawn",
          "harris",
-         "club_neon+5,4"
+         "club_neon+3,1"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "lena",
-         "club_neon+6,4"
+         "club_neon+3.5,0"
         ],
         [
-         1,
+         0.0,
+         "door",
+         "club_neon+3,0",
+         "open"
+        ],
+        [
+         0.3,
+         "walk",
+         "harris",
+         "club_neon+7,5"
+        ],
+        [
+         0.4,
+         "walk",
+         "lena",
+         "club_neon+7.5,4.5"
+        ],
+        [
+         2.6,
+         "fight",
+         "lena",
+         "harris",
+         20
+        ],
+        [
+         3.6,
+         "anim",
+         "harris",
+         "kick"
+        ],
+        [
+         3.7,
+         "anim",
+         "lena",
+         "hit"
+        ],
+        [
+         3.8,
+         "sfx",
+         "lena",
+         "minecraft:entity.player.attack.strong",
+         1.3
+        ],
+        [
+         4.4,
+         "ride",
+         "harris",
+         "h_car"
+        ],
+        [
+         4.5,
          "ride",
          "lena",
          "h_car"
         ],
         [
-         1.4,
-         "ride",
-         "harris",
-         "h_car"
+         4.6,
+         "sfx",
+         "h_car",
+         "minecraft:block.iron_door.close",
+         1.5,
+         0.7
         ],
         [
-         2,
+         5.0,
          "drive",
          "h_car",
          [
@@ -6535,6 +10903,11 @@
           "dt_2"
          ],
          0.95
+        ],
+        [
+         5.2,
+         "smoke",
+         "club_neon+8,6"
         ]
        ],
        "lines": [
@@ -6707,28 +11080,71 @@
         {
          "from": "port_crane+18,8,4",
          "to": "port_crane+11,5,3",
-         "sec": 5,
+         "sec": 3.5,
          "track": "harris"
         },
         {
          "follow": "harris",
-         "sec": 4,
+         "sec": 2.5,
          "off": [
-          3.2,
-          1.8,
-          1.4
-         ]
+          3.4,
+          2.2,
+          1.3
+         ],
+         "fov": 64,
+         "fov2": 60
+        },
+        {
+         "follow": "harris",
+         "sec": 3.5,
+         "off": [
+          -3.0,
+          0.45,
+          -1.0
+         ],
+         "fov": 62,
+         "fov2": 56
+        },
+        {
+         "follow": "m1",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 52
+        },
+        {
+         "from": "port_crane+12,1,1.5",
+         "to": "port_crane+10,1,1.5",
+         "sec": 3,
+         "track": "m1",
+         "shake": 0.7,
+         "roll": -9
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.tekhno_podval_1",
+         0.32
+        ],
+        [
+         0.0,
          "spawn",
          "harris",
          "port_crane+2,3"
         ],
         [
-         0,
+         0.0,
+         "act",
+         "harris",
+         "SMOKE"
+        ],
+        [
+         0.0,
          "spawn",
          "m1",
          "port_crane+5,2",
@@ -6736,12 +11152,33 @@
          "Наёмник"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "m2",
          "port_crane+-2,2",
          "gang",
          "Наёмник"
+        ],
+        [
+         0.0,
+         "spawn",
+         "m3",
+         "port_crane+0,7",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.2,
+         "sfx",
+         "port_crane+-6,0",
+         "novograd:boat_engine",
+         2.5
+        ],
+        [
+         0.3,
+         "walk",
+         "m3",
+         "port_crane+6,7"
         ],
         [
          0.5,
@@ -6758,11 +11195,55 @@
          "player"
         ],
         [
-         2,
+         1.4,
          "act",
          "harris",
          "ARGUE",
          "player"
+        ],
+        [
+         6.15,
+         "act",
+         "harris",
+         "AIM",
+         "player"
+        ],
+        [
+         6.25,
+         "sfx",
+         "harris",
+         "novograd:gun_slide_back",
+         1.4
+        ],
+        [
+         12.2,
+         "sfx",
+         "m1",
+         "novograd:gun_slide_back",
+         1.4,
+         0.9
+        ],
+        [
+         12.5,
+         "walk",
+         "harris",
+         "port_crane+-6,4"
+        ],
+        [
+         13.3,
+         "shoot",
+         "m1",
+         "port_crane+12,0",
+         4,
+         0
+        ],
+        [
+         13.5,
+         "shoot",
+         "m2",
+         "port_crane+12,2",
+         4,
+         0
         ]
        ],
        "lines": [
@@ -6799,57 +11280,135 @@
         {
          "from": "port_crane+14,8,3",
          "to": "port_crane+9,5,2",
-         "sec": 6,
+         "sec": 3,
          "track": "harris"
         },
         {
          "follow": "cop_car",
-         "sec": 5,
+         "sec": 3.5,
          "off": [
           9,
-          3,
+          2.6,
           2.5
-         ]
+         ],
+         "shake": 0.2
         },
         {
          "from": "police_station+12,6,3",
          "to": "police_station+7,4,2",
-         "sec": 6,
+         "sec": 4,
          "track": "petrov"
+        },
+        {
+         "follow": "lena",
+         "sec": 2,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "petrov",
+         "sec": 3,
+         "off": [
+          -2.3,
+          1.6,
+          0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "follow": "diaz",
+         "sec": 4,
+         "off": [
+          -2.3,
+          1.6,
+          -0.6
+         ],
+         "fov": 50,
+         "fov2": 44
+        },
+        {
+         "from": "police_station+8,6,4",
+         "to": "police_station+12,9,6",
+         "sec": 3,
+         "track": "diaz"
         },
         {
          "from": "cam_dt_a",
          "to": "cam_dt_b",
-         "sec": 8
+         "sec": 5
         }
        ],
        "actors": [
         [
-         0,
+         0.0,
+         "music",
+         "radio.klassika_3",
+         0.3
+        ],
+        [
+         0.0,
          "spawn",
          "harris",
          "port_crane+2,4"
         ],
         [
-         0,
+         0.0,
          "act",
          "harris",
          "UPSET"
         ],
         [
-         0,
+         0.0,
          "spawn",
          "c1",
          "port_crane+4,3",
          "police"
         ],
         [
-         0,
+         0.0,
          "car",
          "cop_car",
          "port_crane+6,12",
          6,
          0
+        ],
+        [
+         0.0,
+         "spawn",
+         "petrov",
+         "police_station+-1,1"
+        ],
+        [
+         0.0,
+         "spawn",
+         "diaz",
+         "police_station+6,-3"
+        ],
+        [
+         0.0,
+         "spawn",
+         "lena",
+         "police_station+4,3"
+        ],
+        [
+         0.0,
+         "spawn",
+         "c2",
+         "police_station+-4,-2",
+         "police"
+        ],
+        [
+         0.0,
+         "spawn",
+         "c3",
+         "police_station+-4,3",
+         "police"
         ],
         [
          0.5,
@@ -6864,13 +11423,27 @@
          "port_crane+7,10"
         ],
         [
-         5,
+         2.6,
+         "anim",
+         "c1",
+         "drag"
+        ],
+        [
+         3.6,
          "ride",
          "harris",
          "cop_car"
         ],
         [
-         5.5,
+         3.7,
+         "sfx",
+         "cop_car",
+         "minecraft:block.iron_door.close",
+         1.4,
+         0.8
+        ],
+        [
+         4.0,
          "drive",
          "cop_car",
          [
@@ -6879,63 +11452,90 @@
          0.6
         ],
         [
-         0,
-         "spawn",
-         "petrov",
-         "police_station+-1,1"
+         4.2,
+         "sfx",
+         "cop_car",
+         "novograd:siren",
+         2.0
         ],
         [
-         0,
-         "spawn",
-         "diaz",
-         "police_station+2,1"
-        ],
-        [
-         0,
-         "spawn",
-         "lena",
-         "police_station+4,3"
-        ],
-        [
-         0,
-         "spawn",
-         "c2",
-         "police_station+-4,-2",
-         "police"
-        ],
-        [
-         0,
-         "spawn",
-         "c3",
-         "police_station+-4,3",
-         "police"
-        ],
-        [
-         11,
+         6.55,
          "act",
          "c2",
-         "CHEER",
-         "player"
+         "CLAP"
         ],
         [
-         11,
+         6.65,
          "act",
          "c3",
          "CHEER",
          "player"
         ],
         [
-         12,
+         7.35,
          "act",
          "petrov",
          "HANDSHAKE",
          "player"
         ],
         [
-         13,
+         8.95,
+         "flash",
+         "lena"
+        ],
+        [
+         9.05,
+         "sfx",
+         "lena",
+         "minecraft:block.lever.click",
+         1.4,
+         1.6
+        ],
+        [
+         9.55,
          "act",
          "lena",
-         "CHEER",
+         "LAUGH",
+         "player"
+        ],
+        [
+         11.35,
+         "act",
+         "petrov",
+         "LAUGH",
+         "player"
+        ],
+        [
+         13.2,
+         "walk",
+         "diaz",
+         "police_station+2,0"
+        ],
+        [
+         15.6,
+         "act",
+         "diaz",
+         "POINT",
+         "player"
+        ],
+        [
+         15.7,
+         "hold",
+         "diaz",
+         "minecraft:paper"
+        ],
+        [
+         17.5,
+         "act",
+         "c2",
+         "LAUGH",
+         "diaz"
+        ],
+        [
+         18.0,
+         "act",
+         "diaz",
+         "SHRUG",
          "player"
         ]
        ],

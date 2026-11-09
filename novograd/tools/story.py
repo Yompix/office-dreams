@@ -259,19 +259,26 @@ chapters.append(ch3)
 
 
 # =====================================================================================  0.2: КАТ-СЦЕНЫ С АКТЁРАМИ И НОВЫЕ МИССИИ
-def S(a, b, sec, track=None, shake=None):
-    """Кадр: камера летит из a в b; track — следить за героем."""
+def _lens(d, fov, fov2, roll):
+    if fov is not None: d['fov'] = fov
+    if fov2 is not None: d['fov2'] = fov2
+    if roll is not None: d['roll'] = roll
+    return d
+
+
+def S(a, b, sec, track=None, shake=None, fov=None, fov2=None, roll=None):
+    """Кадр: камера летит из a в b; track — следить за героем. fov/fov2 — наезд объективом, roll — голландский угол."""
     d = {'from': a, 'to': b, 'sec': sec}
     if track: d['track'] = track
     if shake: d['shake'] = shake
-    return d
+    return _lens(d, fov, fov2, roll)
 
 
-def F(who, sec, off=(7, 3, 0), shake=None):
-    """Кадр «за героем/машиной»: камера едет следом (off — назад, вверх, вбок)."""
+def F(who, sec, off=(7, 3, 0), shake=None, fov=None, fov2=None, roll=None):
+    """Кадр «за героем/машиной»: камера едет следом (off — назад, вверх, вбок; назад < 0 — камера перед лицом)."""
     d = {'follow': who, 'sec': sec, 'off': list(off)}
     if shake: d['shake'] = shake
-    return d
+    return _lens(d, fov, fov2, roll)
 
 
 def scene(mission, shots, actors, *pairs, do=None):
@@ -1445,6 +1452,8 @@ for vid, sp, text in [
     ('radio_tekhno_podval', 'Kazuhiko Atallah', 'Техно-Подвал. Бочка, бас и ничего лишнего.'),
 ]:
     voice_lines.append({'id': vid, 'who': 'narrator', 'text': text, 'speaker': sp})
+
+exec(open(os.path.join(HERE, 'story_direction.py'), encoding='utf-8').read())  # режиссура кат-сцен (0.6)
 
 # ---------- точка старта каждой миссии (свободная игра: миссия ждёт игрока на жёлтой метке, как в GTA SA)
 ACT_HOME = {'a1': 'garage_door', 'a2': 'gang_yard', 'a3': 'police_station', 'a4': 'riv_strip', 'a5': 'mtn_road', 'a6': 'police_station'}
