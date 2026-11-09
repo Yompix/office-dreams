@@ -2,7 +2,7 @@
 //   PORT=8784 node tools/art/shaders.js [cine|retro] [ALL=1 — ещё и все кадры]
 // Печатает: время World.init() и World.warm(), число программ, конфигурации света (точечные/с тенью + прожекторы/с маской + полусфера),
 // самый длинный фрагментный шейдер, самые «тяжёлые» по активным текстурам (предел слабых видеокарт — 16) и векторам uniform.
-// Нужен сервер статики: cd public/games && python3 -m http.server 8784 --bind 127.0.0.1. Время — относительное (программная отрисовка).
+// Нужен сервер статики: cd games/hush-till-six && python3 -m http.server 8784 --bind 127.0.0.1. Время — относительное (программная отрисовка).
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const gfx = process.argv[2] || 'cine', PORT = process.env.PORT || 8771;
 (async () => {
@@ -12,7 +12,7 @@ const gfx = process.argv[2] || 'cine', PORT = process.env.PORT || 8771;
   const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000">
 <script src="lib/three.min.js"></script><script src="lib/gltf.min.js"></script><script src="lib/meshopt_decoder.js"></script><script src="world.js"></script><script src="chars.js"></script><script src="chars2.js"></script><script src="scenes.js"></script></body></html>`;
   await p.route(/\/nightshift\/_sh\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
-  await p.goto(`http://127.0.0.1:${PORT}/nightshift/_sh.html?gfx=${gfx}&rs=0.3`);
+  await p.goto(`http://127.0.0.1:${PORT}/web/_sh.html?gfx=${gfx}&rs=0.3`);
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 90000 });
   const r = await p.evaluate(async all => {
     await window.__W3chars.load();

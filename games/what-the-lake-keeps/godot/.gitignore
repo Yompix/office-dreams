@@ -1,0 +1,6 @@
+# WHAT THE LAKE KEEPS (Godot 4.7): кэш редактора и скачанные ассеты в git не идут — ассеты: python3 tools/fetch_assets.py
+/.godot/
+/assets/
+/export/
+/build/
+*.import

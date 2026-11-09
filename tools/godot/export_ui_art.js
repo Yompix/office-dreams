@@ -1,9 +1,9 @@
-// Рисованные кодом картинки интерфейса старой игры → PNG для Godot (godot/nightshift/ui/).
+// Рисованные кодом картинки интерфейса старой игры → PNG для Godot (games/hush-till-six/godot/ui/).
 // Сейчас: заставка телефона — детский рисунок Лили (engine.js drawing()), без подписей: подписи («ИТАН», «Я», «БУБЛИК») Godot пишет
-// сам на языке игры детским шрифтом. node tools/godot/export_ui_art.js   (сервер: cd public/games && python3 -m http.server 8771)
+// сам на языке игры детским шрифтом. node tools/godot/export_ui_art.js   (сервер: cd games/hush-till-six && python3 -m http.server 8771)
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const OUT = path.join(__dirname, '../../godot/nightshift/ui');
+const OUT = path.join(__dirname, '../../games/hush-till-six/godot/ui');
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });

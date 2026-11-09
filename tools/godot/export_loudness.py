@@ -5,14 +5,14 @@
 движок сглаживает её каждый кадр. Здесь то же самое считается заранее для каждого файла реплики (60 значений
 в секунду, байт 0…255), детерминированно и одинаково на ПК и на сайте.
 
-Запуск: python3 tools/godot/export_loudness.py  →  godot/nightshift/assets/loud_<голос>.json  (ru, en, es, pt, de)
+Запуск: python3 tools/godot/export_loudness.py  →  games/hush-till-six/godot/assets/loud_<голос>.json  (ru, en, es, pt, de)
 """
 import base64, json, os, subprocess, sys
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC = os.path.join(ROOT, 'public/games/nightshift')
-OUT = os.path.join(ROOT, 'godot/nightshift/assets')
+SRC = os.path.join(ROOT, 'games/hush-till-six/web')
+OUT = os.path.join(ROOT, 'games/hush-till-six/godot/assets')
 SR, WIN, HZ = 48000, 512, 60
 VOICES = ['ru', 'en', 'es', 'pt', 'de']
 

@@ -1,4 +1,34 @@
-# Office Dreams — Telegram Mini App
+# YOMPIX — игры и приложения (закрытый репозиторий)
+
+Всё в одном репозитории, каждый проект — в своей папке. Открытый наружу только сайт с готовой игрой для игроков:
+репозиторий `Yompix/yompix.github.io` (https://yompix.github.io).
+
+## Карта
+
+| Папка | Что это | Где у игроков |
+|---|---|---|
+| `games/hush-till-six/` | **Hush Till Six** — хоррор про ночного охранника | yompix.github.io, Railway `/games/nightshift/`, Google Play, itch.io |
+| `games/what-the-lake-keeps/` | **What the Lake Keeps** — интерактивное кино (Godot 4.7) | itch.io (22 ноя), Steam (декабрь) |
+| `games/minecraft/` | **Minecraft**: мод «Новоград», LifeCraft, плагины RavageTerritory и ReportPlugin | архивы владельцу |
+| `games/pixel-casino/` | **Pixel Casino** — мини-игра для Telegram | — |
+| `apps/play-together/` | **«Играем вместе»** — приложение для игры вместе (Godot + сервер-ретранслятор) | — |
+| `server/`, `src/`, `public/`, `dist/`, `test/`, `scripts/`, `posts/`, `docs/` | **Office Dreams** — Telegram-приложение: бот, сервер, игра, посты канала | Railway (выкладка из `main`) |
+| `media/shorts/` | ролики YouTube Shorts | YouTube |
+| `tools/` | общие инструменты: `chars/` (персонажи обеих игр), `godot/`, `music/`, `fonts/`, `cloud/`, `art/` (картинки Office Dreams), `tts.py`, `games-site.js` | — |
+
+Внутри каждой игры:
+- **Hush Till Six:** `web/` — игра в браузере (её же раздаёт Railway и копирует на yompix.github.io `tools/games-pages.sh`),
+  `godot/` — перенос на Godot, `tools/` — сборки (Android, ПК, itch), трейлеры, озвучка, переводы, проверки кадров, `docs/`.
+- **What the Lake Keeps:** `godot/` — проект игры (сцены, скрипты, данные, звук, документы в `godot/docs/`),
+  `tools/` — сценарий, тесты маршрутов, голоса, сборки, `story/` — первые документы сюжета.
+
+**Пути:** в файлах внутри папки игры пути — от папки игры, и команды для игры запускаются из неё
+(`cd games/what-the-lake-keeps && python3 tools/story_tests.py`); в `HANDOFF.md` и общих инструментах — от корня.
+Что сделано и что в работе — `HANDOFF.md`; правила для Claude — `CLAUDE.md`.
+
+---
+
+# Office Dreams — Telegram Mini App (корень репозитория)
 
 Неонова піксельна гра-тайкун: гравець будує ігрову студію (команда → ігри → поверхи → IPO), а за **справжній** прогрес отримує **бали аірдропу** для майбутнього токена на Solana. Є онлайн-сервер, друзі-реферали, щоденні відмітки, завдання, рейтинг, магазин за Telegram Stars і SOL, прив’язка Solana-гаманця і захист від ботів. Мови: English / Русский / Українська (визначаються автоматично з Telegram).
 

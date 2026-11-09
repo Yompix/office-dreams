@@ -2,12 +2,12 @@
 // и покадрово (30 к/с) пишется всё, что двигается: кости героев, лицо, предметы в руках, камера кадра, подвижные части места и свет.
 // Godot проигрывает запись своим светом — позы, касания и «твёрдый мир» те же, что в старой игре (перезапись — после правок старой игры).
 // Губы и громкость речи не пишем (talk пустой): их Godot считает сам по языку игры.
-//   node tools/godot/bake_shots.js [кадр,кадр…|all]   →  godot/nightshift/bake/<кадр>.json + .bin (float32)
+//   node tools/godot/bake_shots.js [кадр,кадр…|all]   →  games/hush-till-six/godot/bake/<кадр>.json + .bin (float32)
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path'), core = require('./bake_core.js');
-const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'godot/nightshift/bake'), FPS = 30, HOLD = 6, MARGIN = 2;
-const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'godot/nightshift/data/story.json'), 'utf8'));
-const timings = fs.readdirSync(path.join(ROOT, 'public/games/nightshift')).filter(f => /^timing(_\w+)?\.json$/.test(f)).map(f => JSON.parse(fs.readFileSync(path.join(ROOT, 'public/games/nightshift', f), 'utf8')));
+const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'games/hush-till-six/godot/bake'), FPS = 30, HOLD = 6, MARGIN = 2;
+const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'games/hush-till-six/godot/data/story.json'), 'utf8'));
+const timings = fs.readdirSync(path.join(ROOT, 'games/hush-till-six/web')).filter(f => /^timing(_\w+)?\.json$/.test(f)).map(f => JSON.parse(fs.readFileSync(path.join(ROOT, 'games/hush-till-six/web', f), 'utf8')));
 // сколько секунд кадр (img) идёт в сценарии: реплики по самому длинному языку, подряд идущие кадры с тем же img — одно время
 function needs() {
   const need = {}; const lineDur = k => Math.max(0, ...timings.map(T => (T[k] && T[k].dur) || 0));

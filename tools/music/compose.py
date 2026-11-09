@@ -2,7 +2,7 @@
 """Музыка «Молчи до шести» — своя, целиком кодом (numpy): пианино, пэд, музыкальная шкатулка, гул, реверберация.
 Никаких сэмплов и чужих записей. Ноты — ниже, в PIECES.
 
-  python3 tools/music/compose.py [имя …]   → public/games/nightshift/snd/<имя>.mp3   (без имён — все)
+  python3 tools/music/compose.py [имя …]   → games/hush-till-six/web/snd/<имя>.mp3   (без имён — все)
 
 theme — титул (петля 64 с, ре минор, 60 уд/мин): тихая колыбельная-мотив «ля-фа-ми-ре» над тёмными аккордами;
 shift — фон часов смены (петля 96 с): гул ре + квинта и редкие далёкие ноты мотива — тихо, чтобы слышать камеры;
@@ -12,7 +12,7 @@ import os, sys, subprocess
 import numpy as np
 
 SR = 44100
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'public/games/nightshift/snd')
+OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'games/hush-till-six/web/snd')
 rng = np.random.default_rng(7)
 NOTE = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
 

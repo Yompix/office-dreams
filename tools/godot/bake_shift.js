@@ -2,11 +2,11 @@
 // поэтому пишется основа каждой камеры (состояние по умолчанию, петля) и слои — по одному на состояние, только то, что меняется
 // относительно основы (предметы, свет, новые герои; герой основы, которого в этом состоянии нет, — в списке hide).
 // Godot складывает слои по ходу смены (scripts/shift/*). Фигура «помех» (stare) — 4 слоя: как близко она подошла.
-//   node tools/godot/bake_shift.js   →  godot/nightshift/bake/shift/<камера>@<слой>.json + .bin, index.json
+//   node tools/godot/bake_shift.js   →  games/hush-till-six/godot/bake/shift/<камера>@<слой>.json + .bin, index.json
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path'), core = require('./bake_core.js');
-const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'godot/nightshift/bake/shift');
-const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'godot/nightshift/data/story.json'), 'utf8'));
+const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'games/hush-till-six/godot/bake/shift');
+const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'games/hush-till-six/godot/data/story.json'), 'utf8'));
 const CAM = { '01': 'cam01', '02': 'cam02', '03': 'cam03', '04': 'cam04', '07': 'cam07', '10': 'cam10', 'm2': 'cam_m2' };
 const BASE_DUR = 12, STARE_DUR = 3, GUS_P = 2 * (14 + .9 + 1.6 + .9) + (14 + .9 + 2.6 + .9);   // gusRoutine: период мытья полосы из трёх участков
 (async () => {

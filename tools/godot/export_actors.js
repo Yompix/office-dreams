@@ -1,10 +1,10 @@
 // Выгружает героев старой игры такими, какими их собирает chars2.js (castV3): тело, лицо с 53 формами, волосы, одежда,
 // рубаха Жильца (skinGown), кепка сменщика и прочее, построенное кодом; скелет — уже перекладанный под клипы (как в игре),
-// имена костей — как в записи кадров (root, Head…). → godot/nightshift/actors/<ключ>.glb
-//   node tools/godot/export_actors.js [ключ,ключ…]   (сервер: cd public/games && python3 -m http.server 8771)
+// имена костей — как в записи кадров (root, Head…). → games/hush-till-six/godot/actors/<ключ>.glb
+//   node tools/godot/export_actors.js [ключ,ключ…]   (сервер: cd games/hush-till-six && python3 -m http.server 8771)
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const OUT = path.join(__dirname, '../../godot/nightshift/actors');
+const OUT = path.join(__dirname, '../../games/hush-till-six/godot/actors');
 const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.classic.js'), 'utf8');
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

@@ -1,9 +1,9 @@
-// Выгружает данные старой игры (public/games/nightshift) в JSON для Godot-версии (godot/nightshift/data/):
+// Выгружает данные старой игры (games/hush-till-six/web) в JSON для Godot-версии (games/hush-till-six/godot/data/):
 //   story.json — сценарий (story.js, русский; перевод — в Godot тем же правилом, что trStory)
 //   i18n.json  — языки, чьими голосами озвучены, названия, словари EN и DICT (ключ — русская строка)
 // Запуск: node tools/godot/export_data.js
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const SRC = path.join(__dirname, '../../public/games/nightshift'), OUT = path.join(__dirname, '../../godot/nightshift/data');
+const SRC = path.join(__dirname, '../../games/hush-till-six/web'), OUT = path.join(__dirname, '../../games/hush-till-six/godot/data');
 fs.mkdirSync(OUT, { recursive: true });
 const sandbox = () => { const w = {}; return vm.createContext({ window: w, location: { search: '' }, navigator: { language: 'ru', languages: ['ru'] },
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, console }); };

@@ -4,3 +4,9 @@ test/out
 .env
 *.zip
 .git
+# игры и медиа серверу не нужны — кроме веб-версии Hush Till Six (/games/nightshift/)
+games/*
+!games/hush-till-six
+games/hush-till-six/*
+!games/hush-till-six/web
+media

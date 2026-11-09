@@ -1,18 +1,18 @@
 // Карта окружения мест старой игры для Godot: в «Кино» (cineLoc, scenes.js) каждое место один раз снималось кубом со всеми лампами
 // (PMREM) — этот снимок давал мягкий рассеянный свет и блики всему в комнате (стены 0.7, люди 0.22, Жилец 0.15).
 // Здесь снимаем то же самое (та же точка, те же лампы, без пыли и лучей) шестью камерами 90° в буфер с плавающей точкой и
-// перекладываем в равнопромежуточную панораму 256×128: godot/nightshift/world/<место>_env.bin (float32 RGB, линейные цвета).
+// перекладываем в равнопромежуточную панораму 256×128: games/hush-till-six/godot/world/<место>_env.bin (float32 RGB, линейные цвета).
 // Направление пикселя (u, v): азимут a = (u − 0.5)·2π, полярный угол t = v·π; d = (sin a · sin t, cos t, −cos a · sin t) — так же
 // читает шейдер неба в Godot (scripts/world/location.gd, ENV_SKY).
-// Сервер: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_envmap.js [места]
+// Сервер: cd games/hush-till-six && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_envmap.js [места]
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const OUT = path.join(__dirname, '../../godot/nightshift/world'), PORT = process.env.PORT || 8771;
+const OUT = path.join(__dirname, '../../games/hush-till-six/godot/world'), PORT = process.env.PORT || 8771;
 (async () => {
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
-  await p.goto(`http://127.0.0.1:${PORT}/nightshift/index.html?gfx=ultra&lang=ru`);
+  await p.goto(`http://127.0.0.1:${PORT}/web/index.html?gfx=ultra&lang=ru`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   for (const loc of (process.argv[2] || 'lobby,corridor,server,stairs,basement').split(',')) {
     const r = await p.evaluate(loc => {

@@ -1,11 +1,11 @@
 // Смерти для Godot: бросок в объектив (death_scream) и финал «как оно убивает» — кадры gore@<база>:<вид> старой игры.
 // Их нет в списке кадров (scenes.js собирает их на лету: goreShot), поэтому страница игры здесь чуть подправлена в памяти —
 // goreShot доступен снаружи (файлы игры не меняются). Таблицы смертей (GORE_KIND, GORE_BASE) читаются из engine.js.
-//   node tools/godot/bake_gore.js  →  godot/nightshift/bake/gore/<база>__<вид>[_c].json + .bin, index.json; bake/death_scream.*
+//   node tools/godot/bake_gore.js  →  games/hush-till-six/godot/bake/gore/<база>__<вид>[_c].json + .bin, index.json; bake/death_scream.*
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path'), core = require('./bake_core.js');
-const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'godot/nightshift/bake'), SRC = path.join(ROOT, 'public/games/nightshift');
-const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'godot/nightshift/data/story.json'), 'utf8'));
+const ROOT = path.join(__dirname, '../..'), OUT = path.join(ROOT, 'games/hush-till-six/godot/bake'), SRC = path.join(ROOT, 'games/hush-till-six/web');
+const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'games/hush-till-six/godot/data/story.json'), 'utf8'));
 const eng = fs.readFileSync(path.join(SRC, 'engine.js'), 'utf8');
 const obj = name => { const m = new RegExp('const ' + name + ' = (\\{[\\s\\S]*?\\});').exec(eng); if (!m) throw new Error('нет ' + name + ' в engine.js'); return Function('return ' + m[1])(); };
 const GORE_KIND = obj('GORE_KIND'), GORE_BASE = obj('GORE_BASE'), JUMP_D = .75, GORE_D = 3.4;

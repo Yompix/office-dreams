@@ -1,5 +1,5 @@
 // Снимки кадров старой игры (three.js) по имени кадра — для сравнения «было / стало» с Godot-версией.
-// node tools/godot/old_shot.js ПАПКА кадр[:секунда[:cctv]][,кадр…] [cine|ultra]   (сервер: cd public/games && python3 -m http.server 8771)
+// node tools/godot/old_shot.js ПАПКА кадр[:секунда[:cctv]][,кадр…] [cine|ultra]   (сервер: cd games/hush-till-six && python3 -m http.server 8771)
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
 (async () => {

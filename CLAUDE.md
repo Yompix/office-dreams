@@ -3,6 +3,7 @@
 Перед любой работой прочитай `HANDOFF.md` целиком: владелец, правила, деплой, кошельки (только публичные адреса), что сделано и что открыто.
 
 Самое важное:
+- **Карта репозитория — `README.md`** (9 ноя всё разложено по папкам): Office Dreams — корень (`server/`, `src/`, `public/`, `dist/`), игры — `games/<игра>/` (Hush Till Six — `games/hush-till-six/`, What the Lake Keeps — `games/what-the-lake-keeps/`, Minecraft — `games/minecraft/`, Pixel Casino — `games/pixel-casino/`), «Играем вместе» — `apps/play-together/`, общие инструменты — `tools/`. Новое — только в папку своего проекта; в корень и в чужие папки не класть. Репозиторий закрытый; открыт только `Yompix/yompix.github.io` (готовая игра для игроков).
 - Отвечай владельцу по-русски или по-украински, коротко и по-человечески. Ты его правая рука: сам находишь, чинишь, выкладываешь и коротко пишешь, что поменял.
 - Ветка `ccr-8074df3f-t5lbqj`; перед push `git fetch origin main && git merge origin/main`; выкладка `git push origin HEAD:main` (Railway деплоит сам). Папка `dist` коммитится (`node build.js`).
 - Перед выкладкой: `npm test` и e2e (см. HANDOFF.md).

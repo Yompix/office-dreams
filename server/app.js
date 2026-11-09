@@ -108,8 +108,10 @@ function makeStatic(cfg) {
       const games = path.join(pub, 'games');
       let rel; try { rel = decodeURIComponent(p.slice(7)); } catch { return sendText(res, 400, 'bad url'); }
       if (rel === '' || rel.endsWith('/')) rel += 'index.html';
-      const file = path.join(games, path.normalize(rel));
-      if (!file.startsWith(games + path.sep) || !/^[\w.\-/]+$/.test(rel)) return sendText(res, 404, 'Not found');
+      // Hush Till Six lives in games/hush-till-six/web (repo root); its address stays /games/nightshift/
+      const hts = /^nightshift(\/|$)/.test(rel), base = hts ? path.join(cfg.root, 'games', 'hush-till-six', 'web') : games;
+      const file = path.join(base, path.normalize(hts ? rel.slice(11) || '.' : rel));
+      if (!(file === base && hts || file.startsWith(base + path.sep)) || !/^[\w.\-/]+$/.test(rel)) return sendText(res, 404, 'Not found');
       // a folder without the trailing slash: /games/nightshift -> /games/nightshift/
       if (!path.extname(rel) && fs.existsSync(path.join(file, 'index.html'))) { res.writeHead(301, { location: p + '/', ...SEC_HEADERS }); return res.end(); }
       const type = GAME_MIME[path.extname(file).toLowerCase()];

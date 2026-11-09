@@ -2,7 +2,7 @@
 /* Отдельный маленький сайт с нашими играми (короткий адрес на Railway): раздаёт public/games/ с корня.
    Запуск: node tools/games-site.js (порт из PORT, по умолчанию 8080). Без базы и бота. */
 const http = require('http'), fs = require('fs'), path = require('path');
-const ROOT = path.join(__dirname, '..', 'public', 'games');
+const ROOT = path.join(__dirname, '..', 'public', 'games'), HTS = path.join(__dirname, '..', 'games', 'hush-till-six', 'web');   // Hush Till Six — по старому адресу /nightshift/
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json',
   '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
   '.apk': 'application/vnd.android.package-archive', '.glb': 'model/gltf-binary', '.txt': 'text/plain; charset=utf-8', '.woff': 'font/woff', '.woff2': 'font/woff2' };
@@ -13,9 +13,10 @@ function serve(req, res) {
   if (p === '/healthz') { res.writeHead(200, { 'content-type': 'text/plain', ...H }); return res.end('ok'); }
   if (p.startsWith('/games/')) p = p.slice(6);          // старые ссылки вида /games/nightshift/
   let rel = p.slice(1); if (rel === '' || rel.endsWith('/')) rel += 'index.html';
-  const file = path.join(ROOT, path.normalize(rel));
+  const hts = /^nightshift(\/|$)/.test(rel), base = hts ? HTS : ROOT;
+  const file = path.join(base, path.normalize(hts ? rel.slice(11) || '.' : rel));
   const nf = () => { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', ...H }); res.end('Not found'); };
-  if (!file.startsWith(ROOT + path.sep) || !/^[\w.\-/]+$/.test(rel)) return nf();
+  if (!(file === base && hts || file.startsWith(base + path.sep)) || !/^[\w.\-/]+$/.test(rel)) return nf();
   if (!path.extname(rel) && fs.existsSync(path.join(file, 'index.html'))) { res.writeHead(301, { location: p + '/', ...H }); return res.end(); }
   const type = MIME[path.extname(file).toLowerCase()]; let st; try { st = type && fs.statSync(file); } catch { st = null; }
   if (!st || !st.isFile()) return nf();

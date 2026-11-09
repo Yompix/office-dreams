@@ -64,7 +64,7 @@ CHARS = {
   'tenant': dict(phenotype=dict(gender=1, age=.75, muscle=0, weight=0, proportions=0, height=1, cupsize=0, firmness=0, race=R(0, 1, 0)),
                  skin='old_caucasian_male/old_caucasian_male.mhmat', hair='long01/long01.mhclo', brows='eyebrow012/eyebrow012.mhclo', clothes=[]),
 }
-# герои других игр (WHAT THE LAKE KEEPS — tools/lake/chars.json): тот же генератор, свой список
+# герои других игр (WHAT THE LAKE KEEPS — games/what-the-lake-keeps/tools/chars.json): тот же генератор, свой список
 if os.environ.get('CHARS_JSON'):
     CHARS.update(json.load(open(os.environ['CHARS_JSON'], encoding='utf-8')))
 C = CHARS[name]
@@ -113,7 +113,7 @@ if C.get('chest_flat') is not None:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
     import garments
     garments.flatten_chest(float(C['chest_flat']), top=float(C.get('chest_flat_top', 0.0)))
-# 1б) своя одежда (WHAT THE LAKE KEEPS): куртки, худи с капюшоном, жилет, шапка — оболочкой по телу (tools/lake/garments.py).
+# 1б) своя одежда (WHAT THE LAKE KEEPS): куртки, худи с капюшоном, жилет, шапка — оболочкой по телу (games/what-the-lake-keeps/tools/garments.py).
 #     Шьётся до масок: тело под одеждой MakeHuman ещё целое (иначе у куртки нет туловища)
 if C.get('garments'):
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
@@ -140,7 +140,7 @@ extras.pre(C)
 # 3) поза покоя как у анимаций игры (модель Quaternius, «Т»): поворачиваем кости MPFB вдоль костей Quaternius,
 #    запекаем позу в сетку (вместе с лицевыми формами) и делаем её позой покоя — тогда клипы Quaternius встают без перекосов
 import struct, mathutils
-QG = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../public/games/nightshift/models/male.glb')
+QG = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../games/hush-till-six/web/models/male.glb')
 d = open(QG, 'rb').read(); l = struct.unpack('<I', d[12:16])[0]; J = json.loads(d[20:20 + l]); N = J['nodes']
 par = {c: i for i, n in enumerate(N) for c in n.get('children', [])}
 def gm(i):

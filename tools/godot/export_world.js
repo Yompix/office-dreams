@@ -1,24 +1,24 @@
-// Выгружает 5 локаций старой игры (three.js) для Godot: godot/nightshift/world/<место>.glb + <место>.json
+// Выгружает 5 локаций старой игры (three.js) для Godot: games/hush-till-six/godot/world/<место>.glb + <место>.json
 // (свет, туман, подвижные части по именам, коллайдеры). Геометрия и текстуры — те же, что в игре (графика «Ультра»).
-// Сервер: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_world.js [места]
+// Сервер: cd games/hush-till-six && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_world.js [места]
 // META_ONLY=1 — только описания мест (<место>.json: свет, лучи, туман), без моделей и предметов
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const OUT = path.join(__dirname, '../../godot/nightshift/world'), PORT = process.env.PORT || 8771;
+const OUT = path.join(__dirname, '../../games/hush-till-six/godot/world'), PORT = process.env.PORT || 8771;
 const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.classic.js'), 'utf8'), NAMING = require('./naming.js');
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
-  await p.goto(`http://127.0.0.1:${PORT}/nightshift/index.html?gfx=ultra&lang=ru`);
+  await p.goto(`http://127.0.0.1:${PORT}/web/index.html?gfx=ultra&lang=ru`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   await p.addScriptTag({ content: EXPORTER }); await p.evaluate(NAMING);
   const shots = await p.evaluate(() => { const out = {}; for (const [id, sh] of Object.entries(window.World.shots || {})) { const o = {};
       for (const [k, v] of Object.entries(sh)) { if (typeof v === 'function') { o[k] = '__fn'; continue; }
         if (v && v.isVector3) o[k] = [v.x, v.y, v.z]; else { try { JSON.stringify(v); o[k] = v; } catch (e) { o[k] = '__obj'; } } }
       out[id] = o; } return { shots: out, alias: window.World.alias || {} }; });
-  fs.writeFileSync(path.join(__dirname, '../../godot/nightshift/data/shots.json'), JSON.stringify(shots));
+  fs.writeFileSync(path.join(__dirname, '../../games/hush-till-six/godot/data/shots.json'), JSON.stringify(shots));
   console.log('shots.json:', Object.keys(shots.shots).length, 'кадров');
   for (const loc of (process.argv[2] || 'lobby,corridor,server,stairs,basement').split(',')) {
     const r = await p.evaluate(async ([loc, metaOnly]) => {
