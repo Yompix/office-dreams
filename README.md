@@ -11,7 +11,7 @@
 | `games/what-the-lake-keeps/` | **What the Lake Keeps** — интерактивное кино (Godot 4.7) | itch.io (22 ноя), Steam (декабрь) |
 | `games/minecraft/` | **Minecraft**: мод «Новоград», LifeCraft, плагины RavageTerritory и ReportPlugin | архивы владельцу |
 | `games/pixel-casino/` | **Pixel Casino** — мини-игра для Telegram | — |
-| `apps/play-together/` | **«Играем вместе»** — приложение для игры вместе (Godot + сервер-ретранслятор) | — |
+| `apps/lantern/` | **LANTERN** (бывш. «Играем вместе») — мультиплеер Minecraft Java/Bedrock: приложение на Godot + свой ретранслятор | — |
 | `server/`, `src/`, `public/`, `dist/`, `test/`, `scripts/`, `posts/`, `docs/` | **Office Dreams** — Telegram-приложение: бот, сервер, игра, посты канала | Railway (выкладка из `main`) |
 | `media/shorts/` | ролики YouTube Shorts | YouTube |
 | `tools/` | общие инструменты: `chars/` (персонажи обеих игр), `godot/`, `music/`, `fonts/`, `cloud/`, `art/` (картинки Office Dreams), `tts.py`, `games-site.js` | — |
