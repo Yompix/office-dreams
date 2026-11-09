@@ -100,16 +100,16 @@ direct('a1m1', 0, [
     CHASE('racer', 5, 2.5),
     S('dt_2+0,30,3', 'dt_2+0,16,2.5', 3.5, track='cop'),
     S('port_warehouse+12,8,5', 'port_warehouse+7,5,2.5', 4.5, track='s1'),
-    S('gang_yard+10,8,6', 'gang_yard+6,5,2.5', 4.5, track='g1'),
+    S('gang_hq+10,10,6', 'gang_hq+6,8,2.5', 4.5, track='g1'),
     S('garage_door+10,6,3', 'garage_door+6,4,2', 4, track='gl'),
     CU('gl', 3.5, side=0.8),
 ], lambda L, E: [
     [0, 'car', 'racer', 'dt_1', 2], [0.2, 'drive', 'racer', ['dt_2', 'dt_3'], 0.95],
     [2.5, 'car', 'cop', 'dt_1', 6], [2.6, 'drive', 'cop', ['dt_2', 'dt_3'], 0.95],
     [6.5, 'sfx', 'cop', 'novograd:siren', 3.0], [9.5, 'sfx', 'cop', 'novograd:siren', 3.0],
-    [0, 'spawn', 's1', 'port_warehouse+4,3', 'gang', 'Грузчик'], [0, 'spawn', 's2', 'port_warehouse+-2,-1', 'gang', 'Синий'],
-    [12, 'walk', 's1', 'port_warehouse+-1,-3'], [12.1, 'act', 's1', 'CARRY'], [12.2, 'act', 's2', 'POINT', 's1'],
-    [0, 'spawn', 'g1', 'gang_yard+1,1', 'gang', 'Ящер'], [0, 'spawn', 'g2', 'gang_yard+3,2', 'gang', 'Ящер'],
+    [0, 'spawn', 's1', 'port_warehouse+4,3', 'gang', 'Грузчик'], [0, 'spawn', 's2', 'port_warehouse+-2,3', 'gang', 'Синий'],
+    [12, 'walk', 's1', 'port_warehouse+-6,3'], [12.1, 'act', 's1', 'CARRY'], [12.2, 'act', 's2', 'POINT', 's1'],
+    [0, 'spawn', 'g1', 'gang_hq+1,4', 'gang', 'Ящер'], [0, 'spawn', 'g2', 'gang_hq+3,5', 'gang', 'Ящер'],
     [16, 'act', 'g1', 'LAUGH', 'g2'], [16.1, 'hold', 'g1', 'novograd:bat'], [16.2, 'act', 'g2', 'SMOKE'],
     [0, 'spawn', 'gl', 'garage_door+2,1', 'c25', 'Джейк'], [20, 'act', 'gl', 'PHONEWALK'], [20.1, 'walk', 'gl', 'garage_door+5,2'],
     [23, 'act', 'gl', 'UPSET'], [25.5, 'turn', 'gl', 'garage_door+12,8'], [26, 'act', 'gl', 'PHONE'],
@@ -170,7 +170,7 @@ direct('a1m3b', 0, [
     [0, 'spawn', 'd1', 'club_neon+2,-3', 'citizen'], [0, 'spawn', 'd2', 'club_neon+-2,-4', 'citizen'], [0, 'spawn', 'd3', 'club_neon+0,-6', 'citizen'],
     [0, 'act', 'd1', 'DANCE'], [0, 'act', 'd2', 'DANCE2'], [0, 'act', 'd3', 'DANCE3'],
     [0, 'spawn', 'nika', 'club_neon+1,-1'], [0, 'act', 'nika', 'DANCE'],
-    [0, 'spawn', 'bouncer', 'club_neon+3,-6', 'c39', 'Вышибала'], [0, 'spawn', 'drunk', 'club_neon+2,-5', 'citizen', 'Пьяный'],
+    [0, 'spawn', 'bouncer', 'club_neon+3,-6', 'gang', 'Вышибала'], [0, 'spawn', 'drunk', 'club_neon+2,-5', 'citizen', 'Пьяный'],
     [0.3, 'act', 'drunk', 'ARGUE', 'bouncer'], [0.4, 'act', 'bouncer', 'POINT', 'drunk'],
     [5.2, 'anim', 'bouncer', 'kick'], [5.3, 'anim', 'drunk', 'hit'], [5.4, 'sfx', 'drunk', 'minecraft:entity.player.attack.strong', 1.0],
     [5.8, 'walk', 'drunk', 'club_neon+-6,-1'], [6.0, 'act', 'bouncer', 'SHRUG'],
@@ -240,19 +240,19 @@ direct('a1m4', 0, [
 # =====================================================================  АКТ II
 # a2m1 — двор Ящеров: Джейк под прицелом; Брик выходит, берёт у своего биту, смеётся, пинает Джейка, нависает.
 direct('a2m1', 0, [
-    S('cam_ind_a', 'gang_yard+12,10,12', 4.5),
+    S('cam_ind_a', 'gang_hq+14,12,10', 4.5),
     OTS('kirpich', 3.5),
     CU('gleb', 2.5, side=-0.6),
-    S('gang_yard+-2,-3,0.4', 'gang_yard+-1.5,-2.5,0.5', 3.5, track='kirpich', fov=58, roll=-7),
-    S('gang_yard+4,3,1.5', 'gang_yard+3,4,1.4', 2, track='gleb', shake=0.6),
+    S('gang_hq+-2,1,0.4', 'gang_hq+-1.5,1.5,0.5', 3.5, track='kirpich', fov=58, roll=-7),
+    S('gang_hq+4,8,1.5', 'gang_hq+3,9,1.4', 2, track='gleb', shake=0.6),
     CU('gleb', 2.5, side=0.7, roll=5),
 ], lambda L, E: [
-    [0, 'spawn', 'gleb', 'gang_yard+0,2'], [0, 'act', 'gleb', 'UPSET'], [0, 'spawn', 'kirpich', 'gang_yard+8,-6'],
-    [0, 'spawn', 'g1', 'gang_yard+-3,4', 'gang'], [0, 'spawn', 'g2', 'gang_yard+3,4', 'gang'],
+    [0, 'spawn', 'gleb', 'gang_hq+0,5'], [0, 'act', 'gleb', 'UPSET'], [0, 'spawn', 'kirpich', 'gang_hq+9,0'],
+    [0, 'spawn', 'g1', 'gang_hq+-3,7', 'gang'], [0, 'spawn', 'g2', 'gang_hq+3,7', 'gang'],
     [0.5, 'act', 'g1', 'AIM', 'gleb'], [0.5, 'act', 'g2', 'AIM', 'gleb'],
-    [0, 'spawn', 'g3', 'gang_yard+2,-3', 'gang'], [0, 'act', 'g3', 'SMOKE'],
-    [2.0, 'sfx', 'kirpich', 'minecraft:block.iron_door.close', 1.3, 0.7], [2.6, 'walk', 'kirpich', 'gang_yard+2,-2'],
-    [5.0, 'give', 'g3', 'kirpich', 'novograd:bat'], [5.6, 'walk', 'kirpich', 'gang_yard+1,0'],
+    [0, 'spawn', 'g3', 'gang_hq+3,2', 'gang'], [0, 'act', 'g3', 'SMOKE'],
+    [2.0, 'sfx', 'kirpich', 'minecraft:block.iron_door.close', 1.3, 0.7], [2.6, 'walk', 'kirpich', 'gang_hq+3,3'],
+    [5.0, 'give', 'g3', 'kirpich', 'novograd:bat'], [5.6, 'walk', 'kirpich', 'gang_hq+1,4'],
     [L[1], 'act', 'kirpich', 'LAUGH', 'gleb'], [L[1] + 0.1, 'hold', 'kirpich', 'novograd:bat'],
     [L[1] + 3.0, 'anim', 'kirpich', 'kick'], [L[1] + 3.2, 'anim', 'gleb', 'hit'],
     [L[1] + 3.3, 'sfx', 'gleb', 'minecraft:entity.player.attack.strong', 1.4],
@@ -299,7 +299,7 @@ direct('a2m3c', 1, [
     S('beach_lot+16,8,3', 'beach_lot+10,4,2', 2.5, track='l_car', shake=0.5),
     S('beach_lot+-4,6,2', 'beach_lot+-3,4,2', 2.5, track='b1', shake=0.8, roll=10),
     CHASE('marco_car', 2.5, 2, shake=0.5),
-    LOW('brik', 3, side=-1.1),
+    F('brik', 3, (-3.4, 1.5, 1.1), fov=60),
     CU('brik', 3),
 ], lambda L, E: [
     [0, 'spawn', 'mc', 'beach_lot+3,0', 'c33', 'Марко «Синий»'], [0, 'act', 'mc', 'TALK', 'player'],
@@ -317,7 +317,7 @@ direct('a2m3c', 1, [
     [L[1], 'walk', 'brik', 'beach_lot+2,4'], [L[1] + 2.6, 'act', 'brik', 'ARGUE', 'player'],
     [L[1] + 3.0, 'anim', 'l1', 'kick'], [L[1] + 3.6, 'act', 'l2', 'LAUGH', 'brik'],
     [E - 0.6, 'act', 'brik', 'LAUGH', 'player'],
-], music='radio.trassa128_3')
+], music='radio.trassa128_3', grade='film_sunset')
 
 # a2m4 — инкассаторы грузят мешки, захлопывают двери, хлопок по крыше — и фургон уходит; через улицу Ящер звонит Брику.
 direct('a2m4', 0, [
@@ -477,25 +477,25 @@ direct('a4m1', 1, [
 # a4m2 — Кроу с охраной идёт ко входу, суёт швейцару купюру; игрок за столом Софи вскакивает и уходит;
 # Кроу отчитывает её, хлопает ладонью — она вздрагивает; уходит, смеясь; Софи остаётся одна.
 direct('a4m2', 0, [
-    S('riv_casino+12,10,4', 'riv_casino+6,6,2.5', 3.5, track='crow'),
+    S('riv_casino+-6,10,4', 'riv_casino+-4,4,2.5', 3.5, track='crow'),
     LOW('crow', 3, side=-1.2),
     S('riv_casino+3,4,2', 'riv_casino+2,3,1.8', 3, track='sofi'),
-    CU('sofi', 3, roll=6),
+    S('riv_casino+-2,1,1.6', 'riv_casino+-1.6,1.5,1.6', 3, track='sofi', fov=48, roll=6),
     OTS('crow', 2.5),
-    CU('sofi', 3.5, side=-0.6),
+    S('riv_casino+-3,6,1.6', 'riv_casino+-2.5,5.5,1.6', 3.5, track='sofi', fov=46),
 ], lambda L, E: [
-    [0, 'spawn', 'crow', 'riv_casino+8,-6'], [0, 'spawn', 'g1', 'riv_casino+10,-7', 'gang', 'Охрана Кроу'], [0, 'spawn', 'g2', 'riv_casino+6,-8', 'gang', 'Охрана Кроу'],
-    [0, 'spawn', 'sofi', 'riv_casino+0,3'], [0, 'spawn', 'gm', 'riv_casino+1,5', 'citizen', 'Игрок'], [0.2, 'act', 'sofi', 'TALK', 'gm'], [0.2, 'act', 'gm', 'LAUGH', 'sofi'],
-    [0, 'spawn', 'valet', 'riv_casino+5,-3', 'citizen', 'Швейцар'],
-    [0.3, 'walk', 'crow', 'riv_casino+4,-2'], [0.5, 'walk', 'g1', 'riv_casino+6,-3'], [0.5, 'walk', 'g2', 'riv_casino+3,-4'],
+    [0, 'spawn', 'crow', 'riv_casino+1,-12'], [0, 'spawn', 'g1', 'riv_casino+3,-13', 'gang', 'Охрана Кроу'], [0, 'spawn', 'g2', 'riv_casino+0,-14', 'gang', 'Охрана Кроу'],
+    [0, 'spawn', 'sofi', 'riv_casino+0,4'], [0, 'spawn', 'gm', 'riv_casino+0,6', 'citizen', 'Игрок'], [0.2, 'act', 'sofi', 'TALK', 'gm'], [0.2, 'act', 'gm', 'LAUGH', 'sofi'],
+    [0, 'spawn', 'valet', 'riv_casino+3,-4', 'citizen', 'Швейцар'],
+    [0.3, 'walk', 'crow', 'riv_casino+1,-5'], [0.5, 'walk', 'g1', 'riv_casino+3,-6'], [0.5, 'walk', 'g2', 'riv_casino+0,-7'],
     [3.0, 'give', 'crow', 'valet', 'novograd:banknote_100'], [3.6, 'walk', 'crow', 'riv_casino+1,1'], [3.8, 'act', 'valet', 'WAVE', 'crow'],
-    [4.0, 'walk', 'g1', 'riv_casino+3,0'], [4.0, 'walk', 'g2', 'riv_casino+-1,0'],
-    [5.0, 'act', 'gm', 'UPSET'], [5.4, 'walk', 'gm', 'riv_casino+-7,8'],
+    [4.0, 'walk', 'g1', 'riv_casino+3,-1'], [4.0, 'walk', 'g2', 'riv_casino+-1,-1'],
+    [5.0, 'act', 'gm', 'UPSET'], [5.4, 'walk', 'gm', 'riv_casino+-6,9'],
     [L[1], 'act', 'crow', 'ARGUE', 'sofi'], [L[1], 'act', 'sofi', 'UPSET'],
     [L[1] + 2.6, 'anim', 'crow', 'highfive'], [L[1] + 2.8, 'anim', 'sofi', 'hit'],
     [L[1] + 2.9, 'sfx', 'sofi', 'minecraft:entity.zombie.attack_wooden_door', 0.9, 1.3],
     [L[1] + 5.0, 'act', 'crow', 'LAUGH', 'sofi'], [L[1] + 5.1, 'act', 'g1', 'SMOKE'],
-    [L[2] + 0.6, 'walk', 'crow', 'riv_casino+20,-10'], [L[2] + 0.9, 'walk', 'g1', 'riv_casino+21,-8'], [L[2] + 1.0, 'walk', 'g2', 'riv_casino+19,-12'],
+    [L[2] + 0.6, 'walk', 'crow', 'riv_casino+1,-18'], [L[2] + 0.9, 'walk', 'g1', 'riv_casino+3,-17'], [L[2] + 1.0, 'walk', 'g2', 'riv_casino+0,-19'],
     [E + 0.4, 'act', 'sofi', 'THINK'],
 ], music='radio.jazz_polnoch_1')
 
@@ -519,16 +519,16 @@ direct('a4m3', 0, [
 
 # a4m9 — служебный вход: охранник курит; Софи заговаривает, суёт ему колу — он уходит; она открывает дверь и машет.
 direct('a4m9', 0, [
-    S('riv_casino+10,8,3', 'riv_casino+5,5,2', 3, track='sofi'),
+    S('riv_casino+-5,8,3', 'riv_casino+-3,5,2', 3, track='sofi'),
     F('gd', 2.5, (-2.4, 1.6, 0.7), fov=55),
     OTS('sofi', 2.5, side=-1.2),
     CU('sofi', 3),
 ], lambda L, E: [
-    [0, 'spawn', 'sofi', 'riv_casino+3,2'], [0, 'spawn', 'gd', 'riv_casino+-1,-3', 'gang', 'Охрана Кроу'], [0, 'act', 'gd', 'SMOKE'],
-    [0.4, 'walk', 'sofi', 'riv_casino+0,-1'], [2.2, 'act', 'sofi', 'LAUGH', 'gd'], [2.3, 'act', 'gd', 'LAUGH', 'sofi'],
-    [3.0, 'give', 'sofi', 'gd', 'novograd:cola'], [4.0, 'walk', 'gd', 'riv_casino+-12,-2'],
-    [5.6, 'door', 'riv_casino+0,-4', 'open'], [6.0, 'act', 'sofi', 'WAVE', 'player'], [7.0, 'smoke', 'riv_casino+0,-4'],
-    [9.0, 'walk', 'sofi', 'riv_casino+0,-5'],
+    [0, 'spawn', 'sofi', 'riv_casino+1,3'], [0, 'spawn', 'gd', 'riv_casino+3,-3', 'gang', 'Охрана Кроу'], [0, 'act', 'gd', 'SMOKE'],
+    [0.4, 'walk', 'sofi', 'riv_casino+2,-1'], [2.2, 'act', 'sofi', 'LAUGH', 'gd'], [2.3, 'act', 'gd', 'LAUGH', 'sofi'],
+    [3.0, 'give', 'sofi', 'gd', 'novograd:cola'], [4.0, 'walk', 'gd', 'riv_casino+-6,-12'],
+    [5.6, 'door', 'riv_casino+3,-4', 'open'], [6.0, 'act', 'sofi', 'WAVE', 'player'], [7.0, 'smoke', 'riv_casino+3,-4'],
+    [9.0, 'walk', 'sofi', 'riv_casino+3,-5'],
 ], music='radio.jazz_polnoch_1')
 
 # a4m10 — доки: Кроу держит Софи под стволом, охранник целится; монолог; Софи вырывается и кричит «Беги!»,
@@ -685,21 +685,21 @@ direct('a6m2', 0, [
 direct('a6m3', 0, [
     S('bank_tower+22,10,4', 'bank_tower+12,6,3', 3, track='r1'),
     F('r1', 2.5, (3, 1.8, 1.0), shake=0.4),
-    S('bank_tower+3,4,0.6', 'bank_tower+2,4,0.8', 2.5, track='gu', shake=0.6, roll=8),
+    S('bank_tower+3,1,0.6', 'bank_tower+2,1,0.8', 2.5, track='gu', shake=0.6, roll=8),
     CU('lena', 4, side=0.5),
-    S('bank_tower+12,8,1.6', 'bank_tower+11,8,1.6', 3.5, track='lena', fov=50),
+    S('bank_tower+11,12.5,1.6', 'bank_tower+11,13,1.6', 3.5, track='lena', fov=50),
 ], lambda L, E: [
-    [0, 'spawn', 'r1', 'bank_tower+14,-6', 'gang', 'Грабитель в маске'], [0, 'spawn', 'r2', 'bank_tower+16,-3', 'gang', 'Грабитель в маске'],
-    [0, 'spawn', 'r3', 'bank_tower+15,-8', 'gang', 'Грабитель в маске'],
-    [0, 'spawn', 'gu', 'bank_tower+0,1', 'police', 'Охранник банка'],
-    [0.2, 'run', 'r1', 'bank_tower+1,0'], [0.4, 'run', 'r2', 'bank_tower+2,2'], [0.6, 'run', 'r3', 'bank_tower+0,-2'],
-    [3.4, 'fight', 'r1', 'gu', 20], [4.6, 'act', 'gu', 'SLEEP'], [4.8, 'glass', 'bank_tower+1,-1'],
+    [0, 'spawn', 'r1', 'bank_tower+14,-3', 'gang', 'Грабитель в маске'], [0, 'spawn', 'r2', 'bank_tower+16,-2', 'gang', 'Грабитель в маске'],
+    [0, 'spawn', 'r3', 'bank_tower+12,-4', 'gang', 'Грабитель в маске'],
+    [0, 'spawn', 'gu', 'bank_tower+0,-3', 'police', 'Охранник банка'],
+    [0.2, 'run', 'r1', 'bank_tower+1,-3'], [0.4, 'run', 'r2', 'bank_tower+3,-2'], [0.6, 'run', 'r3', 'bank_tower+-1,-4'],
+    [3.4, 'fight', 'r1', 'gu', 20], [4.6, 'act', 'gu', 'SLEEP'], [4.8, 'glass', 'bank_tower+1,-5'],
     [5.0, 'sfx', 'bank_tower', 'minecraft:block.bell.use', 2.5], [5.6, 'sfx', 'bank_tower', 'minecraft:block.bell.use', 2.5],
     [5.4, 'shoot', 'r2', 'bank_tower+0,9', 3, 0],
-    [0, 'spawn', 'lena', 'bank_tower+8,6'], [0, 'spawn', 'cm', 'bank_tower+10,7', 'citizen', 'Оператор'], [0.2, 'face', 'cm', 'lena'],
+    [0, 'spawn', 'lena', 'bank_tower+8,11'], [0, 'spawn', 'cm', 'bank_tower+10,12', 'citizen', 'Оператор'], [0.2, 'face', 'cm', 'lena'],
     [0.3, 'act', 'lena', 'TALK', 'cm'], [3.0, 'flash', 'cm'], [6.0, 'flash', 'cm'],
     [6.4, 'act', 'r1', 'AIM', 'lena'],
-    [L[1], 'act', 'lena', 'TALK', 'cm'], [L[1] + 1.4, 'act', 'cm', 'UPSET'], [L[1] + 2.0, 'run', 'r3', 'bank_tower+-6,-2'],
+    [L[1], 'act', 'lena', 'TALK', 'cm'], [L[1] + 1.4, 'act', 'cm', 'UPSET'], [L[1] + 2.0, 'run', 'r3', 'bank_tower+-6,-4'],
     [L[1] + 3.2, 'flash', 'cm'], [L[1] + 3.3, 'sfx', 'cm', 'minecraft:block.lever.click', 1.4, 1.6],
 ], music='radio.trassa128_3', vol=0.28)
 
@@ -748,21 +748,21 @@ direct('a6m6', 0, [
 # a6m7 — казино: Софи с подносом «спотыкается» и обливает Ленни, тот вскакивает, охранник тычет пальцем;
 # пока она извиняется — карта уже у неё. Диас у фургона на связи.
 direct('a6m7', 0, [
-    S('riv_casino+10,6,3', 'riv_casino+6,4,2', 3, track='lenny'),
+    S('riv_casino+-5,6,3', 'riv_casino+-3,3,2', 3, track='lenny'),
     F('sofi', 2.5, (3, 1.7, -1.3)),
     CU('lenny', 2, shake=0.3),
     S('riv_casino+1,1,1.4', 'riv_casino+0.5,0.5,1.4', 2.5, track='sofi'),
     CU('dz', 3.5),
     S('riv_casino+4,3,2', 'riv_casino+7,5,3', 2, track='sofi'),
 ], lambda L, E: [
-    [0, 'spawn', 'lenny', 'riv_casino+-2,-4', 'citizen', 'Ленни'], [0, 'act', 'lenny', 'DRINK'],
-    [0, 'spawn', 'g1', 'riv_casino+-4,-5', 'gang', 'Охрана Ленни'], [0, 'act', 'g1', 'LEAN'],
-    [0, 'spawn', 'sofi', 'riv_casino+4,1'], [0.4, 'walk', 'sofi', 'riv_casino+-1,-3'], [0.5, 'hold', 'sofi', 'novograd:cola'],
+    [0, 'spawn', 'lenny', 'riv_casino+1,-5', 'citizen', 'Ленни'], [0, 'act', 'lenny', 'DRINK'],
+    [0, 'spawn', 'g1', 'riv_casino+3,-7', 'gang', 'Охрана Ленни'], [0, 'act', 'g1', 'LEAN'],
+    [0, 'spawn', 'sofi', 'riv_casino+1,3'], [0.4, 'walk', 'sofi', 'riv_casino+1,-3'], [0.5, 'hold', 'sofi', 'novograd:cola'],
     [3.0, 'anim', 'sofi', 'hit'], [3.1, 'sfx', 'lenny', 'minecraft:entity.generic.splash', 1.2], [3.2, 'act', 'lenny', 'UPSET'],
     [3.6, 'act', 'g1', 'POINT', 'sofi'], [4.0, 'act', 'sofi', 'LAUGH', 'lenny'],
     [5.2, 'give', 'lenny', 'sofi', 'novograd:bank_card'],
-    [0, 'car', 'van', 'riv_casino+16,8', 4, 0], [0, 'spawn', 'dz', 'riv_casino+15,6', 'c24', 'Сержант Диас'], [0, 'act', 'dz', 'PHONE'],
-    [L[1] + 2.0, 'walk', 'sofi', 'riv_casino+4,1'], [L[1] + 2.2, 'act', 'lenny', 'ARGUE', 'sofi'],
+    [0, 'car', 'van', 'riv_casino+-5,9', 4, 90], [0, 'spawn', 'dz', 'riv_casino+-3,10', 'c24', 'Сержант Диас'], [0, 'act', 'dz', 'PHONE'],
+    [L[1] + 2.0, 'walk', 'sofi', 'riv_casino+1,4'], [L[1] + 2.2, 'act', 'lenny', 'ARGUE', 'sofi'],
 ], music='radio.jazz_polnoch_3', vol=0.3)
 
 # a6m8 — колонна спецназа пылит по пустоши, тормозит; бойцы выпрыгивают, Диас командует «Пошли!»,
