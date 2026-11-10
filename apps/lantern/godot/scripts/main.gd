@@ -5,6 +5,7 @@ extends Control
 var server: ServerHost
 var relay_host := RelayHost.new()
 var relay_join := RelayJoin.new()
+var own: OwnWorld                  # «Мой мир из Minecraft» — мир, открытый в самой игре
 
 var _content: MarginContainer      # сюда кладётся экран (автотесты ищут переполнение здесь)
 var _screen: Control               # сам экран (без обёртки прокрутки)
@@ -59,6 +60,10 @@ func _ready() -> void:
 	server.name = "Server"
 	add_child(server)
 	server.state_changed.connect(_on_server_state)
+	own = OwnWorld.new()
+	own.name = "OwnWorld"
+	own.app = self
+	add_child(own)
 	theme = UI.make_theme()
 	Cfg.accent_changed.connect(func(_c): theme = UI.make_theme(); _rebuild())
 	_build()
@@ -510,39 +515,32 @@ func play_option(kind: String, big := false) -> Control:
 	var v := UI.vbox(3)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	v.add_child(UI.label("Создать мир" if host else "Зайти к другу", 20 if big else 18, UI.TEXT, UI.font_black))
-	var desc := "Друзья зайдут к вам по коду" if host else "Введите код, который прислал друг"
-	if host and mobile:
-		desc = "Мир создаётся на компьютере. С телефона — заходите к другу"
+	v.add_child(UI.label("Играть с друзьями" if host else "Зайти к другу", 20 if big else 18, UI.TEXT, UI.font_black))
+	var desc := "Откройте мир в Minecraft — код для друзей появится сразу" if host else "Введите код, который прислал друг"
+	if host and not mobile:
+		desc = "Ваш мир из Minecraft или отдельный сервер — друзья зайдут по коду"
 	v.add_child(UI.para(desc, 14, UI.MUTED))
 	row.add_child(v)
 	var ch := UI.icon("chevron", 22, col.lightened(0.2))
 	ch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(ch)
-	if host and mobile:
-		tile.modulate.a = 0.6
 	UI.tappable(p, func():
 		Overlays.close_sheet(self)
 		if host:
-			if mobile:
-				host_on_pc_sheet()
-			elif server.state in ["installing", "starting", "running", "stopping"]:
-				go("host")
-			else:
-				go("setup")
+			quick_host()
 		else:
 			go("join"), st)
 	UI.hover_scale(p, 1.01)
 	return p
 
 
-## Телефон: честно объясняем, где создаётся мир.
-func host_on_pc_sheet() -> void:
-	var v: VBoxContainer = Overlays.sheet(self, "Мир создаётся на компьютере", "Телефон не потянет сервер Minecraft — его запускает LANTERN на ПК")
-	for s in [["1", "Установите LANTERN на компьютер", "Windows или Linux, бесплатно"], ["2", "Нажмите «Создать мир»", "Java или Bedrock — приложение всё скачает само"], ["3", "Друзья заходят по коду", "И вы тоже — с этого телефона, через «Зайти к другу»"]]:
-		v.add_child(_num_row(s[0], s[1], s[2]))
-	var b := UI.button("Зайти к другу", "primary", func(): Overlays.close_sheet(self); go("join"))
-	v.add_child(b)
+## Одна кнопка «Играть с друзьями»: мир уже открыт — экран с кодом; нет — ищем мир в Minecraft
+## и открываем комнату сами, как только он появится (на ПК там же — «Отдельный сервер»).
+func quick_host() -> void:
+	if own.active or server.state in ["installing", "starting", "running", "stopping"]:
+		go("host")
+	else:
+		go("setup", true, {"own": true, "auto": true})
 
 
 func _num_row(n: String, t: String, sub: String) -> Control:
@@ -568,7 +566,7 @@ func _more_menu(_b: Button = null) -> void:
 	var v: VBoxContainer = Overlays.sheet(self, "Ещё")
 	var items := [["rooms", "globe", "Открытые миры", "Миры, куда можно зайти всем"], ["campfire", "campfire", "Костёр", "Друзья в сети — у огня"], ["quests", "quests", "Задания и сезон", "Искры за игру с друзьями"],
 		["profile", "user", "Профиль", "Ник, тег, фонарь"], ["backups", "cloud", "Копии миров", "Резервные копии и облако"], ["settings", "settings", "Настройки", "Цвет, анимации, сервер"]]
-	if server.state in ["installing", "starting", "running", "stopping", "error"]:
+	if own.active or server.state in ["installing", "starting", "running", "stopping", "error"]:
 		items.push_front(["host", "server", "Мой мир", "Код комнаты и игроки"])
 	var list := UI.vbox(2)
 	for it in items:
@@ -589,19 +587,20 @@ func _on_server_state(s: String) -> void:
 		if ed == "java" and server.opts.get("crossplay", false):
 			ed = "both"
 		var st: Dictionary = relay_host.stats()
-		if st.state in ["off", "error"] or relay_host.edition != ed or relay_host.relay_url != Cfg.relay_url():
-			relay_host.start(Cfg.relay_url(), ed, server.opts.get("world", "Мир"), 25565, 19132, host_extra())
-	elif s == "error":
+		if st.state in ["off", "error"] or relay_host.edition != ed or relay_host.relay_url != Cfg.relay_url() or relay_host.java_port != server.java_port() or relay_host.bedrock_port != server.bedrock_port():
+			relay_host.start(Cfg.relay_url(), ed, server.opts.get("world", "Мир"), server.java_port(), server.bedrock_port(), host_extra())
+	elif s == "error" and not own.active:
 		relay_host.stop()
 	update_presence()
 
 
-func host_extra() -> Dictionary:
+## own_opts — мир из Minecraft (без «Открытого мира»: его видно, только пока игрок в игре).
+func host_extra(own_opts := {}) -> Dictionary:
 	var d := {"token": Social.token}
 	# LANTERN Pro: relay выдаст свой код комнаты (если он задан и Pro активна)
 	if Social.eco.get("pro", false) and String(Social.eco.get("vanity", "")) != "":
 		d["vanity"] = true
-	if server.opts.get("public", false):
+	if own_opts.is_empty() and server.opts.get("public", false):
 		d["public"] = {"title": server.opts.get("public_title", server.opts.get("world", "Мир")), "tags": server.opts.get("tags", []),
 			"version": server.opts.get("mc_version", "") if server.edition == "java" else "", "slots": server.opts.get("max_players", 10)}
 	return d
@@ -609,7 +608,9 @@ func host_extra() -> Dictionary:
 
 ## Что видят друзья: «хостит Java 1.21», «играет в мир X».
 func update_presence() -> void:
-	if server.state in ["running", "starting"]:
+	if own and own.active:
+		Social.set_presence("hosting", String(own.world.get("name", "Мир")), String(own.world.get("edition", "bedrock")), String(own.world.get("version", "")), relay_host.stats().get("code", ""))
+	elif server.state in ["running", "starting"]:
 		var ed := server.edition
 		if ed == "java" and server.opts.get("crossplay", false):
 			ed = "both"
@@ -821,8 +822,8 @@ func back() -> void:
 func go(name: String, force := false, arg: Variant = null) -> void:
 	if name == current and not force and arg == null:
 		return
-	if name == "host" and arg == null and not server.state in ["installing", "starting", "running", "stopping", "error"]:
-		name = "setup" if not Cfg.mobile() else "home"
+	if name == "host" and arg == null and not own.active and not server.state in ["installing", "starting", "running", "stopping", "error"]:
+		name = "setup"
 	# история «Назад»
 	var dir := 1
 	if _going_back:
@@ -1016,7 +1017,10 @@ func _notification(what: int) -> void:
 		_quit()
 	elif what == NOTIFICATION_APPLICATION_RESUMED and _content and Cfg.autotest == "":
 		# Android: ссылка lantern:// пришла, когда приложение уже было открыто (onNewIntent → setIntent)
+		own.on_resume()
 		open_deeplink(DeepLink.from_launch())
+	elif what == NOTIFICATION_APPLICATION_PAUSED and own:
+		own.on_pause()
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		# кнопка «Назад» на Android: закрыть лист → шаг назад в экране → предыдущий экран
 		if Overlays.close_top(self):
@@ -1030,6 +1034,7 @@ func _quit() -> void:
 		return
 	_closing = true
 	relay_join.stop()
+	own.stop()
 	relay_host.stop()
 	if server.is_alive():
 		var ov := ColorRect.new()
@@ -1056,5 +1061,7 @@ func _quit() -> void:
 
 
 func _exit_tree() -> void:
+	if own:
+		own.stop()
 	relay_join.stop()
 	relay_host.stop()

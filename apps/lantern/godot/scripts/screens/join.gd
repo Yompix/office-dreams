@@ -29,6 +29,8 @@ const STEP_NAMES := ["Код", "Ваша игра", "Играем"]
 func _ready() -> void:
 	add_theme_constant_override("separation", 20)
 	_plays = arg.get("edition", Cfg.get_value("join", "plays", "both")) if arg is Dictionary else "both"
+	if Cfg.mobile():
+		_plays = "bedrock"     # на телефоне только Bedrock — не спрашиваем
 	_steps_box = UI.vbox(0)
 	add_child(_steps_box)
 	for i in 3:
@@ -194,6 +196,10 @@ func _next_from_code() -> void:
 		return
 	if String(r.get("edition", "")) != "":
 		_plays = "both" if r.edition == "both" else _plays
+	if Cfg.mobile():
+		_plays = "bedrock"
+		_connect()
+		return
 	_goto(2)
 
 
@@ -243,7 +249,7 @@ func _process(d: float) -> void:
 		return
 	_tick = 0
 	var st: Dictionary = app.relay_join.stats()
-	var key := "%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error]
+	var key := "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
 	if _status_lbl and is_instance_valid(_status_lbl):
 		_traffic_lbl.text = "Передано: ↓ %s  ↑ %s · соединений: %d" % [_kb(st.rx), _kb(st.tx), st.streams]
 	if key != _shown_state and _shown_state != "":
@@ -277,6 +283,13 @@ func _connect() -> void:
 		_fill_recent()
 		_show_address(r)
 		return
+	# свой же код на компьютере, где идёт этот мир: прокси друга подрался бы с сервером за порты — объясняем, как зайти самому
+	# (автотесты java/bedrock/ownworld нарочно заходят к себе на других портах — им можно)
+	var hosting: bool = app.own.active or app.server.state in ["installing", "starting", "running", "stopping"]
+	if hosting and r.code == String(app.relay_host.stats().get("code", "")) and not Cfg.autotest_args.has("join_bedrock_port"):
+		app.relay_join.stop()
+		_show_self(app.own.active)
+		return
 	var relay: String = r.relay if r.relay != "" else Cfg.relay_url()
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
@@ -284,6 +297,15 @@ func _connect() -> void:
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
+
+
+func _show_self(own: bool) -> void:
+	_clear()
+	_shown_state = ""
+	_result.add_child(_hero(_ring("server", UI.accent()), "Это код вашего мира", "Вы хозяин — к себе заходите без кода." if not own else "Вы уже в этом мире.", UI.accent()))
+	_result.add_child(preload("res://scripts/screens/host.gd").self_join_card(app, own))
+	_result.add_child(UI.button("Открыть «Мой мир»", "secondary", func(): app.go("host"), "server"))
+	FX.stagger(_result, 0.04)
 
 
 func _remember(st: Dictionary) -> void:
@@ -325,7 +347,7 @@ func _ring(icon: String, col: Color) -> Control:
 func _show_room() -> void:
 	_clear()
 	var st: Dictionary = app.relay_join.stats()
-	_shown_state = "%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error]
+	_shown_state = "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
 	var code := RoomCode.pretty(app.relay_join.code)
 	match st.state:
 		"connecting":
@@ -380,12 +402,18 @@ func _show_room() -> void:
 			["Нажмите", "", "Сетевая игра"],
 			["Внизу списка — «%s»" % st.name, "Выберите и нажмите «Подключиться»", ""],
 		], "Если не видно: «Добавить сервер», адрес", "127.0.0.1:%d" % st.java_port, ""))
+	if bed_on and st.state == "online":
+		var om := UI.button("Открыть Minecraft", "primary", OwnWorld.open_minecraft, "play")
+		om.custom_minimum_size.y = 52
+		_result.add_child(om)
 	if bed_on:
 		_result.add_child(_edition_block("Bedrock Edition" + (" · сервер друга отвечает" if st.pong else " · ждём ответ…"), UI.BEDROCK, [
 			["Откройте Minecraft", "На телефоне, планшете или ПК", ""],
 			["Нажмите", "", "Играть → Друзья"],
 			["Раздел «Игры по сети рядом»", "Там появится мир друга — нажмите на него", ""],
 		], "Если не видно: «Серверы» → «Добавить сервер», адрес", "127.0.0.1:%d" % st.bedrock_port, "minecraft://?addExternalServer=%s|127.0.0.1:%d" % [String(st.name).replace("|", " "), st.bedrock_port]))
+	if bed_on and String(st.host_version) != "":
+		_result.add_child(_version_hint(st))
 	if st.bedrock_error != "":
 		_result.add_child(UI.para("Bedrock: " + st.bedrock_error, 14, UI.YELLOW))
 	if st.java_error != "":
@@ -411,6 +439,33 @@ func _show_room() -> void:
 	_traffic_lbl = UI.label("", 12, UI.DIM)
 	foot.add_child(_traffic_lbl)
 	_result.add_child(foot)
+
+
+## Bedrock: телефон, Windows и консоли играют вместе, только если версия Minecraft у всех одинаковая.
+static func version_text(st: Dictionary) -> Array:
+	var hv := String(st.get("host_version", ""))
+	var hp := int(st.get("host_protocol", 0))
+	var cp := int(st.get("client_protocol", 0))
+	if cp > 0 and hp > 0 and cp != hp:
+		if cp < hp:
+			return ["bad", "У вас Minecraft старее, чем мир друга (%s). Обновите Minecraft — у всех должна быть одна версия." % hv]
+		return ["bad", "У вас Minecraft новее, чем мир друга (%s). Пусть друг обновит Minecraft — у всех должна быть одна версия." % hv]
+	return ["ok", "Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе)." % hv]
+
+
+func _version_hint(st: Dictionary) -> Control:
+	var r := version_text(st)
+	var bad: bool = r[0] == "bad"
+	var p := UI.panel(14, Color(UI.YELLOW, 0.12) if bad else Color(1, 1, 1, 0.03))
+	var row := UI.hbox(10)
+	p.add_child(row)
+	var ic := UI.icon("info", 20, UI.YELLOW if bad else UI.MUTED)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(ic)
+	var l := UI.para(r[1], 14, UI.YELLOW if bad else UI.MUTED)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(l)
+	return p
 
 
 func _disconnect_btn(t: String) -> Button:

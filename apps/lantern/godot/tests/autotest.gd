@@ -7,6 +7,8 @@ extends Node
 ##   proc     — запуск процессов в папке с пробелами/скобками/&, чтение вывода, принудительная остановка (Windows: cmd/taskkill)
 ##   syscheck — экран «Проверка системы» (+скриншот)
 ##   phone    — экраны в портретном телефоне (--shots, окно 412×892), нужен relay и social_seed.js
+##   ownworld — «Мой мир из Minecraft»: поддельный мир (tests/fake_world.js) → поиск → комната → друг получает данные (tests/ownworld.sh)
+##   ownreal  — то же с настоящим BDS вместо «мира в игре» и настоящим клиентом (tests/e2e_client.js bedrock)
 ##   tour     — обход ВСЕХ экранов и сценариев для дизайн-скриншотов (tests/design_shots.sh), нужен relay и social_seed.js
 ## Код выхода 0 — успех.
 
@@ -34,10 +36,13 @@ func run(a) -> void:
 		"syscheck": code = await _syscheck()
 		"phone": code = await _phone()
 		"tour": code = await _tour()
+		"ownworld": code = await _ownworld()
+		"ownreal": code = await _ownreal()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
 	app.relay_join.stop()
+	app.own.stop()
 	app.relay_host.stop()
 	get_tree().quit(code)
 
@@ -91,6 +96,75 @@ func _core() -> int:
 		_log("parse %s → %s %s" % [c[0], "OK" if ok else "FAIL", "" if ok else str(r)])
 		if not ok:
 			fails += 1
+	for wl in [["[12:01:02 INFO]: Disconnecting Steve (/127.0.0.1:5555): You are not whitelisted on this server!", "Steve"],
+			["[12:01:02 INFO]: Alex_2 (/127.0.0.1:5555) lost connection: You are not white-listed on this server!", "Alex_2"],
+			["[12:01:02] [Server thread/INFO]: Disconnecting com.mojang.authlib.GameProfile@1[id=<null>,name=Masha,properties={}] (/1.2.3.4:5): You are not whitelisted on this server!", "Masha"],
+			["[12:01:02 INFO]: Steve joined the game", ""]]:
+		var got := ServerHost.whitelist_kicked(wl[0])
+		_log("whitelist %s → %s %s" % [wl[1], got, "OK" if got == wl[1] else "FAIL"])
+		if got != wl[1]:
+			fails += 1
+	# «доктор» сервера: строки журнала → правило
+	var doc := [
+		["[12:01:02 INFO]: Disconnecting Steve (/127.0.0.1:5555): You are not whitelisted on this server!", "whitelist", "Steve", ""],
+		["[12:01:02 INFO]: Disconnecting com.mojang.authlib.GameProfile@1[id=<null>,name=Masha,properties={}] (/1.2.3.4:5): Failed to verify username!", "auth", "Masha", ""],
+		["[12:01:02 INFO]: Alex (/1.2.3.4:5) lost connection: Outdated client! Please use 1.21.4", "outdated_client", "Alex", "1.21.4"],
+		["[12:01:02 INFO]: Disconnecting Alex (/1.2.3.4:5): Outdated server! I'm still on 1.21.4", "outdated_server", "Alex", "1.21.4"],
+		["[12:01:02 INFO]: Disconnecting Bob (/1.2.3.4:5): You are banned from this server.", "banned", "Bob", ""],
+		["[12:01:02 INFO]: Disconnecting Kate (/1.2.3.4:5): The server is full!", "full", "Kate", ""],
+		["[12:01:02 WARN]: **** FAILED TO BIND TO PORT!", "port", "", ""],
+		["[2026-11-10 01:20:15:537 ERROR] Network port [19132] may be in use.", "port", "", ""],
+		["[12:01:02] [Server thread/INFO]: Steve joined the game", "", "", ""],
+	]
+	for c in doc:
+		var d := Doctor.diagnose(c[0])
+		var ok: bool = String(d.get("rule", "")) == c[1] and String(d.get("nick", "")) == c[2] and String(d.get("version", "")) == c[3]
+		_log("doctor %s → %s %s" % [c[1], JSON.stringify(d), "OK" if ok else "FAIL"])
+		if not ok:
+			fails += 1
+	var sh := ServerHost.new()
+	add_child(sh)
+	sh.edition = "java"
+	sh.opts = {"online_mode": true, "max_players": 10}
+	for c in doc:
+		sh._on_line(c[0])
+	var ids: Array = sh.issues.map(func(i): return i.id)
+	_log("доктор: issues=%s fixes=%s" % [JSON.stringify(ids), JSON.stringify(sh.fixes)])
+	for want in ["auth", "ver:Alex", "ban:Bob", "full"]:
+		if not want in ids:
+			_log("FAIL: нет подсказки " + want)
+			fails += 1
+	if sh.fixes.is_empty() or not String(sh.fixes[-1]).contains("Steve") or not sh._port_conflict:
+		_log("FAIL: белый список/порт не обработаны")
+		fails += 1
+	sh.opts["whitelist"] = true
+	sh._on_line(doc[0][0])
+	if not sh.issues.any(func(i): return i.id == "wl:Steve"):
+		_log("FAIL: белый список включён хозяином — нужна кнопка «Впустить»")
+		fails += 1
+	sh.resolve("ban:Bob")
+	if sh.issues.any(func(i): return i.id == "ban:Bob") or not String(sh.fixes[0]).contains("Bob"):
+		fails += 1
+	sh.queue_free()
+	for c in [[true, 0, 0, 1000, "port"], [true, 3, 0, 1000, "fail"], [false, 0, 0, 120000, "restart"], [false, 0, 1, 120000, "fail"], [false, 0, 0, 5000, "fail"]]:
+		var plan := Doctor.exit_plan(c[0], c[1], c[2], c[3])
+		if plan != c[4]:
+			_log("exit_plan FAIL %s → %s" % [str(c), plan])
+			fails += 1
+	if Doctor.memory_for(8192, 4096) != 2048 or Doctor.memory_for(2048, 16384) != 2048 or Doctor.memory_for(3072, 0) != 3072:
+		_log("memory_for FAIL")
+		fails += 1
+	var busy := TCPServer.new()
+	busy.listen(25611, "0.0.0.0")
+	var fp := Doctor.free_port(25611, false)
+	busy.stop()
+	var ub := PacketPeerUDP.new()
+	ub.bind(19611, "0.0.0.0")
+	var fu := Doctor.free_port(19611, true, [19612])
+	ub.close()
+	_log("свободные порты: TCP %d, UDP %d" % [fp, fu])
+	if fp != 25612 or fu != 19613:
+		fails += 1
 	ServerHost.write_properties(out + "/server.properties", {"motd": "Мир Yompix", "max-players": "5"})
 	ServerHost.write_properties(out + "/server.properties", {"max-players": "7", "online-mode": "false"})
 	var props := ServerHost.read_properties(out + "/server.properties")
@@ -572,14 +646,19 @@ func _tour() -> int:
 	await _shot("11_play_sheet")
 	await _close_overlays()
 	if Cfg.mobile():
-		app.host_on_pc_sheet()
-		await _shot("12_host_on_pc")
-		await _close_overlays()
+		app.go("setup", true)
+		await _shot("12_host_step1_phone")
+		app._screen._pick_kind("own")
+		await get_tree().create_timer(1.0).timeout
+		await _shot("12b_host_own_phone")
+		app.go("home", true)
 	# --- мастер «Создать мир» (ПК)
 	if not Cfg.mobile() and not Cfg.autotest_args.has("nohost"):
 		app.go("setup", true)
-		await _shot("13_host_step1_edition")
+		await _shot("13_host_step1_kind")
 		var scr = app._screen
+		scr._pick_kind("server")
+		await _shot("13b_host_step1_edition")
 		scr._pick("java")
 		await _shot("14_host_step2_world")
 		scr._goto(3)
@@ -792,3 +871,237 @@ func _rec_all() -> int:
 	await get_tree().create_timer(0.5).timeout
 	await _rec("campfire", 1.6, func(): pass)
 	return 0
+
+
+# ------------------------------------------------------------------ «Мой мир из Minecraft» (tests/ownworld.sh + tests/fake_world.js)
+func _ownworld() -> int:
+	var fails := 0
+	var own: OwnWorld = app.own
+	var pc := not Cfg.mobile()
+	# разбор пакетов
+	var mb := "MCPE;Стив;712;1.21.50;2;8;7;Мой мир;Survival;1;19132;19133;".to_utf8_buffer()
+	var pong := OwnWorld.parse_pong(PackedByteArray([0x1C, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 7]) + PackedByteArray(RelayJoin.MAGIC) + PackedByteArray([0, mb.size()]) + mb)
+	if pong.get("name") != "Мой мир" or pong.get("port") != 19132 or pong.get("players") != 2 or pong.get("version") != "1.21.50":
+		_log("parse_pong FAIL " + str(pong))
+		fails += 1
+	var ad := OwnWorld.parse_announcement("[MOTD]Стив - Мой мир[/MOTD][AD]54321[/AD]")
+	if ad.get("name") != "Мой мир" or ad.get("port") != 54321:
+		_log("parse_announcement FAIL " + str(ad))
+		fails += 1
+	var frame := PackedByteArray([0x84, 0, 0, 0, 0x60, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0xfe, 6, 0xc1, 0x01, 0, 0, 0x02, 0xbc])
+	if RelayJoin.client_protocol(frame) != 700:
+		_log("client_protocol FAIL %d" % RelayJoin.client_protocol(frame))
+		fails += 1
+	# --- 1. «Создать мир» → два способа
+	app.go("setup", true)
+	await _shot("60_own_step1")
+	var scr = app._screen
+	scr._pick_kind("own")
+	await get_tree().create_timer(2.5).timeout
+	if not own.worlds().is_empty():
+		_log("FAIL: мир найден до запуска")
+		fails += 1
+	await _shot("61_own_help_bedrock")
+	if pc:
+		var pg = scr._own_page
+		pg._seg.get_meta("tabs")["java"].pressed.emit()
+		await get_tree().create_timer(0.4).timeout
+		await _shot("61b_own_help_java")
+	# --- 2. «игрок открыл мир» — запускаем поддельный мир
+	var f := FileAccess.open(data.path_join("own-start"), FileAccess.WRITE)
+	f.store_string("1")
+	f.close()
+	if not await _wait(func(): return own.worlds().any(func(w): return w.edition == "bedrock"), 15, "мир Bedrock найден (RakNet-понг)"):
+		return 1
+	if pc and not await _wait(func(): return own.worlds().any(func(w): return w.edition == "java"), 15, "мир Java найден (объявление LAN)"):
+		fails += 1
+	await get_tree().create_timer(0.6).timeout
+	_log("найдено: " + JSON.stringify(own.worlds()))
+	await _shot("62_own_found")
+	# --- 3. Bedrock: комната → друг → данные
+	var bw: Dictionary = own.worlds().filter(func(w): return w.edition == "bedrock")[0]
+	if bw.name != "Тестовый мир" or bw.version != "1.21.50":
+		_log("FAIL: карточка мира " + str(bw))
+		fails += 1
+	scr._own_page._open(bw)
+	if not await _wait(func(): return app.relay_host.stats().code != "", 20, "комната для своего мира открыта"):
+		return 1
+	var code: String = app.relay_host.stats().code
+	await _shot("63_own_host_bedrock")
+	app.go("join", true, {"input": RoomCode.pretty(code), "edition": "both"})
+	if not await _wait(func(): return app.relay_join.stats().state == "online", 20, "друг вошёл в комнату"):
+		return 1
+	if not await _wait(func(): return app.relay_join.stats().pong, 20, "мир ответил на пинг через relay (виден в «Друзья/LAN»)"):
+		fails += 1
+	var js: Dictionary = app.relay_join.stats()
+	_log("друг видит: %s, версия %s" % [js.motd, js.host_version])
+	if not String(js.motd).contains("Тестовый мир") or js.host_version != "1.21.50":
+		fails += 1
+	var u := PacketPeerUDP.new()
+	u.bind(0, "127.0.0.1")
+	u.set_dest_address("127.0.0.1", int(js.bedrock_port))
+	# первый пакет «клиента» с протоколом 700 (мир — 712): друг увидит подсказку про версию
+	u.put_packet(frame)
+	u.put_packet("hello-bedrock".to_utf8_buffer())
+	var got := [""]
+	var ok := await _wait(func():
+		while u.get_available_packet_count() > 0:
+			got[0] += u.get_packet().get_string_from_utf8() + "|"
+		return got[0].contains("ECHO:hello-bedrock"), 15, "датаграмма друга дошла до мира и вернулась")
+	_log("ответ мира: " + got[0].replace("\n", " ").substr(0, 120))
+	if not ok:
+		fails += 1
+	if not await _wait(func(): return app.relay_join.stats().client_protocol == 700, 5, "версия Minecraft друга распознана"):
+		fails += 1
+	var vt: Array = preload("res://scripts/screens/join.gd").version_text(app.relay_join.stats())
+	_log("подсказка другу: " + vt[1])
+	if vt[0] != "bad":
+		fails += 1
+	await get_tree().create_timer(1.0).timeout
+	await _shot("64_own_join_version")
+	if not await _wait(func(): return int(app.relay_host.stats().peers) >= 1, 10, "хозяин видит друга"):
+		fails += 1
+	app.go("host", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("65_own_host_friend")
+	# мир «замолк» (Minecraft свернули) → предупреждение, потом снова живой
+	f = FileAccess.open(data.path_join("own-mute"), FileAccess.WRITE)
+	f.store_string("1")
+	f.close()
+	if not await _wait(func(): return not own.alive(), 15, "хозяин видит «Не отвечает»"):
+		fails += 1
+	await get_tree().create_timer(0.6).timeout
+	await _shot("66_own_not_responding")
+	DirAccess.remove_absolute(data.path_join("own-mute"))
+	if not await _wait(func(): return own.alive(), 10, "мир снова отвечает"):
+		fails += 1
+	# связь с relay оборвалась (телефон усыпил LANTERN) → тот же код после переподключения
+	app.relay_host.stop(false)
+	own.on_resume()
+	if not await _wait(func(): return app.relay_host.stats().state == "online", 15, "после возврата комната снова на связи"):
+		fails += 1
+	_log("код после переподключения: %s (был %s)" % [app.relay_host.stats().code, code])
+	if app.relay_host.stats().code != code:
+		_log("FAIL: код комнаты сменился после переподключения")
+		fails += 1
+	u.close()
+	app.relay_join.stop()
+	own.stop()
+	# --- 4. Java «Открыть для сети» (только ПК)
+	if pc:
+		app.go("setup", true, {"own": true})
+		if not await _wait(func(): return own.worlds().any(func(w): return w.edition == "java"), 10, "мир Java снова найден"):
+			return 1
+		var jw: Dictionary = own.worlds().filter(func(w): return w.edition == "java")[0]
+		app._screen._own_page._open(jw)
+		if not await _wait(func(): return app.relay_host.stats().code != "", 20, "комната для мира Java открыта"):
+			return 1
+		code = app.relay_host.stats().code
+		app.go("join", true, {"input": RoomCode.pretty(code), "edition": "both"})
+		if not await _wait(func(): return app.relay_join.stats().state == "online" and app.relay_join.stats().java_port > 0, 20, "друг (Java) вошёл"):
+			return 1
+		await get_tree().create_timer(2.0).timeout
+		if own.worlds().any(func(w): return String(w.motd).ends_with(OwnWorld.LANTERN_TAG)):
+			_log("FAIL: своё объявление «Зайти к другу» принято за мир")
+			fails += 1
+		var t := StreamPeerTCP.new()
+		t.connect_to_host("127.0.0.1", int(app.relay_join.stats().java_port))
+		var sent := [false]
+		var buf := [""]
+		ok = await _wait(func():
+			t.poll()
+			if t.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+				if not sent[0]:
+					sent[0] = true
+					t.put_data("hello-java".to_utf8_buffer())
+				var n := t.get_available_bytes()
+				if n > 0:
+					buf[0] += t.get_utf8_string(n)
+			return buf[0].contains("ECHO:hello-java"), 15, "TCP друга дошёл до мира Java и вернулся")
+		if not ok:
+			fails += 1
+		app.go("host", true)
+		await get_tree().create_timer(1.0).timeout
+		await _shot("67_own_host_java")
+		t.disconnect_from_host()
+		app.relay_join.stop()
+		own.stop()
+	# «Как зайти самому» на экране своего сервера (без настоящего сервера — только комната)
+	for ed in ["bedrock", "java"]:
+		var sv: ServerHost = app.server
+		sv.edition = ed
+		sv.opts = {"world": "Наш мир", "internet": true, "crossplay": true}
+		sv.state = "running"
+		if ed == "java":
+			sv.opts["online_mode"] = true
+			sv.issues = []
+			sv.fixes = []
+			sv._doctor("[12:01:02 INFO]: Disconnecting Steve (/127.0.0.1:5555): You are not whitelisted on this server!")
+			sv._doctor("[12:01:03 INFO]: Disconnecting com.mojang.authlib.GameProfile@1[id=<null>,name=Masha,properties={}] (/1.2.3.4:5): Failed to verify username!")
+			sv._fixed("Порт 25565 был занят — сервер на порту 25566, друзья заходят как обычно")
+		app.relay_host.start(Cfg.relay_url(), ed, "Наш мир", 25565, 19132, app.host_extra())
+		await _wait(func(): return app.relay_host.stats().code != "", 10, "комната сервера открыта")
+		app.go("host", true)
+		await get_tree().create_timer(0.8).timeout
+		if ed == "java":
+			await _shot("68a_host_whitelist")
+		await _scroll_down(520)
+		await _shot("68_host_server_selfjoin_" + ed)
+		# хозяин вводит свой же код в «Зайти к другу» → подсказка «Как зайти самому», без прокси
+		var jb = Cfg.autotest_args.get("join_bedrock_port")
+		Cfg.autotest_args.erase("join_bedrock_port")
+		app.go("join", true, {"input": RoomCode.pretty(app.relay_host.stats().code), "edition": "both"})
+		await get_tree().create_timer(1.0).timeout
+		if app.relay_join.stats().state != "off":
+			_log("FAIL: свой код запустил прокси друга")
+			fails += 1
+		else:
+			_log("ок: свой код → «Как зайти самому» (%s)" % ed)
+		await _shot("69_join_own_code_" + ed)
+		Cfg.autotest_args["join_bedrock_port"] = jb
+		app.relay_host.stop()
+		sv.state = "idle"
+		sv.issues = []
+		sv.fixes = []
+	# одна кнопка «Играть с друзьями»: мир открыт в игре → комната открывается сама, без нажатий
+	Cfg.set_value("own", "last_edition", "bedrock")
+	app.go("home", true)
+	await _shot("70_home_one_tap")
+	app.quick_host()
+	if not await _wait(func(): return own.active and app.relay_host.stats().code != "", 15, "одна кнопка: комната открылась сама"):
+		fails += 1
+	await get_tree().create_timer(0.8).timeout
+	await _shot("71_one_tap_room")
+	own.stop()
+	app.go("home", true)
+	await get_tree().create_timer(0.5).timeout
+	_log("FAILS=%d" % fails)
+	return 1 if fails else 0
+
+
+## Настоящий Bedrock Dedicated Server, запущенный отдельно на 19132, играет роль «мира, открытого в игре».
+func _ownreal() -> int:
+	var own: OwnWorld = app.own
+	app.go("setup", true, {"own": true})
+	if not await _wait(func(): return own.worlds().any(func(w): return w.edition == "bedrock"), 30, "настоящий мир Bedrock найден"):
+		return 1
+	var w: Dictionary = own.worlds().filter(func(x): return x.edition == "bedrock")[0]
+	_log("мир: " + JSON.stringify(w))
+	app._screen._own_page._open(w)
+	if not await _wait(func(): return app.relay_host.stats().code != "", 20, "комната открыта"):
+		return 1
+	app.go("join", true, {"input": RoomCode.pretty(app.relay_host.stats().code), "edition": "both"})
+	if not await _wait(func(): return app.relay_join.stats().pong, 20, "мир виден у друга (понг через relay)"):
+		return 1
+	var js: Dictionary = app.relay_join.stats()
+	var rf := FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE)
+	rf.store_string(JSON.stringify({"code": app.relay_host.stats().code, "edition": "bedrock", "java_port": 0, "bedrock_port": js.bedrock_port, "motd": js.motd, "name": js.name}))
+	rf.close()
+	var done := data.path_join("autotest-done.json")
+	var ok := await _wait(func(): return FileAccess.file_exists(done), 300, "настоящий клиент Bedrock закончил")
+	var res: Variant = JSON.parse_string(FileAccess.get_file_as_string(done)) if ok else {}
+	_log("клиент: " + JSON.stringify(res))
+	_log("relay host: " + JSON.stringify(app.relay_host.stats()))
+	app.relay_join.stop()
+	own.stop()
+	return 0 if res is Dictionary and res.get("ok", false) else 1

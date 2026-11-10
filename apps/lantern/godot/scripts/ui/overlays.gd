@@ -300,11 +300,8 @@ static func register(app: Control) -> void:
 	var go_host := func():
 		ov.queue_free()
 		if app.has_method("play_option"):
-			if Cfg.mobile():
-				app.host_on_pc_sheet()
-			else:
-				app.go("setup")
-	p3.add_child(_how_card("1", "plus", UI.accent(), "Создайте мир", "На компьютере: выберите Java или Bedrock — получите код. Друзья зайдут по нему." if not Cfg.mobile() else "Мир создаётся на компьютере (LANTERN для ПК). Код получат друзья.", go_host))
+			app.go("setup")
+	p3.add_child(_how_card("1", "plus", UI.accent(), "Создайте мир", "Откройте свой мир в Minecraft или запустите сервер на ПК — получите код. Друзья зайдут по нему." if not Cfg.mobile() else "Откройте свой мир в Minecraft — LANTERN даст код, по нему зайдут друзья.", go_host))
 	p3.add_child(_how_card("2", "play", UI.BEDROCK, "Или зайдите к другу", "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft.", func(): ov.queue_free(); app.go("join")))
 	p3.add_child(UI.spacer(false))
 	p3.add_child(dots.call(2))

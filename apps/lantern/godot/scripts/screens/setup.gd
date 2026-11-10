@@ -1,10 +1,14 @@
 extends VBoxContainer
-## «Создать мир» — мастер из 3 шагов: издание → мир → запуск. Потом — экран мира с кодом (host.gd).
+## «Создать мир»: сначала способ — «Мой мир из Minecraft» (мир, открытый в игре; на телефоне — только он)
+## или «Отдельный сервер» (ПК: мастер из 3 шагов — издание → мир → запуск). Потом — экран мира с кодом (host.gd).
 
 var app
 var arg := {}
 
 var edition := "java"
+var kind := ""              # own — мир из Minecraft, server — отдельный сервер
+var _own_page: Control
+var _main_parts: Array[Control] = []
 var step := 1
 var _name: LineEdit
 var _version: OptionButton
@@ -18,6 +22,7 @@ var _cross: CheckButton
 var _internet: CheckButton
 var _mem: HSlider
 var _mem_lbl: Label
+var _wl: CheckButton
 var _eula: CheckBox
 var _public: CheckButton
 var _ptitle: LineEdit
@@ -32,16 +37,18 @@ var _saved := {}
 
 const MODES := [["survival", "Выживание"], ["creative", "Творческий"], ["adventure", "Приключение"]]
 const DIFFS := [["peaceful", "Мирная"], ["easy", "Лёгкая"], ["normal", "Нормальная"], ["hard", "Сложная"]]
-const STEP_NAMES := ["Издание", "Мир", "Запуск"]
+const STEP_NAMES := ["Способ", "Мир", "Запуск"]
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 20)
 	edition = arg.get("edition", Cfg.get_value("host", "last_edition", "java")) if arg is Dictionary else "java"
 	step = int(arg.get("step", 2 if arg is Dictionary and arg.has("edition") else 1)) if arg is Dictionary else 1
+	if arg is Dictionary and arg.has("edition"):
+		kind = "server"
 	if Cfg.mobile():
-		add_child(UI.empty("desktop", "Мир создаётся на компьютере", "Зайти к другу", func(): app.go("join"), "Телефон не потянет сервер Minecraft. Установите LANTERN на ПК, создайте мир там — а с телефона заходите по коду."))
-		return
+		step = 1
+		kind = ""
 	_steps_box = UI.vbox(0)
 	add_child(_steps_box)
 	var holder := UI.vbox(0)
@@ -66,8 +73,11 @@ func _ready() -> void:
 	_start.add_theme_font_size_override("font_size", 17)
 	nav.add_child(_start)
 	add_child(nav)
+	_main_parts = [_steps_box, holder, nav]
 	_build_pages()
 	_goto(step, false)
+	if arg is Dictionary and arg.get("own", false):
+		_show_own(true)
 
 
 func _build_pages() -> void:
@@ -96,7 +106,7 @@ func _goto(n: int, animate := true) -> void:
 		var dir := 1 if step > prev else -1
 		FX.enter(_pages[step - 1], Vector2(48 * dir, 0), 0.0, 0.3)
 	_prev.visible = step > 1
-	_next.visible = step < 3
+	_next.visible = step < 3 and (step > 1 or kind == "server")
 	_start.visible = step == 3
 	app.set_back((func(): _goto(step - 1)) if step > 1 else Callable())
 	app.set_title("Создать мир")
@@ -105,12 +115,26 @@ func _goto(n: int, animate := true) -> void:
 		(sc as ScrollContainer).scroll_vertical = 0
 
 
-# ------------------------------------------------------------------ шаг 1: издание
+# ------------------------------------------------------------------ шаг 1: способ (и издание для сервера)
 func _page_edition(p: VBoxContainer) -> void:
-	p.add_child(UI.h2("На чём играют друзья?"))
-	p.add_child(UI.para("От этого зависит, какой сервер запустит LANTERN. Позже можно создать и второй мир.", 15, UI.MUTED))
-	p.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере — лицензия или TLauncher. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
-	p.add_child(UI.choice("phone", UI.BEDROCK, "Bedrock Edition", "Телефон, планшет, Windows 10/11, Xbox, PlayStation, Switch.", edition == "bedrock", _pick.bind("bedrock")))
+	var mobile := Cfg.mobile()
+	p.add_child(UI.h2("Как открыть мир друзьям?"))
+	p.add_child(UI.choice("play", UI.accent(), "Мой мир из Minecraft",
+		"Быстро и без скачивания: откройте мир в игре — LANTERN даст код." + (" На телефоне — единственный вариант." if mobile else ""),
+		kind == "own", _pick_kind.bind("own")))
+	var srv := UI.choice("server", UI.MUTED if mobile else UI.JAVA, "Отдельный сервер",
+		"Только на компьютере. Мир работает, даже когда вы не в игре." if not mobile else "Только на компьютере: установите LANTERN на ПК. Мир работает, даже когда вы не в игре.",
+		kind == "server", _pick_kind.bind("server"))
+	if mobile:
+		srv.modulate.a = 0.55
+	p.add_child(srv)
+	if kind != "server" or mobile:
+		return
+	var sub := UI.vbox(12)
+	sub.add_child(UI.gap(4))
+	sub.add_child(UI.h3("На чём играют друзья?"))
+	sub.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере — лицензия или TLauncher. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
+	sub.add_child(UI.choice("phone", UI.BEDROCK, "Bedrock Edition", "Телефон, планшет, Windows 10/11, Xbox, PlayStation, Switch.", edition == "bedrock", _pick.bind("bedrock")))
 	var tip := UI.panel(16, Color(1, 1, 1, 0.03))
 	var tr := UI.hbox(12)
 	tip.add_child(tr)
@@ -120,7 +144,54 @@ func _page_edition(p: VBoxContainer) -> void:
 	var tl := UI.para("Не знаете, что у друзей? Если в меню игры есть «Сетевая игра» — это Java. Если «Играть → Друзья» — Bedrock.", 14, UI.MUTED)
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tr.add_child(tl)
-	p.add_child(tip)
+	sub.add_child(tip)
+	p.add_child(sub)
+	FX.stagger(sub, 0.04)
+
+
+func _pick_kind(k: String) -> void:
+	if k == "server" and Cfg.mobile():
+		app.toast("Отдельный сервер запускается только на компьютере — установите LANTERN на ПК", UI.YELLOW)
+		return
+	kind = k
+	if k == "own":
+		_show_own(true)
+		return
+	for c in _pages[0].get_children():
+		_pages[0].remove_child(c)
+		c.queue_free()
+	_page_edition(_pages[0])
+	_goto(1, false)
+
+
+## «Мой мир из Minecraft»: вместо шагов мастера — поиск мира в игре (own_page.gd).
+func _show_own(on: bool) -> void:
+	for c in _main_parts:
+		c.visible = not on
+	if is_instance_valid(_own_page):
+		_own_page.queue_free()
+		_own_page = null
+	if on:
+		kind = "own"
+		_own_page = preload("res://scripts/screens/own_page.gd").new()
+		_own_page.set("app", app)
+		_own_page.set("auto", arg is Dictionary and arg.get("auto", false))
+		_own_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		add_child(_own_page)
+		FX.enter(_own_page, Vector2(48, 0), 0.0, 0.3)
+		app.set_back(func(): _show_own(false))
+		app.set_title("Мой мир из Minecraft")
+	else:
+		kind = ""
+		_pick_kind_refresh()
+		_goto(1, false)
+
+
+func _pick_kind_refresh() -> void:
+	for c in _pages[0].get_children():
+		_pages[0].remove_child(c)
+		c.queue_free()
+	_page_edition(_pages[0])
 
 
 func _pick(ed: String) -> void:
@@ -253,6 +324,9 @@ func _page_launch(p: VBoxContainer) -> void:
 		mv.add_child(_mem_lbl)
 		mv.add_child(_mem)
 		body.add_child(UI.field("Память", mv, "Больше друзей и модов — больше памяти"))
+		var wr := UI.switch_row("Только для своих (белый список)", "Зайдут только те, кого вы впустите. Когда друг попробует зайти, на экране мира появится кнопка «Впустить». Или команда: whitelist add Ник.", _saved.get("whitelist", false), func(_b): _update())
+		_wl = wr.switch
+		body.add_child(wr.row)
 	else:
 		body.add_child(UI.field("Версия", UI.label("Последняя (обновляется сама)", 15, UI.TEXT, UI.font_bold)))
 	p.add_child(adv)
@@ -314,6 +388,8 @@ func _opts() -> Dictionary:
 		o["online_mode"] = _online
 		o["crossplay"] = _cross.button_pressed
 		o["memory_mb"] = int(_mem.value)
+		o["whitelist"] = _wl.button_pressed
+		o["whitelist_nick"] = String(Social.me.get("nick", "")) if Social.online() else ""
 	return o
 
 
@@ -332,6 +408,8 @@ func _update() -> void:
 		lines.append("•  Вход: " + ("только купленный Minecraft" if o.online_mode else "лицензия и TLauncher"))
 		if o.crossplay:
 			lines.append("•  Друзья с телефона тоже зайдут (последняя версия)")
+		if o.whitelist:
+			lines.append("•  Белый список: зайдут только те, кого вы впустите")
 	else:
 		lines.append("•  Скачаем официальный сервер Bedrock — один раз")
 	lines.append("•  " + ("Получите код комнаты для друзей" if o.internet else "Только для друзей в вашей Wi-Fi сети"))
@@ -347,5 +425,6 @@ func _go() -> void:
 		app.toast("Отметьте согласие с соглашением Minecraft", UI.YELLOW)
 		return
 	Cfg.set_value("host", edition, o)
+	app.own.stop()
 	app.server.host(edition, o)
 	app.go("host", false, {"fresh": true})

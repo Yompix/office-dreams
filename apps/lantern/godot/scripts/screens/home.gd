@@ -19,10 +19,20 @@ func _ready() -> void:
 	else:
 		app.set_title(greet, "Во что играем сегодня?")
 	# --- мир уже идёт
-	if app.server.state in ["installing", "starting", "running", "stopping", "error"]:
+	if app.own.active:
+		add_child(_live_card_own())
+	elif app.server.state in ["installing", "starting", "running", "stopping", "error"]:
 		add_child(_live_card_host())
 	if app.relay_join.stats().state in ["connecting", "online"]:
 		add_child(_live_card_join())
+	# --- друзья играют прямо сейчас — наверху, «Зайти» в одно нажатие
+	var hosting_now := Social.online() and Social.friends.any(func(f):
+		var a: Variant = f.get("activity")
+		return f.get("online", false) and a is Dictionary and String(a.get("code", "")) != "")
+	if hosting_now:
+		var top := UI.vbox(8)
+		_friends_playing(top)
+		add_child(top)
 	# --- два главных действия
 	var acts := UI.cols(16)
 	var h: Control = app.play_option("host", true)
@@ -41,15 +51,16 @@ func _ready() -> void:
 	var right := UI.vbox(8)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lower.add_child(right)
-	_friends_playing(left)
-	_recent(right)
+	if not hosting_now:
+		_friends_playing(left)
+	_recent(right if not hosting_now else left)
 	if not compact:
 		var how := UI.vbox(8)
 		how.add_child(UI.section("Как это работает"))
 		var hp := UI.panel(20)
 		var hv := UI.vbox(16)
 		hp.add_child(hv)
-		hv.add_child(app._num_row("1", "Один создаёт мир", "На своём ПК: Java или Bedrock — LANTERN всё скачает и запустит"))
+		hv.add_child(app._num_row("1", "Один создаёт мир", "Свой мир из Minecraft — или отдельный сервер на ПК, LANTERN всё скачает сам"))
 		hv.add_child(app._num_row("2", "Отправляет код друзьям", "6 символов, например K7M-2QX, или ссылку / QR"))
 		hv.add_child(app._num_row("3", "Друзья вводят код", "Мир сам появляется у них в Minecraft — как будто вы в одной Wi-Fi сети"))
 		how.add_child(hp)
@@ -63,6 +74,14 @@ func _live_card_host() -> Control:
 	var st: String = {"installing": "готовится…", "starting": "запускается…", "running": "работает", "stopping": "останавливается…", "error": "— ошибка"}.get(s.state, "")
 	var sub := "Код %s · игроков: %d" % [RoomCode.pretty(code), s.players.size()] if code != "" else "Нажмите, чтобы открыть"
 	return UI.list_row(_dot_tile(UI.JAVA if s.state == "running" else UI.YELLOW, "server"), "Ваш мир «%s» %s" % [s.opts.get("world", "Мир"), st], sub, UI.icon("chevron", 20, UI.MUTED), func(): app.go("host"), Color("1b2a22"))
+
+
+func _live_card_own() -> Control:
+	var w: Dictionary = app.own.world
+	var code: String = app.relay_host.stats().get("code", "")
+	var sub := "Код %s · друзей: %d" % [RoomCode.pretty(code), int(app.relay_host.stats().get("peers", 0))] if code != "" else "Открываем комнату…"
+	var ok: bool = app.own.alive()
+	return UI.list_row(_dot_tile(UI.JAVA if ok else UI.YELLOW, "server"), "Ваш мир «%s» %s" % [w.get("name", "Мир"), "открыт" if ok else "— откройте Minecraft"], sub, UI.icon("chevron", 20, UI.MUTED), func(): app.go("host"), Color("1b2a22"))
 
 
 func _live_card_join() -> Control:

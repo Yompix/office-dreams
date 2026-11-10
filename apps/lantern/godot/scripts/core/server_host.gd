@@ -7,6 +7,7 @@ signal progress(label: String, frac: float)   # frac < 0 — неизвестн�
 signal log_line(text: String)
 signal state_changed(state: String)
 signal players_changed(players: PackedStringArray)
+signal doctor_changed                            # «доктор»: новые подсказки (issues) или исправления (fixes)
 
 const FILL := "https://fill.papermc.io/v3/projects/paper"
 const GEYSER := "https://download.geysermc.org/v2/projects/%s/versions/latest/builds/latest"
@@ -27,6 +28,11 @@ var _installed := {}
 var history: PackedStringArray = []
 var last_status := ""
 var last_progress := ["", 0.0]
+var issues: Array = []        # нужно решение хозяина: {id, text, button, action, arg}
+var fixes: Array = []         # «Что LANTERN исправил сам»: строки
+var _port_conflict := false
+var _port_retries := 0
+var _auto_restarts := 0
 
 
 func _log(t: String) -> void:
@@ -93,8 +99,15 @@ func host(ed: String, o: Dictionary) -> bool:
 	if state in ["installing", "starting", "running", "stopping"]:
 		return false
 	edition = ed
+	if o != opts:
+		_auto_restarts = 0
+		_port_retries = 0
+		issues.clear()
 	opts = o
 	_last_err = ""
+	_port_conflict = false
+	_check_memory()
+	_check_ports()
 	players = []
 	players_changed.emit(players)
 	_set_state("installing")
@@ -194,6 +207,7 @@ func _install_java() -> bool:
 	var f := FileAccess.open(dir.path_join("eula.txt"), FileAccess.WRITE)
 	f.store_string("# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n")
 	f.close()
+	_geyser_port(dir.path_join("plugins/Geyser-Spigot/config.yml"), bedrock_port())
 	write_properties(dir.path_join("server.properties"), {
 		"motd": opts.get("world", "Мир") + " — LANTERN",
 		"level-name": _safe_name(opts.get("world", "world")),
@@ -201,9 +215,12 @@ func _install_java() -> bool:
 		"difficulty": opts.get("difficulty", "normal"),
 		"gamemode": opts.get("gamemode", "survival"),
 		"online-mode": "true" if opts.get("online_mode", true) else "false",
-		"server-port": str(JAVA_PORT),
+		"server-port": str(java_port()),
 		"enable-status": "true",
 		"spawn-protection": "0",
+		# белый список — только если хозяин сам включил «Только для своих» (иначе друзей выкидывает «not whitelisted»)
+		"white-list": "true" if opts.get("whitelist", false) else "false",
+		"enforce-whitelist": "true" if opts.get("whitelist", false) else "false",
 	})
 	_save_install_info(info)
 	_installed = info
@@ -362,8 +379,8 @@ func _install_bedrock() -> bool:
 		"max-players": str(opts.get("max_players", 10)),
 		"difficulty": opts.get("difficulty", "normal"),
 		"gamemode": opts.get("gamemode", "survival"),
-		"server-port": str(opts.get("port", BEDROCK_PORT)),
-		"server-portv6": str(int(opts.get("port", BEDROCK_PORT)) + 1),
+		"server-port": str(bedrock_port()),
+		"server-portv6": str(bedrock_port() + 1),
 		"online-mode": "true" if opts.get("online_mode", true) else "false",
 		"allow-cheats": "false",
 		"enable-lan-visibility": "true",
@@ -461,6 +478,146 @@ static var _re_bdisc := RegEx.create_from_string("Player disconnected: ([^,]+),"
 
 
 var _last_err := ""
+## Порты сервера: обычно 25565 / 19132; если заняты — «доктор» берёт свободные (relay пересылает на настоящие).
+func java_port() -> int:
+	return int(opts.get("java_port", JAVA_PORT))
+
+
+func bedrock_port() -> int:
+	return int(opts.get("port", BEDROCK_PORT))
+
+
+## «Ник не в белом списке» (совместимость со старыми проверками).
+static func whitelist_kicked(t: String) -> String:
+	return Doctor.whitelist_nick(t)
+
+
+func _fixed(text: String) -> void:
+	_log("[LANTERN] Исправлено: " + text)
+	fixes.push_front(text)
+	if fixes.size() > 8:
+		fixes.resize(8)
+	doctor_changed.emit()
+
+
+func _issue(id: String, text: String, button := "", action := "", arg: Variant = null) -> void:
+	for i in issues:
+		if i.id == id:
+			return
+	issues.append({"id": id, "text": text, "button": button, "action": action, "arg": arg})
+	doctor_changed.emit()
+
+
+func dismiss(id: String) -> void:
+	issues = issues.filter(func(i): return i.id != id)
+	doctor_changed.emit()
+
+
+## Кнопка «доктора» на «Мой мир».
+func resolve(id: String) -> void:
+	var it: Dictionary = {}
+	for i in issues:
+		if i.id == id:
+			it = i
+	if it.is_empty():
+		return
+	dismiss(id)
+	match String(it.action):
+		"whitelist_add":
+			command("whitelist add " + String(it.arg))
+			_fixed("%s добавлен в белый список — пусть зайдёт ещё раз" % it.arg)
+		"pardon":
+			command("pardon " + String(it.arg))
+			_fixed("%s разбанен — пусть зайдёт ещё раз" % it.arg)
+		"allow_offline":
+			opts["online_mode"] = false
+			_save_opts()
+			_fixed("Теперь пускаем игроков с TLauncher (мир тот же, сервер перезапущен)")
+			restart()
+		"more_slots":
+			opts["max_players"] = int(opts.get("max_players", 10)) + 5
+			_save_opts()
+			_fixed("Мест на сервере теперь %d (сервер перезапущен)" % int(opts.max_players))
+			restart()
+
+
+func _save_opts() -> void:
+	if Cfg.autotest == "":
+		Cfg.set_value("host", edition, opts)
+
+
+## Строка журнала → исправить само или спросить хозяина.
+func _doctor(t: String) -> bool:
+	var d := Doctor.diagnose(t)
+	if d.is_empty():
+		return false
+	var n := String(d.nick)
+	match String(d.rule):
+		"port":
+			_port_conflict = true
+		"whitelist":
+			if n == "":
+				return true
+			if opts.get("whitelist", false):
+				_issue("wl:" + n, Doctor.text(d), "Впустить", "whitelist_add", n)
+			else:
+				command("whitelist off")
+				command("whitelist add " + n)
+				_fixed("%s не пускал белый список — LANTERN выключил его. Пусть %s зайдёт ещё раз" % [n, n])
+		"auth":
+			if opts.get("online_mode", true):
+				_issue("auth", Doctor.text(d), "Пускать игроков TLauncher", "allow_offline")
+		"outdated_client", "outdated_server":
+			_issue("ver:" + n, Doctor.text(d, String(_installed.get("mc_version", ""))), "Понятно", "")
+		"banned":
+			if n != "":
+				_issue("ban:" + n, Doctor.text(d), "Разбанить", "pardon", n)
+		"full":
+			_issue("full", Doctor.text(d), "Больше мест (+5)", "more_slots")
+	return true
+
+
+## Мало памяти: не даём Java больше половины ОЗУ, предупреждаем, если свободной мало.
+func _check_memory() -> void:
+	if edition != "java":
+		return
+	var info := OS.get_memory_info()
+	var total := int(info.get("physical", 0) / (1 << 20))
+	var want := int(opts.get("memory_mb", 2048))
+	var mem := Doctor.memory_for(want, total)
+	if mem != want:
+		opts["memory_mb"] = mem
+		_fixed("Памяти на компьютере немного — серверу выделено %.1f ГБ" % (mem / 1024.0))
+	var free := int(info.get("available", -1) / (1 << 20)) if int(info.get("available", -1)) > 0 else -1
+	if free >= 0 and free < mem:
+		_issue("ram", "Свободной памяти мало (%.1f ГБ). Закройте браузер и лишние программы, иначе сервер может тормозить." % (free / 1024.0), "Понятно", "")
+
+
+## Заняты 25565 / 19132 (другой сервер, открытый в игре мир) — берём свободные, комната работает как обычно.
+func _check_ports() -> void:
+	if Cfg.autotest_args.has("no_port_check"):
+		return
+	if edition == "java":
+		var jp := Doctor.free_port(java_port(), false)
+		if jp != java_port():
+			_fixed("Порт %d был занят — сервер на порту %d, друзья заходят как обычно" % [java_port(), jp])
+			opts["java_port"] = jp
+	if edition == "bedrock" or opts.get("crossplay", false):
+		var bp := Doctor.free_port(bedrock_port(), true, [BEDROCK_PORT + 1, BEDROCK_PORT + 2])
+		if bp != bedrock_port():
+			_fixed("Порт %d был занят — сервер на порту %d, друзья заходят как обычно" % [bedrock_port(), bp])
+			opts["port"] = bp
+
+
+## Geyser: порт Bedrock в первой секции «bedrock:» (файл может ещё не существовать — тогда его создаст _geyser_config).
+static func _geyser_port(path: String, port: int) -> void:
+	if not FileAccess.file_exists(path):
+		return
+	var txt := FileAccess.get_file_as_string(path)
+	var out := RegEx.create_from_string("(?m)^(  port:)\\s*\\d+").sub(txt, "$1 %d" % port)
+	if out != txt:
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string(out)
 
 
 func _on_line(t: String) -> void:
@@ -471,6 +628,10 @@ func _on_line(t: String) -> void:
 		if (edition == "java" and t.contains("Done (") and t.contains("help")) or (edition == "bedrock" and t.contains("Server started.")):
 			_set_state("running")
 			_status("Сервер работает")
+			if edition == "java" and opts.get("whitelist", false) and String(opts.get("whitelist_nick", "")) != "":
+				command("whitelist add " + String(opts.whitelist_nick))
+	if _doctor(t):
+		return
 	var m := _re_join.search(t) if edition == "java" else _re_bconn.search(t)
 	if m:
 		var n := m.get_string(1).strip_edges()
@@ -499,9 +660,28 @@ func _on_exit(code: int) -> void:
 		_set_state("stopped")
 		_status("Сервер остановлен, мир сохранён")
 	else:
+		var plan := Doctor.exit_plan(_port_conflict, _port_retries, _auto_restarts, Time.get_ticks_msec() - started_msec)
+		if plan == "port":
+			_port_retries += 1
+			var old := java_port() if edition == "java" else bedrock_port()
+			if edition == "java":
+				opts["java_port"] = Doctor.free_port(java_port() + 1, false)
+			else:
+				opts["port"] = Doctor.free_port(bedrock_port() + 3, true)
+			var now_p := java_port() if edition == "java" else bedrock_port()
+			_fixed("Порт %d был занят — перезапустили сервер на порту %d" % [old, now_p])
+			_set_state("stopped")
+			host(edition, opts)
+			return
+		if plan == "restart":
+			_auto_restarts += 1
+			_fixed("Сервер упал — LANTERN перезапустил его" + (" (ошибка: %s)" % _last_err.substr(0, 80) if _last_err != "" else ""))
+			_set_state("stopped")
+			host(edition, opts)
+			return
 		var hint := ""
 		if edition == "java" and Time.get_ticks_msec() - started_msec < 15000:
-			hint = " Возможно, порт 25565 уже занят другим сервером или не хватает памяти."
+			hint = " Возможно, не хватает памяти — закройте лишние программы."
 		var why := (" Последняя ошибка: " + _last_err.substr(0, 160) + ".") if _last_err != "" else ""
 		_fail("сервер неожиданно остановился (код %d).%s%s Подробности — в журнале." % [code, why, hint])
 
