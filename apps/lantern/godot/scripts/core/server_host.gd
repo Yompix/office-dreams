@@ -7,11 +7,17 @@ signal progress(label: String, frac: float)   # frac < 0 — неизвестн�
 signal log_line(text: String)
 signal state_changed(state: String)
 signal players_changed(players: PackedStringArray)
+signal versions_changed                         # узнали, с каких версий Bedrock пускает Geyser
 signal doctor_changed                            # «доктор»: новые подсказки (issues) или исправления (fixes)
 
 const FILL := "https://fill.papermc.io/v3/projects/paper"
 const GEYSER := "https://download.geysermc.org/v2/projects/%s/versions/latest/builds/latest"
 const ADOPTIUM := "https://api.adoptium.net/v3/assets/latest/%d/hotspot?architecture=x64&image_type=jre&os=%s&vendor=eclipse"
+## ViaVersion + ViaBackwards + ViaRewind (свободные плагины, GPL; modrinth.com): на сервер заходят Java-клиенты любых версий.
+const MODRINTH := "https://api.modrinth.com/v2/project/%s/version?loaders=%%5B%%22paper%%22%%5D&game_versions=%%5B%%22%s%%22%%5D"
+const VIA := [["viaversion", "ViaVersion.jar"], ["viabackwards", "ViaBackwards.jar"], ["viarewind", "ViaRewind.jar"]]
+## Популярные версии для «Версия сервера» (кроме новейшей): моды и сборки чаще всего на них.
+const POPULAR := ["1.21.11", "1.21.1", "1.20.6", "1.20.1", "1.19.4", "1.18.2", "1.16.5", "1.12.2", "1.8.8"]
 const BEDROCK_LINKS := "https://net-secondary.web.minecraft-services.net/api/v1.0/download/links"
 const JAVA_PORT := 25565
 const BEDROCK_PORT := 19132
@@ -33,6 +39,8 @@ var fixes: Array = []         # «Что LANTERN исправил сам»: ст
 var _port_conflict := false
 var _port_retries := 0
 var _auto_restarts := 0
+var bedrock_range := ""      # «1.21.130 - 26.30» — из ответа Geyser на «geyser version»
+static var _re_geyser_ver := RegEx.create_from_string("Bedrock: ([0-9][0-9.]*(?:\\s*-\\s*[0-9][0-9.]*)?)")
 
 
 func _log(t: String) -> void:
@@ -104,6 +112,7 @@ func host(ed: String, o: Dictionary) -> bool:
 		_port_retries = 0
 		issues.clear()
 	opts = o
+	bedrock_range = ""
 	_last_err = ""
 	_port_conflict = false
 	_check_memory()
@@ -133,15 +142,16 @@ func _install_java() -> bool:
 	# --- Paper
 	_status("Узнаём последнюю версию Paper…")
 	var version: String = opts.get("version", "latest")
-	if opts.get("crossplay", false) and version != "latest":
-		# Geyser поддерживает только самую новую версию Java Edition
-		_log("[LANTERN] Кроссплей с телефонами работает только на последней версии Minecraft — ставим её.")
+	var pr: Dictionary = await Net.get_json(FILL)
+	if not pr.ok:
+		return _offline_or_fail(info, "не удалось получить список версий Paper: " + pr.error)
+	var newest := _latest_paper_version(pr.data)
+	if opts.get("crossplay", false) and version != "latest" and version != newest:
+		# Geyser работает только на самом новом сервере. Старые Java-клиенты всё равно зайдут — через ViaBackwards/ViaRewind.
+		_log("[LANTERN] Для телефонов нужен новый сервер — ставим %s. Друзья со старыми версиями Java (%s и любые другие) всё равно смогут зайти." % [newest, version])
 		version = "latest"
 	if version == "" or version == "latest":
-		var pr: Dictionary = await Net.get_json(FILL)
-		if not pr.ok:
-			return _offline_or_fail(info, "не удалось получить список версий Paper: " + pr.error)
-		version = _latest_paper_version(pr.data)
+		version = newest
 	var vr: Dictionary = await Net.get_json(FILL + "/versions/" + version)
 	if not vr.ok:
 		return _offline_or_fail(info, "версия %s не найдена у Paper: %s" % [version, vr.error])
@@ -168,14 +178,18 @@ func _install_java() -> bool:
 	info.mc_version = version
 	info.paper_build = build.id
 	info.java_min = java_min
-	# --- Java
-	var java := await ensure_java(java_min)
+	# --- Java (нужная этой версии сервера: 8 / 11 / 17 / 21 / 25)
+	var jmajor := java_for(version, java_min)
+	var java := await ensure_java(jmajor)
 	if java == "":
 		return false
 	info.java = java
-	# --- Кроссплей
+	info.java_major = jmajor
+	# --- Любые версии Java-клиентов
 	var plugins := dir.path_join("plugins")
 	DirAccess.make_dir_recursive_absolute(plugins)
+	await _install_via(plugins, info, version, jmajor)
+	# --- Кроссплей
 	if opts.get("crossplay", false):
 		for p in [["geyser", "Geyser-Spigot.jar"], ["floodgate", "floodgate-spigot.jar"]]:
 			_status("Проверяем %s…" % p[1])
@@ -201,6 +215,13 @@ func _install_java() -> bool:
 		for f in ["Geyser-Spigot.jar", "floodgate-spigot.jar"]:
 			if FileAccess.file_exists(plugins.path_join(f + ".off")):
 				DirAccess.remove_absolute(plugins.path_join(f + ".off"))
+		# Только для автотестов (tests/e2e.sh): тестовый клиент Bedrock без Xbox — Geyser без проверки входа и без Floodgate
+		if OS.get_environment("LANTERN_TEST_GEYSER_NOAUTH") == "1":
+			DirAccess.rename_absolute(plugins.path_join("floodgate-spigot.jar"), plugins.path_join("floodgate-spigot.jar.off"))
+			var gc := plugins.path_join("Geyser-Spigot/config.yml")
+			if FileAccess.file_exists(gc):
+				var txt := FileAccess.get_file_as_string(gc).replace("validate-bedrock-login: true", "validate-bedrock-login: false").replace("auth-type: online", "auth-type: offline").replace("auth-type: floodgate", "auth-type: offline")
+				FileAccess.open(gc, FileAccess.WRITE).store_string(txt)
 	# --- EULA и настройки
 	if not opts.get("eula", false):
 		return _fail("нужно принять лицензионное соглашение Minecraft (EULA)")
@@ -291,9 +312,145 @@ static func _safe_name(s: String) -> String:
 	return r.substr(0, 40) if r != "" else "world"
 
 
+## «Заходить можно с Java 1.8 – 26.3 (любая версия)» и с каких версий телефонов (Geyser). Пусто — ещё не знаем.
+func versions_text() -> String:
+	if edition != "java" or _installed.is_empty():
+		return ""
+	var out := PackedStringArray()
+	var r: Array = _installed.get("java_range", [])
+	var mc := String(_installed.get("mc_version", ""))
+	if r.size() == 2 and r[0] != r[1]:
+		out.append("Заходить можно с Java %s – %s (любая версия)" % [r[0], r[1]])
+	elif mc != "":
+		out.append("Заходить можно только с Java %s" % mc)
+	if opts.get("crossplay", false):
+		out.append("Телефоны и консоли (Bedrock): " + (bedrock_range.replace(" - ", " – ") if bedrock_range != "" else "актуальная версия Minecraft"))
+	return "\n".join(out)
+
+
+## Какая Java нужна серверу Paper этой версии: старые сборки не запускаются на новой Java, новые — на старой.
+static func java_for(version: String, java_min := 0) -> int:
+	var p := version.split(".")
+	var j := 21
+	if p.size() >= 2 and p[0] == "1":
+		var minor := int(p[1])
+		var patch := int(p[2]) if p.size() > 2 else 0
+		if minor <= 12:
+			j = 8
+		elif minor <= 16:
+			j = 11
+		elif minor < 20 or (minor == 20 and patch <= 4):
+			j = 17
+	return max(j, java_min)
+
+
+## Самая новая сборка плагина Via* с modrinth.com, которая подходит серверу. Сначала релизы, потом бета
+## (новые версии Minecraft поддерживаются сперва в бете). Java 8/11 — только ветка, собранная под Java 8.
+static func pick_via(list: Array, slug: String, java_major: int) -> Dictionary:
+	for want in ["release", ""]:
+		for v in list:
+			if not (v is Dictionary) or (want != "" and v.get("version_type", "") != want):
+				continue
+			var major := int(String(v.get("version_number", "0")).get_slice(".", 0))
+			if java_major < 17 and major >= (4 if slug == "viarewind" else 5):
+				continue
+			for f in v.get("files", []):
+				if f.get("primary", false) or v.files.size() == 1:
+					if String(f.get("hashes", {}).get("sha1", "")) != "" and String(f.get("url", "")).begins_with("https://"):
+						return {"version": v.version_number, "url": f.url, "sha1": f.hashes.sha1, "game_versions": v.get("game_versions", [])}
+	return {}
+
+
+static func ver_cmp(a: String, b: String) -> int:
+	var x := a.split(".")
+	var y := b.split(".")
+	for i in max(x.size(), y.size()):
+		var p := int(x[i]) if i < x.size() else 0
+		var q := int(y[i]) if i < y.size() else 0
+		if p != q:
+			return -1 if p < q else 1
+	return 0
+
+
+static var _re_release := RegEx.create_from_string("^\\d+(\\.\\d+)+$")
+
+
+## С каких версий Java можно зайти: [от, до]. Без Via — только версия сервера.
+static func java_range(server_version: String, via: Dictionary) -> Array:
+	var lo := server_version
+	var hi := server_version
+	if via.has("viaversion"):
+		for g in via.viaversion.get("game_versions", []):
+			var s := String(g)
+			if _re_release.search(s) and ver_cmp(s, hi) > 0:
+					hi = s
+	if via.has("viarewind"):
+		lo = "1.8"
+	elif via.has("viabackwards"):
+		lo = "1.10"
+	if ver_cmp(lo, server_version) > 0:
+		lo = server_version
+	return [lo, hi]
+
+
+## ViaVersion/ViaBackwards/ViaRewind: ставим при первом запуске и обновляем при каждом (по sha1 с modrinth.com).
+## Без интернета — остаётся то, что уже скачано. Ошибка здесь не мешает запуску сервера.
+func _install_via(plugins: String, info: Dictionary, version: String, jmajor: int) -> void:
+	var got := {}
+	if not opts.get("any_version", true):
+		for p in VIA:
+			if FileAccess.file_exists(plugins.path_join(p[1])):
+				DirAccess.rename_absolute(plugins.path_join(p[1]), plugins.path_join(p[1] + ".off"))
+		info.erase("via")
+		info.java_range = java_range(version, {})
+		return
+	for p in VIA:
+		var slug: String = p[0]
+		var dest := plugins.path_join(p[1])
+		_status("Проверяем %s…" % p[1].get_basename())
+		var r: Dictionary = await Net.get_json(MODRINTH % [slug, version], PackedStringArray(["User-Agent: LANTERN"]))
+		var pick := pick_via(r.data, slug, jmajor) if r.ok and r.data is Array else {}
+		var old: Dictionary = info.get("via", {}).get(slug, {})
+		if pick.is_empty():
+			if FileAccess.file_exists(dest) and not old.is_empty():
+				got[slug] = old
+				continue
+			_log("[LANTERN] %s: нет подходящей сборки для %s (%s) — пропускаем." % [p[1].get_basename(), version, r.get("error", "нет сборок")])
+			break   # без ViaVersion остальные не нужны
+		if old.get("sha1", "") != pick.sha1 or not FileAccess.file_exists(dest):
+			_status("Скачиваем %s %s" % [p[1].get_basename(), pick.version])
+			var res: Dictionary = await Net.download(pick.url, dest, {"sha1": pick.sha1}, func(done: int, total: int):
+				_progress("Скачиваем " + p[1].get_basename(), float(done) / total if total > 0 else -1.0))
+			_progress("Скачиваем " + p[1].get_basename(), 1.0)
+			if not res.ok:
+				_log("[LANTERN] Не удалось скачать %s: %s" % [p[1].get_basename(), res.error])
+				if FileAccess.file_exists(dest) and not old.is_empty():
+					got[slug] = old
+					continue
+				break
+		# свои копии хозяина (ViaVersion-5.x.jar) — убираем, иначе два одинаковых плагина
+		for f in DirAccess.get_files_at(plugins):
+			if f != p[1] and f.to_lower().begins_with(slug) and f.ends_with(".jar"):
+				DirAccess.rename_absolute(plugins.path_join(f), plugins.path_join(f + ".off"))
+		if FileAccess.file_exists(dest + ".off"):
+			DirAccess.remove_absolute(dest + ".off")
+		got[slug] = pick
+	# плагин без своей основы не запустится: ViaRewind ← ViaBackwards ← ViaVersion
+	for i in VIA.size():
+		if not got.has(VIA[i][0]):
+			for k in range(i, VIA.size()):
+				got.erase(VIA[k][0])
+				if FileAccess.file_exists(plugins.path_join(VIA[k][1])):
+					DirAccess.rename_absolute(plugins.path_join(VIA[k][1]), plugins.path_join(VIA[k][1] + ".off"))
+			break
+	info.via = got
+	info.java_range = java_range(version, got)
+	if got.has("viaversion"):
+		_log("[LANTERN] Заходить можно с Java %s – %s (ViaVersion %s)." % [info.java_range[0], info.java_range[1], got.viaversion.version])
+
+
 ## Найти Java нужной версии (своя → системная) или скачать Temurin JRE.
 func ensure_java(major: int) -> String:
-	major = max(major, 21)
 	var rt := Cfg.server_sub("runtime").path_join("jre-%d" % major)
 	var exe := rt.path_join("bin/java.exe" if Cfg.is_windows() else "bin/java")
 	if FileAccess.file_exists(exe):
@@ -334,9 +491,15 @@ func _system_java(major: int) -> String:
 		if OS.execute(c, ["-version"], out, true) != 0 or out.is_empty():
 			continue
 		var txt := String(out[0])
-		var re := RegEx.create_from_string("version \"(\\d+)")
+		var re := RegEx.create_from_string("version \"(\\d+)(?:\\.(\\d+))?")
 		var m := re.search(txt)
-		if m and int(m.get_string(1)) >= major:
+		if not m:
+			continue
+		var v := int(m.get_string(1))
+		if v == 1:
+			v = int(m.get_string(2))   # «1.8.0_402» — это Java 8
+		# старые серверы (Java 8/11) на новой Java не запускаются — нужна ровно та же версия
+		if (major >= 17 and v >= major) or v == major:
 			return c
 	return ""
 
@@ -630,6 +793,13 @@ func _on_line(t: String) -> void:
 			_status("Сервер работает")
 			if edition == "java" and opts.get("whitelist", false) and String(opts.get("whitelist_nick", "")) != "":
 				command("whitelist add " + String(opts.whitelist_nick))
+			if edition == "java" and opts.get("crossplay", false):
+				command("geyser version")   # ответ: «… (Java: 26.3, Bedrock: 1.21.130 - 26.30)» — покажем друзьям
+	if edition == "java" and t.contains("Bedrock: "):
+		var gm := _re_geyser_ver.search(t)
+		if gm:
+			bedrock_range = gm.get_string(1).strip_edges()
+			versions_changed.emit()
 	if _doctor(t):
 		return
 	var m := _re_join.search(t) if edition == "java" else _re_bconn.search(t)

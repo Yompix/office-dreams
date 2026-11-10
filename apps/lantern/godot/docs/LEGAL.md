@@ -40,6 +40,7 @@ Minecraft EULA (https://aka.ms/MinecraftEULA), политика Google Play об
 ## 5. Файлы Mojang и сторонних проектов
 - LANTERN **не распространяет** файлы Minecraft. По запросу пользователя приложение само скачивает с официальных сайтов:
   Paper (fill.papermc.io), Geyser/Floodgate (download.geysermc.org), Java (api.adoptium.net, Eclipse Temurin),
+  ViaVersion/ViaBackwards/ViaRewind (api.modrinth.com, свободные плагины под GPL; с 1.5.1 — чтобы заходили Java любых версий),
   Bedrock Dedicated Server (net-secondary.web.minecraft-services.net — официальный API Mojang).
 - Перед запуском сервера — шаг согласия с Minecraft EULA (и Политикой конфиденциальности Microsoft для Bedrock) с кнопками
   «Прочитать EULA» / «Конфиденциальность»; без галочки сервер не запускается. `eula.txt` пишется только после согласия.

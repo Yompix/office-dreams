@@ -385,6 +385,12 @@ static func self_join_card(app, own: bool) -> Control:
 		return p
 	var s: ServerHost = app.server
 	if s.edition == "java":
+		var vt := UI.para(s.versions_text(), 13, UI.GREEN)
+		vt.visible = vt.text != ""
+		v.add_child(vt)
+		var upd := func(): vt.text = s.versions_text(); vt.visible = vt.text != ""
+		s.versions_changed.connect(upd)
+		vt.tree_exiting.connect(func(): if s.versions_changed.is_connected(upd): s.versions_changed.disconnect(upd))
 		var jp: int = s.java_port()
 		var addr := "localhost" if jp == 25565 else "localhost:%d" % jp
 		v.add_child(_self_row(app, "java", UI.JAVA, "Minecraft Java на этом компьютере", "«Сетевая игра» → «Прямое подключение» → адрес:", addr))

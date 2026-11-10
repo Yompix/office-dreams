@@ -44,6 +44,9 @@ Android открывает обе ссылки в LANTERN (intent-filter `lanter
 * Текстовые кадры — JSON-команды, бинарные — данные: `[u32 sid, big-endian][payload]`.
 * UDP (Bedrock/Geyser): **один бинарный кадр = одна датаграмма** (границы сохраняются).
 * TCP (Java): кадры — куски потока по порядку.
+* Внутри UDP-потока приложения LANTERN могут слать служебные кадры `[0xFF][тип][данные]` (RakNet так не начинается):
+  `I` — карточка мира NetherNet, `S` — сигнал WebRTC, `D` — датаграмма WebRTC, `H` (1.5.1) — HTTP-вход нового
+  Bedrock на сервер (`GET /v1/join`, `POST /v1/join/<id>` с SDP; JSON `{m,p,h,b}` → `{s,r,h,b}`). Relay их не разбирает.
 * `GET /healthz` → `{"ok":true,"app":"lantern-relay","v":1,"rooms":N,"joiners":N,"uptime":s}`.
 
 ### Хозяин мира

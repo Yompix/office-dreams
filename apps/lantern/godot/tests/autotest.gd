@@ -63,6 +63,50 @@ func _shot(name: String) -> void:
 
 
 # ------------------------------------------------------------------ core
+## 1.5.1: Java для версии сервера, выбор ViaVersion, диапазон версий, разбор HTTP-входа Bedrock и подмена SDP.
+func _core_versions() -> int:
+	var fails := 0
+	var chk := func(name: String, got: Variant, want: Variant) -> int:
+		var ok: bool = got == want
+		_log(("ок: " if ok else "ОШИБКА: ") + "%s = %s%s" % [name, str(got), "" if ok else " (ждали %s)" % str(want)])
+		return 0 if ok else 1
+	fails += chk.call("java 1.8.8", ServerHost.java_for("1.8.8", 8), 8)
+	fails += chk.call("java 1.12.2", ServerHost.java_for("1.12.2", 8), 8)
+	fails += chk.call("java 1.16.5", ServerHost.java_for("1.16.5", 8), 11)
+	fails += chk.call("java 1.18.2", ServerHost.java_for("1.18.2", 17), 17)
+	fails += chk.call("java 1.20.1", ServerHost.java_for("1.20.1", 17), 17)
+	fails += chk.call("java 1.20.6", ServerHost.java_for("1.20.6", 21), 21)
+	fails += chk.call("java 26.3", ServerHost.java_for("26.3", 25), 25)
+	var list := [
+		{"version_number": "5.13.0-SNAPSHOT+9", "version_type": "beta", "game_versions": ["1.8", "26.4"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/b.jar", "hashes": {"sha1": "bb"}}]},
+		{"version_number": "5.12.2", "version_type": "release", "game_versions": ["1.8", "26.1.2", "26.3", "26.3-rc-1"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/a.jar", "hashes": {"sha1": "aa"}}]},
+		{"version_number": "4.10.2", "version_type": "release", "game_versions": ["1.8", "1.20.6", "1.9.4"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/c.jar", "hashes": {"sha1": "cc"}}]},
+	]
+	fails += chk.call("via релиз", ServerHost.pick_via(list, "viaversion", 25).get("version"), "5.12.2")
+	fails += chk.call("via для Java 8", ServerHost.pick_via(list, "viaversion", 8).get("version"), "4.10.2")
+	fails += chk.call("via только бета", ServerHost.pick_via([list[0]], "viaversion", 25).get("version"), "5.13.0-SNAPSHOT+9")
+	var via := {"viaversion": ServerHost.pick_via(list, "viaversion", 25), "viabackwards": {}, "viarewind": {}}
+	fails += chk.call("диапазон с Via", ServerHost.java_range("26.3", via), ["1.8", "26.3"])
+	fails += chk.call("диапазон без Via", ServerHost.java_range("1.20.1", {}), ["1.20.1", "1.20.1"])
+	fails += chk.call("сравнение версий", ServerHost.ver_cmp("1.21.11", "26.3"), -1)
+	# HTTP-вход Bedrock: разбор запроса и ответа, подмена кандидатов в SDP на сокет моста
+	var rq := NetherNet.http_parse("POST /v1/join/123 HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nv=0\r\n".to_utf8_buffer())
+	fails += chk.call("HTTP запрос", [rq.get("line"), rq.get("headers", {}).get("host"), (rq.get("body", PackedByteArray()) as PackedByteArray).get_string_from_utf8()], ["POST /v1/join/123 HTTP/1.1", "x", "v=0\r\n"])
+	fails += chk.call("HTTP неполный", NetherNet.http_parse("POST / HTTP/1.1\r\nContent-Length: 9\r\n\r\nab".to_utf8_buffer()), {})
+	var ch := NetherNet.http_parse("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n2\r\nde\r\n0\r\n\r\n".to_utf8_buffer())
+	fails += chk.call("HTTP chunked", (ch.get("body", PackedByteArray()) as PackedByteArray).get_string_from_utf8(), "abcde")
+	var sess := NetherNet.new_session("123")
+	var sdp := "v=0\r\na=ice-ufrag:x\r\na=candidate:1 1 udp 2130706431 192.168.1.20 19134 typ host\r\na=candidate:2 1 udp 1694498815 203.0.113.5 19134 typ srflx raddr 0.0.0.0 rport 0\r\n"
+	var out := NetherNet.http_sdp_remote(sess, "CONNECTRESPONSE", sdp)
+	fails += chk.call("SDP: чужие кандидаты заменены", [out.contains("192.168.1.20"), out.contains("203.0.113.5"), out.contains("127.0.0.1 %d typ host" % sess.u.get_local_port()), out.contains("ice-ufrag:x")], [false, false, true, true])
+	NetherNet.http_sdp_local(sess, "CONNECTREQUEST", sdp)
+	fails += chk.call("SDP: свои кандидаты запомнены", sess.cands, [["192.168.1.20", 19134]])
+	NetherNet.close_session(sess)
+	var jv := preload("res://scripts/screens/join.gd")
+	fails += chk.call("версии Bedrock в подсказке", jv.version_text({"host_version": "1.21.120", "host_protocol": 859, "client_protocol": 844})[1].begins_with("У хозяина 1.21.120, у вас 1.21.110 — обновите Minecraft"), true)
+	return fails
+
+
 func _core() -> int:
 	var fails := 0
 	var out := Cfg.autotest_args.get("out", "/tmp/lantern-core")
@@ -88,6 +132,7 @@ func _core() -> int:
 		["2345", {"ok": false}],
 		["minecraft://?addExternalServer=Мир|a.b.c:1234", {"kind": "address", "address": "a.b.c:1234", "edition": "bedrock"}],
 	]
+	fails += _core_versions()
 	for c in cases:
 		var r := Invite.parse(c[0], "java")
 		var ok := true

@@ -15,6 +15,7 @@ const FRAME := 0xFF
 const F_SIGNAL := 0x53   # S
 const F_DATA := 0x44     # D
 const F_INFO := 0x49     # I
+const F_HTTP := 0x48     # H — HTTP-вход на сервер (Bedrock 26.x: «Серверы» → TCP <порт>, /v1/join), JSON {m,p,h,b} / {s,r,h,b}
 const ID_REQUEST := 0
 const ID_RESPONSE := 1
 const ID_MESSAGE := 2
@@ -305,4 +306,93 @@ static func _aes(data: PackedByteArray, enc: bool) -> PackedByteArray:
 		return PackedByteArray()
 	var out := a.update(d)
 	a.finish()
+	return out
+
+
+# ------------------------------------------------------------------ HTTP-вход (NetherNet endpoint)
+## Новые Bedrock заходят на сервер (Geyser, «Серверы» → адрес:порт) так: GET /v1/join — карточка сервера,
+## POST /v1/join/<id> с SDP-предложением → SDP-ответ; дальше WebRTC по UDP на кандидатов из SDP.
+## Мост: друг-LANTERN принимает HTTP на TCP <порт Bedrock>, пересылает запрос хозяину кадром H, хозяин спрашивает
+## свой сервер; кандидаты в SDP подменяются на сокеты моста (как в поиске NetherNet), датаграммы — кадрами D.
+
+static func _bfind(buf: PackedByteArray, pat: PackedByteArray, from := 0) -> int:
+	var n := pat.size()
+	for i in range(from, buf.size() - n + 1):
+		if buf[i] == pat[0]:
+			var ok := true
+			for j in range(1, n):
+				if buf[i + j] != pat[j]:
+					ok = false
+					break
+			if ok:
+				return i
+	return -1
+
+
+## Разобрать HTTP-запрос или ответ. {} — пришёл ещё не весь. eof — соединение закрыто (тело до конца).
+## → {line: «GET /v1/join HTTP/1.1», headers: {имя в нижнем регистре: значение}, body: PackedByteArray, size: байт}
+static func http_parse(buf: PackedByteArray, eof := false) -> Dictionary:
+	var crlf := PackedByteArray([13, 10])
+	var end := _bfind(buf, PackedByteArray([13, 10, 13, 10]))
+	if end < 0:
+		return {}
+	var lines := buf.slice(0, end).get_string_from_utf8().split("\r\n")
+	var h := {}
+	for i in range(1, lines.size()):
+		var c := lines[i].find(":")
+		if c > 0:
+			h[lines[i].substr(0, c).strip_edges().to_lower()] = lines[i].substr(c + 1).strip_edges()
+	var p := end + 4
+	var body := PackedByteArray()
+	if String(h.get("transfer-encoding", "")).to_lower().contains("chunked"):
+		while true:
+			var le := _bfind(buf, crlf, p)
+			if le < 0:
+				return {}
+			var n := buf.slice(p, le).get_string_from_ascii().get_slice(";", 0).strip_edges().hex_to_int()
+			if n <= 0:
+				var fin := _bfind(buf, crlf, le + 2)
+				if fin < 0:
+					return {}
+				p = fin + 2
+				break
+			if buf.size() < le + 2 + n + 2:
+				return {}
+			body.append_array(buf.slice(le + 2, le + 2 + n))
+			p = le + 2 + n + 2
+	elif h.has("content-length"):
+		var n := int(h["content-length"])
+		if buf.size() < p + n:
+			return {}
+		body = buf.slice(p, p + n)
+		p += n
+	elif lines[0].begins_with("HTTP/") and not eof:
+		return {}   # ответ без длины — тело до закрытия соединения
+	else:
+		body = buf.slice(p)
+		p = buf.size()
+	return {"line": lines[0], "headers": h, "body": body, "size": p}
+
+
+## Подменить кандидатов в SDP (offer — «CONNECTREQUEST», answer — «CONNECTRESPONSE») на сокет моста.
+static func http_sdp_remote(s: Dictionary, kind: String, sdp: String) -> String:
+	var r := remote_signal(s, "%s %s %s" % [kind, s.cid, sdp])
+	if r.is_empty():
+		return sdp
+	var p := split_signal(r[0])
+	return p[2] if p.size() >= 3 else sdp
+
+
+## Запомнить кандидатов «своего» Minecraft/сервера из SDP (куда слать датаграммы).
+static func http_sdp_local(s: Dictionary, kind: String, sdp: String) -> void:
+	note_local_signal(s, "%s %s %s" % [kind, s.cid, sdp])
+
+
+static func http_response(status: int, reason: String, ctype: String, body: PackedByteArray) -> PackedByteArray:
+	var head := "HTTP/1.1 %d %s\r\n" % [status, reason if reason != "" else "OK"]
+	if ctype != "":
+		head += "Content-Type: %s\r\n" % ctype
+	head += "Content-Length: %d\r\nConnection: close\r\n\r\n" % body.size()
+	var out := head.to_utf8_buffer()
+	out.append_array(body)
 	return out

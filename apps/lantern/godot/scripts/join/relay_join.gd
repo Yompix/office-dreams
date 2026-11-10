@@ -30,7 +30,8 @@ var _run := false
 var _mutex := Mutex.new()
 var _stats := {"state": "off", "error": "", "name": "", "edition": "", "java_port": 0, "bedrock_port": 0,
 	"bedrock_error": "", "java_error": "", "pong": false, "motd": "", "streams": 0, "rx": 0, "tx": 0, "host": true,
-	"host_version": "", "host_protocol": 0, "client_protocol": 0, "nethernet": false, "nn_error": "", "nn_clients": 0}
+	"host_version": "", "host_protocol": 0, "client_protocol": 0, "nethernet": false, "nn_error": "", "nn_clients": 0,
+	"http_joins": 0}
 var _guid := 0
 
 
@@ -110,6 +111,8 @@ func _loop() -> void:
 	var nn_app := PackedByteArray()
 	var nn_cids := {}         # id соединения WebRTC -> sid
 	var last_ninfo := 0
+	var http_srv: TCPServer = null   # HTTP-вход новых Bedrock на TCP <порт Bedrock> (Geyser: «Серверы» → адрес)
+	var http_conns: Array = []
 	while _run:
 		var now := Time.get_ticks_msec()
 		var busy := false
@@ -154,6 +157,9 @@ func _loop() -> void:
 								else:
 									_st("bedrock_port", bedrock_port)
 									link.send_json({"t": "open", "sid": PING_SID, "kind": "udp"})
+									http_srv = TCPServer.new()
+									if http_srv.listen(bedrock_port, "*") != OK:
+										http_srv = null
 								link.send_json({"t": "open", "sid": NN_SID, "kind": "udp"})
 							_st("state", "online")
 						"error":
@@ -226,6 +232,13 @@ func _loop() -> void:
 					if s == null:
 						continue
 					s.last = now
+					if (s.kind == "nn" or s.kind == "http") and ev.data.size() >= 2 and ev.data[0] == NetherNet.FRAME and ev.data[1] == NetherNet.F_HTTP:
+						if _http_reply(s, ev.data.slice(2)) and s.kind == "http":
+							link.send_json({"t": "close", "sid": ev.sid})
+							streams.erase(ev.sid)
+						continue
+					if s.kind == "http":
+						continue
 					if s.kind == "nn":
 						var pk: PackedByteArray = ev.data
 						if pk.size() < 2 or pk[0] != NetherNet.FRAME:
@@ -300,6 +313,55 @@ func _loop() -> void:
 						_st("client_protocol", cp)
 				link.send_bin(sid, pk)
 				_add("tx", pk.size())
+		# --- HTTP-вход новых Bedrock: принять запрос целиком → хозяину кадром H
+		if http_srv:
+			while http_srv.is_connection_available():
+				var c := http_srv.take_connection()
+				c.set_no_delay(true)
+				http_conns.append({"tcp": c, "buf": PackedByteArray(), "t0": now, "cont": false})
+		for hc in http_conns.duplicate():
+			var t: StreamPeerTCP = hc.tcp
+			t.poll()
+			if t.get_status() != StreamPeerTCP.STATUS_CONNECTED or now - int(hc.t0) > 15000:
+				t.disconnect_from_host()
+				http_conns.erase(hc)
+				continue
+			var n := t.get_available_bytes()
+			if n <= 0:
+				continue
+			busy = true
+			hc.buf.append_array(t.get_partial_data(n)[1])
+			if hc.buf.size() > 0 and hc.buf[0] == 0x16:
+				t.disconnect_from_host()   # TLS (https://) — у сервера LANTERN его нет, игра попробует http://
+				http_conns.erase(hc)
+				continue
+			var rq := NetherNet.http_parse(hc.buf)
+			if rq.is_empty():
+				if not hc.cont and String(NetherNet.http_parse(hc.buf + PackedByteArray([13, 10, 13, 10])).get("headers", {}).get("expect", "")).to_lower() == "100-continue":
+					hc.cont = true
+					t.put_data("HTTP/1.1 100 Continue\r\n\r\n".to_utf8_buffer())
+				continue
+			http_conns.erase(hc)
+			if not host_here:
+				t.put_data(NetherNet.http_response(503, "Service Unavailable", "text/plain", "host is away".to_utf8_buffer()))
+				t.disconnect_from_host()
+				continue
+			var rl := String(rq.line).split(" ")
+			var path := rl[1] if rl.size() > 1 else "/"
+			var rb: PackedByteArray = rq.body
+			var body := rb.get_string_from_utf8()
+			var sid := next_sid
+			next_sid += 1
+			var st := {"kind": "http", "http": t, "last": now, "post": false}
+			if rl[0] == "POST" and path.begins_with("/v1/join/"):
+				st.kind = "nn"
+				st.post = true
+				st.sess = NetherNet.new_session(path.get_file())
+				NetherNet.http_sdp_local(st.sess, "CONNECTREQUEST", body)
+				_add("http_joins", 1)
+			streams[sid] = st
+			link.send_json({"t": "open", "sid": sid, "kind": "udp"})
+			link.send_bin(sid, NetherNet.frame(NetherNet.F_HTTP, JSON.stringify({"m": rl[0], "p": path, "h": rq.headers, "b": body}).to_utf8_buffer()))
 		# --- NetherNet: карточка мира у хозяина, поиск и сигналы от Minecraft этого устройства
 		if want_bedrock and host_here and edition in ["bedrock", "both"] and now - last_ninfo > 2000:
 			last_ninfo = now
@@ -380,6 +442,10 @@ func _loop() -> void:
 		lan.close()
 	if nn_disc:
 		nn_disc.close()
+	if http_srv:
+		http_srv.stop()
+	for hc in http_conns:
+		hc.tcp.disconnect_from_host()
 	link.close()
 	if stats().state != "error":
 		_st("state", "off")
@@ -396,7 +462,26 @@ static func client_protocol(pk: PackedByteArray) -> int:
 	return 0
 
 
+## Ответ сервера хозяина на HTTP-вход → игре на этом устройстве (кандидаты WebRTC — наш сокет моста).
+func _http_reply(s: Dictionary, data: PackedByteArray) -> bool:
+	var r: Variant = JSON.parse_string(data.get_string_from_utf8())
+	if not (r is Dictionary) or not s.has("http"):
+		return false
+	var code := int(r.get("s", 502))
+	var body := String(r.get("b", ""))
+	if s.post and code == 200 and s.has("sess"):
+		body = NetherNet.http_sdp_remote(s.sess, "CONNECTRESPONSE", body)
+	var ct := String(r.get("h", {}).get("content-type", "")) if r.get("h", {}) is Dictionary else ""
+	var t: StreamPeerTCP = s.http
+	t.put_data(NetherNet.http_response(code, String(r.get("r", "")), ct, body.to_utf8_buffer()))
+	t.disconnect_from_host()
+	s.erase("http")
+	return true
+
+
 static func _close_stream(s: Dictionary, by_client: Dictionary) -> void:
+	if s.has("http"):
+		s.http.disconnect_from_host()
 	if s.kind == "tcp":
 		s.tcp.disconnect_from_host()
 	elif s.kind == "nn":

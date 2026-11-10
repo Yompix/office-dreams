@@ -368,6 +368,8 @@ func _loop() -> void:
 					streams.erase(sid)
 					_update_counts(streams)
 			elif s.has("nn"):
+				if s.has("http"):
+					busy = _http_poll(link, sid, s, now) or busy
 				if s.has("sess"):
 					for pk in NetherNet.pump(s.sess):
 						busy = true
@@ -510,6 +512,13 @@ func _nn_frame(nn: Dictionary, link: RelayLink, sid: int, s: Dictionary, data: P
 		if s.has("udp"):
 			s.udp.close()
 			s.erase("udp")
+	if data[1] == NetherNet.F_HTTP:
+		_http_frame(s, data.slice(2))
+		return
+	if data[1] == NetherNet.F_DATA and s.has("http_cid"):
+		if s.has("sess"):
+			NetherNet.deliver(s.sess, data.slice(2))
+		return
 	if nn.disc == null:
 		var u := PacketPeerUDP.new()
 		u.set_broadcast_enabled(true)
@@ -539,6 +548,77 @@ func _nn_frame(nn: Dictionary, link: RelayLink, sid: int, s: Dictionary, data: P
 		NetherNet.F_DATA:
 			if s.has("sess"):
 				NetherNet.deliver(s.sess, body)
+
+
+## HTTP-вход нового Bedrock (Geyser: «Серверы» → адрес): запрос друга → наш сервер на TCP <порт Bedrock>.
+const HTTP_DROP := ["host", "connection", "content-length", "transfer-encoding", "keep-alive", "expect", "upgrade"]
+
+func _http_frame(s: Dictionary, body: PackedByteArray) -> void:
+	var rq: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if not (rq is Dictionary) or s.has("http"):
+		return
+	var m := String(rq.get("m", "GET"))
+	var path := String(rq.get("p", "/"))
+	var payload := String(rq.get("b", ""))
+	var post := m == "POST" and path.begins_with("/v1/join/")
+	if post:
+		var cid := path.get_file()
+		if not s.has("sess"):
+			s.sess = NetherNet.new_session(cid)
+			_event("Друг подключается к серверу (NetherNet)")
+		s.http_cid = cid
+		payload = NetherNet.http_sdp_remote(s.sess, "CONNECTREQUEST", payload)
+	else:
+		s.http_cid = ""
+	var req := "%s %s HTTP/1.1\r\nHost: 127.0.0.1:%d\r\n" % [m, path, bedrock_port]
+	var hd: Dictionary = rq.get("h", {}) if rq.get("h", {}) is Dictionary else {}
+	for k in hd:
+		if not String(k).to_lower() in HTTP_DROP:
+			req += "%s: %s\r\n" % [k, String(hd[k]).replace("\r", "").replace("\n", "")]
+	var pb := payload.to_utf8_buffer()
+	req += "Content-Length: %d\r\nConnection: close\r\n\r\n" % pb.size()
+	var out := req.to_utf8_buffer()
+	out.append_array(pb)
+	var t := StreamPeerTCP.new()
+	t.connect_to_host(local_host, bedrock_port)
+	t.set_no_delay(true)
+	s.http = {"tcp": t, "out": out, "buf": PackedByteArray(), "t0": Time.get_ticks_msec(), "post": post}
+
+
+func _http_poll(link: RelayLink, sid: int, s: Dictionary, now: int) -> bool:
+	var h: Dictionary = s.http
+	var t: StreamPeerTCP = h.tcp
+	t.poll()
+	var st := t.get_status()
+	var busy := false
+	if st == StreamPeerTCP.STATUS_CONNECTED:
+		if h.out.size() > 0:
+			t.put_data(h.out)
+			h.out = PackedByteArray()
+		var n := t.get_available_bytes()
+		if n > 0:
+			h.buf.append_array(t.get_partial_data(n)[1])
+			busy = true
+	var eof := st == StreamPeerTCP.STATUS_NONE or st == StreamPeerTCP.STATUS_ERROR
+	var r := NetherNet.http_parse(h.buf, eof)
+	var resp := {}
+	if not r.is_empty():
+		var sl := String(r.line).split(" ", false, 2)
+		var rb: PackedByteArray = r.body
+		var body := rb.get_string_from_utf8()
+		var code := int(sl[1]) if sl.size() > 1 else 502
+		if h.post and code == 200 and s.has("sess"):
+			NetherNet.http_sdp_local(s.sess, "CONNECTRESPONSE", body)
+		resp = {"s": code, "r": sl[2] if sl.size() > 2 else "", "h": {"content-type": String(r.headers.get("content-type", ""))}, "b": body}
+	elif eof or now - int(h.t0) > 15000:
+		resp = {"s": 502, "r": "Bad Gateway", "h": {"content-type": "text/plain"}, "b": "server is not answering"}
+	if resp.is_empty():
+		return busy
+	t.disconnect_from_host()
+	s.erase("http")
+	s.last = now
+	link.send_bin(sid, NetherNet.frame(NetherNet.F_HTTP, JSON.stringify(resp).to_utf8_buffer()))
+	return true
 
 
 func _nn_poll(nn: Dictionary, link: RelayLink, streams: Dictionary, now: int) -> bool:
@@ -581,6 +661,8 @@ func _nn_poll(nn: Dictionary, link: RelayLink, streams: Dictionary, now: int) ->
 
 
 static func _close_local(s: Dictionary) -> void:
+	if s.has("http"):
+		s.http.tcp.disconnect_from_host()
 	if s.has("sess"):
 		NetherNet.close_session(s.sess)
 	if s.has("tcp"):

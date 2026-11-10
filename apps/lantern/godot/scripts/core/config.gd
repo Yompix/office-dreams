@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.5.0"
+const APP_VERSION := "1.5.1"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.

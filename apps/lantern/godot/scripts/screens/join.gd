@@ -472,15 +472,27 @@ func _show_room() -> void:
 	_result.add_child(foot)
 
 
+## Номера протокола Bedrock → версия игры (для подсказки «у тебя 1.21.110»). Неизвестный номер — без названия.
+const BEDROCK_PROTOCOLS := {766: "1.21.50", 776: "1.21.60", 786: "1.21.70", 800: "1.21.80", 818: "1.21.90", 819: "1.21.93",
+	827: "1.21.100", 844: "1.21.110", 859: "1.21.120", 860: "1.21.124"}
+
+
 ## Bedrock: телефон, Windows и консоли играют вместе, только если версия Minecraft у всех одинаковая.
+## Сервер с Geyser («both») пускает целый диапазон версий — там разница не страшна.
 static func version_text(st: Dictionary) -> Array:
 	var hv := String(st.get("host_version", ""))
 	var hp := int(st.get("host_protocol", 0))
 	var cp := int(st.get("client_protocol", 0))
+	var mine := String(BEDROCK_PROTOCOLS.get(cp, ""))
+	if String(st.get("edition", "")) == "both":
+		if cp > 0 and hp > 0 and cp > hp:
+			return ["bad", "У вас Minecraft %sновее, чем знает сервер друга (до %s). Пусть хозяин перезапустит сервер в LANTERN — Geyser обновится сам." % [mine + " " if mine != "" else "", hv]]
+		return ["ok", "Сервер друга пускает телефоны и консоли с актуальной версией Minecraft (до %s)." % hv]
 	if cp > 0 and hp > 0 and cp != hp:
+		var yours := ("у вас " + mine) if mine != "" else "у вас другая версия"
 		if cp < hp:
-			return ["bad", "У вас Minecraft старее, чем мир друга (%s). Обновите Minecraft — у всех должна быть одна версия." % hv]
-		return ["bad", "У вас Minecraft новее, чем мир друга (%s). Пусть друг обновит Minecraft — у всех должна быть одна версия." % hv]
+			return ["bad", "У хозяина %s, %s — обновите Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
+		return ["bad", "У хозяина %s, %s — пусть хозяин обновит Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
 	return ["ok", "Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе)." % hv]
 
 

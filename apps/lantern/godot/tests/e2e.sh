@@ -6,7 +6,7 @@ MODE=${1:-java}
 DATA=${2:-/tmp/lantern-e2e-$MODE}
 SHOTS=${3:-}
 HERE=$(cd "$(dirname "$0")/.." && pwd)
-RELAY_DIR=$(cd "$HERE/../../relay" && pwd)
+RELAY_DIR=${RELAY_DIR:-$(cd "$HERE/../relay" 2>/dev/null || cd "$HERE/../../relay"; pwd)}
 GODOT=${GODOT:-/home/user/tools/godot/godot}
 PORT=${RELAY_PORT:-18930}
 mkdir -p "$DATA"; rm -f "$DATA/autotest-ready.json" "$DATA/autotest-done.json"
@@ -27,6 +27,9 @@ fi
   --join_java_port=25570 --join_bedrock_port=19142 --shots="$SHOTS" "${EXTRA[@]}" > "$DATA/app.log" 2>&1 & APP=$!
 NODE_PATH=${E2E_NODE_PATH:-/tmp/claude-0/bot/node_modules:/tmp/claude-0/bp/node_modules} node "$HERE/tests/e2e_client.js" "$DATA" "$MODE" > "$DATA/client.log" 2>&1 & CL=$!
 wait $APP; RC=$?
+# приложение упало до готовности — клиенту ждать нечего; сервер, оставшийся без приложения, гасим
+[ -f "$DATA/autotest-ready.json" ] || kill $CL 2>/dev/null
+pkill -f "$DATA/runtime/" 2>/dev/null
 wait $CL; CRC=$?
 kill $RELAY 2>/dev/null; wait $RELAY 2>/dev/null
 echo "app exit=$RC client exit=$CRC"
