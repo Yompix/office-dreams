@@ -219,7 +219,7 @@ func _social() -> int:
 		Overlays.register(app)
 		await get_tree().create_timer(0.5).timeout
 		await _shot("20_register")
-		Social.register("Стив")
+		Social.register("Ночной_Лис")
 		await _wait(func(): return Social.online(), 10, "профиль создан")
 	await _close_overlays()
 	var tag_file := data.path_join("autotest-tag.txt")
@@ -435,7 +435,7 @@ func _phone() -> int:
 		Overlays.register(app)
 		await get_tree().create_timer(0.6).timeout
 		await _shot("50_phone_register")
-		Social.register("Стив")
+		Social.register("Ночной_Лис")
 		await _wait(func(): return Social.online(), 10, "профиль создан")
 	await _close_overlays()
 	var tag_file := data.path_join("autotest-tag.txt")
@@ -482,8 +482,8 @@ func _phone() -> int:
 	await _wait(func(): return Social.eco.get("pro", false), 5, "Pro (ДЕМО) активна")
 	Social.request("vanity_set", {"code": "yompix"})
 	await get_tree().create_timer(0.5).timeout
-	Social.request("vanity_set", {"code": "ste-ve"})
-	if not await _wait(func(): return Social.eco.get("vanity", "") == "STEVE", 5, "свой код STEVE"):
+	Social.request("vanity_set", {"code": "lu-na7"})
+	if not await _wait(func(): return Social.eco.get("vanity", "") == "LUNA7", 5, "свой код LUNA7"):
 		fails += 1
 	app.go("shop", true, {"kind": "pro"})
 	await get_tree().create_timer(1.0).timeout
@@ -544,6 +544,32 @@ func _phone() -> int:
 	if DeepLink.parse("lantern://friend?tag=x").kind != "" or DeepLink.parse("lantern://evil?c=ABC234").kind != "":
 		_log("FAIL: неверные ссылки приняты")
 		fails += 1
+	# --- «Создать игру» (кнопка «+»)
+	app._nav["play"].pressed.emit()
+	await get_tree().create_timer(0.8).timeout
+	if app.current != "create":
+		_log("FAIL: «+» не открыл «Создать игру»")
+		fails += 1
+	await _shot("62_phone_create")
+	# --- экранная клавиатура (имитация --kb=300): поле ввода видно над ней, меню спрятано
+	if Cfg.autotest_args.has("kb"):
+		app.go("friends", true)
+		await get_tree().create_timer(0.8).timeout
+		var fe: LineEdit = app._screen.get("_tag_in")
+		if fe:
+			fe.grab_focus()
+			await get_tree().create_timer(0.8).timeout
+			var vis := get_viewport().get_visible_rect().size.y - float(Cfg.autotest_args.kb)
+			_log("клавиатура: низ поля %.0f, верх клавиатуры %.0f, меню видно: %s" % [fe.get_global_rect().end.y, vis, app._nav_bar.visible])
+			if fe.get_global_rect().end.y > vis + 1.0 or app._nav_bar.visible:
+				_log("FAIL: поле под клавиатурой")
+				fails += 1
+			await _shot("61_phone_keyboard")
+			fe.release_focus()
+			await get_tree().create_timer(0.6).timeout
+			if not app._nav_bar.visible:
+				_log("FAIL: меню не вернулось после клавиатуры")
+				fails += 1
 	# --- меню «Ещё» и поворот
 	app.go("home", true)
 	await get_tree().create_timer(0.5).timeout
@@ -1110,7 +1136,11 @@ func _ownworld() -> int:
 	Cfg.set_value("own", "last_edition", "bedrock")
 	app.go("home", true)
 	await _shot("70_home_one_tap")
-	app.quick_host()
+	app.quick_host()   # 1.5: «+» → «Создать игру» → «Создать» → дальше всё само
+	await get_tree().create_timer(0.5).timeout
+	await _shot("70b_create_game")
+	if app.current == "create":
+		app._screen._create()
 	if not await _wait(func(): return own.active and app.relay_host.stats().code != "", 15, "одна кнопка: комната открылась сама"):
 		fails += 1
 	await get_tree().create_timer(0.8).timeout

@@ -14,7 +14,7 @@ const VANITY_ALPHABET := "23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ## Привести ввод к виду кода или "" (если это не код).
 static func normalize(text: String) -> String:
 	var c := text.strip_edges().to_upper().replace("-", "").replace(" ", "")
-	if is_random(c):
+	if is_random(c) or is_number(c):
 		return c
 	if c.length() < 3 or c.length() > 8:
 		return ""
@@ -24,6 +24,11 @@ static func normalize(text: String) -> String:
 			return ""
 		letter = letter or (ch >= "A" and ch <= "Z")
 	return c if letter else ""
+
+
+## Номер комнаты из списка игр (1.5): 8 цифр, например 35821626
+static func is_number(c: String) -> bool:
+	return c.length() == 8 and c.is_valid_int() and not c.begins_with("0")
 
 
 static func is_random(c: String) -> bool:

@@ -46,7 +46,7 @@ func _ready() -> void:
 		token = Crypto.new().generate_random_bytes(32).hex_encode()
 		c.set_value("device", "token", token)
 		c.save(TOKEN_FILE)
-	demo = Cfg.get_value("app", "demo", true)
+	demo = Cfg.paid() and Cfg.get_value("app", "demo", true)
 	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return   # e2e сервера не трогает социальную часть
 	_next_try = 0
@@ -137,6 +137,8 @@ func _on_msg(m: Dictionary) -> void:
 	match t:
 		"need_register":
 			_set_conn("need_register")
+		"account_deleted":
+			_forget_profile()
 		"welcome":
 			me = m.me
 			tags = m.get("tags", [])
@@ -290,7 +292,34 @@ func friend_by_id(id: int) -> Dictionary:
 	return {}
 
 
+## Удалить профиль на сервере (друзья, сообщения, облако — всё). Ответ — account_deleted / delete_account_err.
+func delete_account() -> void:
+	_send({"t": "delete_account", "confirm": "DELETE"})
+
+
+## После удаления: новый ключ устройства, локальные данные профиля стёрты, дальше — регистрация заново
+func _forget_profile() -> void:
+	token = Crypto.new().generate_random_bytes(32).hex_encode()
+	var c := ConfigFile.new()
+	c.set_value("device", "token", token)
+	c.save(TOKEN_FILE)
+	me = {}
+	friends = []
+	incoming = []
+	outgoing = []
+	blocked = []
+	eco = {}
+	dms = {}
+	unread = {}
+	room_msgs = []
+	cloud = {}
+	notice.emit({"kind": "account_deleted"})
+	changed.emit("me")
+	reconnect()
+
+
 func set_demo(on: bool) -> void:
+	on = on and Cfg.paid()
 	demo = on
 	Cfg.set_value("app", "demo", on)
 	if not on:

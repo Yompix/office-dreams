@@ -532,7 +532,7 @@ func resolve(id: String) -> void:
 		"allow_offline":
 			opts["online_mode"] = false
 			_save_opts()
-			_fixed("Теперь пускаем игроков с TLauncher (мир тот же, сервер перезапущен)")
+			_fixed("Проверка аккаунтов выключена (мир тот же, сервер перезапущен)")
 			restart()
 		"more_slots":
 			opts["max_players"] = int(opts.get("max_players", 10)) + 5
@@ -566,7 +566,7 @@ func _doctor(t: String) -> bool:
 				_fixed("%s не пускал белый список — LANTERN выключил его. Пусть %s зайдёт ещё раз" % [n, n])
 		"auth":
 			if opts.get("online_mode", true):
-				_issue("auth", Doctor.text(d), "Пускать игроков TLauncher", "allow_offline")
+				_issue("auth", Doctor.text(d), "Понятно", "")
 		"outdated_client", "outdated_server":
 			_issue("ver:" + n, Doctor.text(d, String(_installed.get("mc_version", ""))), "Понятно", "")
 		"banned":

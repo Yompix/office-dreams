@@ -41,6 +41,25 @@ const fr = (sid, s) => { const p = Buffer.from(s); const b = Buffer.alloc(4 + p.
   await g;
   const h = await (await fetch(`http://127.0.0.1:${process.env.PORT}/healthz`)).json();
   assert.equal(h.ok, true); assert.equal(h.rooms, 1);
+  // 1.5: номер комнаты, режим, места, пароль, публичный список
+  const h2 = await open();
+  h2.send(JSON.stringify({ t: 'host', v: 1, edition: 'java', name: 'Пароль', public: { title: 'Закрытый мир', version: '1.21.11', slots: 3 },
+    settings: { mode: 'creative', cap: 2, password: 'кот', size_mb: 42 } }));
+  const r2 = await next(h2); assert.match(r2.num, /^\d{8}$/);
+  const p1 = await open(); p1.send(JSON.stringify({ t: 'join', v: 1, code: r2.num })); assert.equal((await next(p1)).error, 'need_password');
+  const p2 = await open(); p2.send(JSON.stringify({ t: 'join', v: 1, code: r2.num, password: 'пёс' })); assert.equal((await next(p2)).error, 'bad_password');
+  const p3 = await open(); p3.send(JSON.stringify({ t: 'join', v: 1, code: r2.num, password: 'кот' })); const j3 = await next(p3);
+  assert.equal(j3.t, 'joined'); assert.equal(j3.num, r2.num);
+  const p4 = await open(); p4.send(JSON.stringify({ t: 'join', v: 1, code: r2.code, password: 'кот' })); assert.equal((await next(p4)).error, 'full');
+  const list = await (await fetch(`http://127.0.0.1:${process.env.PORT}/rooms?mode=creative&version=1.21`)).json();
+  const pr = list.rooms.find((x) => x.num === r2.num);
+  assert(pr && pr.locked && pr.cap === 2 && pr.mode === 'creative' && pr.size_mb === 42 && pr.players === 1, JSON.stringify(list));
+  assert.equal((await (await fetch(`http://127.0.0.1:${process.env.PORT}/rooms?mode=pvp`)).json()).rooms.length, 0);
+  h2.send(JSON.stringify({ t: 'room_meta', settings: { password: '', cap: 6 } }));
+  await new Promise((r) => setTimeout(r, 50));
+  const p5 = await open(); p5.send(JSON.stringify({ t: 'join', v: 1, code: r2.num })); assert.equal((await next(p5)).t, 'joined');
+  console.log('  ✓ номер комнаты', r2.num, '· пароль · места · режим/версия в списке · смена настроек на ходу');
+  for (const w of [h2, p1, p2, p3, p4, p5]) w.close();
   console.log('relay test OK: code', room.code, 'health', JSON.stringify(h));
   for (const w of [a, b, bad]) w.close();
   server.close(); process.exit(0);

@@ -1,0 +1,18 @@
+LANTERN 1.5.0 для Windows — by Yompix
+
+Играйте с друзьями по коду комнаты — в Minecraft: Java Edition и Bedrock Edition.
+
+Как запустить: распакуйте архив в любую папку и откройте LANTERN.exe.
+Если Windows пишет «Windows защитила компьютер» — «Подробнее» → «Выполнить в любом случае»
+(программа пока без платной цифровой подписи).
+
+Для игры нужна своя копия Minecraft. LANTERN не содержит файлов игры.
+Серверы (Paper, Geyser, Bedrock Dedicated Server) и Java скачиваются по вашему запросу
+с официальных сайтов; запуск сервера — только после согласия с Minecraft EULA.
+
+Конфиденциальность: https://office-dreams-production.up.railway.app/lantern/privacy
+Удалить профиль:    https://office-dreams-production.up.railway.app/lantern/delete
+
+НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ ПРОДУКТОМ MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С MOJANG ИЛИ MICROSOFT.
+NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
+Minecraft — товарный знак Mojang Synergies AB.

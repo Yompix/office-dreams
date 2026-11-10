@@ -142,3 +142,15 @@ HTTP (тот же домен, заголовок `Authorization: Bearer <ток�
 * `GET /cloud/share/<код>` — копия по коду друга (любой профиль LANTERN; Pro не нужна).
 Без тома (`RAILWAY_VOLUME_MOUNT_PATH`/`CLOUD_DIR`) облако выключено (`enabled:false`, HTTP 503).
 Копии удаляются через `CLOUD_KEEP_DAYS` (30) дней после окончания Pro.
+
+## 1.5: игры, номер комнаты, пароль, места, удаление профиля
+- `host` и `room_meta` принимают `settings: {mode, cap, password, size_mb}` (всё необязательно; старые клиенты не шлют).
+  `mode` ∈ survival/creative/minigame/pvp/roleplay/other; `cap` — мест всего, с хозяином (2–21); `password` — до 32 символов,
+  relay хранит только sha256; `""` снимает пароль. `room_meta` без `public` публичность не меняет.
+- Ответ `room` и `joined` содержат `num` — номер комнаты из 8 цифр. `join.code` может быть кодом или номером; `join.password`.
+  Ошибки входа: `need_password`, `bad_password`, `full` (места кончились; хозяину-владельцу не мешает).
+- Хозяину каждые ~15 с приходит `{t:"net", ping, quality}` (great < 90 мс ≤ good < 200 мс ≤ poor) — по WebSocket ping/pong.
+- `rooms` / `GET /rooms` принимают `mode`, `version` (префикс, например `1.21`), `q` (название или номер); в каждой комнате
+  новые поля `num, mode, cap, locked, size_mb, ping, quality` (players — без хозяина).
+- `delete_account {confirm:"DELETE"}` → `account_deleted` и закрытие соединения; стирает профиль, друзей, ЛС, жалобы,
+  экономику, свой код и облачные копии. Страницы: `/privacy`, `/terms`, `/delete` (relay/legal.js).

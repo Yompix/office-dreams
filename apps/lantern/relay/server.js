@@ -30,6 +30,8 @@ const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // без 0/O, 1/I/L
 const EDITIONS = new Set(['java', 'bedrock', 'both']);
 
 const rooms = new Map();      // code -> room
+const roomNums = new Map();   // номер комнаты (8 цифр, показываем в списке игр) -> room
+const MODES = ['survival', 'creative', 'minigame', 'pvp', 'roleplay', 'other'];
 const ipConns = new Map();    // ip -> count
 const ipJoins = new Map();    // ip -> [timestamps]
 let nextSid = 1;
@@ -40,6 +42,7 @@ let wss = null;
 
 const { Pro, PRO_CMDS } = require('./pro');
 const { Downloads } = require('./download');
+const legal = require('./legal');
 let downloads = new Downloads('');
 let publicBase = '';
 
@@ -53,7 +56,7 @@ function makeSocial(dbPath, opts = {}) {
   return s;
 }
 const SOCIAL_CMDS = new Set(['hello', 'register', 'presence', 'friend_add', 'friend_accept', 'friend_decline', 'friend_remove',
-  'block', 'unblock', 'report', 'dm', 'history', 'invite', 'room_enter', 'room_chat', 'rooms', 'state']);
+  'block', 'unblock', 'report', 'dm', 'history', 'invite', 'room_enter', 'room_chat', 'rooms', 'state', 'delete_account']);
 
 function log(...a) { if (process.env.QUIET !== '1') console.log(new Date().toISOString(), ...a); }
 
@@ -115,6 +118,7 @@ function closeRoom(room, why) {
   if (room.closed) return;
   room.closed = true;
   rooms.delete(room.code);
+  if (roomNums.get(room.num) === room) roomNums.delete(room.num);
   social.roomClosed(room.code);
   clearTimeout(room.resumeTimer);
   for (const j of room.joiners) {
@@ -133,6 +137,29 @@ function hostGone(room) {
   room.resumeTimer = setTimeout(() => closeRoom(room, 'host_left'), CFG.resumeMs);
 }
 
+// Настройки комнаты (1.5): режим, места, пароль, размер мира. Старые клиенты их не шлют — всё по умолчанию.
+function applySettings(room, s) {
+  if (!s || typeof s !== 'object') return;
+  if (MODES.includes(s.mode)) room.mode = s.mode;
+  if (s.cap !== undefined) room.cap = Math.max(2, Math.min(CFG.maxJoiners + 1, s.cap >>> 0 || 6));
+  if (s.password !== undefined) {
+    const p = String(s.password || '').slice(0, 32);
+    room.passHash = p ? crypto.createHash('sha256').update('lantern-room:' + p).digest('hex') : '';
+  }
+  if (s.size_mb !== undefined) room.sizeMb = Math.max(0, Math.min(100000, Number(s.size_mb) || 0));
+}
+
+function makeNum() {
+  for (let i = 0; i < 50; i++) {
+    const n = String(10000000 + crypto.randomInt(90000000));
+    if (!roomNums.has(n)) return n;
+  }
+  return '';
+}
+
+// Качество связи хозяина с relay: по пингу WebSocket (ping → pong), без участия клиента
+function quality(ms) { return !ms ? '' : ms < 90 ? 'great' : ms < 200 ? 'good' : 'poor'; }
+
 function onHost(ws, msg) {
   if (!EDITIONS.has(msg.edition)) return send(ws, { t: 'error', error: 'bad_edition' });
   const name = String(msg.name || 'Мир').slice(0, 48);
@@ -147,6 +174,7 @@ function onHost(ws, msg) {
     room.host = ws;
     room.name = name;
     room.meta = Social.roomMeta(msg.public);
+    applySettings(room, msg.settings);
     for (const j of room.joiners) send(j.ws, { t: 'host_back' });
     setBans(room, msg.bans);
   } else {
@@ -160,7 +188,11 @@ function onHost(ws, msg) {
       created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public),
       bans: new Set(), banIps: new Set() };
     setBans(room, msg.bans);
+    room.num = makeNum();
+    room.mode = 'other'; room.cap = 0; room.passHash = ''; room.sizeMb = 0;
+    applySettings(room, msg.settings);
     rooms.set(code, room);
+    if (room.num) roomNums.set(room.num, room);
     stats.roomsCreated++;
     if (owner) {
       social.eco.addStat(owner.id, 'hosts', 1);
@@ -171,7 +203,7 @@ function onHost(ws, msg) {
   }
   ws._role = 'host';
   ws._room = room;
-  send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO, vanity: !!(msg.vanity && owner && social.pro.vanityOf(owner.id) === room.code),
+  send(ws, { t: 'room', code: room.code, num: room.num, token: room.token, v: PROTO, vanity: !!(msg.vanity && owner && social.pro.vanityOf(owner.id) === room.code),
     limits: { joiners: CFG.maxJoiners, streams: CFG.maxStreams, bytesPerSec: CFG.roomBytesPerSec } });
   // кто уже в комнате (после переподключения хозяина)
   for (const j of room.joiners) send(ws, peerMsg(j, true));
@@ -206,11 +238,20 @@ function onJoin(ws, msg) {
   list.push(now);
   ipJoins.set(ip, list);
   if (list.length > CFG.joinPerMin) return send(ws, { t: 'error', error: 'rate' });
-  const room = rooms.get(normCode(msg.code));
+  const nc = normCode(msg.code);
+  const room = /^\d{8}$/.test(nc) ? roomNums.get(nc) : rooms.get(nc);
   if (!room) return send(ws, { t: 'error', error: 'not_found' });
-  if (room.joiners.size >= CFG.maxJoiners) return send(ws, { t: 'error', error: 'full' });
   const ju = social.userByToken(msg.token);
+  const owner = ju && room.ownerId === ju.id;
+  // места: cap — всего игроков вместе с хозяином
+  if (room.joiners.size >= CFG.maxJoiners || (room.cap && !owner && room.joiners.size + 1 >= room.cap)) return send(ws, { t: 'error', error: 'full' });
   if ((ju && room.bans && room.bans.has(ju.id)) || (room.banIps && room.banIps.has(ip))) return send(ws, { t: 'error', error: 'banned_by_host' });
+  if (room.passHash && !owner) {
+    const p = String(msg.password || '');
+    if (!p) return send(ws, { t: 'error', error: 'need_password' });
+    const h = crypto.createHash('sha256').update('lantern-room:' + p.slice(0, 32)).digest('hex');
+    if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(room.passHash))) return send(ws, { t: 'error', error: 'bad_password' });
+  }
   const j = { ws, room, streams: new Map(), id: crypto.randomBytes(3).toString('hex'), userId: ju ? ju.id : 0 };
   room.joiners.add(j);
   ws._role = 'joiner';
@@ -222,7 +263,7 @@ function onJoin(ws, msg) {
     social.eco.visit(room.ownerId, j.userId);
     social.eco.checkAchievements(j.userId);
   }
-  send(ws, { t: 'joined', v: PROTO, code: room.code, edition: room.edition, name: room.name, host: !!room.host });
+  send(ws, { t: 'joined', v: PROTO, code: room.code, num: room.num, edition: room.edition, name: room.name, host: !!room.host });
   send(room.host, peerMsg(j, true));
 }
 
@@ -270,7 +311,11 @@ function onText(ws, text) {
   if (msg.t === 'ping') return send(ws, { t: 'pong', ts: msg.ts });
   if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t) || PRO_CMDS.has(msg.t)) return social.handle(ws, msg);
   if (msg.t === 'like' && ws._role === 'joiner') return likeRoom(ws);
-  if (msg.t === 'room_meta' && ws._role === 'host') { ws._room.meta = Social.roomMeta(msg.public); return; }
+  if (msg.t === 'room_meta' && ws._role === 'host') {
+    if ('public' in msg) ws._room.meta = Social.roomMeta(msg.public);
+    applySettings(ws._room, msg.settings);
+    return;
+  }
   if (!ws._role) {
     if (Number(msg.v || 1) > PROTO) return send(ws, { t: 'error', error: 'bad_version', v: PROTO });
     if (msg.t === 'host') return onHost(ws, msg);
@@ -313,9 +358,10 @@ function onBinary(ws, data) {
   }
 }
 
-// HTTP: /healthz и /rooms (url — уже без префикса)
+// HTTP: /healthz, /rooms, /download, /privacy, /terms, /delete (url — уже без префикса)
 function onHttp(req, res, url) {
   if (downloads.http(req, res, url, publicBase)) return;
+  if (legal.http(req, res, url, publicBase)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
     let joiners = 0;
@@ -327,7 +373,8 @@ function onHttp(req, res, url) {
   if (url.startsWith('/rooms')) {
     const u = new URL(url, 'http://x');
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-    return res.end(JSON.stringify({ rooms: social.publicRooms({ edition: u.searchParams.get('edition'), tag: u.searchParams.get('tag'), q: u.searchParams.get('q') }) }));
+    return res.end(JSON.stringify({ rooms: social.publicRooms({ edition: u.searchParams.get('edition'), tag: u.searchParams.get('tag'), q: u.searchParams.get('q'),
+      mode: u.searchParams.get('mode'), version: u.searchParams.get('version') }) }));
   }
   res.writeHead(404); res.end();
 }
@@ -343,7 +390,13 @@ function onConnection(ws, req) {
     ws._seen = Date.now();
     if (isBinary) onBinary(ws, data); else onText(ws, data.toString());
   });
-  ws.on('pong', () => { ws._seen = Date.now(); });
+  ws.on('pong', () => {
+    ws._seen = Date.now();
+    if (ws._pingAt) {
+      const ms = ws._seen - ws._pingAt; ws._rtt = ws._rtt ? Math.round(ws._rtt * 0.6 + ms * 0.4) : ms; ws._pingAt = 0;
+      if (ws._role === 'host') send(ws, { t: 'net', ping: ws._rtt, quality: quality(ws._rtt) });
+    }
+  });
   ws.on('close', () => {
     const c = (ipConns.get(ws._ip) || 1) - 1;
     if (c <= 0) ipConns.delete(ws._ip); else ipConns.set(ws._ip, c);
@@ -376,7 +429,7 @@ function attach(httpServer, opts = {}) {
     const now = Date.now();
     for (const ws of wss.clients) {
       if (now - ws._seen > CFG.idleMs) { ws.terminate(); continue; }
-      if (ws.readyState === 1) ws.ping();
+      if (ws.readyState === 1) { ws._pingAt = Date.now(); ws.ping(); }
     }
     for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
     for (const [ip, l] of ipJoins) if (!l.length || now - l[l.length - 1] > 60_000) ipJoins.delete(ip);
@@ -409,4 +462,4 @@ if (require.main === module) {
   process.on('SIGINT', shutdown);
 }
 
-module.exports = { attach, standalone, rooms, CFG, normCode, ALPHABET, get social() { return social; } };
+module.exports = { attach, standalone, rooms, roomNums, quality, MODES, CFG, normCode, ALPHABET, get social() { return social; } };

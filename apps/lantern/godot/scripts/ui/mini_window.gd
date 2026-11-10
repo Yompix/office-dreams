@@ -127,7 +127,7 @@ func _refresh() -> void:
 	_count.text = "👥 %d" % peers.size()
 	if not _expanded:
 		return
-	var key := "%s|%s|%s|%s|%s" % [s.text, s.why, ctl.code(), ctl.is_public(), JSON.stringify(peers)]
+	var key := "%s|%s|%s|%s|%s|%s|%s|%d" % [s.text, s.why, ctl.code(), ctl.is_public(), JSON.stringify(peers), ctl.num(), ctl.quality(), Social.friends.size()]
 	if key == _key:
 		return
 	_key = key
@@ -136,7 +136,7 @@ func _refresh() -> void:
 	if String(s.why) != "":
 		_body.add_child(UI.para(String(s.why), 13, UI.YELLOW))
 	var cr := UI.hbox(8)
-	var cl := UI.label(ctl.code() if ctl.code() != "" else "······", 24, UI.accent(), UI.font_black)
+	var cl := UI.label(("№ " + ctl.num()) if ctl.num() != "" else (ctl.code() if ctl.code() != "" else "······"), 22, UI.accent(), UI.font_black)
 	cl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cr.add_child(cl)
 	cr.add_child(UI.icon_button("copy", func():
@@ -144,6 +144,10 @@ func _refresh() -> void:
 			UI.copy(ctl.share_text())
 			_status.text = "Приглашение скопировано", "Копировать приглашение", UI.MUTED))
 	_body.add_child(cr)
+	var q: String = ctl.quality()
+	_body.add_child(UI.label("● " + String(RoomControl.QUALITY_TEXT.get(q, "проверяем связь…")) + ("  · код " + ctl.code() if ctl.num() != "" else ""), 12,
+		{"great": UI.JAVA, "good": UI.YELLOW, "poor": UI.RED}.get(q, UI.DIM), UI.font_bold))
+	_body.add_child(UI.label("Игроки" + (" · %d" % peers.size() if peers.size() > 0 else ""), 14, UI.TEXT, UI.font_bold))
 	_body.add_child(UI.button("Кто может зайти: " + ("все в LANTERN" if ctl.is_public() else "только друзья по коду"), "ghost", func(): ctl.set_public(not ctl.is_public()), "globe"))
 	if peers.is_empty():
 		_body.add_child(UI.label("Пока никто не зашёл", 13, UI.DIM))
@@ -156,8 +160,34 @@ func _refresh() -> void:
 		r.add_child(n)
 		var pid := String(p.peer)
 		r.add_child(UI.button("Выгнать", "ghost", func(): ctl.kick(pid)))
-		r.add_child(UI.button("Забанить", "danger", func(): ctl.ban(pid)))
+		var more := UI.icon_button("dots_v", Callable(), "Ещё", UI.MUTED)
+		more.pressed.connect(func():
+			var pm := PopupMenu.new()
+			pm.add_item("Забанить", 0)
+			pm.id_pressed.connect(func(_i): ctl.ban(pid))
+			pm.popup_hide.connect(pm.queue_free)
+			add_child(pm)
+			pm.popup(Rect2i(Vector2i(more.get_screen_position() + Vector2(0, more.size.y)), Vector2i(160, 0))))
+		r.add_child(more)
 		_body.add_child(r)
+	_body.add_child(UI.label("Пригласить друзей", 14, UI.TEXT, UI.font_bold))
+	var ir := UI.hbox(6)
+	ir.add_child(UI.button("Скопировать ссылку", "secondary", func():
+		if ctl.share_text() != "":
+			UI.copy(ctl.share_text())
+			_status.text = "Приглашение скопировано", "share"))
+	ir.add_child(UI.button("Номер", "ghost", func():
+		UI.copy(ctl.num() if ctl.num() != "" else ctl.code())
+		_status.text = "Номер скопирован", "copy"))
+	_body.add_child(ir)
+	for f in Social.friends.filter(func(x): return x.get("online", false)).slice(0, 4):
+		var fr := UI.hbox(6)
+		var fl := UI.label(String(f.nick), 14, UI.TEXT)
+		fl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fr.add_child(fl)
+		var fid := int(f.id)
+		fr.add_child(UI.button("Пригласить", "tonal", func(): ctl.invite(fid)))
+		_body.add_child(fr)
 	var br := UI.hbox(8)
 	br.add_child(UI.button("Закрыть комнату", "danger", func():
 		ctl.close_room(), "stop"))

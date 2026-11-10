@@ -22,12 +22,17 @@ var _step := 1
 var _next1: Button
 var _plays_box: VBoxContainer
 
-const PLAYS := [["java", "java", "Java Edition", "Minecraft на компьютере (лицензия или TLauncher)"], ["bedrock", "phone", "Bedrock Edition", "Телефон, планшет, Windows 10/11, консоли"], ["both", "globe", "Не знаю / оба", "Подключим и то, и другое — найдёте мир в любой версии"]]
+const PLAYS := [["java", "java", "Java Edition", "Minecraft на компьютере"], ["bedrock", "phone", "Bedrock Edition", "Телефон, планшет, Windows 10/11, консоли"], ["both", "globe", "Не знаю / оба", "Подключим и то, и другое — найдёте мир в любой версии"]]
 const STEP_NAMES := ["Код", "Ваша игра", "Играем"]
+
+
+var _password := ""
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 20)
+	if arg is Dictionary:
+		_password = String(arg.get("password", ""))
 	_plays = arg.get("edition", Cfg.get_value("join", "plays", "both")) if arg is Dictionary else "both"
 	if Cfg.mobile():
 		_plays = "bedrock"     # на телефоне только Bedrock — не спрашиваем
@@ -294,6 +299,7 @@ func _connect() -> void:
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
 	app.relay_join.token = Social.token
+	app.relay_join.password = _password
 	app.relay_join.nn_port = int(Cfg.autotest_args.get("join_nn_port", NetherNet.PORT))
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
@@ -363,6 +369,20 @@ func _show_room() -> void:
 			_result.add_child(_disconnect_btn("Отмена"))
 			return
 		"error":
+			if String(st.get("error_code", "")) in ["need_password", "bad_password"]:
+				# игра с паролем: спросить прямо здесь и зайти снова
+				var locked: bool = st.error_code == "need_password"
+				_result.add_child(_hero(_ring("lock", UI.accent()), "Игра с паролем" if locked else "Неверный пароль", "Спросите пароль у хозяина игры", UI.MUTED))
+				var pw := UI.line_edit("", "Пароль")
+				pw.secret = true
+				pw.max_length = 32
+				_result.add_child(pw)
+				var go := func(): _password = pw.text; _connect()
+				pw.text_submitted.connect(func(_t): go.call())
+				_result.add_child(UI.button("Войти", "primary", go, "play"))
+				_result.add_child(UI.button("Назад", "secondary", func(): app.relay_join.stop(); app.go("home", true)))
+				pw.grab_focus.call_deferred()
+				return
 			_result.add_child(_hero(_ring("close", UI.RED), "Не получилось подключиться", st.error, Color("ff9d9d")))
 			_result.add_child(UI.button("Попробовать ещё раз", "primary", _connect, "refresh"))
 			_result.add_child(UI.button("Изменить код", "secondary", func(): app.relay_join.stop(); _goto(1)))

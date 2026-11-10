@@ -38,14 +38,14 @@ var _kb_h := 0.0
 var _has_actions := false
 
 ## На телефоне эти экраны прокручиваются целиком (у остальных — свои списки с прокруткой).
-const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "rooms", "shop"]
-const TITLES := {"home": "Главная", "setup": "Создать мир", "host": "Мой мир", "join": "Зайти к другу",
-	"settings": "Настройки", "rooms": "Открытые миры", "friends": "Друзья", "campfire": "Костёр",
+const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create"]
+const TITLES := {"home": "Игры", "create": "Создать игру", "setup": "Создать мир", "host": "Мой мир", "join": "Зайти к другу",
+	"settings": "Настройки", "friends": "Друзья", "campfire": "Костёр",
 	"quests": "Задания", "shop": "Магазин", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров"}
 ## Корневые разделы телефона (без стрелки «Назад»)
-const ROOTS := ["home", "friends", "shop"]
+const ROOTS := ["home", "friends", "profile"]
 ## Узкая колонка на широком экране — для форм и списков настроек
-const NARROW := ["settings", "backups", "syscheck", "profile", "join", "setup"]
+const NARROW := ["settings", "backups", "syscheck", "profile", "join", "setup", "create"]
 
 
 const TOUCH_DEADZONE := 14   # px: меньше — это ещё нажатие, больше — уже прокрутка
@@ -58,6 +58,7 @@ func _ready() -> void:
 	elif not Cfg.phone_preview():
 		get_window().min_size = Vector2i(1024, 700)
 	get_window().size_changed.connect(_on_resize)
+	get_viewport().gui_focus_changed.connect(func(_c): if _kb_h > 0.0: _kb_reveal.call_deferred())
 	get_window().title = "LANTERN — by Yompix"
 	get_tree().node_added.connect(_on_node_added)
 	server = ServerHost.new()
@@ -83,12 +84,33 @@ func _ready() -> void:
 			toast(text, UI.YELLOW))
 	relay_host.extra = {}
 	if Cfg.autotest != "":
-		var t := preload("res://tests/autotest.gd").new()
+		var t: Node = load("res://tests/autotest.gd").new()
 		t.name = "Autotest"
 		add_child(t)
 		t.run(self)
 	elif not open_deeplink(DeepLink.from_launch()):
 		go("home")
+	if Cfg.autotest_args.has("startup"):
+		_measure_startup()
+
+
+## --startup=1: время до первого кадра и средний кадр на главной (для отчёта о скорости), затем выход
+func _measure_startup() -> void:
+	await RenderingServer.frame_post_draw
+	var first := Time.get_ticks_msec()
+	OS.low_processor_usage_mode = false   # на простое кадры не рисуются вовсе — для замера рисуем подряд
+	var t0 := Time.get_ticks_usec()
+	var n := 0
+	var worst := 0.0
+	var last := t0
+	while n < 120:
+		await RenderingServer.frame_post_draw
+		var now := Time.get_ticks_usec()
+		worst = maxf(worst, (now - last) / 1000.0)
+		last = now
+		n += 1
+	print("[startup] first frame %d ms; avg frame %.1f ms, worst %.1f ms (%s)" % [first, (Time.get_ticks_usec() - t0) / 1000.0 / n, worst, RenderingServer.get_current_rendering_method()])
+	get_tree().quit(0)
 
 
 ## Телефон: 1 логическая единица = 1 dp, чтобы шрифты и кнопки были привычного размера
@@ -167,8 +189,11 @@ func _on_node_added(n: Node) -> void:
 
 
 ## Элемент внутри прокрутки не «глотает» касание: палец, начавший на кнопке или карточке, листает список.
-func _touch_pass(c: Control) -> void:
-	if not is_instance_valid(c) or c.mouse_filter != Control.MOUSE_FILTER_STOP:
+func _touch_pass(o: Variant) -> void:
+	if not is_instance_valid(o):   # успел исчезнуть до отложенного вызова
+		return
+	var c := o as Control
+	if c == null or c.mouse_filter != Control.MOUSE_FILTER_STOP:
 		return
 	var p := c.get_parent()
 	while p:
@@ -310,7 +335,7 @@ func _bottom_nav() -> Control:
 	var row := UI.hbox(0)
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(row)
-	for item in [["home", "home", "Главная"], ["friends", "friends", "Друзья"], ["play", "plus", "Играть"], ["shop", "shop", "Магазин"], ["more", "more", "Ещё"]]:
+	for item in [["home", "globe", "Игры"], ["friends", "friends", "Друзья"], ["play", "plus", "Создать"], ["profile", "user", "Профиль"], ["more", "more", "Ещё"]]:
 		var b := Button.new()
 		b.flat = true
 		b.focus_mode = Control.FOCUS_NONE
@@ -353,7 +378,7 @@ func _bottom_nav() -> Control:
 		b.set_meta("ic_holder", ic_holder)
 		match item[0]:
 			"more": b.pressed.connect(_more_menu.bind(b))
-			"play": b.pressed.connect(play_sheet)
+			"play": b.pressed.connect(func(): go("create"))
 			_: b.pressed.connect(func(): go(item[0]))
 		FX.press(b, 0.92)
 		row.add_child(b)
@@ -394,8 +419,8 @@ func _build_desktop() -> void:
 	brand.add_child(bv)
 	sv.add_child(bm)
 	var groups := [
-		[["home", "home", "Главная"], ["setup", "plus", "Создать мир"], ["join", "play", "Зайти к другу"]],
-		[["rooms", "globe", "Открытые миры"], ["friends", "friends", "Друзья"], ["campfire", "campfire", "Костёр"]],
+		[["home", "globe", "Игры"], ["create", "plus", "Создать игру"], ["join", "play", "Зайти по коду"]],
+		[["friends", "friends", "Друзья"], ["campfire", "campfire", "Костёр"]],
 		[["quests", "quests", "Задания и сезон"], ["shop", "shop", "Магазин"], ["backups", "cloud", "Копии миров"], ["settings", "settings", "Настройки"]],
 	]
 	for gi in groups.size():
@@ -516,7 +541,7 @@ func play_sheet() -> void:
 	var v: VBoxContainer = Overlays.sheet(self, "Во что играем?", "Выберите, что хотите сделать")
 	v.add_child(play_option("host"))
 	v.add_child(play_option("join"))
-	var rr := UI.list_row(UI.icon_tile("globe", UI.BEDROCK, 40, 20), "Открытые миры", "Зайти в мир, открытый для всех", UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go("rooms"), Color(0, 0, 0, 0))
+	var rr := UI.list_row(UI.icon_tile("globe", UI.BEDROCK, 40, 20), "Игры", "Зайти в открытую игру", UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go("home"), Color(0, 0, 0, 0))
 	v.add_child(rr)
 
 
@@ -570,7 +595,7 @@ func quick_host() -> void:
 	if own.active or server.state in ["installing", "starting", "running", "stopping"]:
 		go("host")
 	else:
-		go("setup", true, {"own": true, "auto": true})
+		go("create")
 
 
 func _num_row(n: String, t: String, sub: String) -> Control:
@@ -594,8 +619,8 @@ func _num_row(n: String, t: String, sub: String) -> Control:
 
 func _more_menu(_b: Button = null) -> void:
 	var v: VBoxContainer = Overlays.sheet(self, "Ещё")
-	var items := [["rooms", "globe", "Открытые миры", "Миры, куда можно зайти всем"], ["campfire", "campfire", "Костёр", "Друзья в сети — у огня"], ["quests", "quests", "Задания и сезон", "Искры за игру с друзьями"],
-		["profile", "user", "Профиль", "Ник, тег, фонарь"], ["backups", "cloud", "Копии миров", "Резервные копии и облако"], ["settings", "settings", "Настройки", "Цвет, анимации, сервер"]]
+	var items := [["join", "play", "Зайти по коду", "Код или номер комнаты от друга"], ["shop", "shop", "Магазин", "Пламя и рамки за искры"], ["campfire", "campfire", "Костёр", "Друзья в сети — у огня"], ["quests", "quests", "Задания и сезон", "Искры за игру с друзьями"],
+		["backups", "cloud", "Копии миров", "Резервные копии и облако"], ["settings", "settings", "Настройки", "Цвет, анимации, сервер"]]
 	if own.active or server.state in ["installing", "starting", "running", "stopping", "error"]:
 		items.push_front(["host", "server", "Мой мир", "Код комнаты и игроки"])
 	var list := UI.vbox(2)
@@ -640,6 +665,14 @@ func host_extra(own_opts := {}) -> Dictionary:
 			"version": server.opts.get("mc_version", "") if server.edition == "java" else "", "slots": server.opts.get("max_players", 10)}
 	elif not own_opts.is_empty() and relay_host.public_on and not relay_host.public_card.is_empty():
 		d["public"] = relay_host.public_card
+	# 1.5: режим, места и пароль из «Создать игру» (relay проверяет пароль и места сам)
+	var g := Cfg.game()
+	d["settings"] = {"mode": g.mode, "cap": g.cap, "password": g.password}
+	if d.has("public"):
+		d.public = (d.public as Dictionary).duplicate()
+		if g.title != "":
+			d.public["title"] = g.title
+		d.public["slots"] = g.cap
 	return d
 
 
@@ -665,14 +698,25 @@ var _last_presence := ""
 
 
 func _process(d: float) -> void:
-	if _compact and OS.has_feature("mobile") and is_instance_valid(_kb_gap):
+	if _compact and (OS.has_feature("mobile") or Cfg.autotest_args.has("kb")) and is_instance_valid(_kb_gap):
 		var w := get_window()
 		var k := float(w.size.y) / maxf(1.0, float(w.content_scale_size.y)) if w.content_scale_size.y > 0 else 1.0
 		var kb := float(DisplayServer.virtual_keyboard_get_height()) / k
+		if Cfg.autotest_args.has("kb"):   # автотест: «клавиатура» высотой kb dp, пока фокус в поле ввода
+			kb = float(Cfg.autotest_args.kb) if get_viewport().gui_get_focus_owner() is LineEdit else 0.0
+		# Клавиатура открывается/закрывается в несколько шагов, а при переходе между полями на миг «пропадает».
+		# Открытие применяем сразу, закрытие — после короткой паузы: без прыжков содержимого.
 		if absf(kb - _kb_h) > 1.0:
-			_kb_h = kb
-			_kb_gap.custom_minimum_size.y = maxf(0.0, kb - _safe.y)
-			_nav_bar.visible = kb <= 0.0
+			if kb > _kb_h:
+				_kb_pending = -1.0
+				_kb_apply(kb)
+			elif _kb_pending < 0.0 or absf(_kb_pending_h - kb) > 1.0:
+				_kb_pending = 0.15
+				_kb_pending_h = kb
+		if _kb_pending >= 0.0:
+			_kb_pending -= d
+			if _kb_pending < 0.0:
+				_kb_apply(_kb_pending_h)
 	_presence_tick += d
 	if _presence_tick > 2.0:
 		_presence_tick = 0
@@ -680,6 +724,65 @@ func _process(d: float) -> void:
 		if key != _last_presence:
 			_last_presence = key
 			update_presence()
+
+
+var _kb_pending := -1.0
+var _kb_pending_h := 0.0
+var _kb_tw: Tween
+
+
+## Экранная клавиатура: плавно (180 мс) поднять содержимое, спрятать нижнее меню и прокрутить к полю ввода.
+func _kb_apply(kb: float) -> void:
+	_kb_h = kb
+	var gap := maxf(0.0, kb - _safe.y)
+	_nav_bar.visible = kb <= 0.0
+	if _kb_tw:
+		_kb_tw.kill()
+	if FX.on():
+		_kb_tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_kb_tw.tween_property(_kb_gap, "custom_minimum_size:y", gap, 0.18)
+		_kb_tw.tween_callback(_kb_reveal)
+	else:
+		_kb_gap.custom_minimum_size.y = gap
+		_kb_reveal.call_deferred()
+
+
+## Поле с фокусом — над клавиатурой: прокрутить свой ScrollContainer, а окно поверх экрана (лист, регистрация) — сдвинуть вверх.
+func _kb_reveal() -> void:
+	var f := get_viewport().gui_get_focus_owner()
+	var main_root := _kb_gap.get_parent()
+	var panned: Array = get_meta("kb_panned", [])
+	if f == null or _kb_h <= 0.0:
+		for n in panned:
+			if is_instance_valid(n):
+				_kb_pan(n, 0.0)
+		set_meta("kb_panned", [])
+		return
+	var p := f.get_parent()
+	while p != null and p != self:
+		if p is ScrollContainer:
+			(p as ScrollContainer).ensure_control_visible(f)
+			break
+		p = p.get_parent()
+	var top: Node = f
+	while top.get_parent() != null and top.get_parent() != self:
+		top = top.get_parent()
+	if top == main_root or not (top is Control):
+		return
+	var bottom := get_viewport_rect().size.y - _kb_h - 12.0
+	var over := f.get_global_rect().end.y - (top as Control).position.y - bottom
+	if over > 0.0:
+		if not top in panned:
+			panned.append(top)
+		set_meta("kb_panned", panned)
+		_kb_pan(top, -over)
+
+
+func _kb_pan(n: Control, y: float) -> void:
+	if FX.on():
+		n.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(n, "position:y", y, 0.18)
+	else:
+		n.position.y = y
 
 
 func _on_social(what: String) -> void:
@@ -763,6 +866,9 @@ func _on_notice(d: Dictionary) -> void:
 		"referral": toast("Ваш друг %s наиграл час — вам +%d искр!" % [d.from.nick, d.sparks], UI.AMBER)
 		"purchased": toast("Готово! Покупка получена" + (" (ДЕМО)" if Social.demo else ""), UI.JAVA)
 		"ad_reward": toast("+20 искр за просмотр", UI.AMBER)
+		"account_deleted":
+			toast("Профиль удалён с сервера", UI.JAVA)
+			go("home", true)
 		"info": toast(d.text)
 
 
@@ -794,8 +900,8 @@ func invite_popup(d: Dictionary) -> void:
 		var y := p.position.y
 		p.position.y = y - 40
 		p.modulate.a = 0
-		var tw := p.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_property(p, "position:y", y, 0.35)
+		var tw := p.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p, "position:y", y, 0.22)
 		tw.tween_property(p, "modulate:a", 1.0, 0.2)
 	get_tree().create_timer(20).timeout.connect(func(): if is_instance_valid(p): p.queue_free())
 
@@ -857,6 +963,8 @@ func back() -> void:
 
 
 func go(name: String, force := false, arg: Variant = null) -> void:
+	if name == "rooms":   # 1.5: «Открытые миры» стали главной — списком «Игры»
+		name = "home"
 	if name == current and not force and arg == null:
 		return
 	if name == "host" and arg == null and not own.active and not server.state in ["installing", "starting", "running", "stopping", "error"]:
@@ -865,7 +973,7 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 	var dir := 1
 	if _going_back:
 		dir = -1
-	elif name in ROOTS or (not _compact and name in ["home", "setup", "join", "rooms", "friends", "campfire", "quests", "shop", "backups", "settings"]):
+	elif name in ROOTS or (not _compact and name in ["home", "create", "join", "friends", "campfire", "quests", "shop", "backups", "settings"]):
 		_stack.clear()
 		dir = 0
 	elif current != "" and current != name:
@@ -905,21 +1013,8 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 			tw.chain().tween_callback(old.queue_free)
 		else:
 			old.queue_free()
-	var scr: Control
-	match name:
-		"home": scr = preload("res://scripts/screens/home.gd").new()
-		"setup": scr = preload("res://scripts/screens/setup.gd").new()
-		"host": scr = preload("res://scripts/screens/host.gd").new()
-		"join": scr = preload("res://scripts/screens/join.gd").new()
-		"settings": scr = preload("res://scripts/screens/settings.gd").new()
-		"rooms": scr = preload("res://scripts/screens/rooms.gd").new()
-		"friends": scr = preload("res://scripts/screens/friends.gd").new()
-		"campfire": scr = preload("res://scripts/screens/campfire.gd").new()
-		"quests": scr = preload("res://scripts/screens/quests.gd").new()
-		"shop": scr = preload("res://scripts/screens/shop.gd").new()
-		"profile": scr = preload("res://scripts/screens/profile.gd").new()
-		"syscheck": scr = preload("res://scripts/screens/syscheck.gd").new()
-		"backups": scr = preload("res://scripts/screens/backups.gd").new()
+	# экраны грузятся при первом открытии (быстрее старт), дальше — из кэша ресурсов
+	var scr: Control = load("res://scripts/screens/%s.gd" % name).new()
 	scr.set("app", self)
 	if arg != null:
 		scr.set("arg", arg)
@@ -956,8 +1051,8 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 			var p := root.position
 			root.position = p + from
 			var tw := root.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(root, "modulate:a", 1.0, 0.22).set_delay(0.06)
-			tw.tween_property(root, "position", p, 0.3).set_delay(0.04)
+			tw.tween_property(root, "modulate:a", 1.0, 0.18).set_delay(0.03)
+			tw.tween_property(root, "position", p, 0.22).set_delay(0.02)
 			tw.chain().tween_callback(func(): if is_instance_valid(_content): _content.queue_sort())
 		root.create_tween().tween_callback(start)
 
@@ -1007,7 +1102,7 @@ func _select_nav(name: String) -> void:
 			var was := _nav_pill.visible
 			_nav_pill.visible = true
 			if was and FX.on():
-				_nav_pill.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(_nav_pill, "position", target, 0.32)
+				_nav_pill.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(_nav_pill, "position", target, 0.22)
 			else:
 				_nav_pill.position = target
 		if b.size.x > 0:

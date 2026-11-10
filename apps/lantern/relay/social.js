@@ -160,6 +160,7 @@ class Social {
       case 'room_enter': return this.roomEnter(ws, msg);
       case 'room_chat': return this.roomChat(ws, uid, msg);
       case 'state': return this.sendState(uid);
+      case 'delete_account': return this.deleteAccount(ws, uid, msg);
       default:
         if (this.pro && this.proCmds.has(t)) return this.pro.handle(ws, uid, msg, (w, o) => this.send(w, o));
         if (this.eco && this.ecoCmds.has(t)) return this.eco.handle(ws, uid, msg, (w, o) => this.send(w, o));
@@ -283,6 +284,39 @@ class Social {
     this.push(src, { t: 'notice', kind: 'accepted', from: this.pub(this.user(uid)) });
   }
 
+  // Удаление профиля (Google Play: удаление аккаунта в приложении). Стирает пользователя и всё, что с ним связано:
+  // друзей, заявки, блокировки, личные сообщения (обе стороны переписки), жалобы, игровую экономику, свой код и облачные копии.
+  deleteAccount(ws, uid, msg) {
+    if (String(msg.confirm || '') !== 'DELETE') return this.err(ws, 'delete_account', 'need_confirm');
+    const friends = this.friendsOf(uid);
+    const pending = this.store.q('SELECT src AS id FROM requests WHERE dst=? UNION SELECT dst AS id FROM requests WHERE src=?').all(uid, uid).map((r) => r.id);
+    this.wipeUser(uid);
+    const socks = [...(this.sessions.get(uid) || [])];
+    this.sessions.delete(uid);
+    this.presence.delete(uid);
+    for (const w of socks) { this.send(w, { t: 'account_deleted' }); w._uid = 0; try { w.close(4010, 'account deleted'); } catch { /* уже закрыт */ } }
+    for (const f of new Set([...friends, ...pending])) this.sendState(f);
+  }
+
+  wipeUser(uid) {
+    if (this.pro) this.pro.wipe(uid);
+    const db = this.store.db;
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name);
+    const del = (sql, ...a) => db.prepare(sql).run(...a);
+    del('DELETE FROM friends WHERE a=? OR b=?', uid, uid);
+    del('DELETE FROM requests WHERE src=? OR dst=?', uid, uid);
+    del('DELETE FROM blocks WHERE src=? OR dst=?', uid, uid);
+    del("DELETE FROM messages WHERE src=? OR chat LIKE ? OR chat LIKE ?", uid, `dm:${uid}:%`, `dm:%:${uid}`);
+    del('DELETE FROM reports WHERE src=? OR dst=?', uid, uid);
+    for (const t of ['stats', 'quests', 'ach', 'owned', 'season', 'demo', 'purchases']) if (tables.includes(t)) del(`DELETE FROM ${t} WHERE uid=?`, uid);
+    if (tables.includes('visits')) del('DELETE FROM visits WHERE host=? OR guest=?', uid, uid);
+    if (tables.includes('likes')) del('DELETE FROM likes WHERE host=? OR src=?', uid, uid);
+    try { del('UPDATE users SET referrer=0 WHERE referrer=?', uid); } catch { /* нет колонки */ }
+    for (const [code, list] of this.roomChats) this.roomChats.set(code, list.filter((m) => m.from !== uid));
+    this.rate.delete(uid);
+    del('DELETE FROM users WHERE id=?', uid);
+  }
+
   friendRemove(uid, fid) {
     this.store.q('DELETE FROM friends WHERE (a=? AND b=?) OR (a=? AND b=?)').run(uid, fid, fid, uid);
     this.store.q('DELETE FROM requests WHERE (src=? AND dst=?) OR (src=? AND dst=?)').run(uid, fid, fid, uid);
@@ -389,11 +423,16 @@ class Social {
       if (!r.meta || !r.host) continue;
       if (f.edition && f.edition !== 'any' && !(r.edition === f.edition || r.edition === 'both')) continue;
       if (f.tag && !r.meta.tags.includes(f.tag)) continue;
-      if (f.q && !r.meta.title.toLowerCase().includes(String(f.q).toLowerCase())) continue;
+      if (f.q && !(r.meta.title.toLowerCase().includes(String(f.q).toLowerCase()) || String(r.num || '') === String(f.q).trim())) continue;
+      if (f.mode && f.mode !== 'any' && (r.mode || 'other') !== f.mode) continue;
+      if (f.version && f.version !== 'any' && !String(r.meta.version).startsWith(String(f.version))) continue;
       const owner = r.ownerId ? this.pub(this.user(r.ownerId)) : null;
       out.push({ code: r.code, title: r.meta.title, tags: r.meta.tags, version: r.meta.version, slots: r.meta.slots,
         edition: r.edition, players: r.joiners.size, host: owner ? { nick: owner.nick, tag: owner.tag, lantern: owner.lantern } : null,
-        likes: r.likes ? r.likes.size : 0, age: Math.round((Date.now() - r.created) / 60000) });
+        likes: r.likes ? r.likes.size : 0, age: Math.round((Date.now() - r.created) / 60000),
+        // 1.5: номер, режим, места (cap — всего, с хозяином), пароль, связь хозяина, размер мира
+        num: r.num || '', mode: r.mode || 'other', cap: r.cap || 0, locked: !!r.passHash, size_mb: r.sizeMb || 0,
+        ping: r.host._rtt || 0, quality: !r.host._rtt ? '' : r.host._rtt < 90 ? 'great' : r.host._rtt < 200 ? 'good' : 'poor' });
     }
     out.sort((a, b) => b.players - a.players || a.age - b.age);
     return out.slice(0, 100);

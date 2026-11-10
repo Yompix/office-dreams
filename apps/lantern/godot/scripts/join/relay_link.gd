@@ -91,7 +91,9 @@ func close() -> void:
 static func error_text(code: String) -> String:
 	match code:
 		"not_found": return "Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново."
-		"full": return "В комнате уже максимум друзей."
+		"full": return "Все места заняты."
+		"need_password": return "Эта игра с паролем."
+		"bad_password": return "Неверный пароль."
 		"kicked", "banned_by_host": return "Хозяин мира закрыл вам вход."
 		"rate": return "Слишком много попыток. Подождите минуту."
 		"busy": return "Сервер-посредник перегружен. Попробуйте позже."

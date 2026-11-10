@@ -672,7 +672,7 @@ static func steps(cur: int, total: int, names: Array = [], prev := -1) -> Contro
 		var was := i < (prev if prev >= 0 else cur)
 		fill.anchor_right = 1.0 if (was if FX.on() else full) else 0.0
 		if FX.on() and full != was:
-			fill.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(fill, "anchor_right", 1.0 if full else 0.0, 0.32)
+			fill.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(fill, "anchor_right", 1.0 if full else 0.0, 0.2)
 		bars.add_child(track)
 	v.add_child(bars)
 	return v

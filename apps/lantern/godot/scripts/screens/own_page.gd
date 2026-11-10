@@ -168,15 +168,15 @@ func _build_help() -> void:
 		c.queue_free()
 	var phone := Cfg.mobile()
 	if _help_ed == "bedrock":
-		_help_body.add_child(_step("1", "Откройте Minecraft и зайдите в свой мир", "Или создайте новый — подойдёт любой.", McMock.make("world")))
-		_help_body.add_child(_step("2", "Пауза → «Настройки» → «Мультиплеер»", "Кнопка паузы — вверху экрана" + ("." if phone else " (или Esc)."), McMock.make("settings")))
-		_help_body.add_child(_step("3", "Включите «Видимость для игроков LAN»", "И «Многопользовательская игра», если она выключена.", McMock.make("toggle")))
+		_help_body.add_child(_step("1", "Откройте Minecraft и зайдите в свой мир", "Или создайте новый — подойдёт любой.", MenuHint.make("world")))
+		_help_body.add_child(_step("2", "Пауза → «Настройки» → «Мультиплеер»", "Кнопка паузы — вверху экрана" + ("." if phone else " (или Esc)."), MenuHint.make("settings")))
+		_help_body.add_child(_step("3", "Включите «Видимость для игроков LAN»", "И «Многопользовательская игра», если она выключена.", MenuHint.make("toggle")))
 		_help_body.add_child(_step("4", "Вернитесь в LANTERN, не закрывая Minecraft", "Мир найдётся сам за пару секунд.", null))
 		_help_body.add_child(_note("friends", "Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. Друзья с Java (ПК) в такой мир зайти не смогут — для них нужен «Отдельный сервер» на компьютере."))
 	else:
-		_help_body.add_child(_step("1", "Зайдите в свой мир в Minecraft Java", "Одиночная игра → ваш мир.", McMock.make("world")))
-		_help_body.add_child(_step("2", "Нажмите Esc → «Открыть для сети»", "", McMock.make("pause")))
-		_help_body.add_child(_step("3", "Нажмите «Открыть мир для сети»", "В чате появится «Локальный сервер запущен на порту …».", McMock.make("lan")))
+		_help_body.add_child(_step("1", "Зайдите в свой мир в Minecraft Java", "Одиночная игра → ваш мир.", MenuHint.make("world")))
+		_help_body.add_child(_step("2", "Нажмите Esc → «Открыть для сети»", "", MenuHint.make("pause")))
+		_help_body.add_child(_step("3", "Нажмите «Открыть мир для сети»", "В чате появится «Локальный сервер запущен на порту …».", MenuHint.make("lan")))
 		_help_body.add_child(_step("4", "Вернитесь в LANTERN", "Мир найдётся сам за пару секунд. Не нашёлся — введите номер порта из чата:", null))
 		var pr := UI.hbox(8)
 		_port = UI.line_edit("", "Порт, например 54321")
@@ -186,7 +186,7 @@ func _build_help() -> void:
 		pr.add_child(_port)
 		pr.add_child(UI.button("Подключить", "secondary", _manual_port))
 		_help_body.add_child(pr)
-		_help_body.add_child(_note("lock", "Купленный Minecraft пускает в такой мир только игроков с лицензией — друзья с TLauncher не зайдут. Для них выберите «Отдельный сервер» и вариант «TLauncher и другие»."))
+		_help_body.add_child(_note("lock", "Друзьям нужна та же версия Minecraft: Java Edition и свой аккаунт Microsoft."))
 	FX.stagger(_help_body, 0.03)
 
 
@@ -288,7 +288,7 @@ func _world_card(w: Dictionary) -> Control:
 	var v := UI.vbox(12)
 	p.add_child(v)
 	var row := UI.hbox(12)
-	row.add_child(UI.texture("res://assets/img/mini_stone.png" if bed else "res://assets/img/mini_grass.png", 44, 44))
+	row.add_child(UI.icon_tile("phone" if bed else "java", UI.BEDROCK if bed else UI.JAVA, 44, 22))
 	var tv := UI.vbox(2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var nl := UI.label(String(w.name), 18, UI.TEXT, UI.font_black)
@@ -309,7 +309,7 @@ func _world_card(w: Dictionary) -> Control:
 	row.add_child(tv)
 	v.add_child(row)
 	v.add_child(UI.para("Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. С Java — не получится." if bed else
-		"Зайдут друзья с Java. Если ваш Minecraft купленный, друзьям с TLauncher игра войти не даст.", 13, UI.MUTED))
+		"Зайдут друзья с Java той же версии.", 13, UI.MUTED))
 	var b := UI.button("Открыть для друзей", "primary", func(): _open(w), "play")
 	b.custom_minimum_size.y = 52
 	v.add_child(b)

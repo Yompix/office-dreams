@@ -18,6 +18,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
@@ -54,7 +56,8 @@ public class LanternRelayService extends Service {
 	private static final int ID = 4471;
 	private static final int ID_EV = 4472;
 	private static final String A_CLOSE = "lantern.CLOSE";
-	private static final int GREEN = 0xFF3FB950, RED = 0xFFE5534B, BG = 0xF0151A23, TEXT = 0xFFEEF1F7, MUTED = 0xFF9AA4B5;
+	private static final int GREEN = 0xFF5CCB7A, RED = 0xFFFF6B6B, YELLOW = 0xFFFFC857, BG = 0xF5161920, TEXT = 0xFFF2F3F6, MUTED = 0xFFA4AAB8,
+		ACCENT = 0xFFFFB648, ON_ACCENT = 0xFF1A1206, BTN = 0xFF252A35, DANGER = 0xFF5A2626;
 
 	private static final Handler ui = new Handler(Looper.getMainLooper());
 	private static final Object lock = new Object();
@@ -69,9 +72,11 @@ public class LanternRelayService extends Service {
 	private TextView bubble;
 	private WindowManager.LayoutParams bubbleLp;
 	private LinearLayout panel;
+	private View panelRoot;
 	private WindowManager.LayoutParams panelLp;
 	private boolean panelOpen = false;
 	private boolean confirmClose = false;
+	private String morePeer = "";   // у кого раскрыто «⋯» (кнопка «Забанить»)
 	private String lastKey = "";
 	private String lastNote = "";
 
@@ -330,7 +335,7 @@ public class LanternRelayService extends Service {
 
 	private void hideOverlay() {
 		try {
-			if (panel != null && panelOpen) wm.removeView(panel);
+			if (panel != null && panelOpen) wm.removeView(panelRoot);
 			if (bubble != null) wm.removeView(bubble);
 		} catch (Exception ignored) {}
 		panel = null;
@@ -341,31 +346,34 @@ public class LanternRelayService extends Service {
 	private void togglePanel() {
 		if (wm == null) return;
 		if (panelOpen) {
-			try { wm.removeView(panel); } catch (Exception ignored) {}
+			try { wm.removeView(panelRoot); } catch (Exception ignored) {}
 			panelOpen = false;
 			confirmClose = false;
 			return;
 		}
+		// боковая панель справа на всю высоту (как в списках игр), содержимое прокручивается
 		panel = new LinearLayout(this);
 		panel.setOrientation(LinearLayout.VERTICAL);
-		panel.setPadding(dp(16), dp(14), dp(16), dp(14));
+		panel.setPadding(dp(16), dp(16), dp(16), dp(16));
 		GradientDrawable bg = new GradientDrawable();
 		bg.setColor(BG);
-		bg.setCornerRadius(dp(18));
-		panel.setBackground(bg);
-		panel.setElevation(dp(10));
-		panelLp = new WindowManager.LayoutParams(dp(300), WindowManager.LayoutParams.WRAP_CONTENT, overlayType(),
+		bg.setCornerRadii(new float[] {dp(20), dp(20), 0, 0, 0, 0, dp(20), dp(20)});
+		ScrollView frame = new ScrollView(this);
+		frame.setBackground(bg);
+		frame.setElevation(dp(12));
+		frame.addView(panel);
+		panelRoot = frame;
+		panelLp = new WindowManager.LayoutParams(dp(320), WindowManager.LayoutParams.MATCH_PARENT, overlayType(),
 			WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
 			PixelFormat.TRANSLUCENT);
-		panelLp.gravity = Gravity.TOP | Gravity.START;
-		panelLp.x = Math.max(dp(4), bubbleLp.x);
-		panelLp.y = bubbleLp.y + dp(62);
-		panel.setOnTouchListener((v, e) -> {
+		panelLp.gravity = Gravity.TOP | Gravity.END;
+		panelLp.windowAnimations = android.R.style.Animation_Translucent;
+		frame.setOnTouchListener((v, e) -> {
 			if (e.getAction() == MotionEvent.ACTION_OUTSIDE) { togglePanel(); return true; }
 			return false;
 		});
 		try {
-			wm.addView(panel, panelLp);
+			wm.addView(frame, panelLp);
 			panelOpen = true;
 			lastKey = "";
 			refresh();
@@ -388,7 +396,7 @@ public class LanternRelayService extends Service {
 		b.setText(s);
 		b.setAllCaps(false);
 		b.setTextSize(13);
-		b.setTextColor(Color.WHITE);
+		b.setTextColor(color == ACCENT ? ON_ACCENT : TEXT);
 		b.setMinHeight(0);
 		b.setMinimumHeight(0);
 		b.setPadding(dp(10), dp(6), dp(10), dp(6));
@@ -434,37 +442,20 @@ public class LanternRelayService extends Service {
 		if (key.equals(lastKey)) return;
 		lastKey = key;
 		panel.removeAllViews();
-		panel.addView(text(ok ? "Мир открыт для друзей ✓" : "Нет связи — друзья не видят мир", 16, ok ? GREEN : RED, true));
+		// --- шапка: номер комнаты и связь
+		String num = s.optString("num", "");
+		TextView nt = text(num.isEmpty() ? s.optString("code", "······") : "№ " + num, 24, TEXT, true);
+		nt.setLetterSpacing(0.06f);
+		panel.addView(nt);
+		String q = s.optString("quality", "");
+		int qc = "great".equals(q) ? GREEN : "good".equals(q) ? YELLOW : "poor".equals(q) ? RED : MUTED;
+		String qt = "great".equals(q) ? "● связь отличная" : "good".equals(q) ? "● связь хорошая" : "poor".equals(q) ? "● связь так себе" : "● проверяем связь…";
+		panel.addView(text(ok ? qt : "● друзья не видят мир", 13, ok ? qc : RED, true));
 		if (!ok) panel.addView(text(s.optString("why", "Вернитесь в мир или откройте LANTERN"), 13, MUTED, false));
-		panel.addView(text(s.optString("world", ""), 13, MUTED, false));
-		TextView code = text(s.optString("code", "······"), 30, TEXT, true);
-		code.setLetterSpacing(0.12f);
-		panel.addView(code);
-		final String share = s.optString("share", "");
-		LinearLayout row = new LinearLayout(this);
-		if (!share.isEmpty()) {
-			row.addView(btn("Поделиться", 0xFF2F81F7, v -> {
-				try { startActivity(shareIntent(share)); } catch (Exception e) { Log.w("LANTERN", "share failed", e); }
-				togglePanel();
-			}), wrap(4));
-		}
-		row.addView(btn("Открыть LANTERN", 0xFF30363D, v -> {
-			PendingIntent pi = openIntent(this);
-			try { if (pi != null) pi.send(); } catch (Exception ignored) {}
-			togglePanel();
-		}), wrap(4));
-		panel.addView(row);
-		// кто может зайти
-		panel.addView(text("Кто может зайти", 13, MUTED, true), wrap(12));
-		final boolean pub = s.optBoolean("public", false);
-		LinearLayout who = new LinearLayout(this);
-		who.addView(btn((pub ? "" : "● ") + "Только друзья", pub ? 0xFF30363D : 0xFF2F81F7, v -> pushAction("public", false)), wrap(4));
-		who.addView(btn((pub ? "● " : "") + "Все в LANTERN", pub ? 0xFF2F81F7 : 0xFF30363D, v -> pushAction("public", true)), wrap(4));
-		panel.addView(who);
-		// игроки
-		panel.addView(text(n > 0 ? "В мире: " + n : "Пока никто не зашёл", 13, MUTED, true), wrap(12));
-		LinearLayout list = new LinearLayout(this);
-		list.setOrientation(LinearLayout.VERTICAL);
+		panel.addView(text(s.optString("world", "") + (num.isEmpty() ? "" : " · код " + s.optString("code", "")), 13, MUTED, false));
+		// --- игроки
+		panel.addView(text("Игроки" + (n > 0 ? " · " + n : ""), 15, TEXT, true), wrap(18));
+		if (n == 0) panel.addView(text("Пока никто не зашёл", 13, MUTED, false));
 		for (int i = 0; peers != null && i < peers.length(); i++) {
 			JSONObject p = peers.optJSONObject(i);
 			if (p == null) continue;
@@ -474,25 +465,66 @@ public class LanternRelayService extends Service {
 			TextView name = text(p.optString("name", "Гость"), 14, TEXT, false);
 			name.setSingleLine(true);
 			r.addView(name, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-			r.addView(btn("Выгнать", 0xFF6E5A1E, v -> pushPeer("kick", pid)), wrap(4));
-			r.addView(btn("Забанить", 0xFF8B2C2C, v -> pushPeer("ban", pid)), wrap(4));
-			list.addView(r);
+			r.addView(btn("Выгнать", BTN, v -> pushPeer("kick", pid)), wrap(6));
+			if (pid.equals(morePeer)) r.addView(btn("Забанить", DANGER, v -> { morePeer = ""; pushPeer("ban", pid); }), wrap(6));
+			else r.addView(btn("⋯", BTN, v -> { morePeer = pid; lastKey = ""; refresh(); }), wrap(6));
+			panel.addView(r);
 		}
-		if (n > 4) {
-			ScrollView sv = new ScrollView(this);
-			sv.addView(list);
-			panel.addView(sv, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(200)));
-		} else {
-			panel.addView(list);
+		// --- пригласить
+		panel.addView(text("Пригласить друзей", 15, TEXT, true), wrap(18));
+		final String share = s.optString("share", "");
+		LinearLayout row = new LinearLayout(this);
+		if (!share.isEmpty()) {
+			row.addView(btn("Поделиться ссылкой", ACCENT, v -> {
+				try { startActivity(shareIntent(share)); } catch (Exception e) { Log.w("LANTERN", "share failed", e); }
+				togglePanel();
+			}), wrap(6));
 		}
+		final String copyText = num.isEmpty() ? s.optString("code", "") : num;
+		row.addView(btn(num.isEmpty() ? "Скопировать код" : "Скопировать номер", BTN, v -> {
+			try {
+				ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+				cm.setPrimaryClip(ClipData.newPlainText("LANTERN", copyText));
+				Toast.makeText(this, "Скопировано", Toast.LENGTH_SHORT).show();
+			} catch (Exception ignored) {}
+		}), wrap(6));
+		panel.addView(row);
+		JSONArray fr = s.optJSONArray("friends");
+		for (int i = 0; fr != null && i < fr.length(); i++) {
+			JSONObject f = fr.optJSONObject(i);
+			if (f == null) continue;
+			final int fid = f.optInt("id");
+			LinearLayout r = new LinearLayout(this);
+			r.setGravity(Gravity.CENTER_VERTICAL);
+			TextView name = text(f.optString("nick", ""), 14, TEXT, false);
+			name.setSingleLine(true);
+			r.addView(name, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+			r.addView(btn("Пригласить", BTN, v -> {
+				try { act(new JSONObject().put("a", "invite").put("id", fid)); } catch (Exception ignored) {}
+				Toast.makeText(this, "Приглашение отправлено", Toast.LENGTH_SHORT).show();
+			}), wrap(6));
+			panel.addView(r);
+		}
+		// --- кто видит
+		panel.addView(text("Кто видит игру", 13, MUTED, true), wrap(18));
+		final boolean pub = s.optBoolean("public", false);
+		LinearLayout who = new LinearLayout(this);
+		who.addView(btn("Все в LANTERN", pub ? ACCENT : BTN, v -> pushAction("public", true)), wrap(6));
+		who.addView(btn("Только по коду", pub ? BTN : ACCENT, v -> pushAction("public", false)), wrap(6));
+		panel.addView(who);
 		LinearLayout bottom = new LinearLayout(this);
-		bottom.addView(btn(confirmClose ? "Точно закрыть?" : "Закрыть комнату", 0xFFB62324, v -> {
+		bottom.addView(btn("Открыть LANTERN", BTN, v -> {
+			PendingIntent pi = openIntent(this);
+			try { if (pi != null) pi.send(); } catch (Exception ignored) {}
+			togglePanel();
+		}), wrap(20));
+		bottom.addView(btn("Свернуть", BTN, v -> togglePanel()), wrap(20));
+		panel.addView(bottom);
+		panel.addView(btn(confirmClose ? "Точно закрыть?" : "Закрыть комнату", DANGER, v -> {
 			if (!confirmClose) { confirmClose = true; refresh(); return; }
 			hideOverlay();
 			closeRoom();
-		}), wrap(14));
-		bottom.addView(btn("Свернуть", 0xFF30363D, v -> togglePanel()), wrap(14));
-		panel.addView(bottom);
+		}), wrap(8));
 	}
 
 	private void pushPeer(String a, String peer) {

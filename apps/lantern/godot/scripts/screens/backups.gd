@@ -17,7 +17,7 @@ func _ready() -> void:
 	var v := UI.vbox(10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(v)
-	app.set_title("Копии миров", "Восстановить, отправить в облако или другу" if UI.compact() else "Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду.")
+	app.set_title("Копии миров", ("Восстановить, отправить в облако или другу" if UI.compact() else "Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду.") if Cfg.paid() else "Резервные копии миров на этом устройстве")
 	# --- получить по коду (самое частое действие — сверху)
 	v.add_child(UI.section("Получить копию по коду"))
 	var gp := UI.panel(16)
@@ -31,7 +31,7 @@ func _ready() -> void:
 	gr.add_child(_code_in)
 	gr.add_child(UI.button("Скачать", "primary", func(): fetch_shared(_code_in.text), "download"))
 	gv.add_child(gr)
-	gv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или передать другу — Pro нужна только тому, кто отправляет.", 12, UI.DIM))
+	gv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или получить его от друга.", 12, UI.DIM))
 	v.add_child(gp)
 	# --- на этом устройстве
 	var lh := UI.hbox(8)
@@ -51,6 +51,8 @@ func _ready() -> void:
 	v.add_child(ch)
 	_cloud = UI.vbox(8)
 	v.add_child(_cloud)
+	ch.visible = Cfg.paid()
+	_cloud.visible = Cfg.paid()
 	v.add_child(UI.gap(16))
 	Social.changed.connect(func(w): if w in ["cloud", "eco", "conn"] and is_inside_tree(): _render_cloud())
 	_render_local()
@@ -85,9 +87,10 @@ func _render_local() -> void:
 		rb.disabled = not info.ok or Cfg.mobile()
 		rb.tooltip_text = "" if info.ok else info.get("error", "")
 		row.add_child(rb)
-		var ub := UI.button("В облако", "secondary", func(): upload(b.path), "upload")
-		ub.disabled = not Social.online()
-		row.add_child(ub)
+		if Cfg.paid():
+			var ub := UI.button("В облако", "secondary", func(): upload(b.path), "upload")
+			ub.disabled = not Social.online()
+			row.add_child(ub)
 		row.add_child(UI.icon_button("trash", func():
 			DirAccess.remove_absolute(b.path)
 			_render_local(), "Удалить", UI.MUTED))

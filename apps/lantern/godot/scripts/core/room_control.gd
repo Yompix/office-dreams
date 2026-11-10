@@ -76,6 +76,26 @@ func share_text() -> String:
 # ------------------------------------------------------------------ игроки
 
 ## [{peer, user, name, mc}] — кто в комнате. mc — ник в Minecraft, если он известен (свой сервер, один новый игрок).
+## Номер комнаты (8 цифр, как в списке «Игры») и связь хозяина с LANTERN: great / good / poor
+func num() -> String:
+	return String(app.relay_host.stats().get("num", ""))
+
+
+func quality() -> String:
+	return String(app.relay_host.stats().get("quality", ""))
+
+
+const QUALITY_TEXT := {"great": "связь отличная", "good": "связь хорошая", "poor": "связь так себе"}
+
+
+## Пригласить друга из LANTERN (придёт приглашение с кнопкой «Зайти»)
+func invite(friend_id: int) -> void:
+	if friend_id <= 0 or code() == "":
+		return
+	Social.request("invite", {"to": friend_id, "code": app.relay_host.stats().get("code", ""), "world": world_name(), "edition": app.relay_host.edition})
+	app.toast("Приглашение отправлено", UI.JAVA)
+
+
 func peers() -> Array:
 	var out := []
 	for p in app.relay_host.peers():
@@ -165,6 +185,15 @@ func set_public(on: bool) -> void:
 
 
 func public_card() -> Dictionary:
+	var g := Cfg.game()
+	var c := _public_card()
+	if g.title != "":
+		c["title"] = g.title
+	c["slots"] = g.cap
+	return c
+
+
+func _public_card() -> Dictionary:
 	if app.own.active:
 		var w: Dictionary = app.own.world
 		var mx := int(w.get("max", 0))
@@ -230,11 +259,18 @@ func _process(d: float) -> void:
 					Cfg.set_value("own", "public", bool(a.on))
 			"close":
 				close_room()
+			"invite":
+				invite(int(a.get("id", 0)))
 	if not hosting():
 		if mini:
 			room_closed()
 		return
 	app.relay_host.share_text = share_text()
+	var fl := []
+	for f in Social.friends:
+		if f.get("online", false):
+			fl.append({"id": int(f.id), "nick": String(f.nick)})
+	app.relay_host.invite_friends = fl.slice(0, 8)
 	for e in app.relay_host.take_peer_events():
 		var nm := RelayHost.peer_name(e.user)
 		if e.on:

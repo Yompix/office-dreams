@@ -133,7 +133,7 @@ func _page_edition(p: VBoxContainer) -> void:
 	var sub := UI.vbox(12)
 	sub.add_child(UI.gap(4))
 	sub.add_child(UI.h3("На чём играют друзья?"))
-	sub.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере — лицензия или TLauncher. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
+	sub.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
 	sub.add_child(UI.choice("phone", UI.BEDROCK, "Bedrock Edition", "Телефон, планшет, Windows 10/11, Xbox, PlayStation, Switch.", edition == "bedrock", _pick.bind("bedrock")))
 	var tip := UI.panel(16, Color(1, 1, 1, 0.03))
 	var tr := UI.hbox(12)
@@ -234,15 +234,15 @@ func _page_world(p: VBoxContainer) -> void:
 	v.add_child(UI.field("Сложность", _diff))
 	if edition == "java":
 		var lic := UI.vbox(10)
-		lic.add_child(UI.label("Как друзья запускают Minecraft?", 13, UI.MUTED, UI.font_bold))
+		lic.add_child(UI.label("Проверка аккаунтов", 13, UI.MUTED, UI.font_bold))
 		_online = _saved.get("online_mode", true)
 		var lic_box := UI.vbox(10)
 		lic.add_child(lic_box)
 		var draw_lic := func(self_ref: Callable):
 			for c in lic_box.get_children():
 				c.queue_free()
-			lic_box.add_child(UI.choice("lock", UI.accent(), "Купленный Minecraft", "Ники защищены — никто не зайдёт под чужим именем.", _online, func(): _online = true; self_ref.call(self_ref); _update()))
-			lic_box.add_child(UI.choice("user", UI.YELLOW, "TLauncher и другие", "Можно без лицензии. Но любой может взять любой ник — не давайте код посторонним.", not _online, func(): _online = false; self_ref.call(self_ref); _update()))
+			lic_box.add_child(UI.choice("lock", UI.accent(), "Включена (рекомендуется)", "Вход только с аккаунтом Microsoft — никто не зайдёт под чужим ником.", _online, func(): _online = true; self_ref.call(self_ref); _update()))
+			lic_box.add_child(UI.choice("user", UI.YELLOW, "Выключена", "Сервер не проверяет аккаунты (online-mode=false): любой может взять любой ник. Только для тех, кому доверяете.", not _online, func(): _online = false; self_ref.call(self_ref); _update()))
 		draw_lic.call(draw_lic)
 		v.add_child(lic)
 		var cr := UI.switch_row("Пустить друзей с телефона", "Друзья с Bedrock (телефон, консоль) зайдут в этот же мир по тому же коду.", _saved.get("crossplay", true), func(_b): _update())
@@ -405,7 +405,7 @@ func _update() -> void:
 	lines.append("•  Мир «%s» — %s, сложность %s" % [o.world, MODES[_mode_i][1].to_lower(), DIFFS[_diff.selected][1].to_lower()])
 	if edition == "java":
 		lines.append("•  Скачаем сервер Paper и, если нужно, Java — один раз")
-		lines.append("•  Вход: " + ("только купленный Minecraft" if o.online_mode else "лицензия и TLauncher"))
+		lines.append("•  Вход: " + ("с проверкой аккаунта Microsoft" if o.online_mode else "без проверки аккаунтов"))
 		if o.crossplay:
 			lines.append("•  Друзья с телефона тоже зайдут (последняя версия)")
 		if o.whitelist:

@@ -1,25 +1,38 @@
 extends VBoxContainer
-## Главная: два главных действия — «Создать мир» и «Зайти к другу», потом друзья в игре и недавние миры.
+## «Игры» — главная (как в Multiplayer Master, но в стиле LANTERN): список открытых игр.
+## Строка: аватар хозяина (рамка — цвет связи), номер комнаты, связь «отлично/хорошо/так себе», название, режим,
+## издание (Java/Bedrock/Обе), версия, размер мира, «2/6». Нажали строку — заходим (пароль спросит экран входа).
+## Фильтры «Все режимы ▸», «Версия игры ▸», поиск; обновление каждые 10 с и потянуть вниз. Создать — кнопка «+» внизу.
 
 var app
 var arg
-var _open_box: VBoxContainer
-var _open_ed := "any"
+var _mode := "any"
+var _version := "any"
+var _q := ""
+var _list: VBoxContainer
+var _filters: HBoxContainer
+var _search: LineEdit
+var _tick := 0.0
+var _first := true
+var _pull := 0.0
+var _pull_lbl: Label
+
+const QUALITY := {"great": ["отлично", Color("5ccb7a")], "good": ["хорошо", Color("ffc857")], "poor": ["так себе", Color("ff6b6b")]}
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 16)
-	var compact := UI.compact()
-	# --- приветствие
-	var nick: String = Social.me.get("nick", "") if Social.online() else ""
-	var greet := "Привет, %s!" % nick if nick != "" else "Привет!"
-	if compact:
-		var hello := UI.vbox(2)
-		hello.add_child(UI.label(greet, 26, UI.TEXT, UI.font_black))
-		hello.add_child(UI.label("Во что играем сегодня?", 15, UI.MUTED))
-		add_child(hello)
+	add_theme_constant_override("separation", 12)
+	_version = String(Cfg.get_value("game", "filter_version", "any"))
+	if UI.compact():
+		var hr := UI.hbox(8)
+		var h := UI.label("Игры", 26, UI.TEXT, UI.font_black)
+		h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hr.add_child(h)
+		hr.add_child(UI.icon_button("search", _toggle_search, "Поиск", UI.MUTED))
+		add_child(hr)
 	else:
-		app.set_title(greet, "Во что играем сегодня?")
+		app.set_title("Игры", "Открытые игры — зайдите в любую одним нажатием")
+		app.set_actions([UI.icon_button("search", _toggle_search, "Поиск", UI.MUTED), UI.icon_button("refresh", _load, "Обновить", UI.MUTED)])
 	# --- мир уже идёт
 	if app.own.active:
 		add_child(_live_card_own())
@@ -27,54 +40,258 @@ func _ready() -> void:
 		add_child(_live_card_host())
 	if app.relay_join.stats().state in ["connecting", "online"]:
 		add_child(_live_card_join())
-	# --- друзья играют прямо сейчас — наверху, «Зайти» в одно нажатие
-	var hosting_now := Social.online() and Social.friends.any(func(f):
-		var a: Variant = f.get("activity")
-		return f.get("online", false) and a is Dictionary and String(a.get("code", "")) != "")
-	if hosting_now:
-		var top := UI.vbox(8)
-		_friends_playing(top)
-		add_child(top)
-	# --- открытые миры сейчас (все в LANTERN) — в одно нажатие
-	_open_box = UI.vbox(8)
-	_open_box.visible = false
-	add_child(_open_box)
-	if Social.online():
-		Social.changed.connect(_on_social_rooms)
-		Social.request("rooms", {"edition": "any"})
-	# --- два главных действия
-	var acts := UI.cols(16)
-	var h: Control = app.play_option("host", true)
-	var j: Control = app.play_option("join", true)
-	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	j.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	acts.add_child(h)
-	acts.add_child(j)
-	add_child(acts)
-	# --- друзья в игре и недавние
-	var lower := UI.cols(24)
-	add_child(lower)
-	var left := UI.vbox(8)
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lower.add_child(left)
-	var right := UI.vbox(8)
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lower.add_child(right)
-	if not hosting_now:
-		_friends_playing(left)
-	_recent(right if not hosting_now else left)
-	if not compact:
-		var how := UI.vbox(8)
-		how.add_child(UI.section("Как это работает"))
-		var hp := UI.panel(20)
-		var hv := UI.vbox(16)
-		hp.add_child(hv)
-		hv.add_child(app._num_row("1", "Один создаёт мир", "Свой мир из Minecraft — или отдельный сервер на ПК, LANTERN всё скачает сам"))
-		hv.add_child(app._num_row("2", "Отправляет код друзьям", "6 символов, например K7M-2QX, или ссылку / QR"))
-		hv.add_child(app._num_row("3", "Друзья вводят код", "Мир сам появляется у них в Minecraft — как будто вы в одной Wi-Fi сети"))
-		how.add_child(hp)
-		add_child(how)
-	FX.stagger(self, 0.04)
+	_search = UI.line_edit("", "Название или номер комнаты")
+	_search.right_icon = UI.icon_tex("search", 20, UI.DIM)
+	_search.visible = false
+	_search.text_submitted.connect(func(t): _q = t.strip_edges(); _first = true; _load())
+	add_child(_search)
+	_filters = UI.hbox(8)
+	add_child(_filters)
+	_render_filters()
+	_pull_lbl = UI.label("", 12, UI.DIM)
+	_pull_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_pull_lbl.visible = false
+	add_child(_pull_lbl)
+	_list = UI.vbox(8)
+	add_child(_list)
+	for i in 3:
+		_list.add_child(FX.skeleton(84, UI.R_L))
+	Social.changed.connect(_on_social)
+	_load()
+
+
+func _toggle_search() -> void:
+	_search.visible = not _search.visible
+	if _search.visible:
+		_search.grab_focus()
+	elif _q != "":
+		_q = ""
+		_search.text = ""
+		_load()
+
+
+func _render_filters() -> void:
+	for c in _filters.get_children():
+		c.queue_free()
+	var modes := [["any", "Все режимы"]] + Cfg.MODES
+	_filters.add_child(_drop(("Все режимы" if _mode == "any" else Cfg.mode_name(_mode)) + " ▸", _mode != "any", modes, func(k): _mode = k))
+	var vers := [["any", "Любая версия"]]
+	for v in _known_versions():
+		vers.append([v, v])
+	_filters.add_child(_drop(("Версия игры" if _version == "any" else _version) + " ▸", _version != "any", vers, func(k):
+		_version = k
+		Cfg.set_value("game", "filter_version", k)))
+
+
+## Чип с выпадающим списком
+func _drop(text: String, on: bool, items: Array, cb: Callable) -> Button:
+	var b := UI.chip(text, on)
+	b.pressed.connect(func():
+		var pm := PopupMenu.new()
+		for i in items.size():
+			pm.add_item(String(items[i][1]), i)
+		pm.id_pressed.connect(func(id):
+			cb.call(String(items[id][0]))
+			_first = true
+			_render_filters()
+			_load())
+		pm.popup_hide.connect(pm.queue_free)
+		add_child(pm)
+		pm.popup(Rect2i(Vector2i(b.get_screen_position() + Vector2(0, b.size.y)), Vector2i(220, 0))))
+	return b
+
+
+## Версии для фильтра: «мажор.минор» из открытых игр и своей последней версии
+func _known_versions() -> Array:
+	var out := []
+	var last := String(Cfg.get_value("own", "last_version", "")).get_slice(" ", 1)
+	for v in [last] + Social.rooms.map(func(r): return String(r.get("version", ""))):
+		var p := String(v).split(".")
+		if p.size() >= 2 and p[0].is_valid_int():
+			var mm := p[0] + "." + p[1]
+			if not mm in out:
+				out.append(mm)
+	if _version != "any" and not _version in out:
+		out.append(_version)
+	out.sort()
+	out.reverse()
+	return out
+
+
+func _load() -> void:
+	_tick = 0.0
+	Social.request("rooms", {"edition": "any", "mode": _mode, "version": _version, "q": _q})
+	if not Social.online():
+		_render()
+
+
+func _process(d: float) -> void:
+	_tick += d
+	if _tick > 10.0 and is_visible_in_tree():
+		_load()
+
+
+## Потянуть вниз, когда список в самом верху, — обновить
+func _input(e: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
+	var sc := get_parent() as ScrollContainer
+	var at_top := sc == null or sc.scroll_vertical <= 0
+	if (e is InputEventScreenDrag or (e is InputEventMouseMotion and e.button_mask & MOUSE_BUTTON_MASK_LEFT)) and at_top:
+		_pull = maxf(0.0, _pull + e.relative.y) if e.relative.y > 0 or _pull > 0 else 0.0
+		_pull_lbl.visible = _pull > 24
+		_pull_lbl.text = "Отпустите, чтобы обновить" if _pull > 90 else "Потяните, чтобы обновить"
+	elif (e is InputEventScreenTouch or e is InputEventMouseButton) and not e.pressed:
+		if _pull > 90:
+			_pull_lbl.text = "Обновляем…"
+			_first = true
+			_load()
+			get_tree().create_timer(0.6).timeout.connect(func(): if is_instance_valid(_pull_lbl): _pull_lbl.visible = false)
+		else:
+			_pull_lbl.visible = false
+		_pull = 0.0
+
+
+func _on_social(what: String) -> void:
+	if not is_inside_tree():
+		return
+	if what == "rooms":
+		_render()
+		if _first:
+			_render_filters()
+	elif what == "conn" and Social.online():
+		_load()
+
+
+func _render() -> void:
+	for c in _list.get_children():
+		c.queue_free()
+	if not Social.online():
+		var reg := Social.conn == "need_register"
+		_list.add_child(UI.empty("wifi" if not reg else "user", "Нет связи с сервером LANTERN" if not reg else "Придумайте ник", "Повторить" if not reg else "Создать профиль",
+			func(): Overlays.register(app) if reg else Social.reconnect(), "Список игр появится, когда вернётся интернет." if not reg else "Без профиля список игр не виден."))
+		return
+	var mine: String = app.relay_host.stats().get("code", "")
+	var rooms: Array = Social.rooms.filter(func(r): return r.code != mine)
+	if rooms.is_empty():
+		var filt := _mode != "any" or _version != "any" or _q != ""
+		_list.add_child(UI.empty("globe", "Сейчас нет открытых игр" + (" с такими фильтрами" if filt else ""), "Создай первую игру", func(): app.go("create"),
+			"Откройте свой мир — его увидят все в LANTERN." if not filt else "Попробуйте другой режим или версию."))
+		return
+	for r in rooms:
+		_list.add_child(_row(r))
+	if _first:
+		_first = false
+		FX.stagger(_list, 0.025)
+	_coach()
+
+
+func _row(r: Dictionary) -> Control:
+	var host: Dictionary = r.get("host") if r.get("host") is Dictionary else {}
+	var q: Array = QUALITY.get(String(r.get("quality", "")), ["", UI.DIM])
+	var cap := int(r.get("cap", 0))
+	var slots := cap if cap > 0 else int(r.get("slots", 10))
+	var players := int(r.players) + 1   # с хозяином
+	var full := players >= slots
+	var p := PanelContainer.new()
+	var st := UI._hpad(UI.box(UI.CARD, UI.R_L, 0, Color(1, 1, 1, 0.04), 1), 12, 12)
+	p.add_theme_stylebox_override("panel", st)
+	var row := UI.hbox(12)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(row)
+	# аватар в скруглённой рамке цвета связи
+	var av := PanelContainer.new()
+	av.add_theme_stylebox_override("panel", UI.box(Color(q[1], 0.12), 14, 2, q[1], 2))
+	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	av.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	av.add_child(LanternIcon.new().setup(int(host.get("lantern", {}).get("level", 1)), host.get("equip", ""), 44))
+	row.add_child(av)
+	var tv := UI.vbox(2)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var top := UI.hbox(6)
+	top.add_child(UI.label(String(r.get("num", "")) if String(r.get("num", "")) != "" else RoomCode.pretty(r.code), 12, UI.DIM, UI.font_mono))
+	if q[0] != "":
+		top.add_child(UI.label("● " + String(q[0]), 12, q[1], UI.font_bold))
+	tv.add_child(top)
+	var t := UI.label(String(r.title), 16, UI.TEXT, UI.font_bold)
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tv.add_child(t)
+	var bits := [Cfg.mode_name(String(r.get("mode", "other")))]
+	if String(r.get("version", "")) != "":
+		bits.append(String(r.version))
+	if int(r.get("size_mb", 0)) > 0:
+		bits.append("%d МБ" % int(r.size_mb))
+	var ml := UI.label(" · ".join(bits), 12, UI.MUTED)
+	ml.clip_text = true
+	ml.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tv.add_child(ml)
+	row.add_child(tv)
+	var rv := UI.vbox(6)
+	rv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var ed: String = r.edition
+	var pr := UI.hbox(4)
+	pr.alignment = BoxContainer.ALIGNMENT_END
+	if r.get("locked", false):
+		pr.add_child(UI.icon("lock", 14, UI.MUTED))
+	pr.add_child(UI.pill("%d/%d" % [players, slots], UI.RED if full else UI.JAVA))
+	rv.add_child(pr)
+	var ep := UI.pill({"java": "Java", "bedrock": "Bedrock", "both": "Обе"}.get(ed, ed), UI.JAVA if ed == "java" else (UI.BEDROCK if ed == "bedrock" else Color("c58bff")))
+	ep.size_flags_horizontal = Control.SIZE_SHRINK_END
+	rv.add_child(ep)
+	row.add_child(rv)
+	UI.tappable(p, func():
+		if full:
+			app.toast("Все места заняты", UI.YELLOW)
+			return
+		if String(r.get("version", "")) != "":
+			Cfg.set_value("own", "last_version", "%s %s" % [ed, r.version])
+		app.go("join", true, {"input": String(r.get("num", "")) if String(r.get("num", "")) != "" else String(r.code), "edition": "both", "public": true}), st)
+	return p
+
+
+## Подсказка при первом запуске: «Нажми, чтобы зайти в игру» над первой игрой
+func _coach() -> void:
+	if Cfg.get_value("app", "coach_rooms", false) or Cfg.autotest != "" and not Cfg.autotest_args.has("coach") or _list.get_child_count() == 0:
+		return
+	Cfg.set_value("app", "coach_rooms", true)
+	var first: Control = _list.get_child(0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_instance_valid(first):
+		return
+	var ov := Control.new()
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	app.add_child(ov)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(dim)
+	var r := first.get_global_rect()
+	var ring := Panel.new()
+	ring.add_theme_stylebox_override("panel", UI.box(Color(0, 0, 0, 0), UI.R_L + 4, 0, UI.accent(), 2))
+	ring.position = r.position - Vector2(4, 4)
+	ring.size = r.size + Vector2(8, 8)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(ring)
+	var tip := PanelContainer.new()
+	tip.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.accent(), UI.R_M), 16, 10))
+	tip.add_child(UI.label("Нажми, чтобы зайти в игру  ↑", 15, UI.ON_ACCENT, UI.font_bold))
+	tip.position = Vector2(r.position.x + 8, r.end.y + 14)
+	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(tip)
+	ov.modulate.a = 0.0
+	if FX.on():
+		ov.create_tween().tween_property(ov, "modulate:a", 1.0, 0.2)
+	else:
+		ov.modulate.a = 1.0
+	ov.gui_input.connect(func(e):
+		if (e is InputEventMouseButton or e is InputEventScreenTouch) and e.pressed:
+			ov.queue_free())
 
 
 func _live_card_host() -> Control:
@@ -134,65 +351,3 @@ func _friends_playing(box: VBoxContainer) -> void:
 		box.add_child(UI.list_row(li, "%s · «%s»" % [f.nick, a.get("world", "")], ("хостит " if a.get("activity") == "hosting" else "играет · ") + ed, b))
 
 
-func _recent(box: VBoxContainer) -> void:
-	box.add_child(UI.section("Недавние миры", "Открытые миры", func(): app.go("rooms")))
-	var list: Array = Cfg.recent()
-	if list.is_empty():
-		box.add_child(UI.list_row(UI.icon_tile("globe", UI.BEDROCK, 44, 22), "Открытые миры", "Зайдите в мир, открытый для всех", UI.icon("chevron", 20, UI.DIM), func(): app.go("rooms")))
-		return
-	for e in list.slice(0, 3):
-		var nm: String = e.get("name", "")
-		var room: bool = e.get("kind") == "room"
-		var code: String = RoomCode.pretty(e.address) if room else e.address
-		var ed: String = {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(e.get("edition", ""), "")
-		var b := UI.button("Зайти", "secondary", func(): app.go("join", true, {"input": code}))
-		b.custom_minimum_size.x = 88
-		var col := UI.BEDROCK if e.get("edition", "") == "bedrock" else UI.JAVA
-		box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 44, 22), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), b))
-
-
-func _on_social_rooms(what: String) -> void:
-	if what == "rooms" and is_inside_tree():
-		_render_open()
-
-
-## «Открытые миры сейчас»: сначала миры под вашу версию Minecraft (последнюю, в которую играли или открывали).
-func _render_open() -> void:
-	for c in _open_box.get_children():
-		c.queue_free()
-	var mine: String = app.relay_host.stats().get("code", "")
-	var last_ed: String = Cfg.get_value("own", "last_edition", "bedrock" if Cfg.mobile() else "java")
-	var last_v: String = String(Cfg.get_value("own", "last_version", "")).get_slice(" ", 1)
-	var list: Array = Social.rooms.filter(func(r): return r.code != mine and (_open_ed == "any" or r.edition == _open_ed or r.edition == "both"))
-	var score := func(r):
-		var sc := 0
-		if r.edition == last_ed or r.edition == "both":
-			sc += 2
-		if last_v != "" and String(r.get("version", "")).begins_with(last_v.get_slice(".", 0) + "." + last_v.get_slice(".", 1)):
-			sc += 1
-		return sc
-	list.sort_custom(func(x, y): return score.call(x) > score.call(y) or (score.call(x) == score.call(y) and int(x.players) > int(y.players)))
-	if Social.rooms.is_empty():
-		_open_box.visible = false
-		return
-	_open_box.visible = true
-	_open_box.add_child(UI.section("Открытые миры сейчас", "Все", func(): app.go("rooms")))
-	var seg := UI.segmented([["any", "Все"], ["java", "Java"], ["bedrock", "Bedrock"]], _open_ed, func(k):
-		_open_ed = k
-		_render_open())
-	_open_box.add_child(seg)
-	if list.is_empty():
-		_open_box.add_child(UI.label("Сейчас нет открытых миров для этой версии", 14, UI.DIM))
-	for r in list.slice(0, 3):
-		var ed: String = {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(r.edition, "")
-		var full: bool = int(r.players) >= int(r.slots)
-		var code: String = r.code
-		var b := UI.button("Полон" if full else "Зайти", "primary", func(): app.go("join", true, {"input": code, "edition": "both", "public": true}))
-		b.disabled = full
-		b.custom_minimum_size.x = 88
-		var col := UI.BEDROCK if r.edition == "bedrock" else UI.JAVA
-		var host: Dictionary = r.get("host") if r.get("host") is Dictionary else {}
-		var sub := "%s%s · %d/%d" % [ed, (" " + String(r.version)) if String(r.get("version", "")) != "" else "", int(r.players), int(r.slots)]
-		if host.get("nick", "") != "":
-			sub += " · " + String(host.nick)
-		_open_box.add_child(UI.list_row(UI.icon_tile("globe", col, 44, 22), String(r.title), sub, b))

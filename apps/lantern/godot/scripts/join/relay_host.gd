@@ -35,6 +35,7 @@ var probe_world := false
 ## Android: окошко поверх Minecraft и уведомление обновляются прямо из потока моста (JavaClass службы).
 var android: Variant = null
 var share_text := ""
+var invite_friends: Array = []   # друзья в сети для «Пригласить» в окошке поверх игры: [{id, nick}]
 var public_on := false
 var public_card := {}
 var _ui_actions: Array = []   # что нажали в окошке, пока LANTERN был в фоне: {a:"ban", user} {a:"public", on} {a:"close"}
@@ -151,6 +152,14 @@ func send_bans(list: Array) -> void:
 	_mutex.unlock()
 
 
+## Режим, места, пароль на ходу (без переподключения)
+func set_settings(s: Dictionary) -> void:
+	extra["settings"] = s
+	_mutex.lock()
+	_cmds.append({"t": "room_meta", "settings": s})
+	_mutex.unlock()
+
+
 ## Открыть/закрыть комнату для всех («Открытые миры»). card — карточка мира (название, версия, места).
 func set_public(on: bool, card := {}) -> void:
 	if not card.is_empty():
@@ -249,6 +258,9 @@ func _loop() -> void:
 				"msg":
 					var m: Dictionary = ev.m
 					match String(m.get("t", "")):
+						"net":
+							_st("ping", int(m.get("ping", 0)))
+							_st("quality", String(m.get("quality", "")))
 						"room":
 							if code != "" and code != m.code:
 								_event("Старая комната пропала, выдан новый код: " + m.code)
@@ -258,6 +270,7 @@ func _loop() -> void:
 							_last_room = [code, token]
 							_mutex.unlock()
 							_st("code", code)
+							_st("num", String(m.get("num", "")))
 							_st("state", "online")
 							_st("error", "")
 						"open":
@@ -435,7 +448,8 @@ func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
 	for p in peers():
 		plist.append({"peer": p.peer, "name": peer_name(p.user)})
 	android.update(JSON.stringify({"code": RoomCode.pretty(_stats.code) if _stats.code != "" else "······", "ok": ok, "why": why,
-		"world": world_name, "peers": plist, "public": public_on, "share": share_text}))
+		"world": world_name, "peers": plist, "public": public_on, "share": share_text,
+		"num": String(_stats.get("num", "")), "quality": String(_stats.get("quality", "")), "friends": invite_friends}))
 	for e in take_peer_events_android():
 		android.event("%s %s ваш мир" % [peer_name(e.user), "зашёл в" if e.on else "вышел из"], false)
 	if not ok and not _alerted and _ok_since > 0 and now - _bad_since > 8000:
@@ -464,6 +478,10 @@ func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
 						link.send_json({"t": "room_meta", "public": public_card if public_on else null})
 					_mutex.lock()
 					_ui_actions.append({"a": "public", "on": public_on})
+					_mutex.unlock()
+				"invite":
+					_mutex.lock()
+					_ui_actions.append({"a": "invite", "id": int(a.get("id", 0))})
 					_mutex.unlock()
 				"close":
 					_mutex.lock()

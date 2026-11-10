@@ -102,7 +102,17 @@ const log = (...a) => console.log('  ✓', ...a);
   log('демо выключено → демо-искры, Pro и премиум-пропуск стёрты; искры', wipe.profile.sparks);
   tx(C, { t: 'top' }); const top = await wait(C, (m) => m.t === 'top');
   log('топ миров недели:', JSON.stringify(top.hosts.map((x) => [x.tag, x.visits, x.likes])));
-  for (const w of [A, B, C, host, guest]) w.close();
+  // удаление профиля (Google Play): C удаляет себя — пропадает всё, B больше не видит его в друзьях
+  tx(B, { t: 'friend_add', tag: wc.me.tag }); await wait(B, (m) => m.t === 'friend_add_ok');
+  tx(C, { t: 'friend_accept', id: wb.me.id }); await wait(B, (m) => m.t === 'state' && m.friends.some((f) => f.id === wc.me.id));
+  tx(C, { t: 'delete_account' }); assert.equal((await wait(C, (m) => m.t === 'delete_account_err')).error, 'need_confirm');
+  tx(C, { t: 'delete_account', confirm: 'DELETE' }); await wait(C, (m) => m.t === 'account_deleted');
+  await wait(B, (m) => m.t === 'state' && !m.friends.some((f) => f.id === wc.me.id));
+  assert.equal(social.user(wc.me.id), undefined);
+  for (const t of ['friends WHERE a=? OR b=?', 'messages WHERE src=?', 'stats WHERE uid=?']) assert.equal(social.store.q('SELECT COUNT(*) AS n FROM ' + t).get(...(t.includes(' OR ') ? [wc.me.id, wc.me.id] : [wc.me.id])).n, 0, t);
+  const C2 = await open(); tx(C2, { t: 'hello', token: tC }); await wait(C2, (m) => m.t === 'need_register'); C2.close();
+  log('удаление профиля: данные стёрты, друзья обновлены, токен больше не входит');
+  for (const w of [A, B, host, guest]) w.close();
   server.close();
   console.log('SOCIAL TEST OK');
   process.exit(0);

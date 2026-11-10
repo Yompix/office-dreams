@@ -75,7 +75,7 @@ func _ready() -> void:
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.texture("res://assets/img/mini_grass.png" if s.edition == "java" else "res://assets/img/mini_stone.png", 44, 44))
+	hr.add_child(UI.icon_tile("java" if s.edition == "java" else "phone", UI.JAVA if s.edition == "java" else UI.BEDROCK, 44, 22))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(s.opts.get("world", "Мир"), 19, UI.TEXT, UI.font_black)
@@ -439,7 +439,7 @@ func _ready_own() -> void:
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.texture("res://assets/img/mini_stone.png" if bed else "res://assets/img/mini_grass.png", 44, 44))
+	hr.add_child(UI.icon_tile("phone" if bed else "java", UI.BEDROCK if bed else UI.JAVA, 44, 22))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(String(w.name), 19, UI.TEXT, UI.font_black)
@@ -479,7 +479,7 @@ func _ready_own() -> void:
 	if bed:
 		_tips.add_child(_tip("phone", UI.BEDROCK, "Зайдут только друзья с Bedrock", "Телефон, планшет, Windows, консоли. Друзья с Java в этот мир зайти не смогут."))
 	else:
-		_tips.add_child(_tip("java", UI.JAVA, "Зайдут друзья с Java", "Если ваш Minecraft купленный, друзей с TLauncher игра не пустит. Для них нужен «Отдельный сервер»."))
+		_tips.add_child(_tip("java", UI.JAVA, "Зайдут друзья с Java", "Компьютер или ноутбук с Minecraft: Java Edition той же версии."))
 	if not Cfg.mobile():
 		_tips.add_child(_tip("server", UI.MUTED, "Мир открыт, пока открыт Minecraft", "Чтобы друзья играли без вас — запустите «Отдельный сервер»."))
 	right.add_child(tp)
@@ -720,6 +720,9 @@ func _refresh_relay() -> void:
 		_btns.qr.disabled = not shown
 	if shown:
 		_set_code(RoomCode.pretty(code))
+		var num := String(r.get("num", ""))
+		var q: String = RoomControl.QUALITY_TEXT.get(String(r.get("quality", "")), "")
+		_code_hint.text = ("Номер в списке «Игры»: № %s%s. " % [num, (" · " + q) if q != "" else ""] if num != "" else "") + "Друг вводит код или номер в «Зайти по коду» — мир сам появится у него в Minecraft."
 	elif starting:
 		_set_code("······")
 	if code != _last_code:

@@ -21,6 +21,7 @@ var java_port := 25565       # предпочитаемый локальный �
 var bedrock_port := 19132    # Bedrock ищет LAN-миры только на 19132
 var nn_port := NetherNet.PORT  # Bedrock 1.21.1xx+ ищет LAN-миры по NetherNet на 7551
 var nn_id := 0               # наш id NetherNet — чтобы «Мой мир» не нашёл сам себя
+var password := ""           # пароль игры (1.5), если хозяин его задал
 var token := ""              # профиль LANTERN (для заданий и «Фонаря»), можно пусто
 var _want_like := false
 
@@ -115,7 +116,7 @@ func _loop() -> void:
 		for ev in link.poll():
 			match ev.k:
 				"open":
-					link.send_json({"t": "join", "v": RelayLink.PROTO, "code": code, "token": token})
+					link.send_json({"t": "join", "v": RelayLink.PROTO, "code": code, "token": token, "password": password})
 				"closed":
 					if _run:   # ошибку от relay («Хозяин мира закрыл вам вход») не затираем
 						_st("state", "error")
@@ -157,6 +158,7 @@ func _loop() -> void:
 							_st("state", "online")
 						"error":
 							_st("state", "error")
+							_st("error_code", String(m.get("error", "")))
 							_st("error", RelayLink.error_text(String(m.get("error", ""))))
 							_run = false
 						"close":

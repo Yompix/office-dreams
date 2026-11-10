@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { DISCLAIMER_RU, DISCLAIMER_EN } = require('./legal');
 
 const KEY_SHA256 = process.env.LANTERN_UPLOAD_SHA256 || 'd130d573526d481f35018048f98ce477ecafd828e7b9077bc03973081759ae38';
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,80}\.(apk|zip|aab)$/;
@@ -19,6 +20,7 @@ function keyOk(k) {
 function size(n) { return (n / 1048576).toFixed(0) + ' МБ'; }
 
 function page(files, base) {
+  const root = base.replace(/\/download$/, '');
   const label = (f) => f.endsWith('.apk') ? 'Android (телефон, планшет)' : /windows/i.test(f) ? 'Windows (компьютер)' : f;
   const rows = files.filter((f) => !f.name.endsWith('.aab')).map((f) =>
     `<a class="b" href="${base}/${encodeURIComponent(f.name)}"><b>${label(f.name)}</b><span>${f.name} · ${size(f.size)}</span></a>`).join('');
@@ -28,8 +30,8 @@ body{margin:0;background:#14110d;color:#f3eadb;font:16px/1.5 system-ui,sans-seri
 main{max-width:480px;width:100%;padding:32px 16px}h1{margin:0 0 4px;font-size:28px;color:#ffb648}p{color:#b9ab95;margin:0 0 24px}
 .b{display:block;background:#241e17;border:1px solid #3a2f22;border-radius:16px;padding:16px;margin:0 0 12px;color:inherit;text-decoration:none}
 .b b{display:block;font-size:18px}.b span{color:#b9ab95;font-size:14px}.n{font-size:14px;color:#8d806c;margin-top:24px}
-</style></head><body><main><h1>LANTERN</h1><p>Minecraft с друзьями по коду — Java и Bedrock.</p>${rows || '<p>Сборок пока нет.</p>'}
-<div class="n"><b>Android:</b> откройте скачанный файл и разрешите установку из этого источника. Если Play Защита пишет «неизвестное приложение» — нажмите «Подробнее» → «Всё равно установить»: так телефон отвечает на любое приложение не из Google Play.<br><br><b>Windows:</b> распакуйте архив и запустите LANTERN.exe. Если появилось «Windows защитила компьютер» — «Подробнее» → «Выполнить в любом случае»: программа пока без платной подписи Microsoft.</div></main></body></html>`;
+</style></head><body><main><h1>LANTERN</h1><p>Игра с друзьями по коду комнаты — для Minecraft: Java Edition и Bedrock Edition.</p>${rows || '<p>Сборок пока нет.</p>'}
+<div class="n"><b>Android:</b> откройте скачанный файл и разрешите установку из этого источника. Если Play Защита пишет «неизвестное приложение» — нажмите «Подробнее» → «Всё равно установить»: так телефон отвечает на любое приложение не из Google Play.<br><br><b>Windows:</b> распакуйте архив и запустите LANTERN.exe. Если появилось «Windows защитила компьютер» — «Подробнее» → «Выполнить в любом случае»: программа пока без платной подписи.<br><br><a style="color:#ffb648" href="${root}/privacy">Конфиденциальность</a> · <a style="color:#ffb648" href="${root}/terms">Условия</a> · <a style="color:#ffb648" href="${root}/delete">Удалить профиль</a><br><br>${DISCLAIMER_RU}<br>${DISCLAIMER_EN}</div></main></body></html>`;
 }
 
 class Downloads {
