@@ -14,6 +14,7 @@ var world_name := "Мир"
 var java_port := 25565
 var bedrock_port := 19132
 var local_host := "127.0.0.1"   # куда пересылать: свой сервер или мир, открытый в Minecraft
+var bedrock_nn_port := 0         # порт поиска NetherNet (0 — стандартный 7551; другой — только для автотестов)
 var extra := {}          # token владельца, публичная карточка комнаты
 
 var _thread: Thread
@@ -102,6 +103,7 @@ func _loop() -> void:
 	var connected := false
 	var last_ping := 0
 	var active := false
+	var nn := {"disc": null, "id": NetherNet.new_id(), "srv": 0, "ip": "", "port": 0, "app": PackedByteArray(), "cids": {}, "req": 0}
 	while _run:
 		var now := Time.get_ticks_msec()
 		if not active and now >= next_try:
@@ -188,6 +190,9 @@ func _loop() -> void:
 						continue
 					s.last = now
 					_add("rx", ev.data.size())
+					if s.kind == "udp" and ev.data.size() >= 2 and ev.data[0] == NetherNet.FRAME:
+						_nn_frame(nn, link, ev.sid, s, ev.data)
+						continue
 					if s.kind == "tcp":
 						s.pending.append_array(ev.data)
 					else:
@@ -218,6 +223,18 @@ func _loop() -> void:
 					_close_local(s)
 					streams.erase(sid)
 					_update_counts(streams)
+			elif s.has("nn"):
+				if s.has("sess"):
+					for pk in NetherNet.pump(s.sess):
+						busy = true
+						link.send_bin(sid, NetherNet.frame(NetherNet.F_DATA, pk))
+						_add("tx", pk.size())
+						s.last = now
+				if now - s.last > UDP_IDLE_MS:
+					link.send_json({"t": "close", "sid": sid})
+					_close_local(s)
+					streams.erase(sid)
+					_update_counts(streams)
 			else:
 				var u: PacketPeerUDP = s.udp
 				while u.get_available_packet_count() > 0:
@@ -231,8 +248,12 @@ func _loop() -> void:
 					_close_local(s)
 					streams.erase(sid)
 					_update_counts(streams)
+		if nn.disc:
+			busy = _nn_poll(nn, link, streams, now) or busy
 		if not busy:
 			OS.delay_usec(1000)
+	if nn.disc:
+		nn.disc.close()
 	if link.is_open() and _graceful:
 		link.send_json({"t": "end"})
 	for sid in streams:
@@ -248,7 +269,87 @@ func _update_counts(streams: Dictionary) -> void:
 	_st("peers", peers.size())
 
 
+# ------------------------------------------------------------------ NetherNet (новые версии Bedrock)
+## Друг прислал кадр NetherNet: I — карточка мира, S — сигнал WebRTC (→ Minecraft через 7551), D — датаграмма.
+func _nn_frame(nn: Dictionary, link: RelayLink, sid: int, s: Dictionary, data: PackedByteArray) -> void:
+	if not s.has("nn"):
+		s.nn = true
+		if s.has("udp"):
+			s.udp.close()
+			s.erase("udp")
+	if nn.disc == null:
+		var u := PacketPeerUDP.new()
+		u.set_broadcast_enabled(true)
+		if u.bind(0, "0.0.0.0") != OK:
+			return
+		nn.disc = u
+		nn.req = 0
+		_st("nethernet", true)
+	var body := data.slice(2)
+	match data[1]:
+		NetherNet.F_INFO:
+			s.info = true
+			if not nn.app.is_empty():
+				link.send_bin(sid, NetherNet.frame(NetherNet.F_INFO, nn.app))
+		NetherNet.F_SIGNAL:
+			var text := body.get_string_from_utf8()
+			var p := NetherNet.split_signal(text)
+			if p.size() < 3 or nn.srv == 0:
+				return
+			if not s.has("sess"):
+				s.sess = NetherNet.new_session(p[1])
+				nn.cids[p[1]] = sid
+				_event("Друг подключается к миру (NetherNet)")
+			for t in NetherNet.remote_signal(s.sess, text):
+				nn.disc.set_dest_address(nn.ip, nn.port)
+				nn.disc.put_packet(NetherNet.message(nn.id, nn.srv, t))
+		NetherNet.F_DATA:
+			if s.has("sess"):
+				NetherNet.deliver(s.sess, body)
+
+
+func _nn_poll(nn: Dictionary, link: RelayLink, streams: Dictionary, now: int) -> bool:
+	var busy := false
+	var u: PacketPeerUDP = nn.disc
+	if now - int(nn.req) > 2000:
+		nn.req = now
+		var rq := NetherNet.request(nn.id)
+		for h in ["127.0.0.1", local_host] if local_host != "127.0.0.1" else ["127.0.0.1"]:
+			u.set_dest_address(h, NetherNet.PORT if bedrock_nn_port <= 0 else bedrock_nn_port)
+			u.put_packet(rq)
+	while u.get_available_packet_count() > 0:
+		busy = true
+		var pk := u.get_packet()
+		var ip := u.get_packet_ip()
+		var port := u.get_packet_port()
+		var d := NetherNet.decode(pk)
+		if d.is_empty() or int(d.sender) == int(nn.id):
+			continue
+		if d.id == NetherNet.ID_RESPONSE:
+			var first: bool = nn.app.is_empty()
+			nn.srv = int(d.sender)
+			nn.ip = ip
+			nn.port = port
+			nn.app = d.appdata
+			for sid in streams:
+				if streams[sid].get("info", false) and (first or now - int(streams[sid].get("info_t", 0)) > 1500):
+					streams[sid].info_t = now
+					link.send_bin(sid, NetherNet.frame(NetherNet.F_INFO, nn.app))
+		elif d.id == NetherNet.ID_MESSAGE and int(d.recipient) == int(nn.id):
+			var p := NetherNet.split_signal(String(d.text))
+			if p.size() < 3:
+				continue
+			var sid: int = nn.cids.get(p[1], 0)
+			if sid == 0 or not streams.has(sid):
+				continue
+			NetherNet.note_local_signal(streams[sid].sess, d.text)
+			link.send_bin(sid, NetherNet.frame(NetherNet.F_SIGNAL, String(d.text).to_utf8_buffer()))
+	return busy
+
+
 static func _close_local(s: Dictionary) -> void:
+	if s.has("sess"):
+		NetherNet.close_session(s.sess)
 	if s.has("tcp"):
 		s.tcp.disconnect_from_host()
 	if s.has("udp"):

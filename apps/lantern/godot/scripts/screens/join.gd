@@ -294,6 +294,7 @@ func _connect() -> void:
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
 	app.relay_join.token = Social.token
+	app.relay_join.nn_port = int(Cfg.autotest_args.get("join_nn_port", NetherNet.PORT))
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
