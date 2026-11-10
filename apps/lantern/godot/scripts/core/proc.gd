@@ -27,7 +27,8 @@ func start(exe: String, args: PackedStringArray, cwd := "") -> String:
 	if cwd != "":
 		_via_shell = true
 		if Cfg.is_windows():
-			var cmdline := "cd /d %s && %s" % [_wq(cwd), _wq(exe)]
+			# cmd.exe: обратные слэши в путях, кавычки вокруг путей с пробелами (C:\Users\Иван Петров\…)
+			var cmdline := "cd /d %s && %s" % [_wq(cwd.replace("/", "\\")), _wq(exe.replace("/", "\\") if exe.contains("/") else exe)]
 			for a in args:
 				cmdline += " " + _wq(a)
 			path = OS.get_environment("ComSpec") if OS.get_environment("ComSpec") != "" else "cmd.exe"
@@ -51,8 +52,9 @@ func start(exe: String, args: PackedStringArray, cwd := "") -> String:
 
 
 static func _wq(s: String) -> String:
-	if s.contains(" ") or s.contains("&") or s.contains("(") or s.contains(")") or s.contains("^"):
-		return "\"" + s + "\""
+	for ch in [" ", "&", "(", ")", "^", "|", "<", ">", ",", ";", "=", "!", "'", "+", "[", "]", "{", "}", "`", "~"]:
+		if s.contains(ch):
+			return "\"" + s + "\""
 	return s
 
 

@@ -34,12 +34,24 @@ const ipConns = new Map();    // ip -> count
 const ipJoins = new Map();    // ip -> [timestamps]
 let nextSid = 1;
 let stats = { started: Date.now(), roomsCreated: 0, joins: 0 };
-const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
-const social = new Social({ dbPath: process.env.DB_PATH || (vol ? path.join(vol, 'lantern.db') : ':memory:') });
-social.bindRooms(rooms);
 const { Economy, ECO_CMDS } = require('./economy');
-social.eco = new Economy(social);
-social.ecoCmds = ECO_CMDS;
+let social = null;            // создаётся в attach(): путь к базе задаёт тот, кто запускает relay
+let wss = null;
+
+const { Pro, PRO_CMDS } = require('./pro');
+const { Downloads } = require('./download');
+let downloads = new Downloads('');
+let publicBase = '';
+
+function makeSocial(dbPath, opts = {}) {
+  const s = new Social({ dbPath });
+  s.bindRooms(rooms);
+  s.eco = new Economy(s);
+  s.ecoCmds = ECO_CMDS;
+  s.pro = new Pro(s, rooms, { cloudDir: opts.cloudDir, totalMb: opts.cloudTotalMb });
+  s.proCmds = PRO_CMDS;
+  return s;
+}
 const SOCIAL_CMDS = new Set(['hello', 'register', 'presence', 'friend_add', 'friend_accept', 'friend_decline', 'friend_remove',
   'block', 'unblock', 'report', 'dm', 'history', 'invite', 'room_enter', 'room_chat', 'rooms', 'state']);
 
@@ -50,7 +62,7 @@ function makeCode() {
     const b = crypto.randomBytes(6);
     let s = '';
     for (let i = 0; i < 6; i++) s += ALPHABET[b[i] % ALPHABET.length];
-    if (!rooms.has(s)) return s;
+    if (!rooms.has(s) && !social.pro.reserved(s)) return s;
   }
   return null;
 }
@@ -138,7 +150,9 @@ function onHost(ws, msg) {
     for (const j of room.joiners) send(j.ws, { t: 'host_back' });
   } else {
     if (rooms.size >= CFG.maxRooms) return send(ws, { t: 'error', error: 'busy' });
-    const code = makeCode();
+    // LANTERN Pro: свой код комнаты (если просили, Pro активна и код сейчас не занят открытой комнатой)
+    const vanity = msg.vanity && owner ? social.pro.codeForHost(owner.id) : '';
+    const code = vanity || makeCode();
     if (!code) return send(ws, { t: 'error', error: 'busy' });
     room = { code, token: crypto.randomBytes(16).toString('hex'), edition: msg.edition, name, host: ws,
       joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
@@ -154,7 +168,7 @@ function onHost(ws, msg) {
   }
   ws._role = 'host';
   ws._room = room;
-  send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO,
+  send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO, vanity: !!(msg.vanity && owner && social.pro.vanityOf(owner.id) === room.code),
     limits: { joiners: CFG.maxJoiners, streams: CFG.maxStreams, bytesPerSec: CFG.roomBytesPerSec } });
 }
 
@@ -223,7 +237,7 @@ function onText(ws, text) {
   try { msg = JSON.parse(text); } catch { return ws.close(4002, 'bad json'); }
   if (!msg || typeof msg.t !== 'string') return;
   if (msg.t === 'ping') return send(ws, { t: 'pong', ts: msg.ts });
-  if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t)) return social.handle(ws, msg);
+  if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t) || PRO_CMDS.has(msg.t)) return social.handle(ws, msg);
   if (msg.t === 'like' && ws._role === 'joiner') return likeRoom(ws);
   if (msg.t === 'room_meta' && ws._role === 'host') { ws._room.meta = Social.roomMeta(msg.public); return; }
   if (!ws._role) {
@@ -266,25 +280,26 @@ function onBinary(ws, data) {
   }
 }
 
-const server = http.createServer((req, res) => {
-  if (req.url === '/healthz' || req.url === '/') {
+// HTTP: /healthz и /rooms (url — уже без префикса)
+function onHttp(req, res, url) {
+  if (downloads.http(req, res, url, publicBase)) return;
+  if (social.pro.http(req, res, url)) return;
+  if (url === '/healthz' || url === '/') {
     let joiners = 0;
     for (const r of rooms.values()) joiners += r.joiners.size;
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     return res.end(JSON.stringify({ ok: true, app: 'lantern-relay', v: PROTO, rooms: rooms.size, joiners,
       uptime: Math.round((Date.now() - stats.started) / 1000) }));
   }
-  if (req.url.startsWith('/rooms')) {
-    const u = new URL(req.url, 'http://x');
+  if (url.startsWith('/rooms')) {
+    const u = new URL(url, 'http://x');
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     return res.end(JSON.stringify({ rooms: social.publicRooms({ edition: u.searchParams.get('edition'), tag: u.searchParams.get('tag'), q: u.searchParams.get('q') }) }));
   }
   res.writeHead(404); res.end();
-});
+}
 
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: CFG.maxFrame, perMessageDeflate: false });
-
-wss.on('connection', (ws, req) => {
+function onConnection(ws, req) {
   const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
   ws._ip = fwd || req.socket.remoteAddress || '?';
   const n = (ipConns.get(ws._ip) || 0) + 1;
@@ -304,23 +319,61 @@ wss.on('connection', (ws, req) => {
     social.detach(ws);
   });
   ws.on('error', () => {});
-});
+}
 
-setInterval(() => {
-  const now = Date.now();
-  for (const ws of wss.clients) {
-    if (now - ws._seen > CFG.idleMs) { ws.terminate(); continue; }
-    if (ws.readyState === 1) ws.ping();
-  }
-  for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
-  for (const [ip, l] of ipJoins) if (!l.length || now - l[l.length - 1] > 60_000) ipJoins.delete(ip);
-}, 15_000).unref();
-setInterval(() => social.tickPlaytime(), 60_000).unref();
+/**
+ * Подключить relay к уже работающему HTTP-серверу (например, к сайту Office Dreams).
+ * Забирает только WebSocket-запросы на opts.wsPath; остальные upgrade-запросы не трогает.
+ * Возвращает { http(req, res, url), close() } — http отвечает на /healthz и /rooms.
+ */
+function attach(httpServer, opts = {}) {
+  if (wss) throw new Error('relay already attached');
+  const wsPath = opts.wsPath || '/ws';
+  social = makeSocial(opts.dbPath || ':memory:', opts);
+  downloads = new Downloads(opts.downloadDir || '');
+  publicBase = opts.publicBase || '';
+  wss = new WebSocketServer({ noServer: true, maxPayload: CFG.maxFrame, perMessageDeflate: false });
+  wss.on('connection', onConnection);
+  httpServer.on('upgrade', (req, socket, head) => {
+    const p = String(req.url || '').split('?')[0];
+    if (p !== wsPath) return; // чужой путь — не наше дело
+    wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
+  });
+  const t1 = setInterval(() => {
+    const now = Date.now();
+    for (const ws of wss.clients) {
+      if (now - ws._seen > CFG.idleMs) { ws.terminate(); continue; }
+      if (ws.readyState === 1) ws.ping();
+    }
+    for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
+    for (const [ip, l] of ipJoins) if (!l.length || now - l[l.length - 1] > 60_000) ipJoins.delete(ip);
+  }, 15_000);
+  t1.unref();
+  const t2 = setInterval(() => social.tickPlaytime(), 60_000);
+  t2.unref();
+  log(`lantern relay attached, ws path ${wsPath}, db ${opts.dbPath ? 'file' : 'memory'}`);
+  return {
+    http: onHttp,
+    close() { clearInterval(t1); clearInterval(t2); for (const r of [...rooms.values()]) closeRoom(r, 'server_restart'); },
+  };
+}
 
-server.listen(CFG.port, () => log(`relay listening on :${CFG.port} path /ws`));
+/** Отдельный сервер relay (свой сервис на Railway или тесты). */
+function standalone(port = CFG.port) {
+  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  const dbPath = process.env.LANTERN_DB_PATH || process.env.DB_PATH || (vol ? path.join(vol, 'lantern.db') : ':memory:');
+  let relay = null;
+  const server = http.createServer((req, res) => relay.http(req, res, req.url));
+  relay = attach(server, { wsPath: '/ws', dbPath });
+  server.listen(port, () => log(`relay listening on :${port} path /ws`));
+  return { server, social, relay };
+}
 
-function shutdown() { for (const r of [...rooms.values()]) closeRoom(r, 'server_restart'); server.close(); setTimeout(() => process.exit(0), 300).unref(); }
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+if (require.main === module) {
+  const { server, relay } = standalone();
+  const shutdown = () => { relay.close(); server.close(); setTimeout(() => process.exit(0), 300).unref(); };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+}
 
-module.exports = { server, rooms, CFG, normCode, ALPHABET, social };
+module.exports = { attach, standalone, rooms, CFG, normCode, ALPHABET, get social() { return social; } };

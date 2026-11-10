@@ -1,5 +1,5 @@
 extends ScrollContainer
-## Настройки: язык, цвет, папка данных, сервер-посредник, обновления, о программе.
+## Настройки: внешний вид и анимации, ДЕМО покупок, папка данных, сервер LANTERN, обновления, о программе.
 
 var app
 var arg
@@ -10,114 +10,127 @@ var _relay: LineEdit
 var _relay_st: Label
 
 
+func _group(v: VBoxContainer, title: String) -> VBoxContainer:
+	v.add_child(UI.section(title))
+	var p := UI.panel(18)
+	var inner := UI.vbox(16)
+	p.add_child(inner)
+	v.add_child(p)
+	return inner
+
+
 func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var cols := UI.hbox(20)
-	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(cols)
-	var l := UI.vbox(16)
-	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cols.add_child(l)
-	var r := UI.vbox(16)
-	r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cols.add_child(r)
-	l.add_child(UI.h1("Настройки"))
+	var v := UI.vbox(10)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(v)
 
 	# --- внешний вид
-	var p := UI.panel(22)
-	var v := UI.vbox(14)
-	p.add_child(v)
-	v.add_child(UI.h3("Внешний вид"))
+	var g := _group(v, "Внешний вид")
 	var lr := UI.hbox(10)
-	lr.add_child(UI.label("Язык", 15, UI.MUTED))
-	lr.add_child(UI.spacer())
-	var lang := UI.option(["Русский"])
-	lang.disabled = true
-	lang.custom_minimum_size.x = 200
-	lr.add_child(lang)
-	v.add_child(lr)
+	var ll := UI.label("Язык", 15, UI.TEXT, UI.font_bold)
+	ll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lr.add_child(ll)
+	lr.add_child(UI.label("Русский", 15, UI.MUTED))
+	g.add_child(lr)
+	g.add_child(UI.divider())
+	var av := UI.vbox(10)
+	av.add_child(UI.label("Цвет акцента", 15, UI.TEXT, UI.font_bold))
 	var ar := UI.hbox(10)
-	ar.add_child(UI.label("Цвет акцента", 15, UI.MUTED))
-	ar.add_child(UI.spacer())
 	for key in Cfg.ACCENTS:
 		var c: Color = Cfg.ACCENTS[key]
 		var b := Button.new()
-		b.custom_minimum_size = Vector2(36, 36)
+		b.custom_minimum_size = Vector2(40, 40)
+		b.focus_mode = Control.FOCUS_NONE
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		var on: bool = Cfg.get_value("app", "accent", "amber") == key
 		b.add_theme_stylebox_override("normal", UI.box(c, 99, 0, Color.WHITE if on else Color(0, 0, 0, 0), 3 if on else 0))
-		b.add_theme_stylebox_override("hover", UI.box(c.lightened(0.15), 99, 0, Color.WHITE, 2))
+		b.add_theme_stylebox_override("hover", UI.box(c.lightened(0.15), 99, 0, Color(1, 1, 1, 0.6), 2))
 		b.add_theme_stylebox_override("pressed", UI.box(c, 99, 0, Color.WHITE, 3))
+		if on:
+			var ck := UI.icon("check", 20, UI.ON_ACCENT)
+			ck.stroke = 3.0
+			ck.set_anchors_preset(Control.PRESET_CENTER)
+			ck.position = Vector2(10, 10)
+			b.add_child(ck)
 		b.pressed.connect(func(): Cfg.set_accent(key))
+		FX.press(b, 0.88)
 		ar.add_child(b)
-	v.add_child(ar)
-	l.add_child(p)
+	av.add_child(ar)
+	g.add_child(av)
+	g.add_child(UI.divider())
+	var rm := UI.switch_row("Меньше анимаций", "Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает.", Cfg.get_value("app", "reduce_motion", false), func(b): Cfg.set_value("app", "reduce_motion", b))
+	g.add_child(rm.row)
 
-	# --- папка данных
-	var pd := UI.panel(22)
-	var dv := UI.vbox(10)
-	pd.add_child(dv)
-	dv.add_child(UI.h3("Где хранить миры и серверы"))
-	dv.add_child(UI.para("Здесь лежат серверы, миры, Java и резервные копии. Нужно 1–3 ГБ свободного места.", 14, UI.MUTED))
-	var dr := UI.hbox(8)
-	_dir = UI.line_edit(Cfg.data_dir())
-	_dir.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_dir.editable = false
-	dr.add_child(_dir)
-	dr.add_child(UI.button("Изменить…", "secondary", _pick_dir))
-	dr.add_child(UI.button("Открыть", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.data_dir()))))
-	dv.add_child(dr)
-	dv.add_child(UI.button("Вернуть папку по умолчанию", "ghost", func():
-		Cfg.set_value("app", "data_dir", "")
-		_dir.text = Cfg.data_dir()))
-	l.add_child(pd)
+	# --- покупки
+	var gm := _group(v, "Покупки и реклама")
+	var demo := UI.switch_row("ДЕМО-режим", "Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд.", Social.demo, func(b):
+		Social.set_demo(b)
+		app.toast("ДЕМО включён" if b else "ДЕМО выключен: демо-покупки и демо-искры стёрты"))
+	gm.add_child(demo.row)
 
-	# --- relay
-	var pr := UI.panel(22)
-	var rv := UI.vbox(10)
-	pr.add_child(rv)
-	rv.add_child(UI.h3("Сервер-посредник (комнаты по коду)"))
-	rv.add_child(UI.para("Через него друзья заходят по коду. Он только передаёт данные игры между вами и ничего не хранит.", 14, UI.MUTED))
-	var rr := UI.hbox(8)
+	# --- миры
+	var gd := _group(v, "Миры и копии")
+	gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), "Копии миров", "Резервные копии, облако, перенос по коду", UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
+	if not Cfg.mobile():
+		gd.add_child(UI.list_row(UI.icon_tile("info", UI.BEDROCK, 40, 20), "Проверка системы", "Можно ли создать мир на этом компьютере", UI.icon("chevron", 20, UI.DIM), func(): app.go("syscheck", true), Color(0, 0, 0, 0)))
+		gd.add_child(UI.divider())
+		var dv := UI.vbox(8)
+		dv.add_child(UI.label("Где хранить миры и серверы", 15, UI.TEXT, UI.font_bold))
+		dv.add_child(UI.para("Серверы, миры, Java и копии. Нужно 1–3 ГБ свободного места.", 13, UI.MUTED))
+		_dir = UI.line_edit(Cfg.data_dir())
+		_dir.editable = false
+		_dir.add_theme_font_size_override("font_size", 13)
+		dv.add_child(_dir)
+		if Cfg.server_root() != Cfg.data_dir():
+			dv.add_child(UI.para("Серверы и Java — в %s (Java на Windows не понимает русские буквы в пути)." % Cfg.server_root(), 12, UI.DIM))
+		var tools := UI.flow(8)
+		tools.add_child(UI.button("Изменить…", "secondary", _pick_dir, "folder"))
+		tools.add_child(UI.button("Открыть", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.data_dir()))))
+		tools.add_child(UI.button("По умолчанию", "ghost", func():
+			Cfg.set_value("app", "data_dir", "")
+			_dir.text = Cfg.data_dir()))
+		dv.add_child(tools)
+		gd.add_child(dv)
+
+	# --- сервер LANTERN
+	var gr := _group(v, "Сервер LANTERN")
+	gr.add_child(UI.para("Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер.", 13, UI.MUTED))
 	_relay = UI.line_edit(Cfg.relay_url(), Cfg.DEFAULT_RELAY)
-	_relay.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_relay.add_theme_font_override("font", UI.font_mono)
-	_relay.add_theme_font_size_override("font_size", 14)
-	rr.add_child(_relay)
+	_relay.add_theme_font_size_override("font_size", 13)
+	gr.add_child(_relay)
+	var rr := UI.hbox(8)
 	rr.add_child(UI.button("Сохранить", "secondary", _save_relay))
-	rr.add_child(UI.button("Проверить", "ghost", _check_relay))
-	rv.add_child(rr)
-	_relay_st = UI.label("", 14, UI.DIM)
-	rv.add_child(_relay_st)
-	l.add_child(pr)
+	rr.add_child(UI.button("Проверить связь", "ghost", _check_relay, "wifi"))
+	gr.add_child(rr)
+	_relay_st = UI.label("", 13, UI.DIM)
+	gr.add_child(_relay_st)
 
-	# --- обновления
-	r.add_child(UI.gap(46))
-	var pu := UI.panel(22)
-	var uv := UI.vbox(10)
-	pu.add_child(uv)
-	uv.add_child(UI.h3("Обновления серверов"))
-	uv.add_child(UI.para("Серверы обновляются сами при каждом запуске мира. Здесь можно просто посмотреть, что нового.", 14, UI.MUTED))
-	uv.add_child(UI.button("Проверить обновления", "secondary", _check))
-	_upd = UI.vbox(6)
-	uv.add_child(_upd)
-	r.add_child(pu)
+	# --- обновления (только ПК: серверы живут там)
+	if not Cfg.mobile():
+		var gu := _group(v, "Обновления серверов")
+		gu.add_child(UI.para("Серверы обновляются сами при каждом запуске мира. Здесь можно посмотреть, что нового.", 13, UI.MUTED))
+		var ub := UI.button("Проверить обновления", "secondary", _check, "refresh")
+		ub.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		gu.add_child(ub)
+		_upd = UI.vbox(6)
+		gu.add_child(_upd)
 
 	# --- о программе
-	var pa := UI.panel(22)
-	var av := UI.vbox(8)
-	pa.add_child(av)
-	var ah := UI.hbox(12)
+	var ga := _group(v, "О программе")
+	var ah := UI.hbox(14)
 	ah.add_child(UI.texture("res://assets/img/icon.png", 52, 52))
 	var at := UI.vbox(0)
-	at.add_child(UI.label("LANTERN " + Cfg.APP_VERSION, 18, UI.TEXT, UI.font_bold))
-	at.add_child(UI.label("Создатель — Yompix", 14, UI.accent(), UI.font_bold))
+	at.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	at.add_child(UI.label("LANTERN " + Cfg.APP_VERSION, 17, UI.TEXT, UI.font_bold))
+	at.add_child(UI.label("Создатель — Yompix", 13, UI.accent(), UI.font_bold))
 	ah.add_child(at)
-	av.add_child(ah)
-	av.add_child(UI.para("Без телеметрии и рекламы. Не требует прав администратора. Пароли не спрашивает.", 14, UI.MUTED))
-	av.add_child(UI.para("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT.", 13, UI.DIM))
-	av.add_child(UI.para("Не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.", 13, UI.DIM))
-	r.add_child(pa)
+	ga.add_child(ah)
+	ga.add_child(UI.para("Без телеметрии. Не требует прав администратора. Пароли не спрашивает.", 13, UI.MUTED))
+	ga.add_child(UI.para("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT.", 12, UI.DIM))
+	ga.add_child(UI.para("Не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.", 12, UI.DIM))
+	v.add_child(UI.gap(16))
 
 
 func _pick_dir() -> void:
@@ -133,7 +146,10 @@ func _pick_dir() -> void:
 		Cfg.set_value("app", "data_dir", d.path_join("LANTERN"))
 		DirAccess.make_dir_recursive_absolute(Cfg.data_dir())
 		_dir.text = Cfg.data_dir()
-		app.toast("Новые миры будут в этой папке"))
+		if Cfg.is_windows() and not Cfg.is_ascii_path(Cfg.data_dir()):
+			app.toast("В пути есть русские буквы — серверы и Java всё равно будут в " + Cfg.server_root(), UI.YELLOW)
+		else:
+			app.toast("Новые миры будут в этой папке"))
 	add_child(fd)
 	fd.popup_centered(Vector2i(800, 500))
 

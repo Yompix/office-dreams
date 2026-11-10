@@ -1,5 +1,6 @@
 extends HBoxContainer
-## Друзья: мой тег и QR, добавление по тегу, заявки, список со статусами, «Присоединиться»/«Пригласить», личный чат.
+## Друзья: мой тег (копировать, QR), добавить по тегу, заявки, список со статусами и личный чат.
+## Телефон: список → чат открывается «поверх» (стрелка «Назад» в верхней панели). ПК: список слева, чат справа.
 
 var app
 var arg := {}
@@ -8,69 +9,101 @@ var _tag_in: LineEdit
 var _list: VBoxContainer
 var _chat_holder: VBoxContainer
 var _peer := 0
+var _compact := false
+var _left: Control
+var _right: PanelContainer
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 20)
-	var left := UI.vbox(14)
-	left.custom_minimum_size.x = 560
+	_compact = UI.compact()
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.custom_minimum_size.x = 0 if _compact else 400
+	sc.size_flags_stretch_ratio = 0.8
+	_left = sc
+	add_child(sc)
+	var left := UI.vbox(12)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(left)
-	left.add_child(UI.h1("Друзья"))
-	# мой тег
-	var mp := UI.panel(16)
-	var mr := UI.hbox(14)
-	mp.add_child(mr)
-	var mv := UI.vbox(6)
-	mv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mv.add_child(UI.label("ВАШ ТЕГ", 12, UI.MUTED, UI.font_bold))
+	sc.add_child(left)
+	# --- мой тег
 	var tag: String = Social.me.get("tag", "—")
-	mv.add_child(UI.label(tag, 24, Color("ffb648"), UI.font_black))
-	var ar := UI.hbox(8)
-	ar.add_child(UI.button("Скопировать тег", "secondary", func(): UI.copy(tag); app.toast("Тег скопирован: " + tag)))
-	mv.add_child(ar)
+	var mp := PanelContainer.new()
+	var mst := UI.box(Color("201a10"), UI.R_L, 0, Color(UI.accent(), 0.25), 1)
+	UI._hpad(mst, 16, 14)
+	mp.add_theme_stylebox_override("panel", mst)
+	var mr := UI.hbox(12)
+	mp.add_child(mr)
+	var mv := UI.vbox(2)
+	mv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mv.add_child(UI.caption("Ваш тег", UI.accent()))
+	var tl := UI.label(tag, 22, UI.TEXT, UI.font_black)
+	tl.clip_text = true
+	tl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	mv.add_child(tl)
+	mv.add_child(UI.para("Отправьте его другу — он добавит вас", 12, UI.MUTED))
 	mr.add_child(mv)
+	mr.add_child(UI.icon_button("copy", func(): UI.copy(tag); app.toast("Тег скопирован: " + tag), "Скопировать тег", UI.accent().lightened(0.2), Color(UI.accent(), 0.15)))
 	if Social.online():
-		var q := QR.encode("lantern://friend?v=1&tag=" + tag.uri_encode(), QR.ECC_M)
-		var qt := TextureRect.new()
-		qt.texture = ImageTexture.create_from_image(q.to_image(4, Color("0b0e14"), Color("eef1f7")))
-		qt.custom_minimum_size = Vector2(104, 104)
-		qt.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		qt.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		qt.tooltip_text = "Друг сканирует этот QR в LANTERN на телефоне"
-		mr.add_child(qt)
+		mr.add_child(UI.icon_button("qr", func(): _qr_sheet(tag), "QR-код для друга", UI.accent().lightened(0.2), Color(UI.accent(), 0.15)))
 	left.add_child(mp)
-	# добавить
-	var ap := UI.panel(14)
+	# --- добавить
 	var arow := UI.hbox(8)
-	ap.add_child(arow)
-	_tag_in = UI.line_edit("", "Тег друга, например Алекс#4821")
+	_tag_in = UI.line_edit("", "Тег друга: Алекс#4821")
 	_tag_in.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tag_in.text_submitted.connect(func(_t): _add())
 	arow.add_child(_tag_in)
-	arow.add_child(UI.button("Добавить", "primary", _add))
-	left.add_child(ap)
-	var sc := ScrollContainer.new()
-	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var ab := UI.button("Добавить", "primary", _add, "plus")
+	arow.add_child(ab)
+	left.add_child(arow)
 	_list = UI.vbox(8)
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sc.add_child(_list)
-	left.add_child(sc)
-
-	var right := UI.panel(18)
+	left.add_child(_list)
+	# --- чат
+	var right := PanelContainer.new()
+	right.add_theme_stylebox_override("panel", UI.box(UI.CARD if not _compact else Color(0, 0, 0, 0), UI.R_L, 0 if _compact else 16))
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_holder = UI.vbox(10)
 	right.add_child(_chat_holder)
 	add_child(right)
+	_right = right
+	if _compact:
+		right.visible = false
 	Social.changed.connect(_on_changed)
 	_render()
+	FX.stagger(_list, 0.035)
 	_peer = int(arg.get("chat", 0)) if arg is Dictionary else 0
-	if _peer == 0 and not Social.friends.is_empty():
+	if _peer == 0 and not Social.friends.is_empty() and not _compact:
 		_peer = int(Social.friends[0].id)
-	_open_chat(_peer)
+	if not _compact:
+		_open_chat(_peer)
+	elif _peer != 0:
+		_open_chat(_peer)
 	if not Social.online():
 		Social.reconnect()
+	# ссылка lantern://friend?tag=… (QR друга или ссылка из мессенджера)
+	if arg is Dictionary and String(arg.get("add", "")) != "":
+		_tag_in.text = String(arg.add)
+		if Social.online():
+			_add()
+		else:
+			app.toast("Заявка уйдёт, когда появится связь — нажмите «Добавить»", UI.YELLOW)
+
+
+func _qr_sheet(tag: String) -> void:
+	var v: VBoxContainer = Overlays.sheet(app, "Ваш QR-код", "Друг наводит камеру телефона — LANTERN откроется и отправит заявку")
+	var q := QR.encode(DeepLink.friend_link(tag), QR.ECC_M)
+	var t := TextureRect.new()
+	t.texture = ImageTexture.create_from_image(q.to_image(6, Color("0b0e14"), Color("eef1f7")))
+	t.custom_minimum_size = Vector2(220, 220)
+	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	v.add_child(t)
+	var l := UI.label(tag, 22, UI.accent(), UI.font_black)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
 
 
 func _add() -> void:
@@ -85,10 +118,10 @@ func _add() -> void:
 
 
 func _on_changed(what: String) -> void:
-	if what in ["friends", "conn"]:
+	if what in ["friends", "conn", "dm"]:
 		_render()
-	if what == "dm":
-		_render()
+		if _compact and _peer != 0 and what == "friends" and _right.visible:
+			_update_chat_bar()
 
 
 static func status_text(f: Dictionary) -> String:
@@ -97,9 +130,9 @@ static func status_text(f: Dictionary) -> String:
 	var a: Variant = f.get("activity")
 	if not (a is Dictionary):
 		return "в сети"
-	var ed := {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(a.get("edition", ""), "")
+	var ed: String = {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(a.get("edition", ""), "")
 	match a.get("activity", "idle"):
-		"hosting": return "хостит %s %s · «%s»" % [ed, a.get("version", ""), a.get("world", "")]
+		"hosting": return "в своём мире «%s» · %s %s" % [a.get("world", ""), ed, a.get("version", "")]
 		"playing": return "играет в мир «%s»" % a.get("world", "")
 	return "в сети"
 
@@ -108,83 +141,102 @@ func _render() -> void:
 	for c in _list.get_children():
 		c.queue_free()
 	if not Social.online():
-		_list.add_child(UI.para("Нет связи с сервером LANTERN — друзья появятся, когда интернет вернётся." if Social.conn != "need_register" else "Сначала придумайте ник.", 15, UI.YELLOW))
 		if Social.conn == "need_register":
-			_list.add_child(UI.button("Придумать ник", "primary", func(): Overlays.register(app)))
+			_list.add_child(UI.empty("user", "Сначала придумайте ник", "Придумать ник", func(): Overlays.register(app), "По нику и тегу вас найдут друзья"))
+		else:
+			_list.add_child(UI.empty("wifi", "Нет связи с сервером LANTERN", "Повторить", func(): Social.reconnect(), "Друзья появятся, когда вернётся интернет"))
 		return
 	if not Social.incoming.is_empty():
-		_list.add_child(UI.label("ЗАЯВКИ В ДРУЗЬЯ", 12, UI.MUTED, UI.font_bold))
+		_list.add_child(UI.section("Заявки в друзья · %d" % Social.incoming.size()))
 		for u in Social.incoming:
-			var row := _row(u, "хочет дружить")
-			row.add_child(UI.button("Принять", "primary", func(): Social.request("friend_accept", {"id": u.id})))
-			row.add_child(UI.button("Нет", "ghost", func(): Social.request("friend_decline", {"id": u.id})))
-			_list.add_child(row.get_parent().get_parent())
+			var tr := UI.hbox(4)
+			tr.add_child(UI.icon_button("close", func(): Social.request("friend_decline", {"id": u.id}), "Отклонить", UI.MUTED))
+			tr.add_child(UI.button("Принять", "primary", func(): Social.request("friend_accept", {"id": u.id})))
+			_list.add_child(_row(u, "хочет дружить", tr))
 	if not Social.outgoing.is_empty():
-		_list.add_child(UI.label("ОТПРАВЛЕННЫЕ ЗАЯВКИ", 12, UI.MUTED, UI.font_bold))
+		_list.add_child(UI.section("Отправленные заявки"))
 		for u in Social.outgoing:
-			_list.add_child(_row(u, "ждём ответа").get_parent().get_parent())
-	_list.add_child(UI.label("ДРУЗЬЯ · %d" % Social.friends.size(), 12, UI.MUTED, UI.font_bold))
+			_list.add_child(_row(u, "ждём ответа", null))
+	_list.add_child(UI.section("Друзья · %d" % Social.friends.size()))
 	if Social.friends.is_empty():
-		_list.add_child(UI.para("Пока никого. Отправьте свой тег другу или добавьте его по тегу.", 14, UI.DIM))
+		_list.add_child(UI.empty("friends", "Пока никого", "", Callable(), "Отправьте свой тег другу или добавьте его по тегу выше."))
+		return
 	var sorted := Social.friends.duplicate()
 	sorted.sort_custom(func(a, b): return int(a.online) > int(b.online))
 	var my_code: String = app.relay_host.stats().get("code", "")
 	for f in sorted:
-		var row := _row(f, status_text(f))
+		var tr := UI.hbox(6)
 		var a: Variant = f.get("activity")
-		if a is Dictionary and a.get("code", "") != "":
-			row.add_child(UI.button("Присоединиться", "primary", func(): app.go("join", true, {"input": a.code, "edition": "both"})))
-		elif my_code != "" and f.online:
-			row.add_child(UI.button("Пригласить", "secondary", func():
-				Social.request("invite", {"to": f.id, "code": my_code, "world": app.server.opts.get("world", ""), "edition": app.relay_host.edition})))
 		var unread := int(Social.unread.get(int(f.id), 0))
-		var cb := UI.button("Чат" + (" (%d)" % unread if unread > 0 else ""), "ghost", func(): _open_chat(int(f.id)))
-		row.add_child(cb)
-		_list.add_child(row.get_parent().get_parent())
+		if unread > 0:
+			tr.add_child(UI.badge(unread))
+		if a is Dictionary and a.get("code", "") != "":
+			tr.add_child(UI.button("Зайти", "primary", func(): app.go("join", true, {"input": a.code, "edition": "both"})))
+		elif my_code != "" and f.online:
+			tr.add_child(UI.button("Позвать", "tonal", func():
+				Social.request("invite", {"to": f.id, "code": my_code, "world": app.server.opts.get("world", ""), "edition": app.relay_host.edition})
+				app.toast("Приглашение отправлено", UI.JAVA)))
+		var row := _row(f, status_text(f), tr, func(): _open_chat(int(f.id)))
+		if not _compact and int(f.id) == _peer:
+			(row.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = UI.CARD_HI
+		_list.add_child(row)
 
 
-func _row(u: Dictionary, status: String) -> HBoxContainer:
-	var p := UI.panel(12, UI.CARD, 14)
-	var m := MarginContainer.new()
-	p.add_child(m)
-	var row := UI.hbox(10)
-	m.add_child(row)
-	var li := LanternIcon.new().setup(int(u.get("lantern", {}).get("level", 1)), u.get("equip", ""), 46)
+func _avatar(u: Dictionary, px := 46) -> Control:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(px, px)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var li := LanternIcon.new().setup(int(u.get("lantern", {}).get("level", 1)), u.get("equip", ""), px)
 	li.modulate.a = 1.0 if u.get("online", true) else 0.45
-	row.add_child(li)
-	var v := UI.vbox(0)
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var nl := UI.hbox(6)
-	nl.add_child(UI.label(u.get("nick", ""), 16, UI.TEXT, UI.font_bold))
-	nl.add_child(UI.label("#" + String(u.get("tag", "#")).get_slice("#", 1), 13, UI.DIM))
-	nl.add_child(UI.label("ур. %d" % int(u.get("lantern", {}).get("level", 1)), 12, Color("ffb648"), UI.font_bold))
-	v.add_child(nl)
-	if u.get("title", "") != "":
-		v.add_child(UI.label(u.title, 12, UI.accent(), UI.font_bold))
-	v.add_child(UI.label(status, 13, UI.JAVA if u.get("online", false) else UI.DIM))
-	row.add_child(v)
-	return row
+	holder.add_child(li)
+	if u.get("online", false):
+		var dot := Panel.new()
+		dot.add_theme_stylebox_override("panel", UI.box(UI.JAVA, 99, 0, UI.CARD, 2))
+		dot.size = Vector2(14, 14)
+		dot.position = Vector2(px - 13, px - 13)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(dot)
+	return holder
 
 
-func _open_chat(fid: int) -> void:
-	_peer = fid
-	for c in _chat_holder.get_children():
-		c.queue_free()
-	if fid == 0 or Social.friend_by_id(fid).is_empty():
-		_chat_holder.add_child(UI.h3("Личные сообщения"))
-		_chat_holder.add_child(UI.para("Выберите друга слева, чтобы написать ему. Писать можно только друзьям.", 14, UI.MUTED))
+func _row(u: Dictionary, status: String, trail: Control, cb := Callable()) -> PanelContainer:
+	var r := UI.list_row(_avatar(u), String(u.get("nick", "")), status, trail, cb)
+	var tv: VBoxContainer = r.get_meta("text")
+	var title: Label = r.get_meta("title")
+	var line := UI.hbox(6)
+	tv.remove_child(title)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_child(title)
+	if not _compact:
+		var tg := UI.label("#" + String(u.get("tag", "#")).get_slice("#", 1), 13, UI.DIM)
+		line.add_child(tg)
+	if not _compact:
+		line.add_child(UI.pill("ур. %d" % int(u.get("lantern", {}).get("level", 1)), UI.AMBER))
+	tv.add_child(line)
+	tv.move_child(line, 0)
+	if tv.get_child_count() > 1:
+		var sl: Label = tv.get_child(1)
+		var a: Variant = u.get("activity")
+		sl.add_theme_color_override("font_color", UI.JAVA if a is Dictionary and a.get("code", "") != "" else (UI.MUTED if u.get("online", false) else UI.DIM))
+	if String(u.get("title", "")) != "":
+		var tt := UI.label(u.title, 12, UI.accent(), UI.font_bold)
+		tv.add_child(tt)
+	return r
+
+
+func _update_chat_bar() -> void:
+	var f := Social.friend_by_id(_peer)
+	if f.is_empty():
 		return
-	var f := Social.friend_by_id(fid)
-	var head := UI.hbox(10)
-	head.add_child(LanternIcon.new().setup(int(f.get("lantern", {}).get("level", 1)), f.get("equip", ""), 40))
-	var hv := UI.vbox(0)
-	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hv.add_child(UI.label(f.tag, 17, UI.TEXT, UI.font_bold))
-	hv.add_child(UI.label(status_text(f), 13, UI.MUTED))
-	head.add_child(hv)
+	app.set_title(String(f.get("nick", "")), status_text(f))
+
+
+func _friend_menu(fid: int) -> MenuButton:
 	var mb := MenuButton.new()
-	mb.text = "•••"
+	mb.icon = UI.icon_tex("dots_v", 22, UI.TEXT)
 	mb.flat = true
+	mb.tooltip_text = "Ещё"
+	mb.custom_minimum_size = Vector2(48, 48)
 	var pm := mb.get_popup()
 	pm.add_item("Удалить из друзей", 0)
 	pm.add_item("Заблокировать", 1)
@@ -193,13 +245,68 @@ func _open_chat(fid: int) -> void:
 		match id:
 			0: Social.request("friend_remove", {"id": fid})
 			1: Social.request("block", {"id": fid})
-			2: Social.request("report", {"id": fid, "reason": "профиль"})
+			2:
+				Social.request("report", {"id": fid, "reason": "профиль"})
+				app.toast("Жалоба отправлена")
 		if id < 2:
 			_open_chat(0))
-	head.add_child(mb)
-	_chat_holder.add_child(head)
+	return mb
+
+
+func _open_chat(fid: int) -> void:
+	_peer = fid
+	for c in _chat_holder.get_children():
+		c.queue_free()
+	if _compact:
+		var was := _right.visible
+		_left.visible = fid == 0
+		_right.visible = fid != 0
+		app.set_nav_visible(fid == 0)
+		if fid == 0:
+			app.set_title("Друзья")
+			app.set_back(Callable())
+			app.set_actions([])
+			if was:
+				FX.enter(_left, Vector2(-40, 0))
+			_render()
+			return
+		FX.enter(_right, Vector2(40, 0))
+		_update_chat_bar()
+		app.set_back(func(): _open_chat(0))
+		var acts := []
+		var f0 := Social.friend_by_id(fid)
+		var a0: Variant = f0.get("activity")
+		if a0 is Dictionary and a0.get("code", "") != "":
+			acts.append(UI.icon_button("play", func(): app.go("join", true, {"input": a0.code, "edition": "both"}), "Зайти в мир", UI.JAVA))
+		acts.append(_friend_menu(fid))
+		app.set_actions(acts)
+	if fid == 0 or Social.friend_by_id(fid).is_empty():
+		var e := UI.empty("chat", "Личные сообщения", "", Callable(), "Выберите друга слева, чтобы написать ему. Писать можно только друзьям.")
+		e.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_chat_holder.add_child(e)
+		return
+	var f := Social.friend_by_id(fid)
+	if not _compact:
+		var head := UI.hbox(12)
+		head.add_child(_avatar(f, 44))
+		var hv := UI.vbox(0)
+		hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hv.add_child(UI.label(f.tag, 17, UI.TEXT, UI.font_bold))
+		var hs := UI.label(status_text(f), 13, UI.MUTED)
+		hs.clip_text = true
+		hs.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		hv.add_child(hs)
+		head.add_child(hv)
+		var a: Variant = f.get("activity")
+		if a is Dictionary and a.get("code", "") != "":
+			head.add_child(UI.button("Зайти в мир", "primary", func(): app.go("join", true, {"input": a.code, "edition": "both"}), "play"))
+		head.add_child(_friend_menu(fid))
+		_chat_holder.add_child(head)
+		_chat_holder.add_child(UI.divider())
 	var chat := ChatBox.new().setup("dm", fid)
 	chat.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_chat_holder.add_child(chat)
 	_chat_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	Social.open_dm(fid)
+	if not _compact:
+		_render()

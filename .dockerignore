@@ -10,3 +10,8 @@ games/*
 games/hush-till-six/*
 !games/hush-till-six/web
 media
+# из приложений серверу нужен только ретранслятор LANTERN (/lantern/ws)
+apps/*
+!apps/lantern
+apps/lantern/*
+!apps/lantern/relay

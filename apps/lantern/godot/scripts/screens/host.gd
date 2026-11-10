@@ -1,5 +1,6 @@
-extends HBoxContainer
-## Панель запущенного мира: код для друзей, QR, состояние, игроки, журнал, кнопки.
+extends BoxContainer
+## «Мой мир»: большой код комнаты (копировать, поделиться, QR), живой статус, игроки, журнал, кнопки.
+## Два вида: свой сервер (ServerHost) или мир, открытый в самом Minecraft (OwnWorld) — код и друзья одинаковые.
 
 var app
 var arg := {}
@@ -8,7 +9,8 @@ var _state_pill: PanelContainer
 var _status: Label
 var _bar: ProgressBar
 var _bar_lbl: Label
-var _code_lbl: Label
+var _code_row: HBoxContainer
+var _code_tiles: Array[Label] = []
 var _code_hint: Label
 var _qr: TextureRect
 var _relay_lbl: Label
@@ -19,7 +21,17 @@ var _log: RichTextLabel
 var _cmd: LineEdit
 var _btns := {}
 var _last_code := "?"
+var _shown_code := ""
 var _tick := 0.0
+var _last_peers := -1
+var _code_card: PanelContainer
+var _log_body: Control
+var _own := false
+var _tips: VBoxContainer
+var _own_alive := -1
+var _doc_box: VBoxContainer
+var _fix_panel: PanelContainer
+var _fix_list: VBoxContainer
 
 const STATES := {
 	"installing": ["Готовим сервер", UI.YELLOW],
@@ -33,13 +45,25 @@ const STATES := {
 
 
 func _ready() -> void:
+	_own = app.own.active
+	if _own:
+		_ready_own()
+		return
 	var s: ServerHost = app.server
-	add_theme_constant_override("separation", 20)
-	# ================= левая колонка
+	var compact := UI.compact()
+	vertical = compact
+	add_theme_constant_override("separation", 16 if compact else 24)
+	app.set_title(s.opts.get("world", "Мой мир"), "Java Edition" + (" + телефоны" if s.opts.get("crossplay", false) else "") if s.edition == "java" else "Bedrock Edition")
 	var left := UI.vbox(16)
-	left.custom_minimum_size.x = 430
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(left)
-	var head := UI.panel(20)
+	var right := left if compact else UI.vbox(16)
+	if not compact:
+		right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_child(right)
+
+	# --- состояние сервера
+	var head := UI.panel(18)
 	var hv := UI.vbox(10)
 	head.add_child(hv)
 	var hr := UI.hbox(12)
@@ -47,111 +71,117 @@ func _ready() -> void:
 	hr.add_child(UI.texture("res://assets/img/mini_grass.png" if s.edition == "java" else "res://assets/img/mini_stone.png", 44, 44))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var wl := UI.label(s.opts.get("world", "Мир"), 22, UI.TEXT, UI.font_black)
+	var wl := UI.label(s.opts.get("world", "Мир"), 19, UI.TEXT, UI.font_black)
 	wl.clip_text = true
 	wl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	tv.add_child(wl)
 	var sub := "Java Edition" + (" + телефоны" if s.opts.get("crossplay", false) and s.edition == "java" else "") if s.edition == "java" else "Bedrock Edition"
-	tv.add_child(UI.label(sub, 14, UI.MUTED))
+	tv.add_child(UI.label(sub, 13, UI.MUTED))
 	hr.add_child(tv)
 	_state_pill = UI.pill("…", UI.MUTED)
-	_state_pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	hr.add_child(_state_pill)
 	_status = UI.para("", 14, UI.MUTED)
 	hv.add_child(_status)
 	_bar = ProgressBar.new()
-	_bar.custom_minimum_size.y = 10
+	_bar.custom_minimum_size.y = 6
 	_bar.show_percentage = false
 	_bar.max_value = 1.0
 	hv.add_child(_bar)
 	_bar_lbl = UI.label("", 12, UI.DIM)
 	hv.add_child(_bar_lbl)
+	_doc_box = UI.vbox(8)
+	hv.add_child(_doc_box)
 	left.add_child(head)
 
-	var inv := UI.panel(20)
-	inv.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var iv := UI.vbox(10)
-	inv.add_child(iv)
-	iv.add_child(UI.label("КОД ДЛЯ ДРУЗЕЙ", 13, UI.MUTED, UI.font_bold))
-	var cr := UI.hbox(14)
-	iv.add_child(cr)
-	var cv := UI.vbox(8)
-	cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cr.add_child(cv)
-	_code_lbl = UI.label("······", 46, UI.accent(), UI.font_black)
-	cv.add_child(_code_lbl)
-	var cb := UI.button("Скопировать код", "secondary", _copy_code)
-	cv.add_child(cb)
-	_btns["copy"] = cb
-	_qr = TextureRect.new()
-	_qr.custom_minimum_size = Vector2(150, 150)
-	_qr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_qr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	cr.add_child(_qr)
-	_code_hint = UI.para("Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир появится у него в игре сам.", 14, UI.MUTED)
-	iv.add_child(_code_hint)
-	_relay_lbl = UI.label("", 13, UI.DIM)
-	iv.add_child(_relay_lbl)
-	iv.add_child(UI.spacer(false))
-	iv.add_child(UI.label("В ТОЙ ЖЕ WI-FI СЕТИ", 13, UI.MUTED, UI.font_bold))
-	_lan_box = UI.vbox(4)
-	iv.add_child(_lan_box)
-	left.add_child(inv)
+	left.add_child(_make_code_card(compact))
+	left.add_child(_self_join_card())
 
-	# ================= правая колонка
-	var right := UI.vbox(16)
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(right)
+	# --- игроки
 	var pp := UI.panel(18)
-	var pv := UI.vbox(10)
+	var pv := UI.vbox(12)
 	pp.add_child(pv)
-	_players_title = UI.h3("Игроки")
+	_players_title = UI.h3("В мире: 0")
 	pv.add_child(_players_title)
-	_players_box = HFlowContainer.new()
-	_players_box.add_theme_constant_override("h_separation", 8)
-	_players_box.add_theme_constant_override("v_separation", 8)
+	_players_box = UI.flow(8)
 	pv.add_child(_players_box)
-	right.add_child(pp)
+	left.add_child(pp)
+	_fix_panel = UI.panel(18)
+	var fv := UI.vbox(10)
+	_fix_panel.add_child(fv)
+	var fh := UI.hbox(10)
+	fh.add_child(UI.icon("check", 20, UI.JAVA))
+	fh.add_child(UI.label("Что LANTERN исправил сам", 15, UI.TEXT, UI.font_bold))
+	fv.add_child(fh)
+	_fix_list = UI.vbox(6)
+	fv.add_child(_fix_list)
+	left.add_child(_fix_panel)
 
-	var lp := UI.panel(14, Color("0c0f15"))
-	lp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var lv := UI.vbox(10)
+	# --- кнопки управления
+	var br := UI.flow(8)
+	_btns["stop"] = UI.button("Остановить", "danger", _stop, "stop")
+	_btns["restart"] = UI.button("Перезапуск", "secondary", func(): app.server.restart(), "refresh")
+	_btns["start"] = UI.button("Запустить снова", "primary", func(): app.server.host(app.server.edition, app.server.opts), "play")
+	_btns["backup"] = UI.button("Резервная копия", "secondary", _backup, "download")
+	_btns["folder"] = UI.button("Папка мира", "secondary", func(): OS.shell_open(ProjectSettings.globalize_path(app.server.world_path())), "folder")
+	_btns["copies"] = UI.button("Копии миров", "ghost", func(): app.go("backups", true), "cloud")
+	_btns["check"] = UI.button("Проверка системы", "secondary", func(): app.go("syscheck", true), "info")
+	for k in ["stop", "restart", "start", "backup", "folder", "copies", "check"]:
+		br.add_child(_btns[k])
+	right.add_child(br)
+
+	# --- та же Wi-Fi сеть
+	var lp := UI.panel(18)
+	var lv := UI.vbox(8)
 	lp.add_child(lv)
 	var lh := UI.hbox(10)
-	lh.add_child(UI.label("ЖУРНАЛ СЕРВЕРА", 13, UI.MUTED, UI.font_bold))
+	lh.add_child(UI.icon("wifi", 20, UI.MUTED))
+	lh.add_child(UI.label("В той же Wi-Fi сети", 15, UI.TEXT, UI.font_bold))
 	lv.add_child(lh)
+	lv.add_child(UI.para("Друзья рядом могут зайти и без кода — по адресу:", 13, UI.MUTED))
+	_lan_box = UI.vbox(4)
+	lv.add_child(_lan_box)
+	right.add_child(lp)
+
+	# --- журнал сервера
+	var logp := UI.panel(14, Color("0b0d12"))
+	logp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var lgv := UI.vbox(10)
+	logp.add_child(lgv)
+	var lgh := UI.button("Журнал сервера и команды", "ghost", Callable(), "chevron_down")
+	lgh.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	lgh.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lgh.add_theme_color_override("font_color", UI.MUTED)
+	lgv.add_child(lgh)
+	var body := UI.vbox(10)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lgv.add_child(body)
+	_log_body = body
+	body.visible = not compact
+	lgh.pressed.connect(func(): body.visible = not body.visible)
 	_log = RichTextLabel.new()
 	_log.scroll_following = true
 	_log.selection_enabled = true
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_log.custom_minimum_size.y = 220 if compact else 160
 	_log.bbcode_enabled = false
-	lv.add_child(_log)
-	_cmd = UI.line_edit("", "Команда серверу, например: op ВашНик   (Enter — отправить)")
+	body.add_child(_log)
+	_cmd = UI.line_edit("", "Команда серверу, например: op ВашНик")
 	_cmd.add_theme_font_override("font", UI.font_mono)
 	_cmd.add_theme_font_size_override("font_size", 14)
 	_cmd.text_submitted.connect(func(t):
 		if t.strip_edges() != "":
 			app.server.command(t.strip_edges().trim_prefix("/"))
 			_cmd.text = "")
-	lv.add_child(_cmd)
-	right.add_child(lp)
-
-	var br := UI.hbox(10)
-	right.add_child(br)
-	_btns["stop"] = UI.button("■  Стоп", "danger", _stop)
-	_btns["restart"] = UI.button("Перезапуск", "secondary", func(): app.server.restart())
-	_btns["start"] = UI.button("▶  Запустить снова", "primary", func(): app.server.host(app.server.edition, app.server.opts))
-	_btns["folder"] = UI.button("Папка мира", "secondary", func(): OS.shell_open(ProjectSettings.globalize_path(app.server.world_path())))
-	_btns["backup"] = UI.button("Резервная копия", "secondary", _backup)
-	for k in ["stop", "restart", "start", "folder", "backup"]:
-		_btns[k].size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		br.add_child(_btns[k])
+	body.add_child(_cmd)
+	right.add_child(logp)
 
 	s.state_changed.connect(_on_state)
 	s.status.connect(func(t): _status.text = t)
 	s.progress.connect(_on_progress)
 	s.log_line.connect(_add_log)
 	s.players_changed.connect(_on_players)
+	s.doctor_changed.connect(_refresh_doctor)
+	_refresh_doctor()
 	for l in s.history:
 		_log.add_text(l + "\n")
 	_status.text = s.last_status
@@ -159,13 +189,268 @@ func _ready() -> void:
 	_on_state(s.state)
 	_on_players(s.players)
 	_refresh_relay()
+	FX.stagger(left, 0.05)
 
+
+
+## Карточка «Код для друзей»: плитки кода, QR, «Скопировать» и «Поделиться», живой счётчик друзей.
+func _make_code_card(compact: bool) -> PanelContainer:
+	_code_card = PanelContainer.new()
+	var cst := UI.box(Color("201a10"), UI.R_XL, 0, Color(UI.accent(), 0.35), 1)
+	UI._hpad(cst, 20, 20)
+	_code_card.add_theme_stylebox_override("panel", cst)
+	var cv := UI.vbox(14)
+	_code_card.add_child(cv)
+	var ctop := UI.hbox(8)
+	var cap := UI.caption("Код для друзей", UI.accent())
+	cap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ctop.add_child(cap)
+	_relay_lbl = UI.label("", 13, UI.DIM, UI.font_bold)
+	if compact:
+		var qb := UI.icon_button("qr", _qr_sheet, "QR-код", UI.accent().lightened(0.2), Color(UI.accent(), 0.15))
+		ctop.add_child(qb)
+		_btns["qr"] = qb
+	else:
+		ctop.add_child(_relay_lbl)
+	cv.add_child(ctop)
+	var cmid := UI.hbox(16)
+	cv.add_child(cmid)
+	_code_row = UI.hbox(6 if compact else 8)
+	_code_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_code_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_code_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for i in 6:
+		if i == 3:
+			_code_row.add_child(UI.label("–", 26, UI.DIM, UI.font_black))
+		var tile := PanelContainer.new()
+		tile.add_theme_stylebox_override("panel", UI.box(Color(0, 0, 0, 0.35), UI.R_M))
+		tile.custom_minimum_size = Vector2(34 if compact else 52, 58 if compact else 68)
+		if compact:
+			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var l := UI.label("·", 30 if compact else 36, UI.accent().lightened(0.15), UI.font_black)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		tile.add_child(l)
+		_code_row.add_child(tile)
+		_code_tiles.append(l)
+	cmid.add_child(_code_row)
+	_qr = TextureRect.new()
+	_qr.custom_minimum_size = Vector2(132, 132)
+	_qr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_qr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_qr.visible = not compact
+	if not compact:
+		cmid.add_child(_qr)
+	var acts: BoxContainer = UI.vbox(8) if compact else UI.hbox(8)
+	var cb := UI.button("Скопировать код", "primary", _copy_code, "copy")
+	cb.clip_text = true
+	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	acts.add_child(cb)
+	_btns["copy"] = cb
+	var sh := UI.button("Поделиться ссылкой", "tonal", _share, "share")
+	sh.clip_text = true
+	sh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	acts.add_child(sh)
+	_btns["share"] = sh
+	cv.add_child(acts)
+	if compact:
+		cv.add_child(_relay_lbl)
+	_code_hint = UI.para("Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир сам появится у него в Minecraft.", 13, UI.MUTED)
+	cv.add_child(_code_hint)
+	return _code_card
+
+
+## «Как зайти самому»: хозяин сервера заходит в свой же мир с этого компьютера (без кода).
+func _self_join_card() -> Control:
+	return self_join_card(app, _own)
+
+
+## Общая карточка: экран «Мой мир» и «Зайти к другу», если хозяин ввёл код своей же комнаты.
+static func self_join_card(app, own: bool) -> Control:
+	var p := UI.panel(18)
+	var v := UI.vbox(12)
+	p.add_child(v)
+	var hr := UI.hbox(10)
+	hr.add_child(UI.icon("play", 20, UI.accent()))
+	hr.add_child(UI.label("Как зайти самому", 15, UI.TEXT, UI.font_bold))
+	v.add_child(hr)
+	if own:
+		v.add_child(UI.para("Вы уже в мире — он открыт у вас в Minecraft. Друзья зайдут по коду.", 14, UI.MUTED))
+		return p
+	var s: ServerHost = app.server
+	if s.edition == "java":
+		var jp: int = s.java_port()
+		var addr := "localhost" if jp == 25565 else "localhost:%d" % jp
+		v.add_child(_self_row(app, "java", UI.JAVA, "Minecraft Java на этом компьютере", "«Сетевая игра» → «Прямое подключение» → адрес:", addr))
+		if s.opts.get("crossplay", false):
+			v.add_child(_self_row(app, "phone", UI.BEDROCK, "Bedrock на этом компьютере", "«Играть» → «Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d" % s.bedrock_port(), "127.0.0.1:%d" % s.bedrock_port()))
+	else:
+		v.add_child(_self_row(app, "phone", UI.BEDROCK, "Minecraft Bedrock на этом компьютере", "«Играть» → «Друзья» → внизу «LAN-игры» — ваш мир. Нет его там: «Играть» → «Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d" % s.bedrock_port(), "127.0.0.1:%d" % s.bedrock_port()))
+	return p
+
+
+static func _self_row(app, icon_name: String, col: Color, title: String, how: String, addr: String) -> Control:
+	var r := UI.hbox(12)
+	var t := UI.icon_tile(icon_name, col, 36, 18)
+	t.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	r.add_child(t)
+	var v := UI.vbox(4)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tl := UI.para(title, 14, UI.TEXT)
+	tl.add_theme_font_override("font", UI.font_bold)
+	v.add_child(tl)
+	v.add_child(UI.para(how, 13, UI.MUTED))
+	var ar := HFlowContainer.new()
+	ar.add_theme_constant_override("h_separation", 12)
+	ar.add_theme_constant_override("v_separation", 6)
+	var al := UI.label(addr, 16, UI.TEXT, UI.font_mono)
+	al.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ar.add_child(al)
+	var b := UI.button("Скопировать адрес", "tonal", func(): UI.copy(addr); app.toast("Адрес %s скопирован" % addr), "copy")
+	ar.add_child(b)
+	v.add_child(ar)
+	r.add_child(v)
+	return r
+
+# ------------------------------------------------------------------ мир из Minecraft (без своего сервера)
+func _ready_own() -> void:
+	var w: Dictionary = app.own.world
+	var bed: bool = w.edition == "bedrock"
+	var compact := UI.compact()
+	vertical = compact
+	add_theme_constant_override("separation", 16 if compact else 24)
+	app.set_title(String(w.name), "Мир из Minecraft · " + ("Bedrock" if bed else "Java"))
+	var left := UI.vbox(16)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(left)
+	var right := left if compact else UI.vbox(16)
+	if not compact:
+		right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_child(right)
+	# --- мир
+	var head := UI.panel(18)
+	var hv := UI.vbox(10)
+	head.add_child(hv)
+	var hr := UI.hbox(12)
+	hv.add_child(hr)
+	hr.add_child(UI.texture("res://assets/img/mini_stone.png" if bed else "res://assets/img/mini_grass.png", 44, 44))
+	var tv := UI.vbox(0)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var wl := UI.label(String(w.name), 19, UI.TEXT, UI.font_black)
+	wl.clip_text = true
+	wl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tv.add_child(wl)
+	var sl := UI.label(("Bedrock" if bed else "Java") + (" " + String(w.version) if String(w.get("version", "")) != "" else "") + " · мир из Minecraft", 13, UI.MUTED)
+	sl.clip_text = true
+	sl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tv.add_child(sl)
+	hr.add_child(tv)
+	_state_pill = UI.pill("…", UI.MUTED)
+	hr.add_child(_state_pill)
+	_status = UI.para("", 14, UI.MUTED)
+	hv.add_child(_status)
+	left.add_child(head)
+	left.add_child(_make_code_card(compact))
+	left.add_child(_self_join_card())
+	# --- друзья
+	var pp := UI.panel(18)
+	var pv := UI.vbox(10)
+	pp.add_child(pv)
+	_players_title = UI.h3("Друзей в мире: 0")
+	pv.add_child(_players_title)
+	_players_box = UI.flow(8)
+	pv.add_child(_players_box)
+	left.add_child(pp)
+	# --- важно знать
+	var tp := UI.panel(18)
+	_tips = UI.vbox(12)
+	tp.add_child(_tips)
+	_tips.add_child(UI.label("Важно знать", 15, UI.TEXT, UI.font_bold))
+	if OS.has_feature("mobile") or Cfg.mobile():
+		_tips.add_child(_tip("phone", UI.YELLOW, "Minecraft — на экране, LANTERN не закрывайте", "Свернуть LANTERN можно, закрывать — нет. Если телефон всё же остановит LANTERN, откройте его снова: комната вернётся с тем же кодом."))
+	if bed:
+		_tips.add_child(_tip("phone", UI.BEDROCK, "Зайдут только друзья с Bedrock", "Телефон, планшет, Windows, консоли. Друзья с Java в этот мир зайти не смогут."))
+	else:
+		_tips.add_child(_tip("java", UI.JAVA, "Зайдут друзья с Java", "Если ваш Minecraft купленный, друзей с TLauncher игра не пустит. Для них нужен «Отдельный сервер»."))
+	if not Cfg.mobile():
+		_tips.add_child(_tip("server", UI.MUTED, "Мир открыт, пока открыт Minecraft", "Чтобы друзья играли без вас — запустите «Отдельный сервер»."))
+	right.add_child(tp)
+	# --- кнопки
+	var br := UI.flow(8)
+	_btns["close_room"] = UI.button("Закрыть комнату", "danger", func():
+		app.own.stop()
+		app.go("setup", true), "stop")
+	_btns["other"] = UI.button("Другой мир", "secondary", func():
+		app.own.stop()
+		app.go("setup", true, {"own": true}), "refresh")
+	br.add_child(_btns.close_room)
+	br.add_child(_btns.other)
+	right.add_child(br)
+	app.own.changed.connect(_refresh_own)
+	_refresh_own()
+	_refresh_relay()
+	FX.stagger(left, 0.05)
+
+
+func _tip(icon_name: String, col: Color, title: String, sub: String) -> Control:
+	var r := UI.hbox(12)
+	var t := UI.icon_tile(icon_name, col, 36, 18)
+	t.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	r.add_child(t)
+	var v := UI.vbox(2)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tl := UI.para(title, 15, UI.TEXT)
+	tl.add_theme_font_override("font", UI.font_bold)
+	v.add_child(tl)
+	v.add_child(UI.para(sub, 13, UI.MUTED))
+	r.add_child(v)
+	return r
+
+
+func _refresh_own() -> void:
+	if not is_inside_tree() or not app.own.active:
+		return
+	var w: Dictionary = app.own.world
+	var ok: bool = app.own.alive()
+	var l: Label = _state_pill.get_meta("label")
+	var col := UI.JAVA if ok else UI.YELLOW
+	l.text = "Открыт" if ok else "Не отвечает"
+	l.add_theme_color_override("font_color", col.lightened(0.3))
+	_state_pill.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(col, 0.15), 99), 10, 3))
+	if ok:
+		_status.text = "Мир открыт. Отправьте друзьям код — они зайдут прямо к вам в игру."
+		_status.add_theme_color_override("font_color", UI.MUTED)
+	else:
+		_status.text = "Minecraft не отвечает. Вернитесь в игру и проверьте, что мир открыт" + (" («Видимость для игроков LAN» включена)." if w.edition == "bedrock" else " («Открыть для сети»).")
+		_status.add_theme_color_override("font_color", UI.YELLOW)
+	if ok != (_own_alive == 1):
+		_own_alive = 1 if ok else 0
+		FX.enter(_status, Vector2(0, 6))
+	_update_own_players()
+
+
+func _update_own_players() -> void:
+	var peers := int(app.relay_host.stats().get("peers", 0))
+	_players_title.text = "Друзей в мире: %d" % peers
+	var n: int = app.own.players()
+	var key := "%d|%d" % [peers, n]
+	if _players_box.get_meta("key", "") == key:
+		return
+	_players_box.set_meta("key", key)
+	for c in _players_box.get_children():
+		c.queue_free()
+	if n >= 0:
+		_players_box.add_child(UI.pill("●  в игре сейчас: %d из %d" % [n, int(app.own.world.get("max", 0))], UI.JAVA))
+	if peers == 0:
+		_players_box.add_child(UI.label("Пока никого. Отправьте друзьям код!", 14, UI.DIM))
 
 func _process(d: float) -> void:
 	_tick += d
 	if _tick > 0.4:
 		_tick = 0
 		_refresh_relay()
+		if _own:
+			_refresh_own()
 
 
 func _add_log(t: String) -> void:
@@ -188,8 +473,8 @@ func _on_state(st: String) -> void:
 	var info: Array = STATES.get(st, ["", UI.MUTED])
 	var l: Label = _state_pill.get_meta("label")
 	l.text = info[0]
-	l.add_theme_color_override("font_color", (info[1] as Color).lightened(0.25))
-	_state_pill.add_theme_stylebox_override("panel", _pill_box(info[1]))
+	l.add_theme_color_override("font_color", (info[1] as Color).lightened(0.3))
+	_state_pill.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(info[1], 0.15), 99), 10, 3))
 	var busy := st in ["installing", "starting"]
 	_bar.visible = busy
 	_bar_lbl.visible = busy and _bar_lbl.text != ""
@@ -198,33 +483,65 @@ func _on_state(st: String) -> void:
 	_btns.restart.visible = st == "running"
 	_btns.start.visible = st in ["stopped", "error"]
 	_btns.backup.disabled = busy
+	_btns.check.visible = st == "error"
 	if st == "error":
 		_status.text = "Что-то пошло не так: " + app.server.last_error
-		_status.add_theme_color_override("font_color", Color("ffb3ba"))
+		_status.add_theme_color_override("font_color", Color("ff9d9d"))
 	else:
-		_status.remove_theme_color_override("font_color")
+		_status.add_theme_color_override("font_color", UI.MUTED)
 	if st == "running":
 		_status.text = "Сервер работает. Зовите друзей!"
 	_refresh_lan()
 
 
-func _pill_box(c: Color) -> StyleBoxFlat:
-	var s := UI.box(Color(c, 0.16), 99, 0, Color(c, 0.45), 1)
-	s.content_margin_left = 12
-	s.content_margin_right = 12
-	s.content_margin_top = 4
-	s.content_margin_bottom = 4
-	return s
+## «Доктор»: что требует решения (кнопка в одно нажатие) и что LANTERN уже исправил сам.
+func _refresh_doctor() -> void:
+	if not is_instance_valid(_doc_box):
+		return
+	var s: ServerHost = app.server
+	for c in _doc_box.get_children():
+		c.queue_free()
+	for it in s.issues:
+		var p := PanelContainer.new()
+		p.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(UI.YELLOW, 0.10), UI.R_M, 0, Color(UI.YELLOW, 0.35), 1), 12, 10))
+		var v := UI.vbox(8)
+		p.add_child(v)
+		v.add_child(UI.para(String(it.text), 14, UI.TEXT))
+		var br := UI.flow(8)
+		var id := String(it.id)
+		if String(it.action) != "":
+			br.add_child(UI.button(String(it.button), "primary", func(): s.resolve(id), "check"))
+			br.add_child(UI.button("Не сейчас", "ghost", func(): s.dismiss(id)))
+		else:
+			br.add_child(UI.button(String(it.button), "secondary", func(): s.dismiss(id)))
+		v.add_child(br)
+		_doc_box.add_child(p)
+		FX.enter(p)
+	if is_instance_valid(_fix_list):
+		for c in _fix_list.get_children():
+			c.queue_free()
+		for f in s.fixes:
+			var r := UI.hbox(8)
+			var dot := UI.icon("check", 16, UI.JAVA)
+			dot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+			r.add_child(dot)
+			var l := UI.para(String(f), 13, UI.MUTED)
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			r.add_child(l)
+			_fix_list.add_child(r)
+		_fix_panel.visible = not s.fixes.is_empty()
 
 
 func _on_players(list: PackedStringArray) -> void:
 	for c in _players_box.get_children():
 		c.queue_free()
-	_players_title.text = "Игроки онлайн: %d" % list.size()
+	_players_title.text = "В мире: %d" % list.size()
 	if list.is_empty():
 		_players_box.add_child(UI.label("Пока никого. Отправьте друзьям код!", 14, UI.DIM))
 	for n in list:
-		_players_box.add_child(UI.pill("●  " + n, UI.accent()))
+		var chip := UI.pill("●  " + n, UI.JAVA)
+		_players_box.add_child(chip)
+		FX.enter(chip, Vector2(0, 8))
 
 
 func _refresh_lan() -> void:
@@ -237,71 +554,130 @@ func _refresh_lan() -> void:
 	var s: ServerHost = app.server
 	var ports := []
 	if s.edition == "java":
-		ports.append(["Java", ServerHost.JAVA_PORT])
+		ports.append(["Java", s.java_port()])
 		if s.opts.get("crossplay", false):
-			ports.append(["Телефон", ServerHost.BEDROCK_PORT])
+			ports.append(["Телефон", s.bedrock_port()])
 	else:
-		ports.append(["Bedrock", ServerHost.BEDROCK_PORT])
+		ports.append(["Bedrock", s.bedrock_port()])
 	for p in ports:
 		var row := UI.hbox(8)
-		row.add_child(UI.label(p[0], 14, UI.MUTED))
+		var nl := UI.label(p[0], 14, UI.MUTED)
+		nl.custom_minimum_size.x = 72
+		row.add_child(nl)
 		var addr := "%s:%d" % [ips[0], p[1]]
-		var al := UI.label(addr, 15, UI.TEXT, UI.font_mono)
+		var al := UI.label(addr, 14, UI.TEXT, UI.font_mono)
 		al.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		al.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		al.clip_text = true
 		row.add_child(al)
-		var b := UI.button("Копировать", "ghost", func(): UI.copy(addr); app.toast("Адрес скопирован"))
-		b.custom_minimum_size.y = 32
-		row.add_child(b)
+		row.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Адрес скопирован"), "Копировать", UI.MUTED))
 		_lan_box.add_child(row)
+
+
+func _set_code(c: String) -> void:
+	if c == _shown_code:
+		return
+	var reveal := _shown_code == "" or _shown_code.contains("·")
+	_shown_code = c
+	var chars := c.replace("-", "")
+	for i in 6:
+		_code_tiles[i].text = chars[i] if i < chars.length() else "·"
+	if reveal and not c.contains("·"):
+		FX.flip_in(_code_tiles, 0.08)
+		var st: StyleBoxFlat = _code_card.get_theme_stylebox("panel")
+		if FX.on():
+			var tw := _code_card.create_tween()
+			tw.tween_property(st, "border_color", Color(UI.accent(), 0.9), 0.25)
+			tw.tween_property(st, "border_color", Color(UI.accent(), 0.35), 0.8)
 
 
 func _refresh_relay() -> void:
 	var s: ServerHost = app.server
 	var r: Dictionary = app.relay_host.stats()
 	var code: String = r.get("code", "")
-	if not s.opts.get("internet", true):
-		_code_lbl.text = "—"
+	var starting: bool = not _own and s.state in ["installing", "starting"]
+	if not _own and not s.opts.get("internet", true):
+		_set_code("······")
 		_code_hint.text = "Интернет-комната выключена: зайти смогут только друзья из вашей Wi-Fi сети."
 		_relay_lbl.text = ""
 		_qr.texture = null
 		_btns.copy.disabled = true
+		_btns.share.disabled = true
 		return
 	var shown: bool = code != "" and r.state in ["online", "reconnecting"]
 	_btns.copy.disabled = not shown
+	_btns.share.disabled = not shown
+	if _btns.has("qr"):
+		_btns.qr.disabled = not shown
 	if shown:
-		_code_lbl.text = RoomCode.pretty(code)
-	elif s.state in ["installing", "starting"]:
-		_code_lbl.text = "······"
+		_set_code(RoomCode.pretty(code))
+	elif starting:
+		_set_code("······")
 	if code != _last_code:
 		_last_code = code
 		if code != "":
-			var ed := s.edition if not (s.edition == "java" and s.opts.get("crossplay", false)) else "both"
-			var q := QR.encode(Invite.link(code, ed, s.opts.get("world", "Мир"), Cfg.relay_url()), QR.ECC_M)
-			_qr.texture = ImageTexture.create_from_image(q.to_image(6, Color("0b0e14"), Color("eef1f7")))
+			_qr.texture = ImageTexture.create_from_image(QR.encode(_invite_link(), QR.ECC_M).to_image(6, Color("0b0e14"), Color("eef1f7")))
 		else:
 			_qr.texture = null
 	match r.state:
 		"online":
-			var who := "друзей пока нет" if r.peers == 0 else "друзей подключено: %d" % r.peers
-			_relay_lbl.text = "● Комната открыта — %s" % who
+			var peers := int(r.peers)
+			_relay_lbl.text = "● друзей в мире: %d" % peers
 			_relay_lbl.add_theme_color_override("font_color", UI.JAVA)
+			if _last_peers >= 0 and peers > _last_peers:
+				FX.burst(app, _code_card.get_global_rect().get_center() - app.global_position, 34)
+				app.toast("Друг зашёл в ваш мир!", UI.JAVA)
+			_last_peers = peers
 		"connecting":
-			_relay_lbl.text = "Открываем комнату…"
+			_relay_lbl.text = "открываем комнату…"
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
 		"reconnecting", "error":
 			_relay_lbl.text = "⚠ " + str(r.error)
 			_relay_lbl.add_theme_color_override("font_color", UI.YELLOW)
 		_:
-			_relay_lbl.text = "Код появится, когда сервер запустится" if s.state in ["installing", "starting"] else ""
+			_relay_lbl.text = "код появится после запуска" if starting else ""
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
+
+
+func _world_name() -> String:
+	return String(app.own.world.get("name", "Мир")) if _own else String(app.server.opts.get("world", "Мир"))
+
+
+func _invite_link() -> String:
+	if _own:
+		return Invite.link(app.relay_host.stats().get("code", ""), String(app.own.world.edition), _world_name(), Cfg.relay_url())
+	var s: ServerHost = app.server
+	var ed := s.edition if not (s.edition == "java" and s.opts.get("crossplay", false)) else "both"
+	return Invite.link(app.relay_host.stats().get("code", ""), ed, s.opts.get("world", "Мир"), Cfg.relay_url())
 
 
 func _copy_code() -> void:
 	var r: Dictionary = app.relay_host.stats()
 	if r.code != "":
 		UI.copy(RoomCode.pretty(r.code))
-		app.toast("Код %s скопирован — отправьте его друзьям" % RoomCode.pretty(r.code))
+		app.toast("Код %s скопирован — отправьте его друзьям" % RoomCode.pretty(r.code), UI.JAVA)
+
+
+## Поделиться: готовое сообщение с кодом и ссылкой (вставьте в любой мессенджер).
+func _share() -> void:
+	var r: Dictionary = app.relay_host.stats()
+	if r.code == "":
+		return
+	UI.copy("Заходи в мой мир «%s» в Minecraft через LANTERN!\nКод: %s\n%s" % [_world_name(), RoomCode.pretty(r.code), _invite_link()])
+	app.toast("Приглашение со ссылкой скопировано — вставьте его в чат", UI.JAVA)
+
+
+func _qr_sheet() -> void:
+	var v: VBoxContainer = Overlays.sheet(app, "QR-код комнаты", "Друг наводит камеру телефона — LANTERN откроется сам и подключится")
+	var t := TextureRect.new()
+	t.texture = _qr.texture
+	t.custom_minimum_size = Vector2(240, 240)
+	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	v.add_child(t)
+	var cl := UI.label(_shown_code, 30, UI.accent(), UI.font_black)
+	cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(cl)
 
 
 func _stop() -> void:
@@ -318,5 +694,4 @@ func _backup() -> void:
 	if p == "":
 		app.toast("Не получилось: " + app.server.last_error, UI.RED)
 	else:
-		app.toast("Копия сохранена: " + p.get_file())
-		OS.shell_open(ProjectSettings.globalize_path(p.get_base_dir()))
+		app.toast("Копия сохранена: %s — она в «Копиях миров»" % p.get_file())

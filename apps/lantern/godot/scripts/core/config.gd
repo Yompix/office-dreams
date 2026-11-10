@@ -3,11 +3,12 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.0.0"
+const APP_VERSION := "1.3.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
-## Адрес relay по умолчанию. После деплоя на Railway впишите сюда домен сервиса (см. relay/README.md).
-const DEFAULT_RELAY := "wss://lantern-relay.up.railway.app/ws"
+## Адрес relay по умолчанию: ретранслятор работает на нашем сервере Railway вместе с сайтом
+## (apps/lantern/relay подключён в server/index.js, путь /lantern/ws). Свой отдельный сервис — см. relay/README.md.
+const DEFAULT_RELAY := "wss://office-dreams-production.up.railway.app/lantern/ws"
 
 const ACCENTS := {
 	"amber": Color("ffb648"),
@@ -73,6 +74,49 @@ func sub(path: String) -> String:
 	return p
 
 
+## Папка для серверов и Java. На Windows Java (лаунчер java.exe и сам Paper) работает с путями через
+## кодовую страницу системы: «C:\\Users\\Іван Петренко\\…» на английской Windows превращается в «????»,
+## и сервер не стартует («could not find java.dll»). Поэтому, если в пути данных есть не-ASCII символы,
+## серверы и Java кладём в %ProgramData%\\LANTERN (или C:\\LANTERN). Уже установленные серверы не переносим.
+func server_root() -> String:
+	var d := data_dir()
+	if not is_windows() or is_ascii_path(d) or DirAccess.dir_exists_absolute(d.path_join("servers/java")) or DirAccess.dir_exists_absolute(d.path_join("servers/bedrock")):
+		return d
+	var cands := PackedStringArray()
+	var pd := OS.get_environment("ProgramData")
+	if pd != "":
+		cands.append(pd.replace("\\", "/").path_join("LANTERN"))
+	var sd := OS.get_environment("SystemDrive")
+	cands.append((sd if sd != "" else "C:") + "/LANTERN")
+	for c in cands:
+		if is_ascii_path(c) and DirAccess.make_dir_recursive_absolute(c) == OK and _writable(c):
+			return c
+	return d
+
+
+func server_sub(path: String) -> String:
+	var p := server_root().path_join(path)
+	DirAccess.make_dir_recursive_absolute(p)
+	return p
+
+
+static func is_ascii_path(p: String) -> bool:
+	for c in p:
+		if c.unicode_at(0) > 127:
+			return false
+	return true
+
+
+static func _writable(dir: String) -> bool:
+	var probe := dir.path_join(".lantern-write-test")
+	var f := FileAccess.open(probe, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.close()
+	DirAccess.remove_absolute(probe)
+	return true
+
+
 func relay_url() -> String:
 	if autotest_args.has("relay"):
 		return String(autotest_args["relay"])
@@ -111,6 +155,16 @@ func remove_recent(idx: int) -> void:
 	if idx >= 0 and idx < list.size():
 		list.remove_at(idx)
 		set_value("join", "recent", list)
+
+
+## Телефонный вид на ПК для скриншотов/проверок (--phone=1): без минимального размера окна, как на Android.
+func phone_preview() -> bool:
+	return autotest_args.has("phone")
+
+
+## Телефон или телефонный вид: создавать мир нельзя (сервер — только на ПК).
+func mobile() -> bool:
+	return OS.has_feature("mobile") or phone_preview()
 
 
 static func is_windows() -> bool:

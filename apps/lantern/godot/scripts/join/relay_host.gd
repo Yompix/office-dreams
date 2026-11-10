@@ -1,7 +1,8 @@
 class_name RelayHost
 extends RefCounted
 ## Мост хозяина мира: relay ↔ локальный сервер.
-## Поток «tcp» → 127.0.0.1:java_port (Paper), поток «udp» → 127.0.0.1:bedrock_port (BDS или Geyser), каждый кадр = одна датаграмма.
+## Поток «tcp» → 127.0.0.1:java_port (Paper или мир Java «Открыть для сети»), поток «udp» → 127.0.0.1:bedrock_port
+## (BDS, Geyser или мир Bedrock с «Видимостью для игроков LAN»), каждый кадр = одна датаграмма.
 ## Работает в своём потоке, без узлов сцены — общий код ПК и Android.
 
 const UDP_IDLE_MS := 60000
@@ -12,6 +13,7 @@ var edition := "java"     # java / bedrock / both
 var world_name := "Мир"
 var java_port := 25565
 var bedrock_port := 19132
+var local_host := "127.0.0.1"   # куда пересылать: свой сервер или мир, открытый в Minecraft
 var extra := {}          # token владельца, публичная карточка комнаты
 
 var _thread: Thread
@@ -19,10 +21,16 @@ var _run := false
 var _mutex := Mutex.new()
 var _stats := {"state": "off", "code": "", "streams": 0, "peers": 0, "rx": 0, "tx": 0, "error": ""}
 var _events: Array = []
+var _last_room := ["", ""]    # код и токен последней комнаты — чтобы вернуть тот же код после перезапуска моста
+var _resume := false
+var _graceful := true
 
 
-func start(url: String, ed: String, name: String, jport := 25565, bport := 19132, hello_extra := {}) -> void:
+## resume — попросить у relay прежний код (relay держит комнату 5 минут после обрыва).
+func start(url: String, ed: String, name: String, jport := 25565, bport := 19132, hello_extra := {}, resume := false) -> void:
 	stop()
+	_resume = resume and _last_room[0] != ""
+	_graceful = true
 	extra = hello_extra
 	relay_url = url
 	edition = ed
@@ -35,7 +43,9 @@ func start(url: String, ed: String, name: String, jport := 25565, bport := 19132
 	_thread.start(_loop)
 
 
-func stop() -> void:
+## graceful=false — оборвать связь без «end» (как если бы систему усыпила приложение): комната ждёт возврата 5 минут.
+func stop(graceful := true) -> void:
+	_graceful = graceful
 	_run = false
 	if _thread and _thread.is_started():
 		_thread.wait_to_finish()
@@ -82,6 +92,11 @@ func _loop() -> void:
 	var streams := {}    # sid -> {kind, tcp|udp, pending, last, peer}
 	var code := ""
 	var token := ""
+	if _resume:
+		_mutex.lock()
+		code = _last_room[0]
+		token = _last_room[1]
+		_mutex.unlock()
 	var backoff := 1000
 	var next_try := 0
 	var connected := false
@@ -131,6 +146,9 @@ func _loop() -> void:
 								_event("Старая комната пропала, выдан новый код: " + m.code)
 							code = m.code
 							token = m.token
+							_mutex.lock()
+							_last_room = [code, token]
+							_mutex.unlock()
 							_st("code", code)
 							_st("state", "online")
 							_st("error", "")
@@ -139,13 +157,13 @@ func _loop() -> void:
 							var s := {"kind": m.kind, "pending": PackedByteArray(), "last": now, "peer": m.get("peer", "")}
 							if m.kind == "tcp":
 								var t := StreamPeerTCP.new()
-								t.connect_to_host("127.0.0.1", java_port)
+								t.connect_to_host(local_host, java_port)
 								t.set_no_delay(true)
 								s.tcp = t
 							else:
 								var u := PacketPeerUDP.new()
-								u.bind(0, "127.0.0.1")
-								u.set_dest_address("127.0.0.1", bedrock_port)
+								u.bind(0, "127.0.0.1" if local_host == "127.0.0.1" else "0.0.0.0")
+								u.set_dest_address(local_host, bedrock_port)
 								s.udp = u
 							streams[sid] = s
 							_update_counts(streams)
@@ -215,7 +233,7 @@ func _loop() -> void:
 					_update_counts(streams)
 		if not busy:
 			OS.delay_usec(1000)
-	if link.is_open():
+	if link.is_open() and _graceful:
 		link.send_json({"t": "end"})
 	for sid in streams:
 		_close_local(streams[sid])

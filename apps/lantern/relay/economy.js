@@ -377,7 +377,8 @@ class Economy {
     const { lanternLevel } = require('./social');
     return { sparks: u.sparks, xp: u.xp, lantern: lanternLevel(u.xp), streak: u.streak, best_streak: u.best_streak,
       streak_reward: STREAK_REWARD(u.streak), streak_claimed: u.streak_claimed === dayKey(), title: u.title, equip: this.equip(uid),
-      pro: u.pro_until > Date.now(), pro_until: u.pro_until, demo: process.env.DEMO_PURCHASES !== '0', ads_left: 3 - this.stat(uid, 'ads_' + dayKey()), referrer: !!u.referrer, store: { enabled: false, products: PRODUCTS } };
+      pro: u.pro_until > Date.now(), pro_until: u.pro_until, demo: process.env.DEMO_PURCHASES !== '0', ads_left: 3 - this.stat(uid, 'ads_' + dayKey()), referrer: !!u.referrer, store: { enabled: false, products: PRODUCTS },
+      vanity: this.social.pro ? this.social.pro.vanityOf(uid) : '', cloud: !!(this.social.pro && this.social.pro.cloudEnabled()) };
   }
 
   handle(ws, uid, msg, send) {

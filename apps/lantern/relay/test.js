@@ -4,7 +4,7 @@ process.env.PORT = process.env.PORT || '18931';
 process.env.QUIET = '1';
 const assert = require('assert');
 const WebSocket = require('ws');
-const { server } = require('./server');
+const { server } = require('./server').standalone(Number(process.env.PORT));
 const URL = `ws://127.0.0.1:${process.env.PORT}/ws`;
 const open = () => new Promise((res, rej) => { const w = new WebSocket(URL); w.on('open', () => res(w)); w.on('error', rej); });
 const next = (w, pred) => new Promise((res) => { const h = (d, bin) => { const m = bin ? d : JSON.parse(d); if (!pred || pred(m, bin)) { w.off('message', h); res(m); } }; w.on('message', h); });

@@ -25,7 +25,8 @@ var _thread: Thread
 var _run := false
 var _mutex := Mutex.new()
 var _stats := {"state": "off", "error": "", "name": "", "edition": "", "java_port": 0, "bedrock_port": 0,
-	"bedrock_error": "", "java_error": "", "pong": false, "motd": "", "streams": 0, "rx": 0, "tx": 0, "host": true}
+	"bedrock_error": "", "java_error": "", "pong": false, "motd": "", "streams": 0, "rx": 0, "tx": 0, "host": true,
+	"host_version": "", "host_protocol": 0, "client_protocol": 0}
 var _guid := 0
 
 
@@ -176,6 +177,10 @@ func _loop() -> void:
 							pong_body = _rewrite_motd(motd).to_utf8_buffer()
 							_st("pong", true)
 							_st("motd", motd)
+							var mf := motd.split(";")
+							if mf.size() > 3:
+								_st("host_protocol", int(mf[2]))
+								_st("host_version", mf[3])
 						continue
 					var s: Variant = streams.get(ev.sid)
 					if s == null:
@@ -238,6 +243,10 @@ func _loop() -> void:
 					streams[sid] = {"kind": "udp", "ip": cip, "port": cport, "key": key, "last": now}
 					link.send_json({"t": "open", "sid": sid, "kind": "udp"})
 				streams[sid].last = now
+				if (pk[0] & 0x80) and pk.size() > 12:
+					var cp := client_protocol(pk)
+					if cp > 0:
+						_st("client_protocol", cp)
 				link.send_bin(sid, pk)
 				_add("tx", pk.size())
 		# --- TCP → relay, уборка
@@ -275,6 +284,17 @@ func _loop() -> void:
 	link.close()
 	if stats().state != "error":
 		_st("state", "off")
+
+
+## Версия протокола Minecraft друга: первый игровой пакет RequestNetworkSettings (0xfe, длина, id 193, int32 протокол)
+## идёт без сжатия и шифрования — ищем его в датаграмме RakNet. 0 — не нашли.
+static func client_protocol(pk: PackedByteArray) -> int:
+	for i in range(4, pk.size() - 7):
+		if pk[i] == 0xfe and pk[i + 2] == 0xc1 and pk[i + 3] == 0x01 and pk[i + 1] >= 6 and pk[i + 1] < 0x80:
+			var v := (pk[i + 4] << 24) | (pk[i + 5] << 16) | (pk[i + 6] << 8) | pk[i + 7]
+			if v > 300 and v < 5000:
+				return v
+	return 0
 
 
 static func _close_stream(s: Dictionary, by_client: Dictionary) -> void:

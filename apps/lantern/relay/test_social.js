@@ -5,7 +5,7 @@ process.env.QUIET = '1';
 const assert = require('assert');
 const crypto = require('crypto');
 const WebSocket = require('ws');
-const { server, social } = require('./server');
+const { server, social } = require('./server').standalone(Number(process.env.PORT));
 const URL = `ws://127.0.0.1:${process.env.PORT}/ws`;
 const open = () => new Promise((res, rej) => { const w = new WebSocket(URL); w.inbox = []; w.on('message', (d, b) => { if (!b) w.inbox.push(JSON.parse(d)); }); w.on('open', () => res(w)); w.on('error', rej); });
 const tx = (w, o) => w.send(JSON.stringify(o));

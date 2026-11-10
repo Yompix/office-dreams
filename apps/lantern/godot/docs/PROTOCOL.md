@@ -9,6 +9,12 @@
 * Показывается как `K7M-2QX`; при вводе регистр, пробелы и дефисы игнорируются.
 * Код выдаёт relay при открытии комнаты; живёт, пока хозяин подключён, и ещё 5 минут после
   обрыва (хозяин может вернуться с `resume`-токеном и тем же кодом). Максимум жизни — 24 ч.
+* **Свой код (LANTERN Pro)**: 3–8 символов из `A–Z` и `2–9` (без 0 и 1), хотя бы одна буква, например `STEVE`.
+  Резервируется командой `vanity_set`, уникален, проходит фильтр мата (в т.ч. транслитом) и список запрещённых
+  (`ADMIN…`, `LANTERN…`, `YOMPIX…`, `MOJANG…` и т.п.). Хозяин просит его полем `"vanity": true` в `{"t":"host"}`;
+  relay выдаёт его, только если Pro активна и комната с этим кодом сейчас не открыта (иначе — случайный код,
+  в ответе `room.vanity=false`). Когда Pro заканчивается, резерв снимается (код может занять другой).
+  Случайные коды никогда не совпадают с зарезервированными. Свой код легко угадать — это его смысл.
 
 ## 2. Приглашение (QR / ссылка)
 
@@ -23,6 +29,12 @@ lantern://join?v=1&c=K7M2QX&e=both&n=<имя мира, URL-кодировано>
 | `e` | `java`, `bedrock` или `both` (Java-сервер + Geyser: заходят и Java, и Bedrock) |
 | `n` | название мира |
 | `r` | адрес relay, только если не стандартный |
+
+Добавить в друзья (QR на экране «Друзья»): `lantern://friend?v=1&tag=<Ник#1234, URL-кодировано>`.
+
+Android открывает обе ссылки в LANTERN (intent-filter `lantern://join`, `lantern://friend` — добавляет
+`addons/lantern_android` при Gradle-сборке; ссылка читается через `AndroidRuntime` из Intent при запуске и при
+возврате приложения, `scripts/join/deeplink.gd`). На ПК ссылку можно передать аргументом командной строки.
 
 Поле ввода «Зайти к другу» принимает: код, ссылку `lantern://`, ссылку `minecraft://?addExternalServer=Имя|host:port`
 и обычный адрес `host[:port]` (игра в одной сети без relay).
@@ -75,3 +87,58 @@ lantern://join?v=1&c=K7M2QX&e=both&n=<имя мира, URL-кодировано>
 ## 4. Совместимость
 * Изменения, ломающие формат, — только с повышением `v`. Relay отвечает `bad_version` клиенту новее себя.
 * Android-сборка использует те же скрипты `scripts/join/*` и `scripts/qr/qr.gd` без изменений.
+
+## 5. Профили, друзья, чаты, экономика (то же соединение `/ws`, JSON)
+
+Хранилище — SQLite (`node:sqlite`, файл `DB_PATH` или `$RAILWAY_VOLUME_MOUNT_PATH/lantern.db`; без тома — в памяти,
+после перезапуска всё сбрасывается). Код: `relay/social.js`, `relay/economy.js`; тесты: `node relay/test_social.js`.
+
+**Профиль без пароля.** Клиент один раз создаёт токен устройства (32 случайных байта, hex) и хранит его в `user://device.cfg`.
+Сервер хранит только `sha256("lantern:"+токен)`.
+```
+→ {"t":"hello","token":"…"}            ← {"t":"welcome","me":{id,nick,tag,lantern,title,equip,online}}  или {"t":"need_register"}
+→ {"t":"register","token":"…","nick":"Стив"}   ← welcome | {"t":"register_err","error":"Такой ник нельзя"}
+```
+Ник: 3–16 символов (буквы, цифры, «_»), фильтр мата, запрет служебных имён. Тег — `Ник#1234`.
+Сервер шлёт `{"t":"state", me, friends[], incoming[], outgoing[], blocked[]}` и `{"t":"friend", friend}` при смене статуса.
+
+| команда | поля | смысл |
+|---|---|---|
+| `presence` | `activity: idle/hosting/playing, world, edition, version, code` | статус для друзей (код комнаты видят только друзья) |
+| `friend_add` | `tag` | заявка (встречная — сразу дружба); лимит 30/час |
+| `friend_accept` / `friend_decline` / `friend_remove` | `id` | |
+| `block` / `unblock` | `id` | блок скрывает сообщения и статус, удаляет из друзей |
+| `report` | `id, reason, msg_id?, block?` | жалоба (таблица `reports`), лимит 10/час |
+| `dm` | `to, text` | только друзьям; ≤300 символов, ссылки → «[ссылка]», мат → «***», 20/мин |
+| `history` | `with` | последние 100 сообщений за 24 ч |
+| `invite` | `to, code, world, edition` | друг получает `{"t":"invite",…}` |
+| `room_enter` / `room_chat` | `code` / `text` | чат комнаты (в памяти, 100 последних, удаляется с комнатой) |
+| `rooms` | `edition, tag, q` | открытые комнаты (также `GET /rooms?edition=&tag=&q=`) |
+| `eco`, `quest_claim{id,period}`, `streak_claim`, `achievements`, `set_title{title}` | | задания, серия, достижения |
+| `shop`, `buy{item}`, `wear{item}`, `season`, `season_claim{tier,track}` | | косметика и сезон |
+| `referral{tag}`, `top`, `ad_reward` | | рефералы, топ недели, награда за рекламу (≤3/день) |
+| `purchase{product,token}` | | проверка покупки Google Play (заготовка) |
+| `demo_purchase{product}`, `demo_wipe` | | ДЕМО-режим (выключается `DEMO_PURCHASES=0`) |
+
+Хозяин может передать в `{"t":"host"}` поля `token` (чей мир — для заданий и «Фонаря») и
+`public: {title, tags[], version, slots}` — тогда комната попадает в список открытых. Друг передаёт `token` в `{"t":"join"}`;
+`{"t":"like"}` из соединения друга — лайк комнате (1 раз в день).
+Время «вместе» считает relay: раз в минуту +1 хозяину и каждому другу-аккаунту, если у друга есть живые потоки.
+
+### LANTERN Pro: свой код и облачные копии (`relay/pro.js`)
+
+| команда | поля | ответ |
+|---|---|---|
+| `vanity_set` | `code` | `{"t":"vanity", code, error}` |
+| `vanity_clear` | | `{"t":"vanity", code:""}` |
+| `cloud_list` | | `{"t":"cloud", enabled, pro, list:[{id,name,size,ts,share,share_until}], max_mb, slots}` |
+| `cloud_share` | `id` | то же + `shared` — код из 6 символов, действует 24 ч |
+| `cloud_delete` | `id` | то же |
+
+HTTP (тот же домен, заголовок `Authorization: Bearer <токен устройства>`):
+* `PUT /cloud/upload?name=<имя.zip>` — тело zip (проверяется сигнатура `PK\3\4`), только с Pro; ≤ `CLOUD_MAX_MB`;
+  больше `CLOUD_SLOTS` копий — самая старая удаляется. Ответ `{ok, item}` или `{ok:false, error}` (401/403/411/413/415/429/507).
+* `GET /cloud/file/<id>` — своя копия.
+* `GET /cloud/share/<код>` — копия по коду друга (любой профиль LANTERN; Pro не нужна).
+Без тома (`RAILWAY_VOLUME_MOUNT_PATH`/`CLOUD_DIR`) облако выключено (`enabled:false`, HTTP 503).
+Копии удаляются через `CLOUD_KEEP_DAYS` (30) дней после окончания Pro.

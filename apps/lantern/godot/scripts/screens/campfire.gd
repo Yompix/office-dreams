@@ -19,12 +19,17 @@ func _ready() -> void:
 	rng.seed = 42
 	for i in 90:
 		_stars.append([Vector2(rng.randf(), rng.randf() * 0.55), rng.randf_range(0.6, 2.0), rng.randf() * TAU])
-	var head := UI.vbox(2)
-	head.position = Vector2(8, 4)
-	head.add_child(UI.h1("Костёр"))
-	_hint = UI.label("", 15, UI.MUTED)
+	# подсказка — «таблетка» сверху по центру
+	var head := PanelContainer.new()
+	head.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(0, 0, 0, 0.35), 99), 14, 6))
+	head.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	head.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	head.position.y = 12
+	_hint = UI.label("", 13, Color(1, 1, 1, 0.8), UI.font_bold)
 	head.add_child(_hint)
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(head)
+	clip_contents = true
 	Social.changed.connect(func(w): if w in ["friends", "conn", "eco"]: _rebuild())
 	_rebuild()
 
@@ -36,7 +41,9 @@ func _rebuild() -> void:
 			c.queue_free()
 	_spots.clear()
 	var online := Social.friends.filter(func(f): return f.get("online", false))
-	_hint.text = "Друзей у костра: %d. Нажмите на фонарик — зайти в мир или написать." % online.size() if Social.online() else "Нет связи с сервером LANTERN"
+	_hint.text = ("У костра друзей: %d · нажмите на фонарик" % online.size()) if Social.online() else "Нет связи с сервером LANTERN"
+	if app:
+		app.set_title("Костёр", "Друзья в сети — зайти в мир или написать")
 	var people := [{"me": true, "nick": Social.me.get("nick", "Вы"), "lantern": Social.eco.get("lantern", {"level": 1}), "equip": Social.eco.get("equip", {})}]
 	people.append_array(online)
 	for i in people.size():
@@ -47,12 +54,16 @@ func _rebuild() -> void:
 		var l := UI.label(f.get("nick", "") + ("" if not f.get("me", false) else " (вы)"), 14, UI.TEXT, UI.font_bold)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.set_meta("spot", true)
-		l.custom_minimum_size.x = 160
+		l.clip_text = true
+		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		l.size.x = 160
 		add_child(l)
 		var st := UI.label("" if f.get("me", false) else _short(f), 12, Color("ffb648"))
 		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		st.set_meta("spot", true)
-		st.custom_minimum_size.x = 160
+		st.clip_text = true
+		st.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		st.size.x = 160
 		add_child(st)
 		_spots.append({"f": f, "icon": li, "label": l, "status": st})
 	_layout()
@@ -61,7 +72,7 @@ func _rebuild() -> void:
 static func _short(f: Dictionary) -> String:
 	var a: Variant = f.get("activity")
 	if a is Dictionary and a.get("code", "") != "":
-		return "в мире «%s» — зайти" % a.get("world", "")
+		return "в мире — зайти"
 	return "у костра"
 
 
@@ -100,7 +111,14 @@ func _gui_input(e: InputEvent) -> void:
 		if h != _hover:
 			_hover = h
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if h > 0 else Control.CURSOR_ARROW
-	elif e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and _hover > 0:
+	elif e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+		# телефон: касание без движения мыши — ищем фонарик по месту нажатия
+		_hover = -1
+		for i in _spots.size():
+			if _spots[i].get("rect", Rect2()).has_point(e.position):
+				_hover = i
+		if _hover <= 0:
+			return
 		var f: Dictionary = _spots[_hover].f
 		var a: Variant = f.get("activity")
 		if a is Dictionary and a.get("code", "") != "":

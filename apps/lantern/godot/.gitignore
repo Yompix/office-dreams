@@ -1,0 +1,5 @@
+# LANTERN (Godot 4.7): кэш редактора, Android-шаблон сборки (1+ ГБ) и готовые сборки в git не идут
+/.godot/
+/android/
+/export/
+config/ads.cfg

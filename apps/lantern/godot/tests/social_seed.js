@@ -1,7 +1,7 @@
 'use strict';
 // Боты-друзья для скриншотов LANTERN: регистрируются, дружат с игроком из приложения, хостят открытые миры, пишут в чат.
 // node tests/social_seed.js ws://127.0.0.1:PORT/ws <файл с тегом игрока>
-const WebSocket = require(require.resolve('ws', { paths: [__dirname + '/../../../relay'] }));
+const WebSocket = require(require.resolve('ws', { paths: [__dirname + '/../../relay', __dirname + '/../../../relay'] }));
 const fs = require('fs');
 const crypto = require('crypto');
 const [url, tagFile] = process.argv.slice(2);

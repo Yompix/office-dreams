@@ -26,4 +26,4 @@ func _draw() -> void:
 	for b in _blocks:
 		var p: Vector2 = b[0] * size
 		var s: float = b[1]
-		draw_rect(Rect2(p, Vector2(s, s)), Color(1, 1, 1, b[2] * 0.5))
+		draw_rect(Rect2(p, Vector2(s, s)), Color(1, 1, 1, b[2] * (0.22 if UI.compact() else 0.35)))
