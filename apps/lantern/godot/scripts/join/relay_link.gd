@@ -96,9 +96,9 @@ static func error_text(code: String) -> String:
 		"bad_password": return "Неверный пароль."
 		"kicked", "banned_by_host": return "Хозяин мира закрыл вам вход."
 		"rate": return "Слишком много попыток. Подождите минуту."
-		"busy": return "Сервер-посредник перегружен. Попробуйте позже."
+		"busy": return "Серверы LANTERN сейчас перегружены. Попробуйте через пару минут."
 		"bad_version": return "Нужна новая версия LANTERN."
 		"host_left", "host_ended", "room_closed": return "Хозяин закрыл мир."
-		"server_restart": return "Сервер-посредник перезапускается. Попробуйте через минуту."
+		"server_restart": return "LANTERN обновляется. Попробуйте через минуту."
 		"expired": return "Комната устарела. Попросите друга запустить мир заново."
-	return "Ошибка relay: " + code
+	return "Не получилось подключиться (%s). Попробуйте ещё раз; не помогло — нажмите «Сообщить о проблеме»." % code

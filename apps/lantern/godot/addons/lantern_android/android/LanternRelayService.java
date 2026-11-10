@@ -91,7 +91,20 @@ public class LanternRelayService extends Service {
 
 	// ------------------------------------------------------------------ мост для GDScript
 
+	// 1.6: вход к другу — только служба с уведомлением (без кнопки поверх игры: она для хозяина мира)
+	static volatile boolean joinOnly = false;
+
+	public static void startJoin(String title, String text) {
+		joinOnly = true;
+		launch(title, text);
+	}
+
 	public static void start(String title, String text) {
+		joinOnly = false;
+		launch(title, text);
+	}
+
+	private static void launch(String title, String text) {
 		Context c = app();
 		if (c == null) return;
 		title0 = title;
@@ -289,7 +302,7 @@ public class LanternRelayService extends Service {
 	}
 
 	private void showBubble() {
-		if (bubble != null || !canDrawOverlays()) return;
+		if (joinOnly || bubble != null || !canDrawOverlays()) return;
 		try {
 			wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 			bubble = new TextView(this);

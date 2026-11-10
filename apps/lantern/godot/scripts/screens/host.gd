@@ -198,6 +198,7 @@ func _ready() -> void:
 	_on_players(s.players)
 	_refresh_relay()
 	app.room.changed.connect(_refresh_admin)
+	right.add_child(Report.button(app, "host"))
 	FX.stagger(left, 0.05)
 
 
@@ -504,6 +505,7 @@ func _ready_own() -> void:
 	app.room.changed.connect(_refresh_admin)
 	_refresh_own()
 	_refresh_relay()
+	right.add_child(Report.button(app, "own_world"))
 	FX.stagger(left, 0.05)
 
 
@@ -585,6 +587,9 @@ func _on_progress(label: String, f: float) -> void:
 			_bar_lbl.text = "%s — %d%%" % [label, int(f * 100)]
 
 
+var _error_offered := false
+
+
 func _on_state(st: String) -> void:
 	var info: Array = STATES.get(st, ["", UI.MUTED])
 	var l: Label = _state_pill.get_meta("label")
@@ -601,8 +606,12 @@ func _on_state(st: String) -> void:
 	_btns.backup.disabled = busy
 	_btns.check.visible = st == "error"
 	if st == "error":
-		_status.text = "Что-то пошло не так: " + app.server.last_error
+		_status.text = "Что-то пошло не так: " + app.server.last_error + "\nНажмите «Запустить» ещё раз. Не помогло — «Сообщить о проблеме» ниже, мы разберёмся."
 		_status.add_theme_color_override("font_color", Color("ff9d9d"))
+		if not _error_offered:
+			_error_offered = true
+			if Cfg.autotest == "":
+				(func(): Report.dialog(app, "server_error", "Сервер остановился с ошибкой. Отправьте отчёт — это поможет нам быстро всё починить.")).call_deferred()
 	else:
 		_status.add_theme_color_override("font_color", UI.MUTED)
 	if st == "running":

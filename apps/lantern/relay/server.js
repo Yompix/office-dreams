@@ -24,6 +24,7 @@ const CFG = {
   resumeMs: env('RESUME_MS', 5 * 60_000),      // код держится, пока хост переподключается
   roomMaxMs: env('ROOM_MAX_MS', 24 * 3600_000),
   highWater: 8 * 1024 * 1024,
+  dropWater: 24 * 1024 * 1024,                 // друг не успевает забирать данные — отключаем его (он переподключится сам)
 };
 const PROTO = 1;
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // без 0/O, 1/I/L
@@ -42,8 +43,15 @@ let wss = null;
 
 const { Pro, PRO_CMDS } = require('./pro');
 const { Downloads } = require('./download');
+const { Reports } = require('./reports');
+const fs = require('fs');
 const legal = require('./legal');
 let downloads = new Downloads('');
+let reports = new Reports('');
+// 1.6: секрет комнат — токен возврата = HMAC(код|номер). После перезапуска relay (выкладка на Railway) хозяин
+// возвращается с прежним кодом, даже если новый процесс о комнате не знал. Друзья переподключаются сами.
+let roomSecret = crypto.randomBytes(32);
+function roomToken(code, num) { return crypto.createHmac('sha256', roomSecret).update(code + '|' + num).digest('hex').slice(0, 32); }
 let publicBase = '';
 
 function makeSocial(dbPath, opts = {}) {
@@ -88,13 +96,19 @@ function frame(sid, payload) {
 // Поток данных → с учётом лимита комнаты и переполнения получателя.
 function forward(room, src, dst, data) {
   if (!dst || dst.readyState !== 1) return;
+  if (dst._role === 'joiner' && dst.bufferedAmount > CFG.dropWater) {
+    // друг завис (телефон потерял сеть, а сокет ещё не закрыт): не тормозим из-за него хозяина и остальных
+    log('slow joiner dropped', room.code, dst.bufferedAmount);
+    dst.terminate();
+    return;
+  }
   const now = Date.now();
   room.tokens = Math.min(CFG.roomBytesPerSec, room.tokens + (now - room.tokenTs) * CFG.roomBytesPerSec / 1000);
   room.tokenTs = now;
   room.tokens -= data.length;
   room.bytes += data.length;
   dst.send(data);
-  if (room.tokens < 0 || dst.bufferedAmount > CFG.highWater) throttle(src, dst, room);
+  if (room.tokens < 0 || (dst.bufferedAmount > CFG.highWater && src._role === 'joiner')) throttle(src, dst, room);
 }
 
 function throttle(src, dst, room) {
@@ -104,6 +118,7 @@ function throttle(src, dst, room) {
   const check = () => {
     if (src.readyState !== 1) return;
     const now = Date.now();
+    src._seen = now; // пока мы сами не читаем сокет, пинги не доходят — это не «молчание» клиента
     room.tokens = Math.min(CFG.roomBytesPerSec, room.tokens + (now - room.tokenTs) * CFG.roomBytesPerSec / 1000);
     room.tokenTs = now;
     if (room.tokens >= 0 && (!dst || dst.readyState !== 1 || dst.bufferedAmount < CFG.highWater / 2)) {
@@ -131,7 +146,7 @@ function closeRoom(room, why) {
 
 function hostGone(room) {
   room.host = null;
-  for (const [hsid, s] of room.streams) { send(s.joiner.ws, { t: 'close', sid: s.lsid }); s.joiner.streams.delete(s.lsid); }
+  for (const [hsid, s] of room.streams) { send(s.joiner.ws, { t: 'close', sid: s.lsid, lost: true }); s.joiner.streams.delete(s.lsid); }
   room.streams.clear();
   for (const j of room.joiners) send(j.ws, { t: 'host_gone' });
   room.resumeTimer = setTimeout(() => closeRoom(room, 'host_left'), CFG.resumeMs);
@@ -164,13 +179,26 @@ function onHost(ws, msg) {
   if (!EDITIONS.has(msg.edition)) return send(ws, { t: 'error', error: 'bad_edition' });
   const name = String(msg.name || 'Мир').slice(0, 48);
   let room = null;
-  if (msg.resume && msg.code) {
-    const r = rooms.get(normCode(msg.code));
-    if (r && !r.host && r.token === String(msg.resume)) room = r;
-  }
   const owner = social.userByToken(msg.token);
+  if (msg.resume && msg.code) {
+    const c = normCode(msg.code);
+    const r = rooms.get(c);
+    if (r && r.token === String(msg.resume)) {
+      if (r.host && r.host !== ws) { const old = r.host; r.host = null; old._role = ''; old.close(4004, 'replaced'); hostGone(r); }
+      room = r;
+    } else if (!r && /^[2-9A-Z]{3,8}$/.test(c)) {
+      // relay перезапустился: комнату помнит только хозяин — проверяем подпись и открываем её заново с тем же кодом
+      const num = /^\d{8}$/.test(String(msg.num || '')) && !roomNums.has(String(msg.num)) ? String(msg.num) : '';
+      const want = roomToken(c, String(msg.num || ''));
+      if (String(msg.resume).length === want.length && crypto.timingSafeEqual(Buffer.from(String(msg.resume)), Buffer.from(want)) && rooms.size < CFG.maxRooms) {
+        room = newRoom(c, msg, owner, num);
+        log('room restored', c);
+      }
+    }
+  }
   if (room) {
     clearTimeout(room.resumeTimer);
+    room.resumeTimer = null;
     room.host = ws;
     room.name = name;
     room.meta = Social.roomMeta(msg.public);
@@ -183,16 +211,8 @@ function onHost(ws, msg) {
     const vanity = msg.vanity && owner ? social.pro.codeForHost(owner.id) : '';
     const code = vanity || makeCode();
     if (!code) return send(ws, { t: 'error', error: 'busy' });
-    room = { code, token: crypto.randomBytes(16).toString('hex'), edition: msg.edition, name, host: ws,
-      joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
-      created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public),
-      bans: new Set(), banIps: new Set() };
-    setBans(room, msg.bans);
-    room.num = makeNum();
-    room.mode = 'other'; room.cap = 0; room.passHash = ''; room.sizeMb = 0;
-    applySettings(room, msg.settings);
-    rooms.set(code, room);
-    if (room.num) roomNums.set(room.num, room);
+    room = newRoom(code, msg, owner, '');
+    room.host = ws;
     stats.roomsCreated++;
     if (owner) {
       social.eco.addStat(owner.id, 'hosts', 1);
@@ -207,6 +227,21 @@ function onHost(ws, msg) {
     limits: { joiners: CFG.maxJoiners, streams: CFG.maxStreams, bytesPerSec: CFG.roomBytesPerSec } });
   // кто уже в комнате (после переподключения хозяина)
   for (const j of room.joiners) send(ws, peerMsg(j, true));
+}
+
+function newRoom(code, msg, owner, num) {
+  const room = { code, edition: msg.edition, name: String(msg.name || 'Мир').slice(0, 48), host: null,
+    joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
+    created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public),
+    bans: new Set(), banIps: new Set() };
+  setBans(room, msg.bans);
+  room.num = num || makeNum();
+  room.token = roomToken(code, room.num);
+  room.mode = 'other'; room.cap = 0; room.passHash = ''; room.sizeMb = 0;
+  applySettings(room, msg.settings);
+  rooms.set(code, room);
+  if (room.num) roomNums.set(room.num, room);
+  return room;
 }
 
 // Хозяин мира: кто зашёл/вышел, выгнать, закрыть вход (по аккаунту LANTERN; без аккаунта — по IP, только в этой комнате)
@@ -252,7 +287,9 @@ function onJoin(ws, msg) {
     const h = crypto.createHash('sha256').update('lantern-room:' + p.slice(0, 32)).digest('hex');
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(room.passHash))) return send(ws, { t: 'error', error: 'bad_password' });
   }
-  const j = { ws, room, streams: new Map(), id: crypto.randomBytes(3).toString('hex'), userId: ju ? ju.id : 0 };
+  // 1.6: друг переподключился (обрыв связи, перезапуск relay) — прежний id, чтобы хозяин не видел «вышел/зашёл»
+  const prev = /^[0-9a-f]{6}$/.test(String(msg.peer || '')) && ![...room.joiners].some((x) => x.id === msg.peer) ? String(msg.peer) : '';
+  const j = { ws, room, streams: new Map(), id: prev || crypto.randomBytes(3).toString('hex'), userId: ju ? ju.id : 0 };
   room.joiners.add(j);
   ws._role = 'joiner';
   ws._joiner = j;
@@ -263,7 +300,7 @@ function onJoin(ws, msg) {
     social.eco.visit(room.ownerId, j.userId);
     social.eco.checkAchievements(j.userId);
   }
-  send(ws, { t: 'joined', v: PROTO, code: room.code, num: room.num, edition: room.edition, name: room.name, host: !!room.host });
+  send(ws, { t: 'joined', v: PROTO, code: room.code, num: room.num, edition: room.edition, name: room.name, host: !!room.host, peer: j.id });
   send(room.host, peerMsg(j, true));
 }
 
@@ -286,20 +323,30 @@ function joinerOpen(j, msg) {
   const s = { hsid, lsid, joiner: j, kind: msg.kind };
   j.streams.set(lsid, s);
   room.streams.set(hsid, s);
-  send(room.host, { t: 'open', sid: hsid, kind: msg.kind, peer: j.id });
+  const o = { t: 'open', sid: hsid, kind: msg.kind, peer: j.id };
+  // 1.6: ключ потока — после обрыва связи друг открывает поток заново с тем же ключом, хозяин продолжает прежний
+  if (typeof msg.key === 'string' && /^[0-9a-f]{8,32}$/.test(msg.key)) { o.key = msg.key; o.rx = Number(msg.rx) || 0; if (msg.resume) o.resume = 1; }
+  send(room.host, o);
 }
 
-function joinerClose(j, lsid) {
+function joinerClose(j, lsid, lost) {
   const s = j.streams.get(lsid);
   if (!s) return;
   j.streams.delete(lsid);
   j.room.streams.delete(s.hsid);
-  send(j.room.host, { t: 'close', sid: s.hsid });
+  send(j.room.host, lost ? { t: 'close', sid: s.hsid, lost: true } : { t: 'close', sid: s.hsid });
 }
 
-function dropJoiner(j) {
+// Подтверждение «получено n байт» (и ответ на возобновление потока) — пересылаем другой стороне, меняя номер потока.
+function ackMsg(sid, msg) {
+  const o = { t: 'ack', sid, n: Number(msg.n) || 0 };
+  if (msg.r) o.r = 1;
+  return o;
+}
+
+function dropJoiner(j, lost) {
   if (!j.room.joiners.has(j)) return;
-  for (const lsid of [...j.streams.keys()]) joinerClose(j, lsid);
+  for (const lsid of [...j.streams.keys()]) joinerClose(j, lsid, lost);
   j.room.joiners.delete(j);
   send(j.room.host, peerMsg(j, false));
 }
@@ -326,6 +373,7 @@ function onText(ws, text) {
     const j = ws._joiner;
     if (msg.t === 'open') return joinerOpen(j, msg);
     if (msg.t === 'close') return joinerClose(j, msg.sid >>> 0);
+    if (msg.t === 'ack') { const s = j.streams.get(msg.sid >>> 0); if (s && j.room.host) send(j.room.host, ackMsg(s.hsid, msg)); return; }
   } else if (ws._role === 'host') {
     const room = ws._room;
     if (msg.t === 'close') {
@@ -334,6 +382,9 @@ function onText(ws, text) {
       room.streams.delete(s.hsid);
       s.joiner.streams.delete(s.lsid);
       send(s.joiner.ws, { t: 'close', sid: s.lsid });
+    } else if (msg.t === 'ack') {
+      const s = room.streams.get(msg.sid >>> 0);
+      if (s) send(s.joiner.ws, ackMsg(s.lsid, msg));
     } else if (msg.t === 'kick') kickPeer(room, msg);
     else if (msg.t === 'bans') setBans(room, msg.bans);
     else if (msg.t === 'end') closeRoom(room, 'host_ended');
@@ -361,6 +412,7 @@ function onBinary(ws, data) {
 // HTTP: /healthz, /rooms, /download, /privacy, /terms, /delete (url — уже без префикса)
 function onHttp(req, res, url) {
   if (downloads.http(req, res, url, publicBase)) return;
+  if (reports.http(req, res, url, String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || (req.socket && req.socket.remoteAddress))) return;
   if (legal.http(req, res, url, publicBase)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
@@ -401,10 +453,22 @@ function onConnection(ws, req) {
     const c = (ipConns.get(ws._ip) || 1) - 1;
     if (c <= 0) ipConns.delete(ws._ip); else ipConns.set(ws._ip, c);
     if (ws._role === 'host' && ws._room && ws._room.host === ws && !ws._room.closed) hostGone(ws._room);
-    if (ws._role === 'joiner') dropJoiner(ws._joiner);
+    if (ws._role === 'joiner') dropJoiner(ws._joiner, true);
     social.detach(ws);
   });
   ws.on('error', () => {});
+}
+
+// Секрет комнат: переменная LANTERN_ROOM_SECRET, иначе файл рядом с базой (на томе Railway), иначе случайный.
+function loadSecret(opts) {
+  if (process.env.LANTERN_ROOM_SECRET) return crypto.createHash('sha256').update(process.env.LANTERN_ROOM_SECRET).digest();
+  const db = opts.dbPath && opts.dbPath !== ':memory:' ? opts.dbPath : '';
+  if (!db) return crypto.randomBytes(32);
+  const f = path.join(path.dirname(db), 'lantern-room.key');
+  try { const b = fs.readFileSync(f); if (b.length === 32) return b; } catch {}
+  const b = crypto.randomBytes(32);
+  try { fs.writeFileSync(f, b, { mode: 0o600 }); } catch {}
+  return b;
 }
 
 /**
@@ -417,6 +481,8 @@ function attach(httpServer, opts = {}) {
   const wsPath = opts.wsPath || '/ws';
   social = makeSocial(opts.dbPath || ':memory:', opts);
   downloads = new Downloads(opts.downloadDir || '');
+  reports = new Reports(opts.reportDir || '');
+  roomSecret = loadSecret(opts);
   publicBase = opts.publicBase || '';
   wss = new WebSocketServer({ noServer: true, maxPayload: CFG.maxFrame, perMessageDeflate: false });
   wss.on('connection', onConnection);
@@ -428,7 +494,7 @@ function attach(httpServer, opts = {}) {
   const t1 = setInterval(() => {
     const now = Date.now();
     for (const ws of wss.clients) {
-      if (now - ws._seen > CFG.idleMs) { ws.terminate(); continue; }
+      if (now - ws._seen > CFG.idleMs) { log('idle terminate', ws._role || '-', ws._room ? ws._room.code : ''); ws.terminate(); continue; }
       if (ws.readyState === 1) { ws._pingAt = Date.now(); ws.ping(); }
     }
     for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
@@ -440,7 +506,9 @@ function attach(httpServer, opts = {}) {
   log(`lantern relay attached, ws path ${wsPath}, db ${opts.dbPath ? 'file' : 'memory'}`);
   return {
     http: onHttp,
-    close() { clearInterval(t1); clearInterval(t2); for (const r of [...rooms.values()]) closeRoom(r, 'server_restart'); },
+    // 1.6: при перезапуске (выкладка) комнаты не закрываем — хозяева и друзья переподключатся к новому процессу
+    // и продолжат с тем же кодом (код 1012 = «сервис перезапускается»).
+    close() { clearInterval(t1); clearInterval(t2); for (const ws of wss.clients) { try { ws.close(1012, 'restart'); } catch {} } },
   };
 }
 
@@ -450,7 +518,7 @@ function standalone(port = CFG.port) {
   const dbPath = process.env.LANTERN_DB_PATH || process.env.DB_PATH || (vol ? path.join(vol, 'lantern.db') : ':memory:');
   let relay = null;
   const server = http.createServer((req, res) => relay.http(req, res, req.url));
-  relay = attach(server, { wsPath: '/ws', dbPath });
+  relay = attach(server, { wsPath: '/ws', dbPath, reportDir: process.env.LANTERN_REPORT_DIR || (vol ? path.join(vol, 'lantern-reports') : '') });
   server.listen(port, () => log(`relay listening on :${port} path /ws`));
   return { server, social, relay };
 }

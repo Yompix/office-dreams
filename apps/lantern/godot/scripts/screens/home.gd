@@ -238,7 +238,7 @@ func _row(r: Dictionary) -> Control:
 		pr.add_child(UI.icon("lock", 14, UI.MUTED))
 	pr.add_child(UI.pill("%d/%d" % [players, slots], UI.RED if full else UI.JAVA))
 	rv.add_child(pr)
-	var ep := UI.pill({"java": "Java", "bedrock": "Bedrock", "both": "Обе"}.get(ed, ed), UI.JAVA if ed == "java" else (UI.BEDROCK if ed == "bedrock" else Color("c58bff")))
+	var ep := UI.pill({"java": "Java", "bedrock": "Телефоны", "both": "Для всех"}.get(ed, ed), UI.JAVA if ed == "java" else (UI.BEDROCK if ed == "bedrock" else Color("c58bff")))
 	ep.size_flags_horizontal = Control.SIZE_SHRINK_END
 	rv.add_child(ep)
 	row.add_child(rv)

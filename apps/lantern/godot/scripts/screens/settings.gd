@@ -131,6 +131,9 @@ func _ready() -> void:
 
 	# --- о программе
 	var ga := _group(v, "О программе")
+	var rep := Report.button(app, "settings")
+	rep.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	ga.add_child(rep)
 	var ah := UI.hbox(14)
 	ah.add_child(UI.texture("res://assets/img/icon.png", 52, 52))
 	var at := UI.vbox(0)

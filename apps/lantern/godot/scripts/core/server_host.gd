@@ -74,6 +74,7 @@ func server_dir() -> String:
 
 
 func _set_state(s: String) -> void:
+	AppLog.add("server", "%s: %s → %s" % [edition, state, s])
 	state = s
 	state_changed.emit(s)
 
@@ -211,7 +212,7 @@ func _install_java() -> bool:
 			if FileAccess.file_exists(plugins.path_join(f)):
 				DirAccess.rename_absolute(plugins.path_join(f), plugins.path_join(f + ".off"))
 	if opts.get("crossplay", false):
-		_geyser_config(plugins.path_join("Geyser-Spigot/config.yml"))
+		_geyser_config(plugins.path_join("Geyser-Spigot/config.yml"), true)
 		for f in ["Geyser-Spigot.jar", "floodgate-spigot.jar"]:
 			if FileAccess.file_exists(plugins.path_join(f + ".off")):
 				DirAccess.remove_absolute(plugins.path_join(f + ".off"))
@@ -250,17 +251,30 @@ func _install_java() -> bool:
 
 ## Geyser 2.12+ по умолчанию слушает только NetherNet (WebRTC). LANTERN передаёт RakNet по UDP 19132,
 ## поэтому включаем «both»: RakNet на 19132, NetherNet на 19134. Остальные настройки Geyser дополнит сам.
-static func _geyser_config(path: String) -> void:
+## 1.6: и обязательно «auth-type: floodgate». Иначе (наш короткий файл был до первого запуска Geyser — он сам
+## не выбрал Floodgate и записал «online») игроку с телефона надо входить Java-аккаунтом — с телефона не зайти.
+static func _geyser_config(path: String, floodgate := false) -> void:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	if not FileAccess.file_exists(path):
 		var f := FileAccess.open(path, FileAccess.WRITE)
-		f.store_string("bedrock:\n  port: %d\n  webrtc-port: %d\n  transport: both\n" % [BEDROCK_PORT, BEDROCK_PORT + 2])
+		f.store_string("bedrock:\n  port: %d\n  webrtc-port: %d\n  transport: both\n" % [BEDROCK_PORT, BEDROCK_PORT + 2]
+			+ ("java:\n  auth-type: floodgate\n" if floodgate else ""))
 		return
 	var txt := FileAccess.get_file_as_string(path)
 	var re_t := RegEx.create_from_string("(?m)^(  transport:)\\s*\\S+")
 	var re_w := RegEx.create_from_string("(?m)^(  webrtc-port:)\\s*0\\s*$")
 	var out := re_t.sub(txt, "$1 both")
 	out = re_w.sub(out, "$1 %d" % (BEDROCK_PORT + 2))
+	if floodgate:
+		var re_a := RegEx.create_from_string("(?m)^(  auth-type:)\\s*\\S+")
+		if re_a.search(out):
+			out = re_a.sub(out, "$1 floodgate")
+		elif not out.contains("auth-type"):
+			var re_j := RegEx.create_from_string("(?m)^java:[ \\t]*$")
+			if re_j.search(out):
+				out = re_j.sub(out, "java:\n  auth-type: floodgate")
+			else:
+				out += "\njava:\n  auth-type: floodgate\n"
 	if out != txt:
 		var f := FileAccess.open(path, FileAccess.WRITE)
 		f.store_string(out)
@@ -446,7 +460,28 @@ func _install_via(plugins: String, info: Dictionary, version: String, jmajor: in
 	info.via = got
 	info.java_range = java_range(version, got)
 	if got.has("viaversion"):
+		_via_config(plugins)
+	if got.has("viaversion"):
 		_log("[LANTERN] Заходить можно с Java %s – %s (ViaVersion %s)." % [info.java_range[0], info.java_range[1], got.viaversion.version])
+
+
+## 1.6: Java 1.7.x и старше через ViaRewind ломается посреди игры («соединение разорвано»). Не пускаем их
+## с понятным сообщением: официально — Java 1.8 и новее.
+const VIA_BLOCK_MSG := "Слишком старая версия Minecraft. Выберите в лаунчере 1.8.9 или новее — и заходите!"
+
+static func _via_config(plugins: String) -> void:
+	var path := plugins.path_join("ViaVersion/config.yml")
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var txt := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+	var out := txt
+	var re_b := RegEx.create_from_string("(?m)^block-versions:.*$")
+	var re_m := RegEx.create_from_string("(?m)^block-disconnect-msg:.*$")
+	var bl := "block-versions: [\"<1.8\"]"
+	var msg := "block-disconnect-msg: \"%s\"" % VIA_BLOCK_MSG
+	out = re_b.sub(out, bl) if re_b.search(out) else out + ("\n" if out != "" and not out.ends_with("\n") else "") + bl + "\n"
+	out = re_m.sub(out, msg) if re_m.search(out) else out + msg + "\n"
+	if out != txt:
+		FileAccess.open(path, FileAccess.WRITE).store_string(out)
 
 
 ## Найти Java нужной версии (своя → системная) или скачать Temurin JRE.
@@ -631,6 +666,7 @@ func _launch() -> bool:
 		return _fail(err)
 	started_msec = Time.get_ticks_msec()
 	_log("[LANTERN] Сервер запущен (процесс %d). Папка: %s" % [proc.pid, dir])
+	AppLog.add("server", "запуск %s: версия %s, память %s МБ, кроссплей %s, Java %s" % [edition, str(_installed.get("mc_version", "")), str(opts.get("memory_mb", "")), str(opts.get("crossplay", false)), str(_installed.get("java_major", ""))])
 	return true
 
 
@@ -783,8 +819,12 @@ static func _geyser_port(path: String, port: int) -> void:
 		f.store_string(out)
 
 
+static var _re_note := RegEx.create_from_string("(?i)(lost connection|Internal Exception|timed out|kicked|disconnect|Exception|\\bERROR\\b|OutOfMemory|Can't keep up|Geyser|Floodgate|ViaVersion|ViaRewind|ViaBackwards|joined the game|left the game|Done \\()")
+
 func _on_line(t: String) -> void:
 	_log(t)
+	if _re_note.search(t) and not t.contains("STUN discovery"):
+		AppLog.add("server", t.substr(0, 400))
 	if (t.contains("ERROR") or t.contains("Exception")) and _last_err == "":
 		_last_err = t.substr(t.find("]") + 1).strip_edges() if t.begins_with("[") else t
 	if state == "starting":
@@ -826,6 +866,7 @@ func _on_exit(code: int) -> void:
 	var was := state
 	_stop_deadline = 0
 	_log("[LANTERN] Сервер завершился (код %d)." % code)
+	AppLog.add("server", "процесс сервера завершился, код %d, после %d с, последняя ошибка: %s" % [code, (Time.get_ticks_msec() - started_msec) / 1000, _last_err.substr(0, 200)])
 	if was == "stopping":
 		_set_state("stopped")
 		_status("Сервер остановлен, мир сохранён")

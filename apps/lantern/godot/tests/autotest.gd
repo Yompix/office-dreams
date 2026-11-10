@@ -217,8 +217,69 @@ func _core() -> int:
 	if props.get("max-players") != "7" or props.get("motd") != "\\u041c\\u0438\\u0440 Yompix":
 		_log("properties FAIL " + str(props))
 		fails += 1
+	fails += _core_16(out)
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
+
+
+## 1.6: журнал и отчёт без личного, Geyser с Floodgate, Via не пускает 1.7, поток с возобновлением.
+func _core_16(out: String) -> int:
+	var fails := 0
+	var dirty := "Authorization: XBL3.0 x=123;eyJabc password=кот token=\"abc\" a=ice-pwd:SECRET друг 95.31.2.7 лан 192.168.1.5 версия 1.21.130.1"
+	var clean := AppLog.scrub(dirty)
+	_log("scrub: " + clean)
+	for bad in ["x=123", "кот", "SECRET", "95.31.2.7", "\"abc\""]:
+		if clean.contains(bad):
+			_log("scrub FAIL: осталось " + bad)
+			fails += 1
+	if not clean.contains("192.168.1.5") or not clean.contains("1.21.130.1"):
+		_log("scrub FAIL: вырезано лишнее")
+		fails += 1
+	AppLog.add("test", "проверка отчёта token=zzz")
+	var rep := Report.collect(app, "test", "заметка")
+	if not String(rep.app_log).contains("проверка отчёта") or String(rep.app_log).contains("zzz") or String(rep.app).find(Cfg.APP_VERSION) < 0:
+		_log("report FAIL")
+		fails += 1
+	_log("отчёт: %d байт журнала, устройство %s" % [String(rep.app_log).length(), rep.device])
+	# Geyser: короткий файл до первого запуска и полный с auth-type: online → floodgate
+	var gc := out + "/geyser/config.yml"
+	DirAccess.remove_absolute(gc)
+	ServerHost._geyser_config(gc, true)
+	var g1 := FileAccess.get_file_as_string(gc)
+	FileAccess.open(gc, FileAccess.WRITE).store_string("bedrock:\n  port: 19132\n  transport: nethernet\njava:\n  # c\n  auth-type: online\nmotd:\n  x: 1\n")
+	ServerHost._geyser_config(gc, true)
+	var g2 := FileAccess.get_file_as_string(gc)
+	if not g1.contains("auth-type: floodgate") or not g2.contains("auth-type: floodgate") or g2.contains("auth-type: online") or not g2.contains("transport: both"):
+		_log("geyser config FAIL:\n" + g1 + "\n---\n" + g2)
+		fails += 1
+	DirAccess.make_dir_recursive_absolute(out + "/via")
+	DirAccess.remove_absolute(out + "/via/ViaVersion/config.yml")
+	ServerHost._via_config(out + "/via")
+	var v1 := FileAccess.get_file_as_string(out + "/via/ViaVersion/config.yml")
+	FileAccess.open(out + "/via/ViaVersion/config.yml", FileAccess.WRITE).store_string("a: 1\nblock-versions: []\nblock-disconnect-msg: You are using an unsupported Minecraft version!\nb: 2\n")
+	ServerHost._via_config(out + "/via")
+	var v2 := FileAccess.get_file_as_string(out + "/via/ViaVersion/config.yml")
+	if not v1.contains("\"<1.8\"") or not v2.contains("block-versions: [\"<1.8\"]") or not v2.contains("1.8.9") or not v2.contains("b: 2"):
+		_log("via config FAIL:\n" + v1 + "\n---\n" + v2)
+		fails += 1
+	# поток: отправили 10 байт, подтверждено 4, на той стороне 6 → досылаем 4 последних
+	var s := {}
+	RelStream.init(s, true)
+	RelStream.on_sent(s, "0123456789".to_utf8_buffer())
+	RelStream.on_ack(s, 4)
+	if s.buf.get_string_from_utf8() != "456789":
+		_log("relstream ack FAIL " + s.buf.get_string_from_utf8())
+		fails += 1
+	var fake := RelayLink.new()
+	if not RelStream.replay(fake, 1, s, 6) or s.buf.get_string_from_utf8() != "6789" or RelStream.replay(fake, 1, s, 3):
+		_log("relstream replay FAIL")
+		fails += 1
+	var opts: Dictionary = load("res://scripts/screens/create.gd").universal_opts("Мир теста", "creative", 5, true)
+	if not opts.crossplay or opts.version != "latest" or opts.gamemode != "creative" or not opts.any_version:
+		_log("universal opts FAIL " + str(opts))
+		fails += 1
+	_log("1.6 core: FAILS=%d" % fails)
+	return fails
 
 
 # ------------------------------------------------------------------ скриншоты
@@ -234,6 +295,11 @@ func _screens() -> int:
 	await _shot("04_join")
 	app.go("settings", true)
 	await _shot("05_settings")
+	app.go("create", true)
+	await _shot("06_create")
+	Report.dialog(app, "test")
+	await _shot("07_report")
+	Overlays.close_sheet(app)
 	return 0
 
 
@@ -1185,6 +1251,7 @@ func _ownworld() -> int:
 	await get_tree().create_timer(0.5).timeout
 	await _shot("70b_create_game")
 	if app.current == "create":
+		app._screen._kind = "own"   # 1.6: на ПК по умолчанию сервер для всех; свой мир — в «Ещё настройки»
 		app._screen._create()
 	if not await _wait(func(): return own.active and app.relay_host.stats().code != "", 15, "одна кнопка: комната открылась сама"):
 		fails += 1

@@ -22,7 +22,7 @@ var _run := false
 var _mutex := Mutex.new()
 var _stats := {"state": "off", "code": "", "streams": 0, "peers": 0, "rx": 0, "tx": 0, "error": ""}
 var _events: Array = []
-var _last_room := ["", ""]    # код и токен последней комнаты — чтобы вернуть тот же код после перезапуска моста
+var _last_room := ["", "", ""]    # код и токен последней комнаты — чтобы вернуть тот же код после перезапуска моста
 var _resume := false
 var _graceful := true
 var _peers := {}          # peer -> {peer, user:{id,nick,tag}|null, since} — кто сейчас в комнате (relay 1.4+)
@@ -198,21 +198,26 @@ func _event(text: String) -> void:
 
 func _loop() -> void:
 	var link := RelayLink.new()
-	var streams := {}    # sid -> {kind, tcp|udp, pending, last, peer}
+	var streams := {}    # sid -> {kind, tcp|udp, pending, last, peer, key?, detached?}
 	var code := ""
 	var token := ""
+	var num := ""
 	if _resume:
 		_mutex.lock()
 		code = _last_room[0]
 		token = _last_room[1]
+		num = _last_room[2] if _last_room.size() > 2 else ""
 		_mutex.unlock()
 	var backoff := 1000
 	var next_try := 0
 	var connected := false
 	var last_ping := 0
 	var last_sync := 0
+	var last_rx := 0
+	var link_t0 := 0
 	var active := false
 	var nn := {"disc": null, "id": NetherNet.new_id(), "srv": 0, "ip": "", "port": 0, "app": PackedByteArray(), "cids": {}, "req": 0}
+	AppLog.add("host", "мост хозяина: %s, java %d, bedrock %d, relay %s" % [edition, java_port, bedrock_port, relay_url])
 	while _run:
 		var now := Time.get_ticks_msec()
 		if not active and now >= next_try:
@@ -220,11 +225,27 @@ func _loop() -> void:
 			if link.open(relay_url) != OK:
 				_st("state", "error")
 				_st("error", "неверный адрес сервера-посредника: " + relay_url)
+				AppLog.add("host", "не удалось начать соединение с relay")
 				next_try = now + 5000
 			else:
 				active = true
+				link_t0 = now
 		var busy := false
-		for ev in (link.poll() if active else []):
+		var evs: Array = link.poll() if active else []
+		# связь «зависла» (телефон сменил сеть, а сокет не закрылся): нет ничего от relay 40 с — переподключаемся
+		if active and connected and now - last_rx > 40000:
+			AppLog.add("host", "relay молчит %d с — переподключаемся" % ((now - last_rx) / 1000))
+			link.ws.close()
+			evs.append({"k": "closed", "code": -1, "reason": "timeout", "was_open": true})
+		elif active and not connected and now - link_t0 > 20000:
+			AppLog.add("host", "relay не отвечает 20 с при подключении")
+			link.ws.close()
+			evs.append({"k": "closed", "code": -1, "reason": "connect timeout", "was_open": false})
+		for ev in evs:
+			if not active:
+				break
+			if ev.k != "closed":
+				last_rx = now
 			match ev.k:
 				"open":
 					connected = true
@@ -237,24 +258,29 @@ func _loop() -> void:
 					if token != "":
 						hello["code"] = code
 						hello["resume"] = token
+						hello["num"] = num
 					link.send_json(hello)
+					AppLog.add("host", "relay: соединение открыто за %d мс%s" % [now - link_t0, ", возвращаем прежний код" if token != "" else ""])
 				"closed":
-					if true:
-						active = false
-						connected = false
-						_mutex.lock()
-						_peers.clear()
-						_mutex.unlock()
-						for sid in streams.keys():
+					active = false
+					connected = false
+					_mutex.lock()
+					_peers.clear()
+					_mutex.unlock()
+					var kept := 0
+					for sid in streams.keys():
+						if _detach(streams[sid], now):
+							kept += 1
+						else:
 							_close_local(streams[sid])
-						streams.clear()
-						_st("streams", 0)
-						_st("peers", 0)
-						if _run:
-							_st("state", "reconnecting")
-							_st("error", "нет связи с сервером-посредником, переподключаемся…" if ev.was_open else "сервер-посредник недоступен (%s)" % relay_url)
-						next_try = Time.get_ticks_msec() + backoff
-						backoff = min(backoff * 2, 15000)
+							streams.erase(sid)
+					_update_counts(streams)
+					AppLog.add("host", "relay: связь закрыта (код %s, %s, была открыта %s, %d с); потоков ждут возврата: %d" % [str(ev.code), String(ev.get("reason", "")), str(ev.was_open), (now - link_t0) / 1000, kept])
+					if _run:
+						_st("state", "reconnecting")
+						_st("error", "Связь с LANTERN прервалась — восстанавливаем, игроки не вылетят, если она вернётся за полминуты." if ev.was_open else "Нет связи с LANTERN — проверьте интернет. Пробуем снова…")
+					next_try = Time.get_ticks_msec() + (300 if int(ev.code) == 1012 else backoff)
+					backoff = min(backoff * 2, 8000)
 				"msg":
 					var m: Dictionary = ev.m
 					match String(m.get("t", "")):
@@ -264,23 +290,40 @@ func _loop() -> void:
 						"room":
 							if code != "" and code != m.code:
 								_event("Старая комната пропала, выдан новый код: " + m.code)
+								AppLog.add("host", "прежний код не вернулся — новый код; ждущие потоки закрыты")
+								for sid in streams.keys():
+									if streams[sid].get("detached", false):
+										_close_local(streams[sid])
+										streams.erase(sid)
+								_update_counts(streams)
+							elif code != "":
+								AppLog.add("host", "комната возвращена с прежним кодом")
 							code = m.code
 							token = m.token
+							num = String(m.get("num", ""))
 							_mutex.lock()
-							_last_room = [code, token]
+							_last_room = [code, token, num]
 							_mutex.unlock()
 							_st("code", code)
-							_st("num", String(m.get("num", "")))
+							_st("num", num)
 							_st("state", "online")
 							_st("error", "")
 						"open":
 							var sid := int(m.sid)
-							var s := {"kind": m.kind, "pending": PackedByteArray(), "last": now, "peer": m.get("peer", "")}
+							var key := String(m.get("key", ""))
+							if key != "" and m.get("resume", false):
+								_resume_stream(link, streams, sid, m, now)
+								continue
+							var s := {"kind": m.kind, "pending": PackedByteArray(), "last": now, "peer": m.get("peer", ""), "t0": now}
+							if key != "":
+								s.key = key
 							if m.kind == "tcp":
 								var t := StreamPeerTCP.new()
 								t.connect_to_host(local_host, java_port)
 								t.set_no_delay(true)
 								s.tcp = t
+								RelStream.init(s, key != "")
+								AppLog.add("host", "поток %d (tcp) от друга %s → игра :%d" % [sid, s.peer, java_port])
 							else:
 								var u := PacketPeerUDP.new()
 								u.bind(0, "127.0.0.1" if local_host == "127.0.0.1" else "0.0.0.0")
@@ -291,11 +334,21 @@ func _loop() -> void:
 						"close":
 							var sid := int(m.sid)
 							if streams.has(sid):
-								_close_local(streams[sid])
-								streams.erase(sid)
+								var s: Dictionary = streams[sid]
+								if m.get("lost", false) and _detach(s, now):
+									AppLog.add("host", "поток %d: друг потерял связь — ждём его возврата (%s)" % [sid, RelStream.info(s) if s.kind == "tcp" else s.kind])
+								else:
+									_log_close(sid, s, "друг закрыл")
+									_close_local(s)
+									streams.erase(sid)
 								_update_counts(streams)
+						"ack":
+							var s: Variant = streams.get(int(m.sid))
+							if s != null and s.kind == "tcp":
+								RelStream.on_ack(s, int(m.get("n", 0)))
 						"error":
 							var e := String(m.get("error", ""))
+							AppLog.add("host", "relay: ошибка " + e)
 							if e == "bad_version" or e == "busy":
 								_st("state", "error")
 								_st("error", RelayLink.error_text(e))
@@ -303,6 +356,7 @@ func _loop() -> void:
 						"peer":
 							var pid := String(m.get("peer", ""))
 							var u: Variant = m.get("user")
+							AppLog.add("host", "друг %s %s" % [pid, "в комнате" if m.get("on", false) else "вышел"])
 							_mutex.lock()
 							if m.get("on", false):
 								var known := _peers.has(pid)
@@ -329,6 +383,7 @@ func _loop() -> void:
 						continue
 					if s.kind == "tcp":
 						s.pending.append_array(ev.data)
+						RelStream.on_recv(s, ev.data.size())
 					else:
 						s.udp.put_packet(ev.data)
 		if now - last_sync >= 1000:
@@ -341,32 +396,50 @@ func _loop() -> void:
 			_mutex.unlock()
 			for c in cmds:
 				link.send_json(c)
-		if connected and now - last_ping > 20000:
+		if connected and now - last_ping > 10000:
 			last_ping = now
 			link.send_json({"t": "ping", "ts": now})
 		# локальные соединения → relay
 		for sid in streams.keys():
 			var s: Dictionary = streams[sid]
+			if s.get("detached", false) and now - int(s.det_t) > RelStream.DETACH_MS:
+				_log_close(sid, s, "друг не вернулся за %d с" % (RelStream.DETACH_MS / 1000))
+				_close_local(s)
+				streams.erase(sid)
+				_update_counts(streams)
+				continue
 			if s.kind == "tcp":
 				var t: StreamPeerTCP = s.tcp
 				t.poll()
 				var st := t.get_status()
 				if st == StreamPeerTCP.STATUS_CONNECTED:
-					if s.pending.size() > 0:
-						t.put_data(s.pending)
-						s.pending = PackedByteArray()
+					if not RelStream.flush(s, t):
+						_log_close(sid, s, "игра не принимает данные")
+						if connected and not s.get("detached", false):
+							link.send_json({"t": "close", "sid": sid})
+						_close_local(s)
+						streams.erase(sid)
+						_update_counts(streams)
+						continue
 					var n := t.get_available_bytes()
-					if n > 0 and link.backlog() < BACKLOG_MAX:
+					if n > 0 and connected and link.backlog() < BACKLOG_MAX and RelStream.can_read(s):
 						busy = true
 						var r := t.get_partial_data(min(n, 60000))
 						link.send_bin(sid, r[1])
+						RelStream.on_sent(s, r[1])
 						_add("tx", r[1].size())
 						s.last = now
+					if connected and not s.get("detached", false):
+						RelStream.maybe_ack(link, sid, s, now)
 				elif st == StreamPeerTCP.STATUS_ERROR or st == StreamPeerTCP.STATUS_NONE:
-					link.send_json({"t": "close", "sid": sid})
+					_log_close(sid, s, "сервер закрыл соединение" if st == StreamPeerTCP.STATUS_NONE else "ошибка соединения с сервером (порт %d)" % java_port)
+					if connected and not s.get("detached", false):
+						link.send_json({"t": "close", "sid": sid})
 					_close_local(s)
 					streams.erase(sid)
 					_update_counts(streams)
+			elif s.get("detached", false):
+				continue
 			elif s.has("nn"):
 				if s.has("http"):
 					busy = _http_poll(link, sid, s, now) or busy
@@ -408,6 +481,55 @@ func _loop() -> void:
 	for sid in streams:
 		_close_local(streams[sid])
 	link.close()
+	AppLog.add("host", "мост хозяина остановлен")
+
+
+## Связь пропала: поток с ключом ждёт возврата друга (соединение с сервером не закрываем). false — закрыть.
+func _detach(s: Dictionary, now: int) -> bool:
+	if not s.has("key") or s.get("norel", false):
+		return false
+	if not s.get("detached", false):
+		s.detached = true
+		s.det_t = now
+	return true
+
+
+## Друг вернулся (или relay перезапустился): поток с тем же ключом продолжает прежнее соединение с сервером.
+func _resume_stream(link: RelayLink, streams: Dictionary, sid: int, m: Dictionary, now: int) -> void:
+	var key := String(m.key)
+	var old := -1
+	for k in streams:
+		if String(streams[k].get("key", "")) == key:
+			old = k
+			break
+	if old < 0:
+		AppLog.add("host", "возобновление потока: соединение уже закрыто — друг переподключится заново")
+		link.send_json({"t": "close", "sid": sid})
+		return
+	var s: Dictionary = streams[old]
+	streams.erase(old)
+	if s.kind == "tcp":
+		if not RelStream.replay(link, sid, s, int(m.get("rx", 0))):
+			AppLog.add("host", "возобновление потока %d невозможно (%s)" % [sid, RelStream.info(s)])
+			link.send_json({"t": "close", "sid": sid})
+			_close_local(s)
+			_update_counts(streams)
+			return
+		link.send_json({"t": "ack", "sid": sid, "n": s.recv, "r": 1})
+		s.ack_sent = s.recv
+	s.detached = false
+	s.erase("det_t")
+	s.last = now
+	s.peer = m.get("peer", s.peer)
+	streams[sid] = s
+	_update_counts(streams)
+	AppLog.add("host", "поток %d → %d возобновлён без разрыва игры (%s)" % [old, sid, RelStream.info(s) if s.kind == "tcp" else s.kind])
+	_event("Связь с другом восстановлена")
+
+
+func _log_close(sid: int, s: Dictionary, why: String) -> void:
+	if s.kind == "tcp":
+		AppLog.add("host", "поток %d закрыт: %s; %d с, %s" % [sid, why, (Time.get_ticks_msec() - int(s.get("t0", 0))) / 1000, RelStream.info(s)])
 
 
 ## Раз в секунду: пинг мира (Bedrock), окошко/уведомление Android, «мир не виден» и действия из окошка.
@@ -666,6 +788,7 @@ static func _close_local(s: Dictionary) -> void:
 	if s.has("sess"):
 		NetherNet.close_session(s.sess)
 	if s.has("tcp"):
+		RelStream.drain(s, s.tcp)
 		s.tcp.disconnect_from_host()
 	if s.has("udp"):
 		s.udp.close()

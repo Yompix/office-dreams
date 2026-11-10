@@ -39,6 +39,8 @@ function main() {
         cloudTotalMb: 1024,
         // сборки приложения для скачивания: /lantern/download
         downloadDir: mem ? '' : path.join(dataDir, 'lantern-download'),
+        // «Сообщить о проблеме» из приложения: /lantern/report (смотреть — с ключом загрузки)
+        reportDir: mem ? '' : path.join(dataDir, 'lantern-reports'),
         publicBase: '/lantern',
       });
     } catch (e) { lantern = null; ctx.log('lantern relay disabled:', e.message); }

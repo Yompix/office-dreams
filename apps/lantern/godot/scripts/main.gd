@@ -628,6 +628,9 @@ func _more_menu(_b: Button = null) -> void:
 		var r := UI.list_row(UI.icon_tile(it[1], UI.accent(), 40, 20), it[2], it[3], UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go(it[0]), Color(0, 0, 0, 0))
 		r.custom_minimum_size.y = 60
 		list.add_child(r)
+	var rr := UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), "Сообщить о проблеме", "Отправить журнал разработчику — получите номер отчёта", UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); Report.dialog(self), Color(0, 0, 0, 0))
+	rr.custom_minimum_size.y = 60
+	list.add_child(rr)
 	v.add_child(list)
 	FX.stagger(list, 0.03)
 
@@ -724,6 +727,31 @@ func _process(d: float) -> void:
 		if key != _last_presence:
 			_last_presence = key
 			update_presence()
+		_join_keepalive()
+
+
+var _join_svc := false
+
+
+## 1.6: друг на Android играет в Minecraft, а LANTERN в фоне. Без службы с уведомлением Android замораживает
+## приложение через несколько секунд — мост к миру друга встаёт, и с телефона «не зайти». Держим службу, пока вход идёт.
+func _join_keepalive() -> void:
+	if OS.get_name() != "Android":
+		return
+	var want: bool = relay_join.stats().state in ["connecting", "online", "reconnecting"] and not own.active
+	if want == _join_svc:
+		return
+	_join_svc = want
+	var cls = JavaClassWrapper.wrap(OwnWorld.ANDROID_SERVICE)
+	if cls == null:
+		return
+	AppLog.add("app", "служба Android для входа к другу: " + ("вкл" if want else "выкл"))
+	if want:
+		if not OS.get_granted_permissions().has("android.permission.POST_NOTIFICATIONS"):
+			OS.request_permission("android.permission.POST_NOTIFICATIONS")
+		cls.startJoin("Вы в мире «%s»" % String(relay_join.stats().get("name", "друга")), "LANTERN держит связь с миром друга, пока вы играете.")
+	elif not own.active:
+		cls.stop()
 
 
 var _kb_pending := -1.0
