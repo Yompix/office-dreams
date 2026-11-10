@@ -37,6 +37,9 @@ function main() {
         // облачные копии миров «Про»: на том же диске, что и база сайта, — не больше 1 ГБ и всегда 1 ГБ свободно
         cloudDir: mem ? '' : path.join(dataDir, 'lantern-cloud'),
         cloudTotalMb: 1024,
+        // сборки приложения для скачивания: /lantern/download
+        downloadDir: mem ? '' : path.join(dataDir, 'lantern-download'),
+        publicBase: '/lantern',
       });
     } catch (e) { lantern = null; ctx.log('lantern relay disabled:', e.message); }
   }

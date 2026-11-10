@@ -39,6 +39,9 @@ let social = null;            // создаётся в attach(): путь к б�
 let wss = null;
 
 const { Pro, PRO_CMDS } = require('./pro');
+const { Downloads } = require('./download');
+let downloads = new Downloads('');
+let publicBase = '';
 
 function makeSocial(dbPath, opts = {}) {
   const s = new Social({ dbPath });
@@ -279,6 +282,7 @@ function onBinary(ws, data) {
 
 // HTTP: /healthz и /rooms (url — уже без префикса)
 function onHttp(req, res, url) {
+  if (downloads.http(req, res, url, publicBase)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
     let joiners = 0;
@@ -326,6 +330,8 @@ function attach(httpServer, opts = {}) {
   if (wss) throw new Error('relay already attached');
   const wsPath = opts.wsPath || '/ws';
   social = makeSocial(opts.dbPath || ':memory:', opts);
+  downloads = new Downloads(opts.downloadDir || '');
+  publicBase = opts.publicBase || '';
   wss = new WebSocketServer({ noServer: true, maxPayload: CFG.maxFrame, perMessageDeflate: false });
   wss.on('connection', onConnection);
   httpServer.on('upgrade', (req, socket, head) => {
