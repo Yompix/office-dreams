@@ -249,7 +249,7 @@ func _process(d: float) -> void:
 		return
 	_tick = 0
 	var st: Dictionary = app.relay_join.stats()
-	var key := "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
+	var key := "%s|%s|%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol, st.get("nethernet", false), st.get("nn_error", "")]
 	if _status_lbl and is_instance_valid(_status_lbl):
 		_traffic_lbl.text = "Передано: ↓ %s  ↑ %s · соединений: %d" % [_kb(st.rx), _kb(st.tx), st.streams]
 	if key != _shown_state and _shown_state != "":
@@ -294,6 +294,7 @@ func _connect() -> void:
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
 	app.relay_join.token = Social.token
+	app.relay_join.nn_port = int(Cfg.autotest_args.get("join_nn_port", NetherNet.PORT))
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
@@ -347,7 +348,7 @@ func _ring(icon: String, col: Color) -> Control:
 func _show_room() -> void:
 	_clear()
 	var st: Dictionary = app.relay_join.stats()
-	_shown_state = "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
+	_shown_state = "%s|%s|%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol, st.get("nethernet", false), st.get("nn_error", "")]
 	var code := RoomCode.pretty(app.relay_join.code)
 	match st.state:
 		"connecting":
@@ -407,6 +408,14 @@ func _show_room() -> void:
 		om.custom_minimum_size.y = 52
 		_result.add_child(om)
 	if bed_on:
+		var nn: bool = st.get("nethernet", false)
+		if nn:
+			_result.add_child(_edition_block("Bedrock Edition · мир друга отвечает", UI.BEDROCK, [
+				["Откройте Minecraft", "На телефоне, планшете или ПК — той же версии, что у друга", ""],
+				["Нажмите", "", "Играть → Друзья"],
+				["Раздел «Игры по сети рядом»", "Там появится мир друга — нажмите на него", ""],
+			], "Мир открыт в новой версии Minecraft — он появляется только в «Играх по сети рядом», адрес вводить не нужно.", "", ""))
+	if bed_on and not st.get("nethernet", false):
 		_result.add_child(_edition_block("Bedrock Edition" + (" · сервер друга отвечает" if st.pong else " · ждём ответ…"), UI.BEDROCK, [
 			["Откройте Minecraft", "На телефоне, планшете или ПК", ""],
 			["Нажмите", "", "Играть → Друзья"],
@@ -414,7 +423,9 @@ func _show_room() -> void:
 		], "Если не видно: «Серверы» → «Добавить сервер», адрес", "127.0.0.1:%d" % st.bedrock_port, "minecraft://?addExternalServer=%s|127.0.0.1:%d" % [String(st.name).replace("|", " "), st.bedrock_port]))
 	if bed_on and String(st.host_version) != "":
 		_result.add_child(_version_hint(st))
-	if st.bedrock_error != "":
+	if String(st.get("nn_error", "")) != "":
+		_result.add_child(UI.para("Bedrock: " + String(st.nn_error), 14, UI.YELLOW))
+	if st.bedrock_error != "" and not st.get("nethernet", false):
 		_result.add_child(UI.para("Bedrock: " + st.bedrock_error, 14, UI.YELLOW))
 	if st.java_error != "":
 		_result.add_child(UI.para("Java: " + st.java_error, 14, UI.YELLOW))
@@ -518,9 +529,10 @@ func _edition_block(title: String, color: Color, steps: Array, manual: String, a
 	var mv := UI.vbox(0)
 	mv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mv.add_child(UI.para(manual, 12, UI.MUTED))
-	mv.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
 	mr.add_child(mv)
-	mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "Копировать", UI.MUTED))
+	if addr != "":
+		mv.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
+		mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "Копировать", UI.MUTED))
 	v.add_child(mr)
 	if deeplink != "":
 		v.add_child(UI.button("Открыть в Minecraft", "tonal", func(): OS.shell_open(deeplink), "play"))

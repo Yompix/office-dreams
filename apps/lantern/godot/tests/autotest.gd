@@ -345,7 +345,7 @@ func _host(ed: String) -> int:
 	await get_tree().create_timer(1.0).timeout
 	js = app.relay_join.stats()
 	await _shot("11_join_%s" % ed)
-	var ready := {"code": code, "edition": js.edition, "java_port": js.java_port, "bedrock_port": js.bedrock_port, "motd": js.motd, "name": js.name}
+	var ready := {"code": code, "edition": js.edition, "java_port": js.java_port, "bedrock_port": js.bedrock_port, "nethernet": js.nethernet, "nn_port": app.relay_join.nn_port, "motd": js.motd, "name": js.name}
 	var rf := FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE)
 	rf.store_string(JSON.stringify(ready))
 	rf.close()
@@ -892,6 +892,20 @@ func _ownworld() -> int:
 	if RelayJoin.client_protocol(frame) != 700:
 		_log("client_protocol FAIL %d" % RelayJoin.client_protocol(frame))
 		fails += 1
+	# NetherNet: шифрование туда-обратно, карточка мира, подмена ICE-кандидатов
+	var sdx := PackedByteArray([7, 3]) + "S1A".to_utf8_buffer() + PackedByteArray([0x80, 0x22, 6]) + "1.26.6".to_utf8_buffer() + PackedByteArray([3]) + "Wld".to_utf8_buffer() + PackedByteArray([2, 16, 2, 0, 0, 1, 1, 0, 8])
+	var nr := OwnWorld.parse_nethernet(NetherNet.response(42, sdx))
+	var nd := NetherNet.decode(NetherNet.message(1, 2, "CONNECTREQUEST 5 x"))
+	if nr.get("transport") != "nethernet" or nr.get("nn_id") != 42 or nr.get("version") != "1.26.6" or nr.get("name") != "Wld" or nr.get("players") != 1 or nd.get("text") != "CONNECTREQUEST 5 x" or nd.get("recipient") != 2:
+		_log("nethernet FAIL %s %s" % [nr, nd])
+		fails += 1
+	var ss := NetherNet.new_session("5")
+	var rw := NetherNet.remote_signal(ss, "CANDIDATEADD 5 candidate:1 1 udp 2130706431 10.1.2.3 19132 typ host generation 0 ufrag ab network-id 1 network-cost 0")
+	var rs := NetherNet.remote_signal(ss, "CANDIDATEADD 5 candidate:2 1 udp 1694498815 5.6.7.8 4444 typ srflx raddr 0.0.0.0 rport 0 generation 0")
+	if rw.is_empty() or not rw[0].contains(" %d typ host" % ss.u.get_local_port()) or rw[0].contains("10.1.2.3") or not rs.is_empty():
+		_log("nethernet ICE FAIL %s %s" % [rw, rs])
+		fails += 1
+	NetherNet.close_session(ss)
 	# --- 1. «Создать мир» → два способа
 	app.go("setup", true)
 	await _shot("60_own_step1")
@@ -902,6 +916,12 @@ func _ownworld() -> int:
 		_log("FAIL: мир найден до запуска")
 		fails += 1
 	await _shot("61_own_help_bedrock")
+	if shots != "":
+		await get_tree().create_timer(6.5).timeout
+		await _shot("61c_own_check")
+		if scr._own_page._check.visible != true:
+			_log("FAIL: чек-лист «мир не найден» не показан")
+			fails += 1
 	if pc:
 		var pg = scr._own_page
 		pg._seg.get_meta("tabs")["java"].pressed.emit()
@@ -1091,9 +1111,11 @@ func _ownreal() -> int:
 	if not await _wait(func(): return app.relay_host.stats().code != "", 20, "комната открыта"):
 		return 1
 	app.go("join", true, {"input": RoomCode.pretty(app.relay_host.stats().code), "edition": "both"})
-	if not await _wait(func(): return app.relay_join.stats().pong, 20, "мир виден у друга (понг через relay)"):
+	if not await _wait(func(): return app.relay_join.stats().pong or app.relay_join.stats().nethernet, 20, "мир виден у друга (RakNet-понг или карточка NetherNet через relay)"):
 		return 1
 	var js: Dictionary = app.relay_join.stats()
+	_log("друг: " + JSON.stringify(js))
+	await _shot("70_ownreal_join")
 	var rf := FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE)
 	rf.store_string(JSON.stringify({"code": app.relay_host.stats().code, "edition": "bedrock", "java_port": 0, "bedrock_port": js.bedrock_port, "motd": js.motd, "name": js.name}))
 	rf.close()

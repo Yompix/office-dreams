@@ -631,7 +631,7 @@ func _refresh_relay() -> void:
 			_relay_lbl.text = "открываем комнату…"
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
 		"reconnecting", "error":
-			_relay_lbl.text = "⚠ " + str(r.error)
+			_relay_lbl.text = "⚠ " + (("Мир в Minecraft найден (%s), но связь для друзей не открылась: " % ("новый Minecraft, NetherNet" if app.own.world.get("transport", "") == "nethernet" else "RakNet")) if _own and app.own.world.get("edition", "") == "bedrock" else "") + str(r.error)
 			_relay_lbl.add_theme_color_override("font_color", UI.YELLOW)
 		_:
 			_relay_lbl.text = "код появится после запуска" if starting else ""

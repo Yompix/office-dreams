@@ -180,7 +180,7 @@ func _show_own(on: bool) -> void:
 		add_child(_own_page)
 		FX.enter(_own_page, Vector2(48, 0), 0.0, 0.3)
 		app.set_back(func(): _show_own(false))
-		app.set_title("Мой мир из Minecraft")
+		app.set_title("Мой мир" if Cfg.mobile() or UI.compact() else "Мой мир из Minecraft")
 	else:
 		kind = ""
 		_pick_kind_refresh()
