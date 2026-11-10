@@ -25,6 +25,24 @@ var _events: Array = []
 var _last_room := ["", ""]    # код и токен последней комнаты — чтобы вернуть тот же код после перезапуска моста
 var _resume := false
 var _graceful := true
+var _peers := {}          # peer -> {peer, user:{id,nick,tag}|null, since} — кто сейчас в комнате (relay 1.4+)
+var _cmds: Array = []     # команды для relay из основного потока (выгнать, список запрета)
+var _peer_events: Array = []  # {peer, on, user} — зашёл/вышел (для уведомлений)
+var _peer_events_a: Array = []
+var bans: Array = []      # id аккаунтов LANTERN, кому хозяин закрыл вход (хранит приложение)
+## Мир в самом Minecraft (Bedrock): мост сам пингует его — основной цикл Godot на Android в фоне стоит.
+var probe_world := false
+## Android: окошко поверх Minecraft и уведомление обновляются прямо из потока моста (JavaClass службы).
+var android: Variant = null
+var share_text := ""
+var public_on := false
+var public_card := {}
+var _ui_actions: Array = []   # что нажали в окошке, пока LANTERN был в фоне: {a:"ban", user} {a:"public", on} {a:"close"}
+var _probe: PacketPeerUDP
+var _world_seen := 0
+var _ok_since := 0
+var _bad_since := 0
+var _alerted := false
 
 
 ## resume — попросить у relay прежний код (relay держит комнату 5 минут после обрыва).
@@ -38,6 +56,11 @@ func start(url: String, ed: String, name: String, jport := 25565, bport := 19132
 	world_name = name
 	java_port = jport
 	bedrock_port = bport
+	_mutex.lock()
+	_peers.clear()
+	_cmds.clear()
+	_peer_events.clear()
+	_mutex.unlock()
 	_run = true
 	_st("state", "connecting")
 	_thread = Thread.new()
@@ -68,6 +91,82 @@ func take_events() -> Array:
 	_events = []
 	_mutex.unlock()
 	return e
+
+
+## Кто сейчас в комнате: [{peer, user}], user = {id, nick, tag} или null (гость без профиля).
+func peers() -> Array:
+	_mutex.lock()
+	var a := _peers.values().duplicate(true)
+	_mutex.unlock()
+	a.sort_custom(func(x, y): return int(x.since) < int(y.since))
+	return a
+
+
+func take_peer_events_android() -> Array:
+	_mutex.lock()
+	var e := _peer_events_a
+	_peer_events_a = []
+	_mutex.unlock()
+	return e
+
+
+## Когда мир Minecraft последний раз ответил на пинг моста (мс, 0 — не пинговали).
+func world_seen() -> int:
+	_mutex.lock()
+	var t := _world_seen
+	_mutex.unlock()
+	return t
+
+
+## Действия из окошка Android для основного потока (забрать и очистить).
+func take_ui_actions() -> Array:
+	_mutex.lock()
+	var a := _ui_actions
+	_ui_actions = []
+	_mutex.unlock()
+	return a
+
+
+## Зашёл/вышел (забрать и очистить): [{peer, on, user}].
+func take_peer_events() -> Array:
+	_mutex.lock()
+	var e := _peer_events
+	_peer_events = []
+	_mutex.unlock()
+	return e
+
+
+## Выгнать игрока из комнаты (ban — и больше не пускать).
+func kick(peer: String, ban := false) -> void:
+	_mutex.lock()
+	_cmds.append({"t": "kick", "peer": peer, "ban": ban})
+	_mutex.unlock()
+
+
+## Обновить список запрета на relay (после «Разрешить снова»).
+func send_bans(list: Array) -> void:
+	bans = list.duplicate()
+	_mutex.lock()
+	_cmds.append({"t": "bans", "bans": bans})
+	_mutex.unlock()
+
+
+## Открыть/закрыть комнату для всех («Открытые миры»). card — карточка мира (название, версия, места).
+func set_public(on: bool, card := {}) -> void:
+	if not card.is_empty():
+		public_card = card
+	public_on = on and not public_card.is_empty()
+	_apply_public()
+	_mutex.lock()
+	_cmds.append({"t": "room_meta", "public": public_card if public_on else null})
+	_mutex.unlock()
+
+
+func _apply_public() -> void:
+	if public_on:
+		extra["public"] = public_card
+	else:
+		extra.erase("public")
 
 
 func _st(k: String, v: Variant) -> void:
@@ -102,6 +201,7 @@ func _loop() -> void:
 	var next_try := 0
 	var connected := false
 	var last_ping := 0
+	var last_sync := 0
 	var active := false
 	var nn := {"disc": null, "id": NetherNet.new_id(), "srv": 0, "ip": "", "port": 0, "app": PackedByteArray(), "cids": {}, "req": 0}
 	while _run:
@@ -120,8 +220,11 @@ func _loop() -> void:
 				"open":
 					connected = true
 					backoff = 1000
-					var hello := {"t": "host", "v": RelayLink.PROTO, "edition": edition, "name": world_name}
+					var hello := {"t": "host", "v": RelayLink.PROTO, "edition": edition, "name": world_name, "bans": bans}
 					hello.merge(extra)
+					_mutex.lock()
+					_peers.clear()
+					_mutex.unlock()
 					if token != "":
 						hello["code"] = code
 						hello["resume"] = token
@@ -130,6 +233,9 @@ func _loop() -> void:
 					if true:
 						active = false
 						connected = false
+						_mutex.lock()
+						_peers.clear()
+						_mutex.unlock()
 						for sid in streams.keys():
 							_close_local(streams[sid])
 						streams.clear()
@@ -181,6 +287,21 @@ func _loop() -> void:
 								_st("state", "error")
 								_st("error", RelayLink.error_text(e))
 								_run = false
+						"peer":
+							var pid := String(m.get("peer", ""))
+							var u: Variant = m.get("user")
+							_mutex.lock()
+							if m.get("on", false):
+								var known := _peers.has(pid)
+								_peers[pid] = {"peer": pid, "user": u, "since": _peers.get(pid, {}).get("since", now)}
+								if not known:
+									_peer_events.append({"peer": pid, "on": true, "user": u})
+									_peer_events_a.append({"peer": pid, "on": true, "user": u})
+							elif _peers.has(pid):
+								_peer_events.append({"peer": pid, "on": false, "user": _peers[pid].user})
+								_peer_events_a.append({"peer": pid, "on": false, "user": _peers[pid].user})
+								_peers.erase(pid)
+							_mutex.unlock()
 						"pong":
 							pass
 				"bin":
@@ -197,6 +318,16 @@ func _loop() -> void:
 						s.pending.append_array(ev.data)
 					else:
 						s.udp.put_packet(ev.data)
+		if now - last_sync >= 1000:
+			last_sync = now
+			_sync_side(link, connected, now)
+		if connected:
+			_mutex.lock()
+			var cmds := _cmds
+			_cmds = []
+			_mutex.unlock()
+			for c in cmds:
+				link.send_json(c)
 		if connected and now - last_ping > 20000:
 			last_ping = now
 			link.send_json({"t": "ping", "ts": now})
@@ -254,11 +385,95 @@ func _loop() -> void:
 			OS.delay_usec(1000)
 	if nn.disc:
 		nn.disc.close()
+	if _probe:
+		_probe.close()
+		_probe = null
 	if link.is_open() and _graceful:
 		link.send_json({"t": "end"})
 	for sid in streams:
 		_close_local(streams[sid])
 	link.close()
+
+
+## Раз в секунду: пинг мира (Bedrock), окошко/уведомление Android, «мир не виден» и действия из окошка.
+func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
+	if probe_world:
+		if _probe == null:
+			_probe = PacketPeerUDP.new()
+			_probe.set_broadcast_enabled(true)
+			if _probe.bind(0, "0.0.0.0") != OK:
+				_probe = null
+		if _probe:
+			while _probe.get_available_packet_count() > 0:
+				_probe.get_packet()
+				_mutex.lock()
+				_world_seen = now
+				_mutex.unlock()
+			_probe.set_dest_address(local_host, bedrock_port)
+			_probe.put_packet(OwnWorld.ping_packet(now, 0x4C414E54))
+			_probe.set_dest_address(local_host, bedrock_nn_port if bedrock_nn_port > 0 else NetherNet.PORT)
+			_probe.put_packet(NetherNet.request(0x4C414E54))
+	var alive := not probe_world or now - world_seen() < 7000
+	var ok: bool = connected and _stats.state == "online" and alive
+	if ok:
+		_ok_since = now
+		_bad_since = 0
+		_alerted = false
+	elif _bad_since == 0:
+		_bad_since = now
+	var why := ""
+	if not connected or _stats.state != "online":
+		why = "Нет интернета или связи с LANTERN. Откройте LANTERN."
+	elif not alive:
+		why = "Minecraft не отвечает. Вернитесь в мир."
+	if android == null:
+		_mutex.lock()
+		_peer_events_a.clear()
+		_mutex.unlock()
+		return
+	var plist := []
+	for p in peers():
+		plist.append({"peer": p.peer, "name": peer_name(p.user)})
+	android.update(JSON.stringify({"code": RoomCode.pretty(_stats.code) if _stats.code != "" else "······", "ok": ok, "why": why,
+		"world": world_name, "peers": plist, "public": public_on, "share": share_text}))
+	for e in take_peer_events_android():
+		android.event("%s %s ваш мир" % [peer_name(e.user), "зашёл в" if e.on else "вышел из"], false)
+	if not ok and not _alerted and _ok_since > 0 and now - _bad_since > 8000:
+		_alerted = true
+		android.event("Мир не виден друзьям: вернитесь в мир / откройте LANTERN", true)
+	var acts: Variant = JSON.parse_string(String(android.takeActions()))
+	if acts is Array:
+		for a in acts:
+			if not a is Dictionary:
+				continue
+			match String(a.get("a", "")):
+				"kick", "ban":
+					var pid := String(a.get("peer", ""))
+					var ban: bool = a.a == "ban"
+					if ban:
+						var u: Variant = _peers.get(pid, {}).get("user")
+						_mutex.lock()
+						_ui_actions.append({"a": "ban", "user": u})
+						_mutex.unlock()
+					if connected:
+						link.send_json({"t": "kick", "peer": pid, "ban": ban})
+				"public":
+					public_on = bool(a.get("on", false)) and not public_card.is_empty()
+					_apply_public()
+					if connected:
+						link.send_json({"t": "room_meta", "public": public_card if public_on else null})
+					_mutex.lock()
+					_ui_actions.append({"a": "public", "on": public_on})
+					_mutex.unlock()
+				"close":
+					_mutex.lock()
+					_ui_actions.append({"a": "close"})
+					_mutex.unlock()
+					_run = false
+
+
+static func peer_name(u: Variant) -> String:
+	return String(u.nick) if u is Dictionary and u.has("nick") else "Гость"
 
 
 func _update_counts(streams: Dictionary) -> void:

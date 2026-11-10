@@ -231,7 +231,9 @@ func alive() -> bool:
 		return false
 	if world.get("manual", false) and _lan == null:
 		return true
-	return Time.get_ticks_msec() - int(world.get("seen", 0)) < FORGET_MS
+	# мост сам пингует мир Bedrock (в фоне на Android основной цикл стоит)
+	var seen := maxi(int(world.get("seen", 0)), app.relay_host.world_seen() if app else 0)
+	return Time.get_ticks_msec() - seen < FORGET_MS
 
 
 func start(w: Dictionary) -> void:
@@ -246,11 +248,16 @@ func start(w: Dictionary) -> void:
 	var jp := int(w.port) if w.edition == "java" else 25565
 	var bp := int(w.port) if w.edition == "bedrock" and w.get("transport", "") != "nethernet" else 19132
 	app.relay_host.bedrock_nn_port = _nport
+	app.relay_host.probe_world = w.edition == "bedrock"
+	var mx := int(w.get("max", 0))
+	app.relay_host.public_card = {"title": String(w.name), "tags": [], "version": String(w.get("version", "")), "slots": mx if mx > 0 else 10}
+	app.relay_host.public_on = RoomControl.own_public_default()
 	app.relay_host.start(Cfg.relay_url(), w.edition, String(w.name), jp, bp, app.host_extra({"world": w.name}))
 	Cfg.set_value("own", "last_edition", w.edition)
 	if String(w.get("version", "")) != "":
 		Cfg.set_value("own", "last_version", "%s %s" % ["Bedrock" if w.edition == "bedrock" else "Java", w.version])
 	_keepalive(true)
+	app.room.room_opened()
 	app.update_presence()
 	changed.emit()
 
@@ -262,6 +269,7 @@ func stop() -> void:
 	app.relay_host.stop()
 	app.relay_host.local_host = "127.0.0.1"
 	_keepalive(false)
+	app.room.room_closed()
 	if not scanning:
 		_close_sockets()
 	app.update_presence()
@@ -302,7 +310,7 @@ func _keepalive(on: bool) -> void:
 		push_warning("LANTERN: нет службы " + ANDROID_SERVICE)
 		return
 	if on:
-		cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "LANTERN держит связь. Не закрывайте Minecraft и LANTERN.")
+		cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь.")
 	else:
 		cls.stop()
 

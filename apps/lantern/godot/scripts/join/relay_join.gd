@@ -117,8 +117,12 @@ func _loop() -> void:
 				"open":
 					link.send_json({"t": "join", "v": RelayLink.PROTO, "code": code, "token": token})
 				"closed":
-					_st("state", "error")
-					_st("error", "связь с сервером-посредником потеряна" if ev.was_open else "сервер-посредник недоступен — проверьте интернет")
+					if _run:   # ошибку от relay («Хозяин мира закрыл вам вход») не затираем
+						_st("state", "error")
+						if String(ev.get("reason", "")) in ["kicked", "banned_by_host"]:
+							_st("error", RelayLink.error_text(String(ev.reason)))
+						else:
+							_st("error", "связь с сервером-посредником потеряна" if ev.was_open else "сервер-посредник недоступен — проверьте интернет")
 					_run = false
 				"msg":
 					var m: Dictionary = ev.m

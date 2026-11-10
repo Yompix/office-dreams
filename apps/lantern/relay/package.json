@@ -7,7 +7,7 @@
   "engines": { "node": ">=22.13" },
   "scripts": {
     "start": "node server.js",
-    "test": "node test.js && node test_social.js && node test_pro.js"
+    "test": "node test.js && node test_social.js && node test_pro.js && node test_admin.js"
   },
   "dependencies": {
     "ws": "^8.18.0"

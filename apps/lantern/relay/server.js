@@ -148,6 +148,7 @@ function onHost(ws, msg) {
     room.name = name;
     room.meta = Social.roomMeta(msg.public);
     for (const j of room.joiners) send(j.ws, { t: 'host_back' });
+    setBans(room, msg.bans);
   } else {
     if (rooms.size >= CFG.maxRooms) return send(ws, { t: 'error', error: 'busy' });
     // LANTERN Pro: свой код комнаты (если просили, Pro активна и код сейчас не занят открытой комнатой)
@@ -156,7 +157,9 @@ function onHost(ws, msg) {
     if (!code) return send(ws, { t: 'error', error: 'busy' });
     room = { code, token: crypto.randomBytes(16).toString('hex'), edition: msg.edition, name, host: ws,
       joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
-      created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public) };
+      created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public),
+      bans: new Set(), banIps: new Set() };
+    setBans(room, msg.bans);
     rooms.set(code, room);
     stats.roomsCreated++;
     if (owner) {
@@ -170,6 +173,30 @@ function onHost(ws, msg) {
   ws._room = room;
   send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO, vanity: !!(msg.vanity && owner && social.pro.vanityOf(owner.id) === room.code),
     limits: { joiners: CFG.maxJoiners, streams: CFG.maxStreams, bytesPerSec: CFG.roomBytesPerSec } });
+  // кто уже в комнате (после переподключения хозяина)
+  for (const j of room.joiners) send(ws, peerMsg(j, true));
+}
+
+// Хозяин мира: кто зашёл/вышел, выгнать, закрыть вход (по аккаунту LANTERN; без аккаунта — по IP, только в этой комнате)
+function setBans(room, list) {
+  if (!Array.isArray(list)) return;
+  room.bans = new Set(list.slice(0, 500).map((x) => Number(x) >>> 0).filter((x) => x > 0));
+}
+
+function peerMsg(j, on) {
+  const u = on && j.userId ? social.pub(social.user(j.userId)) : null;
+  return { t: 'peer', peer: j.id, on, user: u ? { id: u.id, nick: u.nick, tag: u.tag } : null };
+}
+
+function kickPeer(room, msg) {
+  const j = [...room.joiners].find((x) => x.id === String(msg.peer || ''));
+  if (!j) return;
+  if (msg.ban) {
+    if (j.userId) room.bans.add(j.userId); else room.banIps.add(j.ws._ip);
+  }
+  send(j.ws, { t: 'error', error: msg.ban ? 'banned_by_host' : 'kicked' });
+  dropJoiner(j);
+  j.ws.close(4000, msg.ban ? 'banned_by_host' : 'kicked'); // причина и в коде закрытия: сообщение могло не успеть
 }
 
 function onJoin(ws, msg) {
@@ -183,6 +210,7 @@ function onJoin(ws, msg) {
   if (!room) return send(ws, { t: 'error', error: 'not_found' });
   if (room.joiners.size >= CFG.maxJoiners) return send(ws, { t: 'error', error: 'full' });
   const ju = social.userByToken(msg.token);
+  if ((ju && room.bans && room.bans.has(ju.id)) || (room.banIps && room.banIps.has(ip))) return send(ws, { t: 'error', error: 'banned_by_host' });
   const j = { ws, room, streams: new Map(), id: crypto.randomBytes(3).toString('hex'), userId: ju ? ju.id : 0 };
   room.joiners.add(j);
   ws._role = 'joiner';
@@ -195,6 +223,7 @@ function onJoin(ws, msg) {
     social.eco.checkAchievements(j.userId);
   }
   send(ws, { t: 'joined', v: PROTO, code: room.code, edition: room.edition, name: room.name, host: !!room.host });
+  send(room.host, peerMsg(j, true));
 }
 
 function likeRoom(ws) {
@@ -228,8 +257,10 @@ function joinerClose(j, lsid) {
 }
 
 function dropJoiner(j) {
+  if (!j.room.joiners.has(j)) return;
   for (const lsid of [...j.streams.keys()]) joinerClose(j, lsid);
   j.room.joiners.delete(j);
+  send(j.room.host, peerMsg(j, false));
 }
 
 function onText(ws, text) {
@@ -258,7 +289,9 @@ function onText(ws, text) {
       room.streams.delete(s.hsid);
       s.joiner.streams.delete(s.lsid);
       send(s.joiner.ws, { t: 'close', sid: s.lsid });
-    } else if (msg.t === 'end') closeRoom(room, 'host_ended');
+    } else if (msg.t === 'kick') kickPeer(room, msg);
+    else if (msg.t === 'bans') setBans(room, msg.bans);
+    else if (msg.t === 'end') closeRoom(room, 'host_ended');
   }
 }
 

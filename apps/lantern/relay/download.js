@@ -29,7 +29,7 @@ main{max-width:480px;width:100%;padding:32px 16px}h1{margin:0 0 4px;font-size:28
 .b{display:block;background:#241e17;border:1px solid #3a2f22;border-radius:16px;padding:16px;margin:0 0 12px;color:inherit;text-decoration:none}
 .b b{display:block;font-size:18px}.b span{color:#b9ab95;font-size:14px}.n{font-size:14px;color:#8d806c;margin-top:24px}
 </style></head><body><main><h1>LANTERN</h1><p>Minecraft с друзьями по коду — Java и Bedrock.</p>${rows || '<p>Сборок пока нет.</p>'}
-<div class="n">Android: после скачивания откройте файл и разрешите установку из этого источника.<br>Windows: распакуйте архив и запустите LANTERN.exe.</div></main></body></html>`;
+<div class="n"><b>Android:</b> откройте скачанный файл и разрешите установку из этого источника. Если Play Защита пишет «неизвестное приложение» — нажмите «Подробнее» → «Всё равно установить»: так телефон отвечает на любое приложение не из Google Play.<br><br><b>Windows:</b> распакуйте архив и запустите LANTERN.exe. Если появилось «Windows защитила компьютер» — «Подробнее» → «Выполнить в любом случае»: программа пока без платной подписи Microsoft.</div></main></body></html>`;
 }
 
 class Downloads {

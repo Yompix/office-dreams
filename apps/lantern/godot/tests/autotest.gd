@@ -35,6 +35,7 @@ func run(a) -> void:
 		"proc": code = await _proc()
 		"syscheck": code = await _syscheck()
 		"phone": code = await _phone()
+		"touch": code = await _touch()
 		"tour": code = await _tour()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
@@ -981,6 +982,14 @@ func _ownworld() -> int:
 	await _shot("64_own_join_version")
 	if not await _wait(func(): return int(app.relay_host.stats().peers) >= 1, 10, "хозяин видит друга"):
 		fails += 1
+	# 1.4: relay сообщает, кто зашёл; статус «друзья могут зайти»; «Все в LANTERN» включено по умолчанию
+	if not await _wait(func(): return app.room.peers().size() >= 1, 10, "хозяин видит друга в списке игроков"):
+		fails += 1
+	if not await _wait(func(): return app.room.status().ok, 10, "статус «Друзья могут зайти прямо сейчас»"):
+		fails += 1
+	if not app.relay_host.public_on:
+		_log("FAIL: мир не открыт для всех в LANTERN по умолчанию")
+		fails += 1
 	app.go("host", true)
 	await get_tree().create_timer(1.0).timeout
 	await _shot("65_own_host_friend")
@@ -1004,6 +1013,20 @@ func _ownworld() -> int:
 	if app.relay_host.stats().code != code:
 		_log("FAIL: код комнаты сменился после переподключения")
 		fails += 1
+	# 1.4: хозяин выгоняет друга → у друга «Хозяин мира закрыл вам вход»
+	if await _wait(func(): return app.room.peers().size() >= 1, 15, "друг снова в списке после переподключения"):
+		app.room.kick(String(app.room.peers()[0].peer))
+		if not await _wait(func(): return String(app.relay_join.stats().error).contains("закрыл вам вход"), 10, "друг видит «Хозяин мира закрыл вам вход»"):
+			_log("друг: " + str(app.relay_join.stats()))
+			fails += 1
+		if not await _wait(func(): return app.room.peers().is_empty(), 10, "после «Выгнать» список игроков пуст"):
+			fails += 1
+	else:
+		fails += 1
+	app.room.set_public(false)
+	if not await _wait(func(): return app.room.is_public() == false, 3, "«Только друзья» переключилось"):
+		fails += 1
+	app.room.set_public(true)
 	u.close()
 	app.relay_join.stop()
 	own.stop()
@@ -1127,3 +1150,97 @@ func _ownreal() -> int:
 	app.relay_join.stop()
 	own.stop()
 	return 0 if res is Dictionary and res.get("ok", false) else 1
+
+
+# ------------------------------------------------------------------ 1.4: касания на телефоне (--phone=1)
+## Палец ведёт вверх, начав на кнопке: экран листается, кнопка НЕ срабатывает. Короткое касание — срабатывает.
+func _touch() -> int:
+	var fails := 0
+	Input.emulate_touch_from_mouse = true      # чтобы ScrollContainer считал устройство сенсорным (как телефон)
+	if get_window().size.y < 600:
+		get_window().size = Vector2i(412, 892)
+	await get_tree().create_timer(0.3).timeout
+	app.go("home")
+	await get_tree().create_timer(1.0).timeout
+	var sc = app._screen_root
+	# длинный список кнопок, как «Открытые миры» с десятками миров
+	var many := UI.vbox(8)
+	for i in 30:
+		many.add_child(UI.list_row(UI.icon_tile("globe", UI.JAVA, 44, 22), "Мир %d" % i, "Bedrock · 1/10", UI.button("Зайти", "primary", func(): pass)))
+	app._screen.add_child(many)
+	app._screen.move_child(many, 0)
+	await get_tree().create_timer(0.5).timeout
+	if not sc is ScrollContainer:
+		_log("FAIL: экран не прокручивается")
+		return 1
+	if (sc as ScrollContainer).horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+		_log("FAIL: экран листается вбок")
+		fails += 1
+	var btn: Button = null
+	for b in app._screen.find_children("*", "Button", true, false):
+		var r: Rect2 = (b as Control).get_global_rect()
+		if b.is_visible_in_tree() and not b.disabled and r.size.y > 30 and r.get_center().y > 200 and r.get_center().y < get_viewport().get_visible_rect().size.y - 200:
+			btn = b
+			break
+	if btn == null:
+		_log("FAIL: нет кнопки для проверки (экран %s, кнопок %d, высота прокрутки %d)" % [get_viewport().get_visible_rect().size, app._screen.find_children("*", "Button", true, false).size(), (sc as ScrollContainer).get_v_scroll_bar().max_value])
+		for b in app._screen.find_children("*", "Button", true, false):
+			_log("  %s %s %s" % [b.text, b.get_global_rect(), b.is_visible_in_tree()])
+		return 1
+	var fired := [0]
+	btn.pressed.connect(func(): fired[0] += 1)
+	var p := btn.get_global_rect().get_center()
+	var y0: int = sc.scroll_vertical
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.position = p
+	t.pressed = true
+	Input.parse_input_event(t)
+	await get_tree().process_frame
+	for i in 12:
+		var d := InputEventScreenDrag.new()
+		d.index = 0
+		d.position = p - Vector2(0, 20 * (i + 1))
+		d.relative = Vector2(0, -20)
+		Input.parse_input_event(d)
+		await get_tree().process_frame
+	t = t.duplicate()
+	t.position = p - Vector2(0, 240)
+	t.pressed = false
+	Input.parse_input_event(t)
+	await get_tree().create_timer(0.5).timeout
+	_log("прокрутка пальцем: %d → %d, нажатий кнопки «%s»: %d (сенсор %s, фильтр %d, макс %d)" % [y0, sc.scroll_vertical, btn.text, fired[0], DisplayServer.is_touchscreen_available(), btn.mouse_filter, sc.get_v_scroll_bar().max_value])
+	if sc.scroll_vertical <= y0:
+		_log("FAIL: палец, начавший на кнопке, не листает экран")
+		fails += 1
+	if fired[0] != 0:
+		_log("FAIL: кнопка сработала при прокрутке")
+		fails += 1
+	# короткое касание — нажатие
+	fired[0] = 0
+	await get_tree().create_timer(2.5).timeout     # инерция прокрутки затихла
+	var vh := get_viewport().get_visible_rect().size.y
+	for b in app._screen.find_children("*", "Button", true, false):
+		var r: Rect2 = (b as Control).get_global_rect()
+		if b.is_visible_in_tree() and (b as Button).text == "Зайти" and r.get_center().y > 150 and r.get_center().y < vh - 150:
+			btn = b
+			break
+	btn.pressed.connect(func(): fired[0] += 1)
+	p = btn.get_global_rect().get_center()
+	var t2 := InputEventScreenTouch.new()
+	t2.index = 0
+	t2.position = p
+	t2.pressed = true
+	Input.parse_input_event(t2)
+	await get_tree().process_frame
+	var t3 := t2.duplicate()
+	t3.pressed = false
+	Input.parse_input_event(t3)
+	await get_tree().create_timer(0.3).timeout
+	if fired[0] != 1:
+		_log("FAIL: короткое касание не нажало кнопку (%d)" % fired[0])
+		fails += 1
+	else:
+		_log("ок: касание нажимает, прокрутка — нет")
+	_log("FAILS=%d" % fails)
+	return 0 if fails == 0 else 1

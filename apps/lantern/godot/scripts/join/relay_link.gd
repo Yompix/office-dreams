@@ -41,10 +41,11 @@ func poll() -> Array:
 	var ev := []
 	ws.poll()
 	var st := ws.get_ready_state()
-	if st == WebSocketPeer.STATE_OPEN:
-		if not _was_open:
-			_was_open = true
-			ev.append({"k": "open"})
+	if st == WebSocketPeer.STATE_OPEN and not _was_open:
+		_was_open = true
+		ev.append({"k": "open"})
+	if st != WebSocketPeer.STATE_CONNECTING:
+		# и при закрытии: последнее сообщение relay («Хозяин мира закрыл вам вход») не теряем
 		while ws.get_available_packet_count() > 0:
 			var pk := ws.get_packet()
 			if ws.was_string_packet():
@@ -54,7 +55,7 @@ func poll() -> Array:
 			elif pk.size() >= 4:
 				var sid := (pk[0] << 24) | (pk[1] << 16) | (pk[2] << 8) | pk[3]
 				ev.append({"k": "bin", "sid": sid, "data": pk.slice(4)})
-	elif st == WebSocketPeer.STATE_CLOSED:
+	if st == WebSocketPeer.STATE_CLOSED:
 		ev.append({"k": "closed", "code": ws.get_close_code(), "reason": ws.get_close_reason(), "was_open": _was_open})
 	return ev
 
@@ -91,6 +92,7 @@ static func error_text(code: String) -> String:
 	match code:
 		"not_found": return "Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново."
 		"full": return "В комнате уже максимум друзей."
+		"kicked", "banned_by_host": return "Хозяин мира закрыл вам вход."
 		"rate": return "Слишком много попыток. Подождите минуту."
 		"busy": return "Сервер-посредник перегружен. Попробуйте позже."
 		"bad_version": return "Нужна новая версия LANTERN."

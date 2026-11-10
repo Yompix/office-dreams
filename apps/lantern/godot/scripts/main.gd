@@ -6,6 +6,7 @@ var server: ServerHost
 var relay_host := RelayHost.new()
 var relay_join := RelayJoin.new()
 var own: OwnWorld                  # «Мой мир из Minecraft» — мир, открытый в самой игре
+var room: RoomControl              # хозяин мира: статус «друзья могут зайти», игроки, окошко поверх игры
 
 var _content: MarginContainer      # сюда кладётся экран (автотесты ищут переполнение здесь)
 var _screen: Control               # сам экран (без обёртки прокрутки)
@@ -47,6 +48,9 @@ const ROOTS := ["home", "friends", "shop"]
 const NARROW := ["settings", "backups", "syscheck", "profile", "join", "setup"]
 
 
+const TOUCH_DEADZONE := 14   # px: меньше — это ещё нажатие, больше — уже прокрутка
+
+
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
 	if OS.has_feature("mobile") or Cfg.autotest_args.has("density"):
@@ -64,6 +68,10 @@ func _ready() -> void:
 	own.name = "OwnWorld"
 	own.app = self
 	add_child(own)
+	room = RoomControl.new()
+	room.name = "RoomControl"
+	room.app = self
+	add_child(room)
 	theme = UI.make_theme()
 	Cfg.accent_changed.connect(func(_c): theme = UI.make_theme(); _rebuild())
 	_build()
@@ -139,6 +147,14 @@ func _rebuild() -> void:
 
 ## На телефоне полосы прокрутки не показываем — листают пальцем (с инерцией).
 func _on_node_added(n: Node) -> void:
+	# Телефон: пальцем листаем откуда угодно — и с кнопок, и с карточек. Кнопки пропускают касание к прокрутке
+	# (PASS); начали листать (дальше «мёртвой зоны») — нажатие отменяется, кнопка не срабатывает.
+	if Cfg.mobile():
+		if n is Control and not (n is ScrollContainer or n is ScrollBar or n is TextEdit or n is RichTextLabel or n is Slider):
+			_touch_pass.call_deferred(n)
+		if n is ScrollContainer:
+			(n as ScrollContainer).scroll_deadzone = TOUCH_DEADZONE
+			(n as ScrollContainer).scroll_started.connect(UI.mark_scroll)
 	if _compact and n is ScrollContainer:
 		var sc := n as ScrollContainer
 		(func():
@@ -148,6 +164,20 @@ func _on_node_added(n: Node) -> void:
 				sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 			if sc.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_AUTO:
 				sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER).call_deferred()
+
+
+## Элемент внутри прокрутки не «глотает» касание: палец, начавший на кнопке или карточке, листает список.
+func _touch_pass(c: Control) -> void:
+	if not is_instance_valid(c) or c.mouse_filter != Control.MOUSE_FILTER_STOP:
+		return
+	var p := c.get_parent()
+	while p:
+		if p is ScrollContainer:
+			c.mouse_filter = Control.MOUSE_FILTER_PASS
+			return
+		if p is Window:
+			return
+		p = p.get_parent()
 
 
 ## lantern://join?…&c=КОД — зайти к другу; lantern://friend?tag=Ник%231234 — добавить в друзья.
@@ -588,9 +618,14 @@ func _on_server_state(s: String) -> void:
 			ed = "both"
 		var st: Dictionary = relay_host.stats()
 		if st.state in ["off", "error"] or relay_host.edition != ed or relay_host.relay_url != Cfg.relay_url() or relay_host.java_port != server.java_port() or relay_host.bedrock_port != server.bedrock_port():
+			relay_host.probe_world = false
+			relay_host.public_card = room.public_card()
+			relay_host.public_on = server.opts.get("public", false)
 			relay_host.start(Cfg.relay_url(), ed, server.opts.get("world", "Мир"), server.java_port(), server.bedrock_port(), host_extra())
+			room.room_opened()
 	elif s == "error" and not own.active:
 		relay_host.stop()
+		room.room_closed()
 	update_presence()
 
 
@@ -603,6 +638,8 @@ func host_extra(own_opts := {}) -> Dictionary:
 	if own_opts.is_empty() and server.opts.get("public", false):
 		d["public"] = {"title": server.opts.get("public_title", server.opts.get("world", "Мир")), "tags": server.opts.get("tags", []),
 			"version": server.opts.get("mc_version", "") if server.edition == "java" else "", "slots": server.opts.get("max_players", 10)}
+	elif not own_opts.is_empty() and relay_host.public_on and not relay_host.public_card.is_empty():
+		d["public"] = relay_host.public_card
 	return d
 
 
@@ -892,7 +929,9 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		# телефон: длинные экраны прокручиваются целиком. Обёртка ещё и не даёт широкому содержимому
 		# растянуть оболочку (нижнее меню) за край экрана.
 		var sc := ScrollContainer.new()
-		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		# по горизонтали не листается: ничего не «выступает» за край экрана, как на сайте
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		sc.clip_contents = true
 		sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if name in SCROLL_IN_COMPACT and not (scr is ScrollContainer) else ScrollContainer.SCROLL_MODE_DISABLED
 		scr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		scr.size_flags_vertical = Control.SIZE_EXPAND_FILL

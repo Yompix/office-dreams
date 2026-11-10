@@ -3,6 +3,8 @@ extends VBoxContainer
 
 var app
 var arg
+var _open_box: VBoxContainer
+var _open_ed := "any"
 
 
 func _ready() -> void:
@@ -33,6 +35,13 @@ func _ready() -> void:
 		var top := UI.vbox(8)
 		_friends_playing(top)
 		add_child(top)
+	# --- открытые миры сейчас (все в LANTERN) — в одно нажатие
+	_open_box = UI.vbox(8)
+	_open_box.visible = false
+	add_child(_open_box)
+	if Social.online():
+		Social.changed.connect(_on_social_rooms)
+		Social.request("rooms", {"edition": "any"})
 	# --- два главных действия
 	var acts := UI.cols(16)
 	var h: Control = app.play_option("host", true)
@@ -140,3 +149,50 @@ func _recent(box: VBoxContainer) -> void:
 		b.custom_minimum_size.x = 88
 		var col := UI.BEDROCK if e.get("edition", "") == "bedrock" else UI.JAVA
 		box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 44, 22), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), b))
+
+
+func _on_social_rooms(what: String) -> void:
+	if what == "rooms" and is_inside_tree():
+		_render_open()
+
+
+## «Открытые миры сейчас»: сначала миры под вашу версию Minecraft (последнюю, в которую играли или открывали).
+func _render_open() -> void:
+	for c in _open_box.get_children():
+		c.queue_free()
+	var mine: String = app.relay_host.stats().get("code", "")
+	var last_ed: String = Cfg.get_value("own", "last_edition", "bedrock" if Cfg.mobile() else "java")
+	var last_v: String = String(Cfg.get_value("own", "last_version", "")).get_slice(" ", 1)
+	var list: Array = Social.rooms.filter(func(r): return r.code != mine and (_open_ed == "any" or r.edition == _open_ed or r.edition == "both"))
+	var score := func(r):
+		var sc := 0
+		if r.edition == last_ed or r.edition == "both":
+			sc += 2
+		if last_v != "" and String(r.get("version", "")).begins_with(last_v.get_slice(".", 0) + "." + last_v.get_slice(".", 1)):
+			sc += 1
+		return sc
+	list.sort_custom(func(x, y): return score.call(x) > score.call(y) or (score.call(x) == score.call(y) and int(x.players) > int(y.players)))
+	if Social.rooms.is_empty():
+		_open_box.visible = false
+		return
+	_open_box.visible = true
+	_open_box.add_child(UI.section("Открытые миры сейчас", "Все", func(): app.go("rooms")))
+	var seg := UI.segmented([["any", "Все"], ["java", "Java"], ["bedrock", "Bedrock"]], _open_ed, func(k):
+		_open_ed = k
+		_render_open())
+	_open_box.add_child(seg)
+	if list.is_empty():
+		_open_box.add_child(UI.label("Сейчас нет открытых миров для этой версии", 14, UI.DIM))
+	for r in list.slice(0, 3):
+		var ed: String = {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(r.edition, "")
+		var full: bool = int(r.players) >= int(r.slots)
+		var code: String = r.code
+		var b := UI.button("Полон" if full else "Зайти", "primary", func(): app.go("join", true, {"input": code, "edition": "both", "public": true}))
+		b.disabled = full
+		b.custom_minimum_size.x = 88
+		var col := UI.BEDROCK if r.edition == "bedrock" else UI.JAVA
+		var host: Dictionary = r.get("host") if r.get("host") is Dictionary else {}
+		var sub := "%s%s · %d/%d" % [ed, (" " + String(r.version)) if String(r.get("version", "")) != "" else "", int(r.players), int(r.slots)]
+		if host.get("nick", "") != "":
+			sub += " · " + String(host.nick)
+		_open_box.add_child(UI.list_row(UI.icon_tile("globe", col, 44, 22), String(r.title), sub, b))
