@@ -1651,7 +1651,7 @@ const mouthPt = C => mouthOf(C)[0];   // рот в мире (mouthOf ниже о
 function wound(C, kind, k) {
   if (!C || !C.HU || !C.HU.uRip) return; const H = C.HU, ey = C.eyeY || 1.64, ez = C.eyeZ || .03;
   const W = { belly: [0, 1.06, .17, .11, .08, .12], chest: [0, 1.33, .16, .12, .1, .12], throat: [0, ey - .14, -.01, .06, .045, .1], face: [0, ey - .03, ez + .02, .065, .08, .1], eyes: [0, ey, ez + .005, .07, .025, .1], thigh: [.1, .62, .08, .08, .13, .14] }[kind] || [0, 1.06, .17, .11, .08, .12];   // лицо плоское: нос всего на z ≈ .067
-  H.uRip.value = clamp(k, 0, 1); H.uRipP.value.set(W[0], W[1], W[2]); H.uRipR.value.set(W[3], W[4], W[5]); if (H.uRipK) H.uRipK.value = { belly: 0, chest: 1, throat: 2, face: 3, eyes: 4, thigh: 5 }[kind] || 0;
+  H.uRip.value = clamp(k, 0, 1); H.uRipP.value.set(W[0], W[1], W[2]); H.uRipR.value.set(W[3] * 1.3, W[4] * 1.3, W[5] * 1.15);   // рана на треть крупнее if (H.uRipK) H.uRipK.value = { belly: 0, chest: 1, throat: 2, face: 3, eyes: 4, thigh: 5 }[kind] || 0;
 }
 // ---- финалы смертей 18+: после скримера 2,6 с видно, как оно убивает — у каждой смерти свой вид (engine.js GORE_KIND) ----
 // Кадр строится из последнего кадра смерти: камера на той же линии взгляда (она свободна — оттуда смотрели), ближе к месту, где стояло оно.
@@ -1663,20 +1663,21 @@ function goreFx(loc) {
   const pm = ps1(new T.MeshPhongMaterial({ color: 0x3a0306, specular: 0x5a2020, shininess: 110, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
   f.pool = new T.Mesh(new T.CircleGeometry(1, 32), pm); f.pool.rotation.x = -PI / 2; f.pool.visible = false; S.add(f.pool);
   f.trail = new T.Mesh(new T.PlaneGeometry(1, 1), pm); f.trail.rotation.x = -PI / 2; f.trail.visible = false; S.add(f.trail);
-  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0075, 6, 4), mat(0x4a0404, null, { basic: true }), 64); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
+  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0105, 6, 4), mat(0x4a0404, null, { basic: true }), 240); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
   f.heart = new T.Mesh(new T.SphereGeometry(.055, 10, 8), loc.gutM || (loc.gutM = GUT_M())); f.heart.scale.set(1, 1.25, .9); f.heart.visible = false; S.add(f.heart);
   return f;
 }
 const _dq = new T.Quaternion(), _dv = new T.Vector3(), _dp = new T.Vector3(), _ds = new T.Vector3(), _dy = new T.Vector3(0, 1, 0);
 function sprayAt(f, from, dir, t, bursts) {   // брызги дугой из раны и на пол: капли вытянуты по полёту, разного размера; на полу — плоские; время — от начала кадра, без состояния
   let n = 0;
-  for (const b of bursts) { const dt = t - b; if (dt < 0 || dt > .9) continue;
-    for (let i = 0; i < 20 && n < 64; i++, n++) { const h1 = _fr(Math.sin(i * 12.9898 + b * 78.233) * 43758.5453), h2 = _fr(Math.sin(i * 39.346 + b * 11.135) * 24634.634), h3 = _fr(Math.sin(i * 73.156 + b * 52.235) * 12874.313);
-      const vx = dir.x * 1.5 + (h1 - .5) * 1.5, vy = .9 + h2 * 1.6, vz = dir.z * 1.5 + (h3 - .5) * 1.5, y = from.y + vy * dt - 4.9 * dt * dt, down = y <= .012;
+  // жести больше (владелец, 11 ноя): капель втрое больше и крупнее; упавшие не исчезают через .9 с, а остаются на полу — к концу сцены пол вокруг забрызган
+  for (const b of bursts) { const dt0 = t - b; if (dt0 < 0) continue;
+    for (let i = 0; i < 44 && n < 240; i++, n++) { const h1 = _fr(Math.sin(i * 12.9898 + b * 78.233) * 43758.5453), h2 = _fr(Math.sin(i * 39.346 + b * 11.135) * 24634.634), h3 = _fr(Math.sin(i * 73.156 + b * 52.235) * 12874.313);
+      const vx = dir.x * 1.5 + (h1 - .5) * 2.1, vy = .9 + h2 * 1.9, vz = dir.z * 1.5 + (h3 - .5) * 2.1, tl = (vy + Math.sqrt(vy * vy + 19.6 * Math.max(0, from.y - .012))) / 9.8, dt = Math.min(dt0, tl), y = from.y + vy * dt - 4.9 * dt * dt, down = dt0 >= tl;
       _dp.set(from.x + vx * dt, Math.max(.008, y), from.z + vz * dt); _dv.set(vx, vy - 9.8 * dt, vz); const sp = _dv.length() || 1, k = .6 + 1.1 * h3;
-      if (down) { _dq.identity(); _ds.set(k * 1.8, .12, k * 1.8); } else { _dq.setFromUnitVectors(_dy, _dv.multiplyScalar(1 / sp)); _ds.set(k, k * (1 + Math.min(3, sp * .55)), k); }   // летит — вытянута; упала — пятнышко
+      if (down) { _dq.identity(); _ds.set(k * 2.6 * (1 + h1), .1, k * 2.6 * (1 + h2)); } else { _dq.setFromUnitVectors(_dy, _dv.multiplyScalar(1 / sp)); _ds.set(k, k * (1 + Math.min(3, sp * .55)), k); }   // летит — вытянута; упала — пятнышко
       _gm4.compose(_dp, _dq, _ds); f.spray.setMatrixAt(n, _gm4); } }
-  for (; n < 64; n++) { _gm4.makeScale(0, 0, 0); f.spray.setMatrixAt(n, _gm4); }
+  for (; n < 240; n++) { _gm4.makeScale(0, 0, 0); f.spray.setMatrixAt(n, _gm4); }
   f.spray.instanceMatrix.needsUpdate = true; f.spray.visible = true;
 }
 function twistHead(C, up, ang) {   // голова за предел: шея и голова поворачиваются вокруг оси тела (в мире)
@@ -1799,8 +1800,9 @@ function goreSet(o, t, kind, P, dir) {
 function gorePost(o, t, kind, P, dir, used) {
   const { V, K, base } = goreWho(kind), C = A[V], M = A[K]; if (!used.has(V) || !C.bone || !M.bone) return;
   const f = goreFx(o), B = bodyPts(C), lay = base === 'eat' || base === 'drag' || base === 'limb' || base === 'heart';
-  const pc = lay ? B.belly : C.root.getWorldPosition(new T.Vector3()); f.pool.visible = true; f.pool.position.set(pc.x, .006, pc.z); f.pool.scale.setScalar(.12 + 1.0 * stg(t, .4, 3.2));
-  const rip = stg(t, .45, 1.15), RA = window.__W3chars && window.__W3chars.reachArm;   // рана раскрывается на 2-м этапе
+  const pc = lay ? B.belly : C.root.getWorldPosition(new T.Vector3()); f.pool.visible = true; f.pool.position.set(pc.x, .006, pc.z); f.pool.scale.setScalar(.15 + 1.5 * stg(t, .4, 3.2));
+  const rip = stg(t, .45, 1.15); if (C.HU && C.HU.uGore) C.HU.uGore.value = Math.max(C.HU.uGore.value, 2 * rip);   // кровь заливает жертву: пятно от раны шире, подтёки длиннее (шейдер тела, uGore > 1)
+  const RA = window.__W3chars && window.__W3chars.reachArm;   // рана раскрывается на 2-м этапе
   if (base === 'eat' || base === 'heart') {
     wound(C, base === 'heart' ? 'chest' : 'belly', rip); const W0 = base === 'heart' ? B.chest : B.belly, mo = mouthPt(M);
     // кисть: в живот → рывок вверх с кишками → ко рту (поверх позы 'eat')

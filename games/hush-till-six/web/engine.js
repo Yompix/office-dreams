@@ -1801,8 +1801,8 @@ function splatBlood(g, W, H, k, seed) {
     if (dl > rr * .4) { g.strokeStyle = 'rgba(96,3,4,.88)'; g.lineWidth = w0; g.beginPath(); g.moveTo(x + dx, y + rr * .5); g.quadraticCurveTo(x + dx * 1.6, y + rr * .5 + dl * .5, x + dx * 1.2, y + rr * .5 + dl); g.stroke();
       g.fillStyle = 'rgba(84,2,3,.92)'; g.beginPath(); g.ellipse(x + dx * 1.2, y + rr * .5 + dl, w0 * .95, w0 * 1.35, 0, 0, 7); g.fill(); } }
   for (let i = 0; i < 26; i++) {   // вытянутые капли разлёта и морось
-    const an = r(i + 200) * Math.PI * 2, d = U * (.12 + r(i + 230) * .85) * spread, x = ox + Math.cos(an) * d * 1.6, y = oy + Math.sin(an) * d * .9, big = i < 9;
-    const len = U * (big ? .012 + r(i + 260) * .035 : .002 + r(i + 260) * .006), wd = len * (big ? .32 : .8);
+    const an = r(i + 200) * Math.PI * 2, d = U * (.12 + r(i + 230) * .85) * spread, x = ox + Math.cos(an) * d * 1.6, y = oy + Math.sin(an) * d * .9, big = i < 5;   // крупных вытянутых — немного (девять одинаковых овалов читались как конфетти)
+    const len = U * (big ? .008 + r(i + 260) * .02 : .002 + r(i + 260) * .005), wd = len * (big ? .24 : .8);
     g.fillStyle = `rgba(${86 + 26 * r(i + 290)},3,4,${big ? .85 : .7})`; g.beginPath(); g.ellipse(x, y, len, wd, an, 0, 7); g.fill();
     if (big) { g.beginPath(); g.ellipse(x + Math.cos(an) * len * 1.5, y + Math.sin(an) * len * 1.5, wd * .5, wd * .4, an, 0, 7); g.fill(); } }
   g.restore();

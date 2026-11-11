@@ -1756,9 +1756,10 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
   float gore = 0.;
   if (uGore > 0.) {
     vec3 d = (vB - uGoreP) / uH; float nz = hh3(floor(vB * 90.));
-    float blob = smoothstep(.16, .05, length(d * vec3(1., .6, 1.5)) + (nz - .5) * .05);
-    float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
-    gore = uGore * max(blob, drip);
+    float gx = clamp(uGore - 1., 0., 1.);   // uGore > 1 — финал смерти: пятно шире, подтёки длиннее и гуще
+    float blob = smoothstep(.16 + .14 * gx, .05, length(d * vec3(1., .6 - .15 * gx, 1.5 - .5 * gx)) + (nz - .5) * (.05 + .06 * gx));
+    float drip = step(.7 - .25 * gx, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45 - .45 * gx, -.1, d.y) * smoothstep(.2 + .1 * gx, .1, length(d.xz));
+    gore = min(uGore, 1.) * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }
   float rip = 0.;
   if (uRip > 0.) {   // рана как у студий (RE, TLOU): рваная кожа → жёлтый жир → мышца по краю; внутри — своё по виду раны; кровь впитывается в ткань и стекает
