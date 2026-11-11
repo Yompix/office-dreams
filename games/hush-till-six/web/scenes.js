@@ -1574,7 +1574,7 @@ SH.h_reflect = { loc: 'lobby', pos: [5.12, 1.62, 1.02], look: [5.12, 1.6, -.2], 
   sh.fov = 30 - 9 * seg(t, .5, 9); o.amb.intensity = .8 - .45 * k2;
   return [['temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', 1.3, 1]], still: 1, legs: 'feet' }, 'cam']]; } };
 // ---- А2: бег по служебному коридору — лампы гаснут у него за спиной; под дождём; звонок ----
-SH.x_run = { loc: 'corridor', pos: [0, 1.5, -2.5], look: [0, 1.35, -14], fov: 56, set: (o, t, sh) => { const z = -14 + t * 3.2; sh.pos[2] = z + 4.2 + Math.sin(t * 9) * .02; sh.look[2] = z;
+SH.x_run = { loc: 'corridor', pos: [0, 1.5, -2.5], look: [0, 1.35, -14], fov: 56, set: (o, t, sh) => { const z = -20.5 + t * 3.2; sh.pos[2] = z + 4.2 + Math.sin(t * 9) * .02; sh.look[2] = z;   // старт глубже (было −14): к концу реплики Итан вбегал в торцевую стену на 11 см (детектор, 11 ноя)
   lampSet(o, i => -1.8 - i * 3.6 > z - 3.0 - t * .2); o.amb.intensity = .3;   // гаснут те, что уже позади него
   return [['temych', Math.sin(t * 1.3) * .1, 0, z, 0, { clips: [['Sprint_Loop', t * 1.25, 1]], look: [0, 1.5, z + 6] }, null]]; } };
 // ---- серверная (Б): круг соли у самого порога, свеча; Фрэнк сидит в круге, нога в картоне ----
@@ -2326,9 +2326,9 @@ SH.st_up = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 
   const RE = locR(x + .1, -5.35, PI / 2), fp = RE.p(-.43, 0, -.12), RF = locR(fp[0], fp[2], PI / 2);
   const over = { at: (() => { const a = RE.p(.1, 1.43, -.13); a[1] += y; return a; })(), by: 'palm', fdir: RE.v(.6, -.6, .3), pdir: RE.v(-.1, -1, .1), pole: [0, .4, -1], w: 1 };
   const lean = RE.p(0, 1.25, .05); lean[1] += y; const leanE = RF.p(0, 1.2, .1); leanE[1] += y;
-  return [['temych', x + .1, y + bob * .5, -5.35, PI / 2, { clips: [['Walk_Loop', cyc, .8], ['Idle_Loop', t, .2]], arm: { r: armWaist(RF, y) }, fing: { r: ['grip', .4] }, spine: { to: leanE, k: .1 }, look: [x + 1.6, y + 1.2, -5.4] }, null],
-    ['mihalych', fp[0], y + bob - dip * .035, fp[2], PI / 2, { clips: [['Walk_Loop', lame * 1.333 + .3, .72], ['Idle_Loop', t + 2, .28]], wear: { splint: SPLINT }, arm: { l: over }, fing: { l: ['grip', .5], r: ['grip', .35] },
-      spine: { to: lean, k: .2 }, look: [x + .9, y + .35, -5.3], toes: 1 }, null]]; } };
+  return [['temych', x + .1, y + Math.max(0, bob * .5), -5.35, PI / 2, { clips: [['Walk_Loop', cyc, .8], ['Idle_Loop', t, .2]], arm: { r: armWaist(RF, y) }, fing: { r: ['grip', .4] }, spine: { to: leanE, k: .1 }, look: [x + 1.6, y + 1.2, -5.4] }, null],
+    ['mihalych', fp[0], y + Math.max(0, bob), fp[2], PI / 2, { clips: [['Walk_Loop', lame * 1.333 + .3, .72], ['Idle_Loop', t + 2, .28]], wear: { splint: SPLINT }, arm: { l: over }, fing: { l: ['grip', .5], r: ['grip', .35] },
+      spine: { to: lean, k: .2 + .06 * dip }, look: [x + .9, y + .35, -5.3] }, null]]; } };
 function bsDark(o, k = 0) { o.flickOn = false; o.bulbs.forEach(b => { b.li.intensity = b.base * k; b.bulb.material.color.setHex(k ? 0xffe8b8 : 0x1c1a14); }); }
 SH.bs_dark = { loc: 'basement', pos: [0, 1.6, -.6], look: [0, 1.0, -14], fov: 56, set: (o, t) => { bsDark(o); return []; } };
 SH.bs_walk = { loc: 'basement', pos: [0, 1.6, -3], look: [0, 1.1, -14], fov: 56, torch: { x: .5, y: .66 }, set: (o, t, sh) => { bsDark(o);
