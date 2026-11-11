@@ -1722,6 +1722,11 @@ function humanMat(C, n, kind, Q) {
   if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'beard' ? .3 : kind === 'beard2' ? .62 : kind === 'hair' ? .18 : .25, side: T.DoubleSide });   // борода: внутренний слой — плотный, внешний — только длинные волоски   // волосы одинаково в обоих видах: в «Ретро» порог .3 срезал тонкие пряди — Лили была лысой   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
   const m = ps1(litMat(p, R));
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
+  // кромка волос — мягкая: порог альфы плавает по мелкому узору (как у прядей в играх), а не режет по одной линии —
+  // на крупных планах линия волос на лбу шла рваной ступенькой (владелец, 11 ноя: «нормальные волосы»)
+  if (CINE && hk === 'hair') { const ob0 = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { if (ob0) ob0(sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <alphatest_fragment>', 'float aN = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(.06711056, .00583715))));\n  if (diffuseColor.a < mix(.07, .6, aN)) discard;'); };
+    m.customProgramCacheKey = () => 'hairDither'; }
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
   if (CINE && (kind === 'skin' || cloth)) m.envMapIntensity = .22;   // иначе на контровом свете кожа светится ореолом
   if (CINE && hk === 'hair') { m.envMapIntensity = .1; if (m.normalMap) m.normalScale.set(.45, .45); }   // лампы потолка отражались в макушке золотым «обручем» (пробор у Лили); блеск волос — прядями, не зеркалом, рельеф карты мягче
