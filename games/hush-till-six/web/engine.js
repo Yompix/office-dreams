@@ -1783,14 +1783,28 @@ function phoneIn(P, t) {   // экран телефона в координат�
   }
   g.textAlign = 'left';
 }
-// брызги крови на объектив: пятна с подтёками, всегда одни и те же для смерти (seed)
+// брызги крови на объектив: веер от одной точки (как от удара), а не ровные кружки с палочками (владелец, 11 ноя: «жести добавить»).
+// Крупные кляксы с неровным краем и лепестками, вытянутые капли по направлению разлёта, мелкая морось вокруг, подтёки разной ширины
+// с каплей на конце — текут с разной скоростью. Всегда одни и те же для смерти (seed).
 function splatBlood(g, W, H, k, seed) {
   const r = i => { const x = Math.sin(seed * 91.7 + i * 12.9898) * 43758.5453; return x - Math.floor(x); }, U = Math.min(W, H);
-  g.save(); g.globalAlpha = .85 * k;
-  for (let i = 0; i < 9; i++) { const x = r(i) * W, y = r(i + 20) * H * .8, rr = U * (.03 + r(i + 40) * .09);
-    const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, 'rgba(70,0,0,.95)'); gr.addColorStop(.7, 'rgba(110,4,4,.8)'); gr.addColorStop(1, 'rgba(110,4,4,0)');
-    g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, 7); g.fill();
-    g.fillStyle = 'rgba(90,2,2,.85)'; const dl = rr * (1.5 + r(i + 60) * 3) * k; g.fillRect(x - rr * .08, y, rr * .16, dl); }
+  const ox = W * (.25 + r(1) * .5), oy = H * (.3 + r(2) * .35), spread = Math.min(1, k * 1.6);   // откуда брызнуло
+  const blob = (x, y, rr, a, i0) => { g.fillStyle = `rgba(${58 + 26 * r(i0)},${1 + 3 * r(i0 + 1)},3,${a})`; g.beginPath();
+    const n = 14; for (let q = 0; q <= n; q++) { const an = q / n * Math.PI * 2, rad = rr * (.72 + .5 * r(i0 + q % n * 3) * r(i0 + q % n * 5 + 1) + (q % 5 === 0 ? .35 * r(i0 + q) : 0));
+      const px = x + Math.cos(an) * rad, py = y + Math.sin(an) * rad; q ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); g.fill(); };
+  g.save(); g.globalAlpha = Math.min(1, .92 * k * 1.3); g.lineCap = 'round';
+  for (let i = 0; i < 7; i++) {   // крупные кляксы: тёмная середина, светлее край, блик
+    const an = r(i + 10) * Math.PI * 2, d = U * (.08 + r(i + 20) * .5) * spread, x = ox + Math.cos(an) * d * 1.5, y = oy + Math.sin(an) * d * .8, rr = U * (.022 + r(i + 30) * .06);
+    blob(x, y, rr * 1.12, .55, i * 17 + 3); blob(x, y, rr * .86, .9, i * 17 + 40);
+    g.fillStyle = 'rgba(255,170,160,.10)'; g.beginPath(); g.ellipse(x - rr * .3, y - rr * .32, rr * .28, rr * .14, -.6, 0, 7); g.fill();
+    const dl = rr * (1.2 + r(i + 60) * 5.5) * Math.min(1, k * (.5 + r(i + 70))), w0 = rr * (.1 + r(i + 80) * .16), dx = (r(i + 90) - .5) * rr * .5;   // подтёк: сужается, чуть виляет, на конце капля
+    if (dl > rr * .4) { g.strokeStyle = 'rgba(96,3,4,.88)'; g.lineWidth = w0; g.beginPath(); g.moveTo(x + dx, y + rr * .5); g.quadraticCurveTo(x + dx * 1.6, y + rr * .5 + dl * .5, x + dx * 1.2, y + rr * .5 + dl); g.stroke();
+      g.fillStyle = 'rgba(84,2,3,.92)'; g.beginPath(); g.ellipse(x + dx * 1.2, y + rr * .5 + dl, w0 * .95, w0 * 1.35, 0, 0, 7); g.fill(); } }
+  for (let i = 0; i < 26; i++) {   // вытянутые капли разлёта и морось
+    const an = r(i + 200) * Math.PI * 2, d = U * (.12 + r(i + 230) * .85) * spread, x = ox + Math.cos(an) * d * 1.6, y = oy + Math.sin(an) * d * .9, big = i < 9;
+    const len = U * (big ? .012 + r(i + 260) * .035 : .002 + r(i + 260) * .006), wd = len * (big ? .32 : .8);
+    g.fillStyle = `rgba(${86 + 26 * r(i + 290)},3,4,${big ? .85 : .7})`; g.beginPath(); g.ellipse(x, y, len, wd, an, 0, 7); g.fill();
+    if (big) { g.beginPath(); g.ellipse(x + Math.cos(an) * len * 1.5, y + Math.sin(an) * len * 1.5, wd * .5, wd * .4, an, 0, 7); g.fill(); } }
   g.restore();
 }
 function wrapText(s, x0, y0, maxW, lh, maxL) { const cj = /^(zh|ja)$/.test(LNG), ws = cj ? [...s] : s.split(' '); let line = '', n = 0;   // китайский и японский без пробелов — перенос по знакам
@@ -1953,7 +1967,9 @@ function frame(tp) {
         if (beat.black != null && t >= beat.black) { const js = t - beat.black;
           if (sceneId.startsWith('over_') && js < JUMP_D) {   // скример смерти: лицо Жильца с открытой пастью бросается в объектив (зум), тряска, красный; потом чернота
             if (js < .05) { shakeAmp = Math.max(shakeAmp, 40); if (!jumpBuzz) { jumpBuzz = 1; buzz([200, 40, 300]); } }
-            shot('death_scream', { cx: .5, cy: .5, z: 1.05 + .65 * Math.min(1, js / .4), t: 2.2 + js, T, sx: 0, sy: 0, scare: 1 - js / JUMP_D });
+            // три разных скримера (по смерти — всегда один и тот же): в лоб, снизу-сбоку с головой набок, вплотную — глаза и пасть во весь кадр
+            const jv = ['death_scream', 'death_scream2', 'death_scream3'][(sceneId.length * 3 + sceneId.charCodeAt(sceneId.length - 1)) % 3];
+            shot(jv, { cx: .5, cy: .5, z: 1.05 + .65 * Math.min(1, js / .4), t: 2.2 + js, T, sx: 0, sy: 0, scare: 1 - js / JUMP_D });
             if (!calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(255,${60 + 150 * js / JUMP_D | 0},40)`; g.fillRect(0, 0, W, H); g.restore();
               if (js < .05) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); } }
             grain(.3);

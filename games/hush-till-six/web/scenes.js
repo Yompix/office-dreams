@@ -1086,6 +1086,11 @@ const SH = {
   corridor_face: { loc: 'corridor', pos: [.05, 1.52, -18.75], look: [0, 1.5, -20], fov: 34, set: (o) => { setLamps(o, 7); return [['katyaThing', 0, 0, -19.4, 0, 'stand', 'cam']]; } },
   cam13_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 66, set: (o) => { o.salt.visible = false; return [['monster', .1, 0, -.5, -.6, 'monster', 'cam']]; } },
   monster_close: { loc: 'server', pos: [-.05, 2.2, .95], look: [-.13, 2.16, 0], fov: 40, set: (o, t) => { A.monster.faceSet = 'grin'; o.amb.intensity = .08; o.cold.intensity = .15; o.cold2.intensity = 0; o.rim.intensity = 1.8; o.red.intensity = .5; o.candle.intensity = 2.2 * (Math.sin(t * 23) > -.6 ? 1 : .3); return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },   // свет снизу от свечи и контур — лицо выходит из темноты
+  // ещё два скримера смерти (engine.js выбирает по смерти): фон тонет в тумане — не видно, что это серверная (смерть бывает и в будке, и в коридоре)
+  death_scream2: { loc: 'server', pos: [.22, 1.84, .5], look: [.02, 2.12, .02], fov: 46, fog: .9, set: (o, t) => { const C = A.monster; C.faceSet = 'scream'; C.tiltNow = .55 + .1 * Math.sin(t * 31);
+    o.amb.intensity = .03; o.cold.intensity = Math.sin(t * 67) > -.2 ? 2.4 : .5; o.cold2.intensity = .8; o.rim.intensity = 1.6; o.red.intensity = .3; o.candle.intensity = 1.6; return [['monster', 0, 0, 0, .25, 'monster', 'cam']]; } },
+  death_scream3: { loc: 'server', pos: [-.07, 2.17, .4], look: [.03, 2.1, 0], fov: 46, fog: 1.2, set: (o, t) => { const C = A.monster; C.faceSet = 'scream'; C.tiltNow = -.18;
+    const fl = Math.sin(t * 83) + Math.sin(t * 47) > -.4 ? 1 : .08; o.amb.intensity = .02; o.cold.intensity = 0; o.cold2.intensity = 0; o.rim.intensity = 1.2 * fl; o.red.intensity = 1.6 * fl; o.candle.intensity = 1.4 * fl; return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },
   death_scream: { loc: 'server', pos: [.02, 2.14, .95], look: [.02, 2.12, 0], fov: 40, set: (o, t) => { A.monster.faceSet = 'scream'; o.amb.intensity = .08; o.cold.intensity = .3; o.cold2.intensity = 0; o.rim.intensity = 2.2; o.red.intensity = .9; o.candle.intensity = 2.6; return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },   // скример смерти: пасть раскрыта, свет снизу, красный контур
   server_mih: { loc: 'server', pos: [.7, 1.45, 2.7], look: [0, .65, 0], fov: 52, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_close: { loc: 'server', pos: [.25, .95, 1.15], look: [0, .9, 0], fov: 44, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
@@ -2657,7 +2662,7 @@ SH.k9_glass = { loc: 'lobby', pos: [5.35, 1.3, -.55], look: [6.02, 1.47, .45], f
   if (t < 1.25) return [];
   // ладонь сразу плашмя на стекле у самого лица, на высоте рта (рука сбоку выше головы читалась как «привет»); сползает, не ниже края стекла
   const PX = 6.15, Y0 = 1.37, y = lerp(Y0, 1.25, seg(t, 2.3, 3.3));
-  o.bPalm.visible = true; o.bPalm.scale.set(.7, .7, 1); o.bPalm.position.set(PX, Y0 + .035, .456); o.bPalm.material.opacity = .22;   // отпечаток ровно под ладонью и её размера (был в полтора раза больше руки)
+  o.bPalm.visible = true; o.bPalm.scale.set(.7, .7, 1); o.bPalm.position.set(PX, Y0 + .035, .456); o.bPalm.material.opacity = .09;   // отпечаток еле виден (при .22 читался как вторая, призрачная рука над настоящей — владелец, 11 ноя); ровно под ладонью и её размера (был в полтора раза больше руки)
   const L = Y0 - y; o.bSmear.visible = L > .02; o.bSmear.scale.set(.7, Math.max(.01, L), 1); o.bSmear.position.set(PX, Y0 - .02 - L / 2, .457); o.bSmear.material.opacity = .14;
   o.bFog.visible = true; o.bFog.position.set(6.03, 1.41, .456); o.bFog.material.opacity = .24 * (.55 + .45 * Math.sin(t * 2.7)) * seg(t, 1.3, 1.9);   // дышит на стекло
   return [['katyaThing', K9[0], 0, K9[1], PI, { clips: [['Idle_Loop', 1.2, 1]], legs: 'feet', spine: { to: [6.02, 1.5, .3], k: .5 },
