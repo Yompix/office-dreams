@@ -2378,7 +2378,7 @@ SH.jr_write = { loc: 'lobby', pos: [5.62, 1.22, -.45], look: [5.25, .8, -.34], f
   o.note.material = mat(0xffffff, TX.note2, { decal: 1 }); const mk = noteMask(o), lines = [[.5, 2.6, 228], [2.9, 5.0, 245]]; let tipPx = null;
   lines.forEach(([a, b, bl], i) => { const k = clamp((t - a) / (b - a), 0, 1), x = 200 + 172 * k; maskTo(mk[i], x, 374, bl - 13, bl + 5); if (t >= a - .3 && t <= b + .2) tipPx = [x + Math.sin(t * 27) * 1.5, bl - 4 + Math.sin(t * 33) * 3]; });
   const tip = tipPx ? logPt(tipPx[0], tipPx[1], .001) : logPt(374, 250, .02), dir = nrm([-.32, .88, -.36]), pin = [tip[0] + dir[0] * .085, tip[1] + dir[1] * .085, tip[2] + dir[2] * .085];
-  const P = eRead(t, null, 1); P.arm.r = { at: pin, by: 'pinch', fdir: [.1, -.6, 1], pdir: [-.5, -.5, .2], w: 1 }; P.fing.r = ['pinch', 1]; P.look = tip;
+  const P = eRead(t, null, 1); P.arm.r = { at: pin, by: 'pinch', fdir: [.1, -.6, 1], pdir: [-.5, -.5, .2], w: 1 }; P.fing.r = ['write', 1]; P.look = tip;
   P.after = () => window.__W3chars.propAim('pen', o.S, tip, dir);
   return [['temych', SEAT[0], 0, SEAT[1], 0, P, null]]; } };
 // ---- 01:00, второй обход: Итан поднимается на седьмой; Гас даёт ему яблоко (из руки в руку, по-настоящему) ----
@@ -2664,7 +2664,7 @@ SH.k9_glass = { loc: 'lobby', pos: [5.35, 1.3, -.55], look: [6.02, 1.47, .45], f
   if (t < 1.25) return [];
   // ладонь сразу плашмя на стекле у самого лица, на высоте рта (рука сбоку выше головы читалась как «привет»); сползает, не ниже края стекла
   const PX = 6.15, Y0 = 1.37, y = lerp(Y0, 1.25, seg(t, 2.3, 3.3));
-  o.bPalm.visible = true; o.bPalm.scale.set(.7, .7, 1); o.bPalm.position.set(PX, Y0 + .035, .456); o.bPalm.material.opacity = .09;   // отпечаток еле виден (при .22 читался как вторая, призрачная рука над настоящей — владелец, 11 ноя); ровно под ладонью и её размера (был в полтора раза больше руки)
+  o.bPalm.visible = false; o.bPalm.scale.set(.7, .7, 1); o.bPalm.position.set(PX, Y0 + .035, .456); o.bPalm.material.opacity = .09;   // отпечаток еле виден (при .22 читался как вторая, призрачная рука над настоящей — владелец, 11 ноя); ровно под ладонью и её размера (был в полтора раза больше руки)
   const L = Y0 - y; o.bSmear.visible = L > .02; o.bSmear.scale.set(.7, Math.max(.01, L), 1); o.bSmear.position.set(PX, Y0 - .02 - L / 2, .457); o.bSmear.material.opacity = .14;
   o.bFog.visible = true; o.bFog.position.set(6.03, 1.41, .456); o.bFog.material.opacity = .24 * (.55 + .45 * Math.sin(t * 2.7)) * seg(t, 1.3, 1.9);   // дышит на стекло
   return [['katyaThing', K9[0], 0, K9[1], PI, { clips: [['Idle_Loop', 1.2, 1]], legs: 'feet', spine: { to: [6.02, 1.5, .3], k: .5 },

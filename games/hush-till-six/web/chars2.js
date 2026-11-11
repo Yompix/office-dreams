@@ -852,6 +852,7 @@ function buildHands() {
   for (const [name, f] of [['fist', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? 1.2 : 1.3)],          // кулак — туже обычного
                            ['claw', (bn, q) => /_01_/.test(bn) ? qpow(q, R0(bn), .2) : qpow(q, R0(bn), 1.1)],   // «когти»: ровные костяшки, согнутые кончики
                            ['hook', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? .3 : /_01_/.test(bn) ? .28 : /_02_/.test(bn) ? .42 : .5)],   // «крюк» Жильца: пальцы чуть согнуты — когти смотрят вперёд, а не в ладонь
+                           ['write', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), /_01_/.test(bn) ? .5 : .42) : bn.startsWith('middle') ? qpow(q, R0(bn), .68) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.05) : qpow(q, R0(bn), 1.2)],   // пишет: ручка в трёх пальцах (большой, указательный, средний), безымянный и мизинец поджаты — не кулак
                            ['pinch', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), .62) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.25) : q.clone()]]) {   // щепоть
     HANDP[name] = { l: {}, r: {} };
     for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP[name][sd][bn] = f(bn, HANDP.relax[sd][bn]);
@@ -880,9 +881,22 @@ function hookHand(C, sd) {
     setWorldQ(b, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a).multiply(b.getWorldQuaternion(new T.Quaternion())));
   }
 }
+// пальцы веером: в открытых позах (ладонь плашмя, тянется, «когти», мягкая кисть) пальцы лежали вплотную и на крупном плане кисть читалась
+// варежкой или комком (владелец, 11 ноя). Указательный, безымянный и мизинец чуть расходятся от среднего — между пальцами появляются просветы
+const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .55, relax: .4, point: .5 };
+function fanHand(C, sd, k) {
+  if (!C.bone['middle_01_' + sd] || !C.bone['middle_02_' + sd]) return; C.bone['hand_' + sd].updateWorldMatrix(true, true);
+  const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
+  for (const [f, a] of [['index', .1], ['ring', .075], ['pinky', .17]]) {
+    const bn = C.bone[f + '_01_' + sd]; if (!bn || !C.bone[f + '_02_' + sd]) continue; const p = W(f + '_01'), d = W(f + '_02').sub(p).normalize(), sv = p.clone().sub(pm); sv.addScaledVector(d, -sv.dot(d));
+    if (sv.lengthSq() < 1e-10) continue;
+    setWorldQ(bn, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a * k).multiply(bn.getWorldQuaternion(new T.Quaternion()))); }
+}
 function setFingers(C, sd, pose, w) {
   const H = HANDP[pose]; if (!H || !(w > 0)) return;
   for (const bn in H[sd]) { const b = C.bone[bn]; if (b) b.quaternion.slerp(H[sd][bn], Math.min(1, w)); }
+  if (FAN[pose] && w >= .6 && !C.o.monster) fanHand(C, sd, FAN[pose] * Math.min(1, w));
+  else if (C.o.monster && (pose === 'flat' || pose === 'claw' || pose === 'open') && w >= .6) fanHand(C, sd, 1.5);   // у Жильца пальцы длинные — расходятся шире
 }
 // точки кисти в мире
 function tipOf(C, a, b, k = .85) { const pa = C.bone[a].getWorldPosition(new T.Vector3()), pb = C.bone[b].getWorldPosition(new T.Vector3()); return pb.clone().addScaledVector(pb.sub(pa), k); }
