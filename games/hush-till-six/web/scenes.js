@@ -2544,7 +2544,7 @@ SH.hush_cam = { loc: 'lobby', pos: [6.42, 2.32, .32], look: [5.18, 1.3, -1.02], 
 // взгляд посередине между лицом Итана и пальцем у губ Жильца: в вертикальном кадре видны оба
 SH.hush_face = { loc: 'lobby', pos: [4.66, 1.31, .04], look: [5.265, 1.35, -.69], fov: 34, set: (o, t) => { hushSet(o);
   A.temych.faceSets.k_frozen = { press: 1, wide: 1.3, browUp: 1, browIn: 1, frown: .65, tense: .7 }; A.temych.faceSet = 'k_frozen';   // застыл, не дышит: глаза распахнуты до предела (было: спокойное лицо)
-  o.lamp.intensity = .12; o.boothLight.intensity = .04; o.l1.intensity = .1; o.l3.intensity = o.l4.intensity = .05; o.amb.intensity = .05; o.faceL.distance = 1.6; o.faceL.position.set(4.85, 1.0, -.2);   // свет мониторов снизу   // спереди светят только мониторы: лица и палец видно, тело за спиной уходит в тень (было ровно освещено целиком)
+  o.lamp.intensity = .12; o.boothLight.intensity = .04; o.l1.intensity = .1; o.l3.intensity = o.l4.intensity = .05; o.amb.intensity = .085; o.faceL.distance = 2.5; o.faceL.position.set(4.85, 1.0, -.2); o.boothLight.intensity = .12;   // шея и плечи Жильца читаются — голова не «сама по себе»   // свет мониторов снизу   // спереди светят только мониторы: лица и палец видно, тело за спиной уходит в тень (было ровно освещено целиком)
   if (t > 2.25) { o.lamp.intensity = o.boothLight.intensity = o.l1.intensity = o.l3.intensity = o.l4.intensity = o.faceL.intensity = 0; o.amb.intensity = .015; o.lampBulb.visible = false; o.hemi.intensity = 0; }   // после «тссс» гаснет свет
   return [['temych', HUSH_E[0], 0, HUSH_E[1], 0, Object.assign(hushEthan(), { still: 1, look: [4.45, 1.02, .12] }), null], ['monster', HUSH_M[0], 0, HUSH_M[1], HUSH_MRY, hushMon(.4 + .6 * seg(t, 0, .7), seg(t, .35, .95)), 'cam']]; } };   // Итан не в объектив, а мимо — остекленело в экран, где видит его за спиной   // лицо у уха и палец у губ — почти с первого кадра (было: обе ладони на плечах, «семейное фото»)
 // ================= смерти: у каждой свой финал =================
@@ -2574,12 +2574,14 @@ const COME_K = [.35, 1.05, 1.75];   // стуки — как в story.js
 SH.come_door = { loc: 'lobby', pos: [6.82, 1.3, -.42], look: [7.46, 1.14, .38], fov: 46, set: (o, t) => {
   lobbyBlack(o); o.boothLight.intensity = .14; o.l1.intensity = .45; o.l4.intensity = .35; o.amb.intensity = .09; o.flickOn = false;
   const knock = COME_K.reduce((m, k) => Math.max(m, t > k ? Math.exp(-(t - k) * 30) : 0), 0);
-  o.boothHandle.rotation.z = seg(t, 2.0, 2.9) * .75; const th = seg(t, 2.85, 3.5) * .24 + seg(t, 3.95, 4.4) * .2; o.boothDoor.rotation.y = th + .008 * knock;
+  o.boothHandle.rotation.z = seg(t, 2.0, 2.9) * .75; const th = seg(t, 2.85, 3.5) * .25 + seg(t, 3.9, 4.4) * .2; o.boothDoor.rotation.y = th + .008 * knock;
   const ex = 6.63 + .86 * Math.cos(th), ez = .45 - .86 * Math.sin(th), r = seg(t, 3.25, 4.0), peek = seg(t, 3.95, 4.35);   // кромка двери
-  o.faceL.position.set(7.25, 1.3, .05); o.faceL.color.setHex(0xd2c9be); o.faceL.distance = 1.6; o.faceL.intensity = .5 + 1.0 * clamp(th / .24, 0, 1);   // блик на ручке; потом — свет холла из щели на кромку и пальцы
+  // свет: сначала блик на ручке; дверь пошла — холодная полоса из холла ложится на кромку, пальцы и лицо в щели (раньше пальцы и лицо тонули в темноте:
+  // на кадрах 3,4 и 4,3 с в щели не было видно ничего — финал читался как «дверь и всё»)
+  { const g = clamp(th / .26, 0, 1); o.faceL.position.set(lerp(7.25, ex - .22, g), lerp(1.3, 1.34, g), lerp(.05, ez - .3, g)); o.faceL.color.setHex(0xc4d2de); o.faceL.distance = 1.9; o.faceL.intensity = .5 + 2.3 * g + 1.2 * peek; }   // блик на ручке; потом — свет холла из щели на кромку и пальцы
   if (th < .02) return [];
-  return [['monster', 7.5, 0, .86, PI + .35, { clips: [['Idle_Loop', 1.7, 1]], legs: 'plant', pelvis: [0, -.22, 0], look: [6.82, 1.3, -.42], spine: { to: [7.42, 1.62, .12], k: .3 * r + .12 * peek },   // заглядывает в щель (сильнее — корпус проходил сквозь косяк); x 7,5 — не в стене холла (было 7,68: плечо и спина в стене на 20 см)
-    arm: { l: { at: [ex - .02 - .07 * r + .035 * Math.sin(th), lerp(1.24, 1.16, r), ez - .02 - .02 * r + .035 * Math.cos(th)], by: 'tip', fdir: nrm([-Math.cos(th), -.12, Math.sin(th)]), pdir: nrm([Math.sin(th), 0, Math.cos(th)]), w: r, pole: [8.2, .8, 1.4] } }, fing: { l: ['claw', .45] } }, [6.82, 1.3, -.42]]];
+  return [['monster', 7.5, 0, .6, PI + .35, { clips: [['Idle_Loop', 1.7, 1]], legs: 'plant', pelvis: [0, -.22, 0], look: [6.82, 1.3, -.42], spine: { to: [7.42, 1.62, .12], k: .3 * r + .12 * peek },   // заглядывает в щель (сильнее — корпус проходил сквозь косяк); x 7,5 — не в стене холла (было 7,68: плечо и спина в стене на 20 см)
+    arm: { l: { at: [ex - .02 - .07 * r + .035 * Math.sin(th), lerp(1.36, 1.3, r), ez - .02 - .02 * r + .035 * Math.cos(th)], by: 'tip', fdir: nrm([-Math.cos(th), -.12, Math.sin(th)]), pdir: nrm([Math.sin(th), 0, Math.cos(th)]), w: r, pole: [8.2, .8, 1.4] } }, fing: { l: ['claw', .45] } }, [6.82, 1.3, -.42]]];
 } };
 // 11б. «Засмотрелся», второй вариант (по очереди с «тсс»): на седьмом он идёт к объективу рывками — каждый рывок прячет вспышка помех (snow в story.js), между ними стоит как статуя;
 // у объектива поднимает лицо в камеру и медленно закрывает её ладонью — темно. (было: между рывками покачивался, помехи звучали сплошным шипением)
@@ -2651,7 +2653,7 @@ SH.fmom_turn = { loc: 'lobby', pos: FM_EYE.slice(), look: [5.15, 1.15, .5], fov:
 const K9 = [6.05, .76];   // где стоит: вплотную к правому стеклу (z .45)
 SH.k9_glass = { loc: 'lobby', pos: [5.35, 1.3, -.55], look: [6.02, 1.47, .45], fov: 40, set: (o, t) => {
   lobbyBlack(o); o.lamp.intensity = .7; o.lampBulb.visible = true; o.l1.intensity = .15; o.amb.intensity = .05; o.flickOn = false;
-  o.faceL.position.set(5.75, 1.45, .05); o.faceL.color.setHex(0xa8b8d0); o.faceL.distance = 1.6; o.faceL.intensity = 1.0;   // свет мониторов — на её лицо за стеклом
+  o.faceL.position.set(5.72, 1.22, -.05); o.faceL.color.setHex(0xa8b8d0); o.faceL.distance = 2.7; o.faceL.intensity = 1.25; o.amb.intensity = .085;   // свет шире и ниже: видны шея, плечи, грудь и рука целиком — раньше в темноте висела одна голова с ладонью (владелец, 11 ноя)   // свет мониторов — на её лицо за стеклом
   if (t < 1.25) return [];
   // ладонь сразу плашмя на стекле у самого лица, на высоте рта (рука сбоку выше головы читалась как «привет»); сползает, не ниже края стекла
   const PX = 6.15, Y0 = 1.37, y = lerp(Y0, 1.25, seg(t, 2.3, 3.3));
@@ -2768,7 +2770,7 @@ SH.k8_ceiling = { loc: 'server', pos: [2.45, 1.15, 3.2], look: [1.4, 1.2, 1.5], 
   const up = seg(t, .3, 1.4); sh.look[1] = 1.2 + .6 * up;   // взгляд поднимается к лицу; тело выше — в черноте
   srvDim(o); o.cold.intensity = o.cold2.intensity = 0; o.rim.intensity = 0; o.amb.intensity = .008; o.candleK = lerp(.3, .03, seg(t, .3, 1.2)); o.redK = .12 * (1 - seg(t, .3, 1.0));   // свеча и красная гаснут — тело в черноте
   const tl = seg(t, 2.95, 3.3), f = clamp((t - 3.38) / .22, 0, 1), dp = lin([1.45, 3.0, 1.6], [2.05, 1.9, 2.6], f * f);   // сорвалось — летит на камеру
-  o.faceL.position.set(dp[0] + .25, dp[1] - 1.6, dp[2] + .35); o.faceL.color.setHex(0xfff0d8); o.faceL.distance = .85; o.faceL.intensity = 3.6 * seg(t, .7, 1.4);   // луч фонаря находит только лицо и руки
+  o.faceL.position.set(dp[0] + .25, dp[1] - 1.6, dp[2] + .35); o.faceL.color.setHex(0xfff0d8); o.faceL.distance = 1.9; o.faceL.intensity = 2.6 * seg(t, .7, 1.4); o.amb.intensity = .03;   // луч шире: шея, плечи и свисающие руки — тело, а не одна голова в черноте (владелец, 11 ноя)   // луч фонаря находит только лицо и руки
   const reach = seg(t, 1.5, 2.6);
   return [['monster', dp[0], dp[1], dp[2], K8_YAW, { clips: [['Crouch_Idle_Loop', 1.0, 1]],   // сложенные ноги («акробат») теперь в черноте — видно лицо, волосы и руки
     arm: { l: { at: k8Pre(dp, .26, dp[1] - 1.75 - .15 * reach, .25 + .2 * reach), by: 'tip', w: .85 }, r: { at: k8Pre(dp, -.26, dp[1] - 1.75 - .15 * reach, .25 + .2 * reach), by: 'tip', w: .85 } },   // руки свисают и тянутся к нему fing: { l: ['claw', .4], r: ['claw', .4] },
