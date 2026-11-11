@@ -17,6 +17,18 @@ const HUMANS = ['ethan', 'frank', 'gus', 'dayguard', 'lily', 'tenant'];
 let V3 = false, QW = null;   // v3 загрузились; мировые повороты костей Quaternius в покое
 
 // XHR, а не fetch: так модели читаются и в Android-приложении (file://)
+// петля мокапа без шва: у записей с актёра последний кадр не совпадает с первым — на стыке петли обе руки прыгали разом (замер: рывок 60+ м/с²).
+// Последние .7 с клипа плавно подводятся к первому кадру (по всем костям), скорость на стыке гасится сглаженной ступенью
+function loopSeam(c) {
+  const d = c.duration, w = Math.min(.7, d * .22); if (!(d > 1)) return;
+  let gap = 0; for (const tr of c.tracks) { const v = tr.values, n = tr.getValueSize(), o = v.length - n; if (n !== 4) continue; let dot = 0; for (let j = 0; j < 4; j++) dot += v[o + j] * v[j]; gap = Math.max(gap, 2 * Math.acos(Math.min(1, Math.abs(dot)))); }
+  if (gap < .05) return;   // петля и так сходится (шаг, мытьё) — не трогаем
+  for (const tr of c.tracks) { const tm = tr.times, v = tr.values, n = tr.getValueSize(), isQ = n === 4 && /quaternion$/.test(tr.name);
+    for (let i = 0; i < tm.length; i++) { const u = (tm[i] - (d - w)) / w; if (u <= 0) continue; const k = u >= 1 ? 1 : u * u * (3 - 2 * u), o = i * n;
+      if (isQ) { let dot = 0; for (let j = 0; j < 4; j++) dot += v[o + j] * v[j]; const sg = dot < 0 ? -1 : 1; let len = 0;
+        for (let j = 0; j < 4; j++) { v[o + j] = v[o + j] * (1 - k) + sg * v[j] * k; len += v[o + j] * v[o + j]; } len = Math.sqrt(len) || 1; for (let j = 0; j < 4; j++) v[o + j] /= len; }
+      else for (let j = 0; j < n; j++) v[o + j] = v[o + j] * (1 - k) + v[j] * k; } }
+}
 const get = url => new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = 'arraybuffer'; x.timeout = 60000; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = x.ontimeout = x.onabort = no; x.send(); });
 async function load(onFile) {
   if (!window.THREE_GLTFLoader || !window.THREE_SkeletonUtils) return false;
@@ -36,6 +48,7 @@ async function load(onFile) {
   for (const c of [...(G.anims || G.male).animations, ...(G.anims2 ? G.anims2.animations : [])]) {
     // только повороты костей (+ высота таза): так одна анимация подходит всем — и мужчине, и женщине, и вытянутому Жильцу
     c.tracks = c.tracks.filter(t => t.name.endsWith('.quaternion') || t.name === 'pelvis.position');
+    if (/^(Rk_|Cmu_).*_Loop$/.test(c.name)) loopSeam(c);
     CLIP[c.name] = c;
   }
   if (V3) { const sk = G.anims.scene; sk.updateMatrixWorld(true); QW = {}; sk.traverse(n => { if (n.name) QW[n.name] = n.getWorldQuaternion(new T.Quaternion()); });
@@ -741,6 +754,19 @@ function kneel(C, tt) {
   }
 }
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
+// запястье без «фантика»: у скелета нет костей скручивания, и весь поворот кисти вокруг предплечья (в мокапе до 75°) сидел в одном суставе —
+// кожа у запястья закручивалась. Половину скручивания берёт на себя предплечье (как лучевая кость у человека); кисть в мире остаётся как была
+const _wa = new T.Vector3(), _wp = new T.Vector3(), _wt = new T.Quaternion(), _wi = new T.Quaternion(), _w0 = new T.Quaternion();
+function wristEase(C, f = .5) {
+  for (const sd of ['l', 'r']) { const H = C.bone['hand_' + sd], Lo = C.bone['lowerarm_' + sd]; if (!H || !Lo) continue;
+    const m = C['_we' + sd] || (C['_we' + sd] = { h: new T.Quaternion(), l: new T.Quaternion(), on: false });
+    if (m.on && m.h.angleTo(H.quaternion) < 1e-5 && m.l.angleTo(Lo.quaternion) < 1e-5) continue;   // кости с прошлого кадра никто не трогал — второй раз не делим
+    const q = H.quaternion; _wa.copy(H.position).normalize(); _wp.set(q.x, q.y, q.z).projectOnVector(_wa); _wt.set(_wp.x, _wp.y, _wp.z, q.w);
+    if (_wt.lengthSq() < 1e-8) continue; _wt.normalize(); if (_wt.w < 0) _wt.set(-_wt.x, -_wt.y, -_wt.z, -_wt.w);
+    _wt.slerp(_w0, 1 - f);   // доля скручивания, которая уходит в предплечье
+    Lo.quaternion.multiply(_wt); H.quaternion.premultiply(_wi.copy(_wt).invert());
+    m.h.copy(H.quaternion); m.l.copy(Lo.quaternion); m.on = true; Lo.updateWorldMatrix(false, true); }
+}
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
 // точка хвата в ладони (в осях персонажа): между запястьем и основанием среднего пальца, чуть к ладони
 const _UP = new T.Vector3(0, 1, 0), _twQ = new T.Quaternion(), _flA = new T.Vector3(), _flB = new T.Vector3(), _flL = new T.Vector3(), _flQ = new T.Quaternion(), _flP = new T.Vector3();
@@ -1138,7 +1164,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   let list = P.clips || [['Idle_Loop', tt, 1]];
   if (!P.still && !C.o.monster && !window.__NOLIFE) list = ambClock(C, list, dT, cut);
   if (P.talk) {   // говорит — стойка плавно переходит в «говорит руками» и обратно (паузы между словами не сбивают)
-    const on = tt < (C.talkT || -1) ? 1 : 0; C.talkW = lerp(C.talkW ?? on, on, Math.min(1, (dt || 0) * 3));
+    const on = tt < (C.talkT || -1) ? 1 : 0; C.talkW = lerp(C.talkW ?? on, on, Math.min(1, (dt || 0) * 1.8));
     const TK = { Idle_Loop: 'Idle_Talking_Loop', Sitting_Idle_Loop: 'Sitting_Talking_Loop' }, tw = C.talkW * (P.talkK ?? 1);   // talkK < 1 — руки заняты делом (показывает, держит): «говорит руками» тише
     list = list.flatMap(c => TK[c[0]] ? [[c[0], c[1], (c[2] ?? 1) * (1 - tw)], [TK[c[0]], c[1], (c[2] ?? 1) * tw]] : [c]);
   }
@@ -1192,6 +1218,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (P.toes) footFloor(C);   // носки не под полом (падает: смесь клипов опускала стопы на 4–5 см под пол)
   if (P.after) P.after(C, tt);
   if (P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], dt);
+  if (!C.o.monster) wristEase(C);
   if (P.wear) for (const name in P.wear) wearProp(C, name, P.wear[name]);
 }
 // предмет на теле (рация на нагруднике, фонарь на поясе): [кость, смещение в осях кости, поворот]
@@ -1317,7 +1344,7 @@ function updateSkinned(C, t, dt) {
   // реакция по реплике (beat.react в story.js): тело (кивок, «нет», руки скрещены) и/или лицо — 'no+worry', 'sad'
   { const rp = typeof C.react === 'string' ? C.react.split('+') : []; C.reactBody = rp.find(x => REACT[x]) || null; C.reactFace = rp.find(x => !REACT[x] && C.faceSets[x]) || null; }
   C.fsNow = C.faceSets[C.reactFace || C.faceSet] || {};
-  if (C.talk > .06) C.talkT = tt + .7;   // паузы между словами не сбивают анимацию «говорит»
+  if (C.talk > .06) C.talkT = tt + 1.15;   // паузы между словами не сбивают анимацию «говорит»
   const talking = tt < (C.talkT || -1);
   if ((C.hear || 0) > .06) C.hearT = tt + .6;   // слушает: говорит кто-то другой (в кадре, по телефону, по рации)
   const hearing = !talking && tt < (C.hearT || -1);
@@ -1336,7 +1363,10 @@ function updateSkinned(C, t, dt) {
   if (want !== C.clip) {
     const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[natClip(C, want)[0]] || CL[want] || CL.Idle_Loop);
     a.reset().setEffectiveWeight(1).setEffectiveTimeScale(1); a.on3 = false;
-    if (C.act && dt < .2 && !cut) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
+    // стойка ↔ «говорит»: переход долгий (.9 с вместо .35) и клип продолжается с часов персонажа, а не с первого кадра — раньше в конце каждой
+    // реплики руки за треть секунды перескакивали в стойку (замер: кисть до 2,3 м/с, рывок 30 м/с²) и жест каждый раз начинался одинаково
+    const soft = SOFTC.has(want) && SOFTC.has(C.clip) && !/Walk|Jog|Sprint|Crouch_Fwd/.test(want + C.clip);
+    if (C.act && dt < .2 && !cut) { a.play(); if (soft) { const nc = natClip(C, want), d0 = a.getClip().duration || 1; a.time = (((tt * (nc[2] || 1) + (nc[1] || 0)) % d0) + d0) % d0; } C.act.crossFadeTo(a, soft ? .9 : .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
     if (P === 'lay') { C.mixer.stopAllAction(); a.play(); a.time = 0; a.timeScale = 0; }   // тело: первый кадр «лёжа», без движения
     C.act = a; C.clip = want;
@@ -1365,7 +1395,8 @@ function updateSkinned(C, t, dt) {
   if (/^Rk_Sit/.test(natClip(C, want)[0])) seatFeet(C);
   if (P !== 'lay') breathe(C, tt, dT);
   if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) hookHand(C, sd); }   // Жилец: пальцы крючьями, когтями вперёд (клип сжимал их в кулак)
-  if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }   // кисти мягкие: клип Quaternius сжимал их в кулак
+  if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }
+  if (!C.o.monster) wristEase(C);   // кисти мягкие: клип Quaternius сжимал их в кулак
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, press: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };

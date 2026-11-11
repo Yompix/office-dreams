@@ -3165,7 +3165,7 @@ function stage(id, t, opt = {}, cont = false) {
   for (const [k, x, y, z, ry, pose, look, only] of acts) {
     const C = A[k]; used.add(k);
     if (C.root.parent !== o.S) o.S.add(C.root);
-    if (C.lastShot !== id) { C.lastShot = id; if (!cont || hardCut(C)) C.lookDir = null; C.prevP = null; C.walkV = null; C.solD = null; }
+    if (C.lastShot !== id) { C.lastShot = id; if (!cont || hardCut(C)) C.lookDir = null; C.prevP = null; C.walkV = null; C.solD = null; C.solSm = false; }
     C.root.position.set(x, y, z); C.root.rotation.set(0, ry, 0); C.pose = pose;
     if (C.solD) { C.root.position.x += C.solD[0]; C.root.position.z += C.solD[1]; }   // твёрдый мир: в этом кадре его уже отодвигали от стены — начинаем оттуда (solidPass)   // наклон корпуса (вверх ногами и т. п.) кадр задаёт сам — в P.post, каждый кадр заново
     C.look = look === 'cam' ? new T.Vector3(...sh.pos) : look ? new T.Vector3(...look) : null;
@@ -3592,6 +3592,11 @@ function solidPass(loc, used, sh, T0, id) {   // после поз: каждог
     let L = Math.hypot(dx, dz);
     if (window.__SOLLOG && L > .02) window.__SOLLOG.push([id, k, +dx.toFixed(3), +dz.toFixed(3)]);   // для проверки: кого и насколько отодвинули
     if (L > SOL_MAX) { dx = dz = L = 0; }   // глубже 15 см — это ошибка постановки (стоит в стуле, в перегородке): сдвиг сломал бы кадр, правится руками по отчёту детектора
+    // сдвиг от предмета — плавно (22 см/с), а не за один кадр: рука сменщика в разговоре задевала стойку будки, и всё тело прыгало на 8 см
+    // (замер 11 ноя: рывок 60 м/с² у обеих рук разом). Первый кадр ракурса и склейки — сразу на место, как раньше
+    { const dtS = C.solT != null ? T0 - C.solT : -1; C.solT = T0;
+      if (C.solSm && dtS >= 0 && dtS < .25) { const ex = dx - d0[0], ez = dz - d0[1], e = Math.hypot(ex, ez), st = .22 * dtS; if (e > st) { dx = d0[0] + (e > 0 ? ex / e * st : 0); dz = d0[1] + (e > 0 ? ez / e * st : 0); L = Math.hypot(dx, dz); } }
+      C.solSm = true; }
     if (Math.hypot(dx - d0[0], dz - d0[1]) > .003) { C.root.position.x += dx - d0[0]; C.root.position.z += dz - d0[1]; C.solD = L > 1e-4 ? [dx, dz] : null; any = true; }
   }
   if (any) for (const k of used) A[k].update(T0, 0);   // поза на новом месте: касания руками и предметы в руках — заново
