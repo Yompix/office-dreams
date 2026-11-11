@@ -479,9 +479,16 @@ function hiTextures() {
   });
   TX.tileSide = hiTex(256, 256, 20, 3, (u, v) => {   // плитка тротуара под дождём: мокрые пятна темнее и блестят, в швах вода
     let c = mul([94, 96, 94], .88 + .2 * fbm(u, v, 8, 8, 4, 101)); const gr = Math.min(Math.abs(u - .5), u, 1 - u, Math.abs(v - .5), v, 1 - v);
-    const wet = sm(.42, .62, fbm(u, v, 2, 2, 3, 103)); c = mul(c, 1 - .3 * wet);
-    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7, gr < .01 ? .3 : Math.max(.14, .6 - .42 * wet)];
+    const wet = .35 * fbm(u, v, 6, 6, 3, 103);   // мокрая вся, без пятен: одно и то же пятно в каждой плитке читалось узором, а не лужами (фото владельца, 11 ноя)
+    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7, gr < .01 ? .22 : .42 - .2 * wet];
   });
+  // настоящие лужи тротуара: один неповторяющийся слой на всю длину (40×5 м) — редкие, неровные, с мелкими затёками по швам рядом
+  TX.puddles = ctex(1024, 128, (x, w, h) => { const d = x.createImageData(w, h);
+    for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) { const u = px / w, v = py / h, i = (py * w + px) * 4;
+      const n = fbm(u, v, 24, 3, 4, 131) + .1 * fbm(u, v, 90, 12, 2, 132) - .05, e = Math.min(v, 1 - v) * 8, a = sm(.6, .68, n) * clamp(e, 0, 1);
+      d.data[i] = 22; d.data[i + 1] = 26; d.data[i + 2] = 32; d.data[i + 3] = 105 * a; }   // вода тонкая: плитка под ней видна, лужу выдаёт блик фонаря, а не чёрное пятно
+    x.putImageData(d, 0, 0); }, 1, 1, 'raw');
+  TX.puddles.magFilter = T.LinearFilter; TX.puddles.wrapS = TX.puddles.wrapT = T.ClampToEdgeWrapping;
   TX.curb = hiTex(256, 128, 20, 1, (u, v) => { let c = mul([91, 93, 96], .8 + .3 * fbm(u, v, 8, 4, 4, 111)); if (v > .88) c = [51, 51, 51]; return [...c, v > .88 ? .1 : .6]; });
   for (const [k, t] of Object.entries({ wall: 'wall', ceil: 'ceil', marble: 'marble', lino: 'lino', panel: 'panel', door: 'door', wood: 'wood', concrete: 'concrete', asphalt: 'asphalt', carpet: 'carpet', metal: 'metal', tileSide: 'tileSide', curb: 'curb' })) TX[k].kind = t;
 }

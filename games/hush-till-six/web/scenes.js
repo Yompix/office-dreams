@@ -10,6 +10,26 @@ const L = {};          // места действия
 const FOGC = 0x0b0f14;   // туман чуть светлее чёрного: тёмные силуэты отделяются от него
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 // ненадёжная лампа: обычно горит; раз в 8–25 с — серия коротких провалов (40–120 мс), иногда гаснет на полторы секунды
+// предметы-сканы Poly Haven (CC0, models/props/<имя>.glb, сборка tools/props/pack.mjs) — только «Кино». Пока файл не пришёл или не смог —
+// стоит прежний предмет из коробок; пришёл — прежние детали host скрываются (кроме o.stay), модель встаёт основанием в o.at, высотой o.h
+let propL = null; const propG = {};
+function propGlb(name, host, o = {}) {
+  if (!CINE || !window.THREE_GLTFLoader || !window.MeshoptDecoder) return;
+  const old = host.children.slice();
+  propG[name] = propG[name] || (async () => {
+    if (!propL) { await window.MeshoptDecoder.ready; propL = new window.THREE_GLTFLoader(); propL.setMeshoptDecoder(window.MeshoptDecoder); }
+    return new Promise((ok, no) => propL.load('models/props/' + name + '.glb?v=1', g => ok(g.scene), undefined, no)); })();
+  propG[name].then(src => {
+    const m = src.clone(true);
+    if (o.keep) { const kill = []; m.traverse(n => { if (n !== m && (n.isMesh || n.children.length) && !o.keep(n.name)) kill.push(n); }); kill.forEach(n => n.parent && n.parent.remove(n)); }
+    m.updateMatrixWorld(true); const b = new T.Box3().setFromObject(m), sz = b.getSize(new T.Vector3()), k = o.h ? o.h / sz.y : o.k || 1;
+    const w = new T.Group(); if (!o.raw) m.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
+    w.add(m); w.scale.setScalar(k); w.rotation.set(o.rx || 0, o.ry || 0, 0, 'YXZ'); if (o.at) w.position.set(o.at[0], o.at[1], o.at[2]);
+    m.traverse(n => { if (n.isMesh) { ps1(n.material); n.castShadow = n.receiveShadow = !n.material.transparent; } });
+    for (const c of old) if (!(o.stay && o.stay.includes(c))) c.visible = false;
+    host.add(w); if (o.done) o.done(w);
+  }).catch(e => console.warn('propGlb', name, e));
+}
 function unreliable(t, seed) {
   const P = 15, k = Math.floor(t / P), ph = t - k * P, st = 2 + hash(k * 7.13 + seed) * (P - 5), d = ph - st;
   if (d < 0 || d > 1.9) return 1;
@@ -141,6 +161,7 @@ function buildLobby() {
   const hm = mat(0x111111);
   o.clockH = new T.Group(); box(.018, .1, .006, hm, 0, .045, .006, o.clockH); clk.add(o.clockH);
   o.clockM = new T.Group(); box(.012, .16, .006, hm, 0, .07, .01, o.clockM); clk.add(o.clockM);
+  propGlb('wall_clock', clk, { raw: 1, k: 1.3, stay: [o.clockH, o.clockM], keep: n => !/hand/.test(n), done: () => { o.clockH.position.z = o.clockM.position.z = .03; } });
   o.setClock = (h, m) => { o.clockM.rotation.z = -m / 60 * PI * 2; o.clockH.rotation.z = -((h % 12) + m / 60) / 12 * PI * 2; };
   // скамейка и растение
   box(.5, .08, 2, mat(0xffffff, TX.wood), -7.4, .45, 1, S); for (const z of [.2, 1.8]) box(.45, .45, .06, mat(0x222222), -7.4, .22, z, S);
@@ -317,11 +338,13 @@ function buildLobby() {
   box(.004, .2, .004, mat(0x2a4a8a), 0, .1, 0, o.badge);
   o.badgeCard = plane(.11, .082, mat(0xffffff, TX.badge, { decal: 1 }), o.badge); o.badgeCard.position.y = -.03; box(.115, .087, .003, mat(0x9aa0a6), 0, -.03, -.003, o.badge);
   // камеры наблюдения (коробочки на стенах)
-  for (const [x, y, z] of [[7.6, 3.95, 5.6], [-7.6, 3.95, -5.6]]) box(.18, .12, .3, mat(0xd0d0d0), x, y, z, S);
+  for (const [x, y, z] of [[7.6, 3.95, 5.6], [-7.6, 3.95, -5.6]]) { const g2 = new T.Group(); g2.position.set(x, y, z); S.add(g2); box(.18, .12, .3, mat(0xd0d0d0), 0, 0, 0, g2);
+    propGlb('cctv', g2, { k: 1, at: [0, -.12, 0], ry: x > 0 ? -PI * .7 : PI * .3, rx: .3 }); }
   // фасад: стекло (ночью отражает холл), плёнка, грязь, капли, рамы, двери
   buildFacade(o, S);
   // снаружи: тротуар, бордюр, дорога, фонарь, машина, дома напротив, небо
   const walk = plane(40, 5, mat(0xffffff, TX.tileSide), S); walk.rotation.x = -PI / 2; walk.position.set(0, .001, 8.5);
+  if (TX.puddles) { const pd = plane(40, 5, mat(0xffffff, TX.puddles, { transparent: true, opacity: 1, rough: .03, metal: 0, decal: 1 }), S); pd.rotation.x = -PI / 2; pd.position.set(0, .004, 8.5); pd.userData.solid = false; }   // лужи — зеркало: в них фонарь и свет входа
   box(40, .15, .3, mat(0xffffff, TX.curb), 0, .075, 11, S);
   const road = plane(60, 20, mat(0xffffff, TX.asphalt), S); road.rotation.x = -PI / 2; road.position.set(0, -.05, 21);
   for (let x = -24; x < 24; x += 6) { const ln = plane(2.4, .15, mat(0xb8b8a8, null, { decal: 1 }), S); ln.rotation.x = -PI / 2; ln.position.set(x, -.04, 17); }
@@ -340,6 +363,7 @@ function buildLobby() {
   { const bm = mat(0x24382c, null, { rough: .6 }), lid = mat(0x18241c, null, { rough: .5 });
     for (const [x, z, r] of [[5.3, 8.9, .05], [6.5, 8.95, -.08]]) { const g2 = new T.Group(); g2.position.set(x, 0, z); g2.rotation.y = r; S.add(g2);
       box(1.1, .95, .8, bm, 0, .55, 0, g2); box(1.14, .06, .84, lid, 0, 1.05, 0, g2); for (const dx of [-.4, .4]) cyl(.07, .07, .05, 10, mat(0x111111), g2).position.set(dx, .07, .32); } }
+  { const g2 = new T.Group(); g2.position.set(4.35, 0, 8.95); S.add(g2); propGlb('trash_can', g2, { h: .86, ry: .6, keep: n => /rust/.test(n) }); }   // оцинкованный бак с крышкой рядом с контейнерами (только «Кино»)
   o.cat = new T.Group(); o.cat.position.set(3.1, 0, 8.6); o.cat.rotation.y = -1.3; o.cat.scale.setScalar(1.15); S.add(o.cat); o.cat.visible = false;
   { const cm = mat(0x0c0c0e, null, { rough: .9 }), body = new T.Mesh(new T.SphereGeometry(.1, 10, 8), cm); body.scale.set(1, .85, 2.0); body.position.set(0, .2, 0); o.cat.add(body);
     const hd = new T.Mesh(new T.SphereGeometry(.07, 10, 8), cm); hd.position.set(0, .32, .2); o.cat.add(hd); o.catHead = hd;
@@ -579,13 +603,40 @@ function buildCorridor() {
   // номер этажа краской на торце у лифта (виден камере)
   o.floorSign = {}; for (const fl of [7, 10]) { const sg = label(.6, .5, 48, 40, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(fl), w / 2, h / 2 + 2); }, S, false);
     sg.material.alphaTest = .5; sg.rotation.y = PI; sg.position.set(.75, 1.75, -.012); sg.visible = fl === 7; o.floorSign[fl] = sg; }   // краска на стене: только цифры (без чёрной подложки), освещается лампами
-  o.setFloor = fl => { for (const k of [7, 10]) { o.plates[k].visible = k === fl; o.floorSign[k].visible = k === fl; } };
+  // десятый — не копия седьмого (владелец, 11 ноя): этаж пустует под ремонт. Двери затянуты плёнкой, на полу защитный картон, стремянка,
+  // вёдра с краской, коробки съехавших арендаторов, шпаклёвка пятнами, снятые плитки потолка с проводами, дверь крест-накрест лентой.
+  // Всё у стен (|x| > .8): посреди коридора стоят люди и стул.
+  { const F = o.f10 = new T.Group(); S.add(F); F.visible = false; const NS = m => { m.userData.solid = false; return m; };
+    const film = mat(0xc8d4d8, null, { transparent: true, opacity: .16, rough: .12, side: T.DoubleSide }), tape = mat(0x8c9094, null, { rough: .5 }), card = mat(0x9a7c54, null, { rough: .92 }), card2 = mat(0x84683f, null, { rough: .92 });
+    for (const [sd, z] of [[-1, -8.7], [1, -8.7], [-1, -18], [1, -21.1]]) {   // плёнка на дверях: висит складками, прихвачена скотчем сверху
+      for (let i = 0; i < 5; i++) { const p2 = NS(plane(.24, 2.25, film, F)); p2.position.set(sd * (wd / 2 - .075 - (i % 2) * .018), 1.14, z - .48 + i * .24); p2.rotation.y = -sd * PI / 2 + (i % 2 ? .22 : -.22); }
+      NS(box(.012, .05, 1.2, tape, sd * (wd / 2 - .065), 2.27, z, F)); }
+    const paper = NS(plane(1.5, 19, mat(0xa08a66, null, { rough: .95, decal: 1 }), F)); paper.rotation.x = -PI / 2; paper.position.set(0, .004, -11.5);   // защитный картон по полу
+    for (const z of [-5, -9.6, -14.2, -18.8]) { const st = NS(plane(1.5, .06, mat(0x6e6e70, null, { rough: .5, decal: 1 }), F)); st.rotation.x = -PI / 2; st.position.set(0, .006, z); }   // стыки листов — серый скотч
+    const al = mat(0xa8acb0, null, { metal: .7, rough: .4 }); const ld = new T.Group(); ld.position.set(-.93, 0, -6.6); ld.rotation.y = .12; F.add(ld);   // стремянка
+    for (const sx of [-1, 1]) { const a1 = box(.03, 1.75, .05, al, sx * .22, .84, .27, ld); a1.rotation.x = .3; const a2 = box(.03, 1.75, .04, al, sx * .2, .84, -.27, ld); a2.rotation.x = -.3; }
+    for (let i = 0; i < 5; i++) box(.44, .025, .11, al, 0, .28 + i * .3, .43 - i * .087, ld); box(.5, .03, .26, mat(0x2a2c30, null, { rough: .6 }), 0, 1.68, 0, ld);
+    const wht = mat(0xd8d6cc, null, { rough: .5 }), drip = mat(0xe8e6dc, null, { rough: .35 });   // вёдра краски, одно открыто, валик на крышке
+    for (const [x, z, r] of [[-1.02, -4.2, .14], [-.86, -4.55, .14], [-1.04, -4.9, .11]]) { const b2 = cyl(r, r * .88, r * 1.9, 16, wht, F); b2.position.set(x, r * .95, z); cyl(r * .9, r * .9, .012, 16, drip, F).position.set(x, r * 1.9 - .03, z); }
+    const rl = cyl(.028, .028, .22, 10, mat(0x58606a, null, { rough: .9 }), F); rl.rotation.z = PI / 2; rl.position.set(-.86, .3, -4.55); NS(box(.012, .012, .3, al, -.86, .3, -4.4, F));
+    for (const [x, y, z, w, h, d, r, m] of [[.96, .2, -13.4, .5, .4, .6, .05, card], [.98, .57, -13.45, .42, .34, .5, -.12, card2], [.93, .17, -14.15, .44, .34, .44, .3, card2], [.99, .88, -13.4, .34, .26, .4, .2, card], [-.98, .19, -15.6, .46, .38, .56, -.08, card]]) {
+      const bx = box(w, h, d, m, x, y, z, F); bx.rotation.y = r; const tp = NS(box(w + .004, .004, .06, mat(0xb8a070, null, { rough: .6 }), x, y + h / 2 + .002, z, F)); tp.rotation.y = r; }
+    const spk = mat(0xc4c0b2, null, { rough: .95, decal: 1 });   // шпаклёвка: светлые заплаты на стенах
+    for (const [sd, y, z, w, h] of [[-1, 1.5, -4.1, .7, .5], [-1, 2.1, -10.2, 1.1, .35], [1, 1.3, -7.1, .5, .8], [1, 1.9, -16.4, .9, .6], [-1, 1.2, -20.2, .6, .9], [1, 2.3, -11.2, .4, .3]]) { const p2 = NS(plane(w, h, spk, F)); p2.position.set(sd * (wd / 2 - .012), y, z); p2.rotation.y = -sd * PI / 2; }
+    const hole = mat(0x050505, null, { basic: 1 }), wire = mat(0x111111, null, { rough: .6 });   // снятые плитки потолка, из дыр свисают провода (у стены, выше голов)
+    for (const [x, z] of [[-.75, -7.5], [.7, -15.2], [-.7, -22]]) { const h2 = NS(plane(.6, .6, hole, F)); h2.rotation.x = PI / 2; h2.position.set(x, 2.994, z);
+      for (let i = 0; i < 3; i++) { const w2 = NS(cyl(.006, .006, .3 + i * .16, 5, wire, F)); w2.position.set(x + (i - 1) * .12, 3 - (.3 + i * .16) / 2, z + (i - 1) * .1); w2.rotation.z = (i - 1) * .12; } }
+    const warn = mat(0xc8a018, null, { rough: .5, side: T.DoubleSide });   // сигнальная лента крест-накрест на двери справа
+    for (const r of [-1, 1]) { const t2 = NS(plane(1.5, .07, warn, F)); t2.position.set(wd / 2 - .07, 1.1, -14.9); t2.rotation.y = -PI / 2; t2.rotation.z = r * .95; t2.rotation.order = 'YXZ'; }
+  }
+  o.setFloor = fl => { for (const k of [7, 10]) { o.plates[k].visible = k === fl; o.floorSign[k].visible = k === fl; } o.f10.visible = fl === 10; };
   // мелочи на стенах (коридор не голый): огнетушитель на кронштейне, шкаф пожарного крана, кнопка пожарной тревоги, выключатели у дверей
   { const red = mat(0x8a1414, null, { rough: .45 }), blk = mat(0x141414, null, { rough: .6 }), wht = mat(0xd8d6cc, null, { rough: .55 }), gl = mat(0x8fa0a8, null, { rough: .1, metal: .2 });
     const ext = new T.Group(); ext.position.set(wd / 2 - .11, 0, -16.45); S.add(ext);
     cyl(.075, .075, .44, 14, red, ext).position.y = .62; cyl(.06, .075, .06, 14, red, ext).position.y = .87; cyl(.018, .018, .07, 8, blk, ext).position.y = .92;
     box(.03, .03, .16, blk, -.02, .95, .04, ext); box(.04, .14, .1, mat(0xd8d0b8, null, { decal: 1 }), -.072, .64, 0, ext);   // ручка, этикетка
     box(.02, .05, .18, blk, .085, .78, 0, ext);   // кронштейн
+    propGlb('extinguisher', ext, { h: .58, at: [-.07, 0, 0], ry: -PI / 2 });   // «Кино»: настоящий огнетушитель стоит у стены на полу
     const cab = new T.Group(); cab.position.set(-wd / 2 + .06, 1.25, -19.55); S.add(cab);
     box(.12, .62, .5, red, 0, 0, 0, cab); box(.01, .5, .38, gl, .061, 0, 0, cab); box(.01, .05, .3, wht, .062, .29, 0, cab);
     box(.04, .1, .1, red, -wd / 2 + .02, 1.45, -7.15, S); box(.01, .06, .06, wht, -wd / 2 + .041, 1.45, -7.15, S);   // кнопка тревоги
@@ -628,6 +679,7 @@ function buildCorridor() {
     for (const sd of [-1, 1]) box(.05, .04, .3, cm, sd * .26, .7, -.02, o.chair10); }
   o.sign = new T.Group(); S.add(o.sign); o.sign.userData.solid = [[0, .3, 0, .3, .6, .34, 'табличка «мокрый пол»']];   // домик из двух пластин — сквозь него не пройти
   for (const s of [-1, 1]) { const pnl = plane(.3, .62, mat(0xffffff, TX.wetSign, { side: T.DoubleSide }), o.sign); pnl.position.set(0, .3, s * .085); pnl.rotation.x = s * -.28; pnl.rotation.y = s < 0 ? PI : 0; }
+  propGlb('wet_sign', o.sign, { h: .64 });
   o.wet = new T.Mesh(new T.PlaneGeometry(2.2, 3.2), ps1(new T.MeshLambertMaterial({ color: 0x0e0e10, map: TX.puddle, transparent: true, opacity: .4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })));
   o.wet.rotation.x = -PI / 2; S.add(o.wet);
   o.sheen = new T.Mesh(new T.PlaneGeometry(1.6, 3.2), ps1(new T.MeshBasicMaterial({ map: TX.sheen, transparent: true, opacity: .5, depthWrite: false, blending: T.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -3 })));

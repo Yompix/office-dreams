@@ -961,7 +961,13 @@ function propMesh(name) {
     const hd = new T.Group(); g.add(hd); g.userData.head = hd;
     box(.42, .035, .1, pl, 0, .045, 0, hd);
     const fm = mat(0xd8d2c4, null, { rough: .95 }), fm2 = mat(0xa8a294, null, { rough: .95 });
-    for (let i = 0; i < 40; i++) { const f = box(.026, .022, .2 + rnd() * .07, i % 3 ? fm : fm2, -.21 + (i % 20) * .022, .011, (i < 20 ? .06 : -.06), hd); f.rotation.y = (rnd() - .5) * .5; }   // тряпка — жгуты
+    const fr = hd.userData.fr = [];   // жгуты тряпки: живут сами (mopCloth) — тянутся за колодкой, отстают на разворотах, расходятся веером
+    for (let i = 0; i < 56; i++) { const row = i < 28 ? 1 : -1, x0 = -.205 + (i % 28) * .0152 + (rnd() - .5) * .006, len = .19 + rnd() * .09, r0 = (rnd() - .5) * .5;
+      const pv = new T.Group(); pv.position.set(x0, .012 + rnd() * .006, row * .035); pv.rotation.y = r0; hd.add(pv);   // шарнир жгута — у края колодки
+      box(.017 + rnd() * .008, .016 + rnd() * .008, len, i % 3 ? fm : fm2, 0, 0, row * len / 2, pv);
+      fr.push({ pv, row, r0, w: .55 + rnd() * .45, ph: rnd() * 6.28 }); }
+    const stl = mat(0x9aa0a6, null, { metal: .8, rough: .35 });   // стальная рамка-зажим и вилка шарнира
+    box(.44, .012, .014, stl, 0, .066, .045, hd); box(.44, .012, .014, stl, 0, .066, -.045, hd); for (const sx of [-1, 1]) { box(.014, .012, .1, stl, sx * .214, .066, 0, hd); box(.012, .05, .03, stl, sx * .03, .085, 0, hd); }
   } else if (name === 'splint') {   // картон по бокам голени, обмотан серым скотчем (начало — середина голени, вдоль +Y)
     const cb = mat(0x9a7a50, null, { rough: .9 }), tp = mat(0x8c9094, null, { rough: .45 });
     for (const s of [-1, 1]) box(.012, .38, .11, cb, s * .062, 0, 0, g);
@@ -1027,7 +1033,22 @@ function propAt(name, scene, pos, rot) { const pr = prop3(name); if (pr.obj.pare
 function propAim(name, scene, pos, dir, yaw = 0, floor = null) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
   pr.obj.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...dir).normalize()).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)); pr.obj.visible = true; pr.C = null;
   const hd = pr.obj.userData.head; if (hd) { _hdi.copy(pr.obj.quaternion).invert(); hd.quaternion.copy(_hdi).multiply(_hdq.setFromAxisAngle(_UP, headYaw(dir, yaw)));   // колодка — ровно на полу
-    hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
+    hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); if (hd.userData.fr) mopCloth(pr.obj, hd, dir, yaw); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
+// тряпка швабры живая: жгуты волочатся за колодкой (пружина с затуханием), на развороте отстают и перекидываются, при быстром ходе
+// расходятся веером; швабра стоит — висят ровно. Скорость — по сдвигу колодки между кадрами (любой кадр: мокап Гаса, «сама моет», лежит)
+const _mc = { p: new T.Vector3(), L: new T.Vector3(), V: new T.Vector3(), t: 0, a: new T.Vector3() };
+function mopCloth(obj, hd, dir, yaw) {
+  const now = performance.now() / 1000, dt = now - _mc.t, a = _mc.a.copy(obj.position); _mc.t = now;
+  if (!(dt > 0 && dt < .25) || a.distanceTo(_mc.p) > .6) { _mc.p.copy(a); _mc.L.set(0, 0, 0); _mc.V.set(0, 0, 0); }   // склейка, пауза вкладки — без рывка
+  const hy = headYaw(dir, yaw), c = Math.cos(hy), sn = Math.sin(hy), d = Math.min(dt > 0 ? dt : .016, .05);
+  const vx = (a.x - _mc.p.x) / d, vz = (a.z - _mc.p.z) / d; _mc.p.copy(a);
+  const tx = clamp(-(vx * c - vz * sn) * .09, -.1, .1), tz = clamp(-(vx * sn + vz * c) * .09, -.1, .1);   // куда тянет жгуты — в осях колодки
+  _mc.V.x += ((tx - _mc.L.x) * 90 - _mc.V.x * 11) * d; _mc.V.z += ((tz - _mc.L.z) * 90 - _mc.V.z * 11) * d; _mc.L.x += _mc.V.x * d; _mc.L.z += _mc.V.z * d;
+  const sp = Math.min(Math.hypot(_mc.L.x, _mc.L.z) / .1, 1);
+  for (const f of hd.userData.fr) { const w = f.w, lz = _mc.L.z * w * 9 * f.row;   // lz > 0 — жгут тянет от колодки (вытягивается), < 0 — подминает под неё
+    f.pv.rotation.y = f.r0 * (1 - sp * .5) + _mc.L.x * w * 9 * f.row + Math.sin(now * 7 + f.ph) * .05 * sp;
+    f.pv.scale.z = clamp(1 + lz * .35, .45, 1.25); f.pv.rotation.x = -f.row * clamp(-lz, 0, 1) * .12; }
+}
 // поворот колодки швабры: черенок почти отвесный — как задал кадр (yaw); наклонён — колодка поперёк наклона (буквой «Т»), без переворота на 180°
 const _hdq = new T.Quaternion(), _hdi = new T.Quaternion();
 function headYaw(dir, yaw) {

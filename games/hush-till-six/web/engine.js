@@ -992,6 +992,7 @@ const MG = {
    Записать — что видно на текущей камере; пульт — свет этажей, вход, лифт. Пропустил три странности — оно приходит к будке. */
 const SEC_MIN = 7;   // секунд на игровую минуту (час ≈ 7 минут)
 const CAMS = { '01': 'ВХОД', '02': 'ХОЛЛ', '03': 'ЛИФТЫ', '04': 'ЛЕСТНИЦА', '07': 'ЭТАЖ 7', '10': 'ЭТАЖ 10', 'm2': 'ПОДВАЛ', '13': '' };
+const camShort = c => tr(CAMS[c] || '???').replace(/^\s*\d+\.?\s*|\s*\d+\s*$/, '');   // на кнопке номер уже стоит крупно: «07 / ЭТАЖ», а не «07 / ЭТАЖ 7» (владелец, 11 ноя)
 const camNo = c => c === 'm2' ? '−2' : c, camLabel = c => 'CAM ' + camNo(c) + (CAMS[c] ? '  ' + tr(CAMS[c]) : '');
 const KINDS = ['Свет', 'Дверь', 'Лифт', 'Помехи', 'Кто-то', 'Звук', 'Другое'];
 const toMin = s => { const [h, m] = s.split(':').map(Number); return (h < 12 ? h + 24 : h) * 60 + m; };
@@ -1138,7 +1139,7 @@ function shiftUI() {
   const cams = shf.seg.cams.concat(shk.c13 ? ['13'] : []);
   mgEl.innerHTML = `<div class="sh">
     <div class="sh-task hide" id="shTask"></div><div class="sh-toast" id="shToast"></div>
-    <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${tr(CAMS[c] || '???')}</small></button>`).join('')}</div>
+    <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${camShort(c)}</small></button>`).join('')}</div>
     <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button><button id="shHelp" class="sh-q" title="${tr('Как играть')}">?</button></div>
     <div class="tut-card hide" id="tutCard"><div class="tut-hd"><i class="tut-wave"><b></b><b></b><b></b><b></b><b></b></i>${tr('ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА')}</div><div class="tut-do" id="tutDo"></div><button id="tutGo" class="tut-go hide">${tr('Продолжить')}</button><button id="tutSkip">${tr('Пропустить обучение')}</button></div>
     <div class="tut-ring hide" id="tutRing"><i>▼</i></div>

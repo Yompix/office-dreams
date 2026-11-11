@@ -64,5 +64,9 @@ a claim on the game. / Ниже — сторонние материалы. Вс�
    Обёртка ПК-версии — Electron (MIT) с Chromium; в Steam-версии — steamworks.js (MIT) и библиотека Steam от Valve;
    установщик — NSIS (zlib). Тексты лицензий лежат рядом с игрой. Управление геймпадом и обёртка — свой код.
 
+   Props in the «Cinema» graphics (wet floor sign, fire extinguisher, wall clock, security camera, metal trash can) —
+   3D scans from Poly Haven (polyhaven.com), CC0 1.0 (public domain). List: models/props/README.txt.
+   Предметы-сканы в графике «Кино» (табличка «мокрый пол», огнетушитель, часы, камера, бак) — Poly Haven, CC0.
+
 Not used anywhere in the game / В игре не используются: AI-generated images, stock photos,
 music or sounds downloaded from the internet, Mixamo/Sketchfab/marketplace models.
