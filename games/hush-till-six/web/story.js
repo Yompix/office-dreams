@@ -765,6 +765,19 @@ window.STORY = {
       snd_m2: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .6, lp: 1600 }, 5], win: 18 },
       knock3x: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .7, lp: 1700 }, 6, 3], win: 20, say: 'n28' },   // три удара, как просил Фрэнк
       lilyDoor: { cam: '01', kind: 'Кто-то', props: { lilyDoor: 1 }, win: 26, say: 'n29', trap: 'door', die: 'over_door' },   // открыть вход, пока она там, — смерть
+      // новые (11 ноя, владелец: «больше аномалий»)
+      handprint: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { handprint: 1 }, win: 22 },                // на стекле входа изнутри — отпечаток ладони
+      selfStare: { cam: '02', kind: 'Кто-то', props: { selfStare: 1 }, win: 14 },                             // «ты» на камере холла стоишь у стойки и смотришь в объектив
+      liftBoth: { cam: '03', kind: 'Лифт', props: { lift: '1', liftOpen: 1, liftBoth: 1 }, win: 16, sfx: ['ding', { gain: .5, lp: 1400 }] },   // оба лифта открыты, во втором темно
+      lily04: { cam: '04', kind: 'Кто-то', props: { lily04: 1 }, win: 14 },                                   // «Лили» на площадке лестницы, спиной
+      frank10: { cam: '10', kind: 'Кто-то', props: { frank10: 1 }, win: 14 },                                 // в конце тёмного коридора десятого
+      gusTwin: { cam: '10', kind: 'Кто-то', props: { gusTwin: 1 }, win: 16, need: 'gus' },                    // Гас моет седьмой — и он же стоит на десятом
+      mopAlone: { cam: '07', kinds: ['Другое', 'Кто-то'], props: { mopAlone: 1 }, win: 20, need: 'nogus' },   // швабра стоит посреди коридора сама
+      crawl_m2: { cam: 'm2', kind: 'Кто-то', props: { crawl_m2: 1 }, win: 14 },                               // в подвале кто-то лежит лицом вниз
+      snd02: { cam: '02', kind: 'Звук', snd: ['ring_mob', { gain: .4, lp: 2000 }, 5], win: 18 },
+      breath07: { cam: '07', kind: 'Звук', snd: ['breath_close', { gain: .7, lp: 2600 }, 4], win: 18, need: 'nogus' },
+      tick10: { cam: '10', kind: 'Звук', snd: ['skin_stretch', { gain: .5, lp: 2200 }, 5], win: 18 },
+      slam04: { cam: '04', kind: 'Звук', snd: ['door_slams', { gain: .5, lp: 1500 }, 8], win: 18 },
       // кто-то стоит и смотрит (это не они)
       lily01: { cam: '01', kind: 'Кто-то', props: { lily01: 1 }, win: 16 },
       frank02: { cam: '02', kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
@@ -785,13 +798,13 @@ window.STORY = {
     segs: {
       S1: { from: '21:10', to: '22:00', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Камеры — внизу. Странное — «Записать». Свет, вход и лифт — на пульте.',
         events: [{ at: '21:14', an: 'light10' }, { at: '21:28', an: 'cat' }, { at: '21:46', task: { text: 'К 22:00 запереть вход и остановить лифт', need: ['door', 'lift'], by: '22:00', say: 'n01' } }],
-        rnd: { pool: ['door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 2 }, next: 'dg_call' },
+        rnd: { pool: ['handprint', 'snd02', 'door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 3 }, next: 'dg_call' },
       S2: { st: { gus: 0, gusGone: 0, blackout: 0 }, from: '22:20', to: '23:59', spm: 2.2, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '22:25', state: { gus: 1 } }, { at: '22:26', an: 'gus7' }, { at: '22:40', radio: ['f01', 'f02'] }, { at: '23:05', an: 'lift' }, { at: '23:30', radio: ['n08', 'n09', 'n10', 'n11'] }],
-        rnd: { pool: ['door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 4 }, next: 'sh_S3' },
+        rnd: { pool: ['handprint', 'liftBoth', 'gusTwin', 'snd02', 'slam04', 'door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 5 }, next: 'sh_S3' },
       S3: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '00:00', to: '00:59', spm: 3.3, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '00:12', an: 'st04' }, { at: '00:45', an: 'palm' }],
-        rnd: { pool: ['door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 3 }, next: 'round2' },
+        rnd: { pool: ['selfStare', 'lily04', 'liftBoth', 'tick10', 'slam04', 'gusTwin', 'door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 4 }, next: 'round2' },
       S4: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '01:20', to: '02:50', spm: 2.4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '01:40', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
           { at: '02:00', c13: true, say: 'n19' }, { at: '02:12', an: 'st10' },
@@ -801,7 +814,7 @@ window.STORY = {
           { at: '02:20', if: 'fphone', sms: { from: 'Телефон Фрэнка · Номер не определён', text: 'Фрэнки, сынок, спустись ко мне. Я внизу', dur: 6 }, say: 'fp01', set: 'fpcall' },
           { at: '02:25', if: 'fphone', call: { title: 'Телефон Фрэнка', sub: 'На зарядке. Номер не определён.', take: 'Ответить: «Алло?»', no: 'Сбросить', takeDie: 1, die: 'over_fmom', noSay: 'fp02' } },
           { at: '02:31', say: 'n18' }],
-        rnd: { pool: ['door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 5 }, next: 'journal' },
+        rnd: { pool: ['selfStare', 'lily04', 'frank10', 'gusTwin', 'handprint', 'tick10', 'crawl_m2', 'door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 6 }, next: 'journal' },
       // st — что видно на камерах с начала часа: с 22:25 до трёх Гас моет седьмой (S3, S4 — и после «Продолжить»), после 03:00 его нет — брошены ведро и швабра;
       // blackout: 0 — свет гаснет только в своём часе: повтор часа после смерти и «Вернуться к выбору» начинаются со светом
       // ветка «остаться в будке»: самый трудный час. Рация голосом Гаса, стук снизу, «Лили» у входа, свет гаснет сверху вниз

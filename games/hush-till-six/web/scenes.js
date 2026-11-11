@@ -114,9 +114,22 @@ function buildLobby() {
   { const pg = new T.Group(); pg.position.set(-3.5, 0, -5.42); S.add(pg); o.palm = pg; pg.userData.solid = [[0, .23, 0, .48, .46, .48, 'кадка с пальмой'], [0, 1.15, 0, .12, 1.4, .12, 'ствол пальмы'], [0, 1.72, 0, 1.3, .36, 1.3, 'крона пальмы']];   // листья — тонкие пластинки во все стороны: твёрдыми не годятся, твёрдая — гуща кроны
     cyl(.24, .18, .46, 12, mat(0x2b2a28, null, { rough: .5 }), pg).position.y = .23; cyl(.23, .23, .03, 12, mat(0x2a2016), pg).position.y = .45;
     const tk = mat(0x5a4632, null, { rough: .9 }); for (let i = 0; i < 6; i++) { const s = cyl(.045 - i * .004, .05 - i * .004, .24, 7, tk, pg); s.position.set(Math.sin(i * .7) * .02, .58 + i * .22, 0); }
-    const lf = mat(0x2c4a26, null, { rough: .7, side: T.DoubleSide });
-    for (let i = 0; i < 9; i++) { const a = i / 9 * PI * 2, fr = new T.Group(); fr.position.y = 1.86; fr.rotation.set(0, a, 0); pg.add(fr);
-      for (let j = 0; j < 6; j++) { const seg = box(.14 - j * .016, .008, .2, lf, 0, -j * j * .018, .1 + j * .17, fr); seg.rotation.x = .25 + j * .14; } }
+    // листья (11 ноя, фото владельца: «лесенка» из брусков): каждая ветвь — изогнутая лента с рисунком листа (черешок и перья, края вырезаны),
+    // два яруса, у каждой свой изгиб и длина; слабым («Ретро») — тот же рисунок, меньше сегментов
+    const ltx = ctex(96, 256, (x, w, h) => { x.clearRect(0, 0, w, h); x.lineCap = 'round';
+      for (let i = 0; i < 26; i++) { const y = h * (.06 + i * .035), k = Math.sin(Math.min(1, i / 22) * PI) * .9 + .12, L = w * .47 * k, g = 62 + ((i * 37) % 30);
+        x.strokeStyle = `rgb(${28 + (i % 3) * 6},${g},${24 + (i % 4) * 4})`; x.lineWidth = 5.2 - i * .1;
+        for (const sd of [-1, 1]) { x.beginPath(); x.moveTo(w / 2, y); x.quadraticCurveTo(w / 2 + sd * L * .55, y - h * .012, w / 2 + sd * L, y - h * .05 - (i % 2) * 2); x.stroke(); } }
+      x.strokeStyle = '#3a4a22'; x.lineWidth = 3; x.beginPath(); x.moveTo(w / 2, h); x.lineTo(w / 2, h * .03); x.stroke(); });
+    const lf = mat(0xffffff, ltx, { rough: .62, side: T.DoubleSide, alphaTest: .35, transparent: false });
+    const frond = (len, wid, droop, twist) => { const N = CINE ? 9 : 5, g = new T.PlaneGeometry(wid, len, 2, N), P = g.attributes.position;
+      for (let i = 0; i < P.count; i++) { const u = clamp(P.getY(i) / len + .5, 0, 1), xx = P.getX(i);   // u: 0 — у ствола, 1 — кончик
+        const out = u * len * Math.cos(u * droop * .9), dn = -Math.pow(u, 1.9) * len * Math.sin(droop) * .95 + Math.sin(u * PI) * len * .16;
+        P.setXYZ(i, xx * (1 - .25 * u) , dn - Math.abs(xx) * (.35 + .5 * u) + twist * xx * u, out); }
+      g.computeVertexNormals(); return g; };
+    for (let i = 0; i < 15; i++) { const top = i < 6, a = i * 2.39996 + (top ? .4 : 0), len = top ? .62 + (i % 3) * .07 : .86 + (i % 4) * .08;
+      const m = new T.Mesh(frond(len, top ? .26 : .34, top ? .55 + (i % 2) * .2 : 1.05 + (i % 3) * .16, ((i * 7) % 5 - 2) * .12), lf);
+      m.position.y = 1.84 + (top ? .05 : 0); m.rotation.set(top ? -.75 : -.28 - (i % 3) * .08, a, 0, 'YXZ'); m.castShadow = true; pg.add(m); }
     const sh = ctex(128, 256, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = '#000'; x.filter = 'blur(3px)';
       x.beginPath(); x.ellipse(w / 2, h * .2, w * .17, h * .1, 0, 0, 7); x.fill();   // «голова» — крона
       x.beginPath(); x.moveTo(w * .36, h * .27); x.quadraticCurveTo(w * .5, h * .32, w * .64, h * .27); x.lineTo(w * .7, h * .62); x.lineTo(w * .56, h * .98); x.lineTo(w * .44, h * .98); x.lineTo(w * .3, h * .62); x.closePath(); x.fill(); });
@@ -2342,7 +2355,7 @@ SH.bm_back = { loc: 'basement', pos: [0, 1.6, -12.4], look: [0, 1.1, -2], fov: 5
   const z = -12.4 + t * .85; sh.pos = [Math.sin(t * 2.1) * .03, 1.6 + Math.abs(Math.sin(t * 4.2)) * .03, z]; sh.look = [0, 1.0, z + 6]; return []; } };
 // ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: пульт, кто где, странности) ----
 // странности (s.*): cat, door01, streetOff, lily01 · wet, frank02, hallDark, palm · lift/liftOpen, lift13, clockSpin, palmMove ·
-// stDark, guard04 · gus, l7, door7, bucket7 · l10, door10, chair10 · mOff, sdoor. Помехи («он») рисует движок поверх кадра.
+// stDark, guard04 · gus, l7, door7, bucket7 · l10, door10, chair10 · mOff, sdoor · (11 ноя) handprint · selfStare · liftBoth · lily04 · mopAlone · frank10, gusTwin · crawl_m2. Помехи («он») рисует движок поверх кадра.
 const SHS = () => (curProps && curProps.sh) || {};
 function irOn(o, p, k = 1.5) { o.ir = 1; o.irL.position.set(p[0], p[1], p[2]); o.irL.intensity = k; }   // темно — камера переходит в ИК: подсветка у объектива, ч/б
 function shClock(o, s, t) { if (s.clk == null) return; const v = s.clockSpin ? s.clk - t * 40 : s.clk; o.setClock(Math.floor(v / 60), ((v % 60) + 60) % 60); }   // часы холла идут по времени смены (или крутятся назад)
@@ -2351,6 +2364,7 @@ SH.cam01 = { loc: 'lobby', pos: [-1.2, 3.3, 8.3], look: [2.6, .6, 8.4], fov: 74,
   o.cat.visible = !!s.cat; if (s.cat) { o.catHead.rotation.y = Math.sin(t * .4) * .5; o.catTail.rotation.z = Math.sin(t * 1.7) * .3; }
   if (s.door01) { leafAng(o, 0, 1.15); leafAng(o, 1, .35); }   // вход распахнут в дождь
   if (s.streetOff) { o.street.intensity = 0; o.streetBulb.visible = false; o.canopy.intensity = 0; o.canopyLamp.visible = false; }   // погас свет над входом
+  if (s.handprint) o.glassU.uPrint.value = 1;   // отпечаток ладони на стекле входа
   if (s.lilyDoor) return [['katya', .35, 0, 6.45, PI + .25, STILL('Idle_Loop', 1.6), [-1.2, 3.3, 8.3]]];   // у самой двери, смотрит в камеру
   return s.lily01 ? [['katya', 8.6, 0, 11.2, -1.9, STILL(), [-1.2, 3.3, 8.3]]] : []; } };
 SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, cctv: 1, set: (o, t) => { const s = SHS();
@@ -2358,17 +2372,20 @@ SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 7
   o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }   // на камере мокрые следы блестят
   if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }
   setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; if (s.lift13) setLift(o, o.lifts[1], 0, '13');   // лифты видно и отсюда — то же состояние, что на CAM 03
+  if (s.selfStare && !s.noEthan) return [['temych', 3.4, 0, 1.6, .55, STILL('Idle_Loop', 1.4), [7.45, 3.85, 5.45]]];   // «ты» не сидишь в будке, а стоишь в холле и смотришь в камеру
   const A2 = s.noEthan ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, s.ethR > 0 ? eRadioK(t, s.ethR) : { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];   // отвечает Гасу по рации — рация у рта
   if (s.frank02) A2.push(['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]);   // в глубине холла, лицом к камере
   return A2; } };
 SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58, cctv: 1, set: (o, t) => { const s = SHS();
   setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0;
   if (s.lift13) setLift(o, o.lifts[1], 0, '13');
+  if (s.liftBoth) setLift(o, o.lifts[1], 1, '1');   // второй тоже открыт — в нём темно
   shClock(o, s, t);
   if (s.palmMove) { o.palm.position.set(-.82, 0, -5.3); o.palmShadow.visible = false; }
   return []; } };
 SH.cam04 = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 62, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(1, 4); o.setFloor(0, 3); o.setFloor(2, 5);
   if (s.stDark) { stDim(o, 0); irOn(o, [1.2, 7.1, -.5], 1.7); } else if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; });
+  if (s.lily04) return [['katya', .25, 4.5, -5.3, PI, STILL('Idle_Loop', 2.3), null]];   // на площадке, спиной к камере, лицом в стену
   return s.guard04 ? [['smenshik', -.3, 4.5, -5.5, PI, STILL('Idle_Loop', .7), null]] : []; } };
 // Гас на камере 07 говорит с Итаном по рации (доли от движка, radioTalk): m — ещё моет, b — швабра у бока, h — рация в руке, u — рация у рта.
 // Перестал мыть → отставил швабру к боку → левой снял рацию с нагрудника → поднёс ко рту, пока говорит; Итан отвечает — рация у груди; потом всё обратно
@@ -2405,6 +2422,7 @@ SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov
     return []; }
   const C = s.gus ? Object.assign({}, CLEAN) : {}; C.door7 = 0;
   if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
+  if (s.mopAlone) window.__W3chars.propAim('mop', o.S, [0, MOP_Y, -7.2], [0, 1, 0], 0);   // швабра стоит торчком посреди коридора, никто не держит
   o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
   if (s.gus) { setLamps(o, 7); const G = gusRoutine(s.gz ?? t);   // s.gz — часы швабры: пока говорит по рации, стоят
     if (s.gusR) return [['cleaner', G7X, 0, G.z, G7R, gusRadioCam(o, t, G7X, G.z, G7R, s.gusR, G.k), null]];
@@ -2417,9 +2435,12 @@ SH.cam10 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .9, -12], fov: 
   setLamps(o, s.l10 ? 7 : 1, true); o.amb.intensity = s.l10 ? .36 : .12; o.ajar10(s.door10 ? 1 : 0);
   if (s.door10) { o.hole10.material = o.holeLit; o.faceL.position.set(.95, 1.3, -5.6); o.faceL.color.setHex(0xffd9a0); o.faceL.intensity = 1.6; o.faceL.distance = 3.2; }
   if (s.chair10) { o.chair10.visible = true; o.chair10.position.set(-.15, 0, -5.3); o.chair10.rotation.y = 2.5; }
+  if (s.frank10) return [['mihalych', -.1, 0, -11.2, 0, STILL('Idle_Loop', 2.7), [1.0, 2.75, -.5]]];
+  if (s.gusTwin) return [['cleaner', .2, 0, -8.6, 0, STILL('Idle_Loop', .9), [1.0, 2.75, -.5]]];   // «Гас» стоит на десятом, пока настоящий моет седьмой
   return []; } };
 SH.cam_m2 = { loc: 'basement', pos: [.85, 2.32, -.4], look: [0, .8, -14], fov: 56, cctv: 1, set: (o, t) => { const s = SHS();
   if (s.mOff) { bsDark(o, 0); irOn(o, [.85, 2.2, -.6], 1.5); }
+  if (s.crawl_m2 && !s.mOff) { const A3 = [['smenshik', .1, 0, -8.4, PI * .5, 'lay', null]]; if (s.sdoor) { o.sdoor.rotation.y = 1.25; } return A3; }
   if (s.sdoor) { o.sdoor.rotation.y = 1.25; o.roomL.intensity = 4; o.roomL.distance = 8; o.roomL.position.set(0, 1.2, -13.6); o.glow.material.opacity = 1; o.glow.scale.set(2.2, 3, 1); }   // дверь серверной открыта, внутри — свечи
   return []; } };
 // «Помехи» на камерах смены (странность stare): там стоит Жилец — тонкий, бледный, лицом в объектив. Рябь по самой фигуре рисует движок по её проекции (figGlitch в engine.js);
@@ -3206,7 +3227,7 @@ function gfxCheck(src) {
     const d = x.getImageData(0, 0, 24, 8).data; let sum = 0; for (let i = 0; i < d.length; i += 4) sum += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
     const L = sum / (d.length / 4) / 255; window.__gfxL = L;
     if (L >= .085) { gfxChk.done = true; return; }
-    if (++gfxChk.bad >= 2) { gfxChk.done = true; localStorage.setItem('ns1_gfx', ULTRA ? '"cine"' : '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); location.reload(); }
+    if (++gfxChk.bad >= 2) { gfxChk.done = true; if (ULTRA) localStorage.setItem('ns1_hq', '0'); else { localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); } location.reload(); }
   } catch (e) { gfxChk.done = true; }
 }
 function draw(g, W, H, id, o) {

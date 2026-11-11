@@ -18,7 +18,7 @@ const kindOf = id => GORE_KIND[id] || GORE_KIND[id.replace(/_(srv|hide)$/, '')] 
     if (!s.includes('function goreShot(id) {')) throw new Error('goreShot не найден в scenes.js');
     s = s.replace('function goreShot(id) {', 'window.__goreShot = goreShot; function goreShot(id) {'); await r.fulfill({ response: res, body: s }); });
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
-  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/nightshift/index.html?gfx=ultra&lang=ru`);
+  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/web/index.html?gfx=ultra&lang=ru`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   await p.evaluate(require('./naming.js')); await p.evaluate(() => { window.__R0 = window.__W3core.R.render.bind(window.__W3core.R); });
   const save = (file, r) => { const bin = Buffer.from(r.bin, 'base64'); fs.writeFileSync(path.join(OUT, file + '.bin'), bin); fs.writeFileSync(path.join(OUT, file + '.json'), JSON.stringify(r.meta)); return bin.length; };

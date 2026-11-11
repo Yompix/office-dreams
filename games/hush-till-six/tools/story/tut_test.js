@@ -7,7 +7,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 }, locale: 'ru-RU' });
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300)));
-  await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/nightshift/index.html?gfx=retro' + (process.env.LANG2 ? '&lang=' + process.env.LANG2 : ''));
+  await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/web/index.html?gfx=retro' + (process.env.LANG2 ? '&lang=' + process.env.LANG2 : ''));
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
   await p.evaluate(() => { localStorage.removeItem('ns1_tutDone'); window.__ns.startScene('sh_S1'); });
   const shot = n => p.screenshot({ path: `${out}/${n}.png` });

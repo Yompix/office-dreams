@@ -7,7 +7,7 @@ const fs = require('fs'), path = require('path');
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
-  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/nightshift/index.html?gfx=${gfx}&lang=ru&rs=1`);
+  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/web/index.html?gfx=${gfx}&lang=ru&rs=1`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   for (const item of list.split(',')) {
     const [id, t = '1.5', cc = ''] = item.split(':');   // кадр:секунда:cctv — с видом камеры наблюдения

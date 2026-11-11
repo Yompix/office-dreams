@@ -78,9 +78,13 @@ const GPU = (() => {
 if (/[?&]rp=1\b/.test(location.search)) { try { if (JSON.parse(localStorage.getItem('ns1_gfx')) !== 'retro') { localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '6'); } } catch {}
   try { history.replaceState(null, '', location.pathname + location.hash); } catch {} }
 const GFX = (() => { const q = /[?&]gfx=(retro|cine|ultra)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine' || (v === 'ultra' && FINE)) return v; } catch {}
-  return GPU.tier === 0 ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
-const CINE = GFX === 'cine' || GFX === 'ultra', ULTRA = GFX === 'ultra';
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; if (v === 'ultra') return 'cine'; } catch {}
+  return GPU.tier === 0 ? 'retro' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
+// 11 ноя (владелец: «убрать графику Ультра, а Кино поднять до уровня современных игр»): отдельного режима «Ультра» больше нет —
+// его качество (тени 1024, отражения в половину кадра, анизотропия 16, резкость FSR) теперь и есть «Кино» на ПК с видеокартой от
+// встроенной Radeon/Iris и выше; разрешение подстраивает perfTick. ns1_hq = 0 — видеокарта дала битый кадр, качество попроще.
+const CINE = GFX === 'cine' || GFX === 'ultra';
+const ULTRA = CINE && FINE && (GFX === 'ultra' || GPU.tier >= 2) && (() => { try { return localStorage.getItem('ns1_hq') !== '0'; } catch { return true; } })();
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); if (q) return Math.max(.2, Math.min(2, +q[1]));
   try { const v = +JSON.parse(localStorage.getItem('ns1_res')); if (v > 0) return Math.max(.5, Math.min(ULTRA ? 2 : 1, v)); } catch {} return 0; })();   // настройка «Разрешение»: 0 — авто (подстройка по кадрам); 150–200 % — суперсэмплинг в «Ультра»   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
 const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
@@ -94,7 +98,7 @@ const SNAP = { value: new T.Vector2(108, 192) };
 const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = Math.min(5120, Math.min(ULTRA ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
+  if (CINE) { const L = Math.min(5120, Math.min(ULTRA && GPU.tier === 4 ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }

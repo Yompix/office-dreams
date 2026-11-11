@@ -14,7 +14,7 @@ const BASE_DUR = 12, STARE_DUR = 3, GUS_P = 2 * (14 + .9 + 1.6 + .9) + (14 + .9 
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
-  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/nightshift/index.html?gfx=ultra&lang=ru`);
+  await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/web/index.html?gfx=ultra&lang=ru`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   await p.evaluate(require('./naming.js')); await p.evaluate(() => { window.__R0 = window.__W3core.R.render.bind(window.__W3core.R); });
   // слои: [камера, имя, состояние (sh), длина, петля]

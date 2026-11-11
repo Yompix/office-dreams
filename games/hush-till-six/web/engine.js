@@ -663,6 +663,17 @@ function tap() { if (userPause) return;   // на паузе тап по игр�
   if (scareAt != null && t < scareAt + 1) return;            // скример не пропускается
   for (const o of [...playing]) if (o.voice) { try { o.s.stop(); } catch {} playing.delete(o); }
   dropPending();
+  // разговор — по одной реплике (владелец, 11 ноя: «диалоги скипаются… надо поэтапно, а то каша»): нажатие посреди кадра с несколькими
+  // репликами обрывает только текущую и сразу начинает следующую, а не перематывает весь разговор в конец
+  const nx = sched.find(it => it.t > t + .12);
+  if (nx) {
+    for (const e of trig) if (!e.done && !e.carry && e.at > t && e.at < nx.t) e.done = true;
+    for (const m of [].concat(beat.sms || [])) { const at = m.at ?? .5; if (at > t && at < nx.t) showSms(m); }
+    bT0 = now() - nx.t;
+    for (const it of sched) if (it.t >= nx.t && BUF[it.k]) for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: it.t - nx.t + (vo.dt || 0) })); if (o) o.voice = true; }
+    for (const [n, at, op] of beat.sfx || []) if (at >= nx.t && n !== 'knock' && n !== 'glass_tap' && !(n === 'static' && !burstOf(op))) play(n, Object.assign({ when: at - nx.t }, op));
+    lastSubKey = ''; return;
+  }
   for (const e of trig) if (!e.done && !e.carry && e.at > t) e.done = true;   // отложенные звуки кадра больше не нужны (смс покажем сразу)
   for (const m of [].concat(beat.sms || [])) if ((m.at ?? .5) > t) showSms(m);
   bT0 = now() - bDur;                                        // сразу к концу кадра (реплика показана целиком)
@@ -1410,14 +1421,14 @@ function fitHd(host) {   // заголовок экрана настроек —
 const gpuName = () => { const g = window.__W3core && window.__W3core.GPU; return FINE && g && g.name ? '<br>GPU: ' + g.name.replace(/[<>&"]/g, '') : ''; };
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const resNow = () => +LS.get('res', 0) || 0, resList = () => [0, .5, .75, 1].concat(window.World && World.ultra ? [1.5, 2] : []);   // «Разрешение»: авто или доля; 150–200 % — суперсэмплинг «Ультра»
-  const gfxNow = () => { const W = window.World || {}; return W.ultra ? 'ultra' : W.cine ? 'cine' : 'retro'; };
+  const gfxNow = () => { const W = window.World || {}; return W.cine ? 'cine' : 'retro'; };
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
     ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
-    <button class="set" id="sGfx"><span>${tr('Графика')}</span><b class="gfx">${['retro', 'cine'].concat(FINE ? ['ultra'] : []).map(g => `<i data-g="${g}" class="${g === gfxNow() ? 'on' : ''}">${tr({ retro: 'РЕТРО', cine: 'КИНО', ultra: 'УЛЬТРА' }[g])}</i>`).join('')}</b></button>
+    <button class="set" id="sGfx"><span>${tr('Графика')}</span><b class="gfx">${['retro', 'cine'].map(g => `<i data-g="${g}" class="${g === gfxNow() ? 'on' : ''}">${tr({ retro: 'РЕТРО', cine: 'КИНО', ultra: 'УЛЬТРА' }[g])}</i>`).join('')}</b></button>
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
     <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки'], ['amb', 'Дождь и фон']].map(([k, n]) => `<div class="vol ${k}"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}" aria-label="${tr(n)}"><b>${Math.round(VOL[k] * 100)}</b>${k === 'all' ? `<button class="mute${LS.get('mute', false) ? ' muted' : ''}" id="sMute" aria-label="${tr('Звук')}">${ICON.snd}</button>` : ''}</div>`).join('')}</div>
     ${window.World && World.cine ? `<button class="set wide" id="sRes"><span>${tr('Разрешение')}</span><b class="gfx">${resList().map(v => `<i data-r="${v}" class="${v === resNow() ? 'on' : ''}">${v ? Math.round(v * 100) + '%' : tr('АВТО')}</i>`).join('')}</b></button>` : ''}
@@ -1439,7 +1450,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
   if ($('sRes')) $('sRes').onclick = e => { const r = e && e.target && e.target.dataset ? e.target.dataset.r : null, L = resList(), cur = resNow(), nx = r != null ? +r : L[(L.indexOf(cur) + 1) % L.length]; if (nx === cur) return; LS.set('res', nx); reloadKeep(from); };
   $('sGfx').onclick = e => { const W = window.World || {}, pick = e && e.target && e.target.dataset ? e.target.dataset.g : null; if (pick && pick === gfxNow()) return;   // выбор виден сразу: тап по слову — этот вид; Enter/кнопка пульта — следующий по кругу
-    LS.set('gfx', pick || (W.ultra ? 'retro' : W.cine ? (FINE ? 'ultra' : 'retro') : 'cine')); LS.set('gfxAuto', 2); reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
+    LS.set('gfx', pick || (W.cine ? 'retro' : 'cine')); LS.set('gfxAuto', 2); try { localStorage.removeItem('ns1_hq'); } catch (e) {} reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };

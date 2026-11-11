@@ -953,8 +953,8 @@ function propMesh(name) {
     const fl = new T.Mesh(new T.ConeGeometry(.005, .022, 8), new T.MeshBasicMaterial({ color: 0xffc060, transparent: true, opacity: .85, blending: T.AdditiveBlending, depthWrite: false }));
     fl.position.y = .05; g.add(fl); g.userData.flame = fl;
   } else if (name === 'mop') {
-    const al = mat(0x9aa0a8, null, { metal: .8, rough: .35 }), pl = mat(0x2a3a7a, null, { rough: .6 });
-    cyl(.012, .012, 1.56, 8, al, g).position.y = .80; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.52;   // черенок 1,6 м (промышленная швабра: руки уборщика в мокапе — на длинном черенке) и ручка
+    const al = mat(0x8a2a22, null, { metal: .15, rough: .5 }), pl = mat(0x2a3a7a, null, { rough: .6 });   // черенок толще и красный: на камере 07 серый 12-мм алюминий сливался с плиткой — «Гас машет пустыми руками» (фото владельца, 11 ноя)
+    cyl(.019, .019, 1.56, 10, al, g).position.y = .80; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.52;   // черенок 1,6 м (промышленная швабра: руки уборщика в мокапе — на длинном черенке) и ручка
     cyl(.02, .02, .07, 6, pl, g).position.y = .09;                                                                                     // втулка шарнира
     // колодка с тряпкой — на шарнире (как у настоящей плоской швабры): лежит на полу ровно, наклоняется только черенок (propAim).
     // Раньше колодка наклонялась вместе с черенком и край её с тряпкой уходил в пол на 9–15 см
