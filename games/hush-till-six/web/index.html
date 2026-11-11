@@ -461,6 +461,14 @@ body.eyecur #eyecur { opacity: 1; }
 #eyecur.hot .iris { transform: scale(1.28); } #eyecur.hot .rim { stroke: #fff; }
 #eyecur.dn .iris { transform: scale(.6); } #eyecur.dn .lid { animation: none; transform: scaleY(.55); }
 @keyframes eyeblink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } 97% { transform: scaleY(1); } }
+/* экран смерти: кровавая виньетка «дышит», заголовок вползает с дрожью и расслоением цвета */
+.screen.over { background: radial-gradient(ellipse at 50% 46%, rgba(40,0,3,.5) 0%, rgba(14,0,1,.86) 55%, rgba(0,0,0,.97) 100%); }
+.screen.over::before { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 calc(34 * var(--u)) calc(6 * var(--u)) rgba(150,0,10,.55); animation: overpulse 1.9s ease-in-out infinite; }
+.screen.over h1 { letter-spacing: calc(1.4 * var(--u)); text-shadow: calc(.5 * var(--u)) 0 0 rgba(255,0,30,.55), calc(-.5 * var(--u)) 0 0 rgba(0,200,255,.22), 0 0 calc(6 * var(--u)) rgba(255,20,30,.6); animation: overin 2.4s cubic-bezier(.1,.7,.2,1) both, overjit 3.7s steps(1) 2.4s infinite; }
+@keyframes overpulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes overin { 0% { opacity: 0; transform: scale(1.5); letter-spacing: calc(5 * var(--u)); filter: blur(calc(1.2 * var(--u))); } 60% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes overjit { 0%, 100% { transform: translate(0, 0); } 3% { transform: translate(calc(-.6 * var(--u)), calc(.2 * var(--u))) skewX(-4deg); } 5% { transform: translate(calc(.5 * var(--u)), 0); } 7% { transform: translate(0, 0); } 61% { transform: translate(calc(.4 * var(--u)), calc(-.2 * var(--u))) skewX(3deg); opacity: .7; } 63% { transform: translate(0, 0); opacity: 1; } }
+body.calm .screen.over h1 { animation: overin 2.4s both; }
 </style>
 </head>
 <body>
