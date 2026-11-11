@@ -1,7 +1,7 @@
 class_name FX
 extends RefCounted
 ## Анимации LANTERN: переходы, нажатия, появление списков, счётчики, искры, «скелетоны».
-## Все длительности 150–350 мс, только Tween (дёшево и на слабых телефонах).
+## Все длительности 150–250 мс, одна кривая (CUBIC, EASE_OUT), без «пружин»; только Tween (дёшево и на слабых телефонах).
 ## «Меньше анимаций» в настройках и автотесты (без --anim=1) — всё мгновенно.
 
 static func on() -> bool:
@@ -27,7 +27,7 @@ static func press(c: Control, k := 0.96) -> void:
 				if c is BaseButton and not (c as BaseButton).disabled:
 					ripple(c, e.position)
 			else:
-				tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE, 0.28))
+				tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE, 0.16))
 
 
 class Ripple extends Control:
@@ -51,14 +51,14 @@ static func ripple(c: Control, at: Vector2) -> void:
 	c.add_child(rp)
 	var maxr := Vector2(maxf(at.x, c.size.x - at.x), maxf(at.y, c.size.y - at.y)).length()
 	var tw := rp.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_method(func(v): rp.r = v; rp.queue_redraw(), 6.0, maxr, 0.38)
-	tw.tween_method(func(v): rp.a = v; rp.queue_redraw(), 0.16, 0.0, 0.45).set_delay(0.08)
+	tw.tween_method(func(v): rp.r = v; rp.queue_redraw(), 6.0, maxr, 0.28)
+	tw.tween_method(func(v): rp.a = v; rp.queue_redraw(), 0.16, 0.0, 0.3).set_delay(0.06)
 	tw.chain().tween_callback(rp.queue_free)
 
 
 ## Появление: проявление + лёгкое «всплытие» (масштаб от точки сбоку/снизу).
 ## Позицию не трогаем: ею управляют контейнеры, и сдвиг ломал бы раскладку.
-static func enter(c: Control, from := Vector2(0, 12), delay := 0.0, dur := 0.26) -> void:
+static func enter(c: Control, from := Vector2(0, 12), delay := 0.0, dur := 0.22) -> void:
 	if not on():
 		return
 	c.modulate.a = 0.0
@@ -75,17 +75,18 @@ static func enter(c: Control, from := Vector2(0, 12), delay := 0.0, dur := 0.26)
 			px = c.size.x * 1.4
 		c.pivot_offset = Vector2(px, py)).set_delay(delay)
 	tw.tween_property(c, "modulate:a", 1.0, dur * 0.8).set_delay(delay)
-	tw.tween_property(c, "scale", Vector2.ONE, dur).set_delay(delay).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(c, "scale", Vector2.ONE, dur).set_delay(delay)
 
 
-## Элементы списка появляются по очереди (35 мс шаг).
-static func stagger(box: Container, step := 0.035, from := Vector2(0, 14), max_items := 14) -> void:
+## Элементы списка появляются по очереди (шаг до 25 мс, не дольше 8 шагов — весь список виден за ~0,4 с).
+static func stagger(box: Container, step := 0.035, from := Vector2(0, 14), max_items := 8) -> void:
+	step = minf(step, 0.025)
 	if not on():
 		return
 	var i := 0
 	for ch in box.get_children():
 		if ch is Control and (ch as Control).visible:
-			enter(ch, from, minf(i, max_items) * step, 0.28)
+			enter(ch, from, minf(i, max_items) * step, 0.22)
 			i += 1
 
 

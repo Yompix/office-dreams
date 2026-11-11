@@ -21,6 +21,8 @@ static func billing_available() -> bool:
 
 
 static func init_billing() -> void:
+	if not Cfg.paid():
+		return
 	if not billing_available() or _billing != null:
 		return
 	_billing = Engine.get_singleton("GodotGooglePlayBilling")
@@ -37,6 +39,8 @@ static func init_billing() -> void:
 
 
 static func buy(product: String) -> void:
+	if not Cfg.paid():
+		return
 	if _billing == null or not prices.has(product):
 		Social.notice.emit({"kind": "info", "text": "Покупки скоро — пока работает ДЕМО-режим (Настройки → Тест покупок и рекламы)"})
 		return
@@ -58,6 +62,8 @@ static func ads_config() -> Dictionary:
 
 ## Реклама за награду: ДЕМО — экран «Тестовая реклама»; при настроенном AdMob — настоящий ролик.
 static func show_rewarded(app: Control) -> void:
+	if not Cfg.paid():
+		return
 	if Social.demo or not Engine.has_singleton("PoingGodotAdMob") or not ads_config().enabled:
 		Overlays.ad(app, true)
 		return
@@ -67,6 +73,8 @@ static func show_rewarded(app: Control) -> void:
 
 ## Межстраничная — только после выхода из мира и никогда у Pro.
 static func show_interstitial(app: Control) -> void:
+	if not Cfg.paid():
+		return
 	if Social.eco.get("pro", false):
 		return
 	if Social.demo:

@@ -32,6 +32,12 @@ var _own_alive := -1
 var _doc_box: VBoxContainer
 var _fix_panel: PanelContainer
 var _fix_list: VBoxContainer
+var _live: PanelContainer        # «Друзья могут зайти прямо сейчас ✓» / «Мир не виден друзьям»
+var _live_lbl: Label
+var _live_why: Label
+var _live_dot: Panel
+var _admin: VBoxContainer        # кто в мире: выгнать / забанить, «Кто может зайти», закрытый вход
+var _admin_key := ""
 
 const STATES := {
 	"installing": ["Готовим сервер", UI.YELLOW],
@@ -62,13 +68,14 @@ func _ready() -> void:
 		right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		add_child(right)
 
+	left.add_child(_live_card())
 	# --- состояние сервера
 	var head := UI.panel(18)
 	var hv := UI.vbox(10)
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.texture("res://assets/img/mini_grass.png" if s.edition == "java" else "res://assets/img/mini_stone.png", 44, 44))
+	hr.add_child(UI.icon_tile("java" if s.edition == "java" else "phone", UI.JAVA if s.edition == "java" else UI.BEDROCK, 44, 22))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(s.opts.get("world", "Мир"), 19, UI.TEXT, UI.font_black)
@@ -105,6 +112,7 @@ func _ready() -> void:
 	_players_box = UI.flow(8)
 	pv.add_child(_players_box)
 	left.add_child(pp)
+	left.add_child(_admin_card())
 	_fix_panel = UI.panel(18)
 	var fv := UI.vbox(10)
 	_fix_panel.add_child(fv)
@@ -189,8 +197,107 @@ func _ready() -> void:
 	_on_state(s.state)
 	_on_players(s.players)
 	_refresh_relay()
+	app.room.changed.connect(_refresh_admin)
+	right.add_child(Report.button(app, "host"))
 	FX.stagger(left, 0.05)
 
+
+## Большая живая строка: могут ли друзья зайти прямо сейчас.
+func _live_card() -> PanelContainer:
+	_live = UI.panel(16)
+	var r := UI.hbox(12)
+	_live.add_child(r)
+	_live_dot = Panel.new()
+	_live_dot.custom_minimum_size = Vector2(16, 16)
+	_live_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.add_child(_live_dot)
+	var v := UI.vbox(2)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_live_lbl = UI.label("…", 19, UI.TEXT, UI.font_black)
+	_live_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_live_lbl)
+	_live_why = UI.para("", 13, UI.MUTED)
+	v.add_child(_live_why)
+	r.add_child(v)
+	return _live
+
+
+func _refresh_live() -> void:
+	if _live == null:
+		return
+	var st: Dictionary = app.room.status()
+	var col: Color = UI.JAVA if st.ok else (UI.YELLOW if st.get("wait", false) else UI.RED)
+	_live_lbl.text = String(st.text)
+	_live_lbl.add_theme_color_override("font_color", col.lightened(0.25))
+	_live_dot.add_theme_stylebox_override("panel", UI.box(col, 99))
+	_live.add_theme_stylebox_override("panel", UI.box(Color(col, 0.12), UI.R_L, 16, Color(col, 0.45), 1))
+	var why := String(st.why)
+	if st.ok:
+		why = "Даже пока вы в Minecraft. Не закрывайте игру и LANTERN." if Cfg.mobile() else "В игре нажмите Esc — и кликните по окошку LANTERN, чтобы увидеть, кто зашёл."
+	_live_why.text = why
+
+
+## Кто в мире (аккаунт LANTERN и ник в Minecraft), «Выгнать» / «Забанить», «Кто может зайти», закрытый вход.
+func _admin_card() -> PanelContainer:
+	var p := UI.panel(18)
+	_admin = UI.vbox(10)
+	p.add_child(_admin)
+	_refresh_admin()
+	return p
+
+
+func _refresh_admin() -> void:
+	if _admin == null or not is_inside_tree():
+		return
+	var peers: Array = app.room.peers()
+	var bans: Array = RoomControl.bans()
+	var key := "%s|%s|%s|%s" % [JSON.stringify(peers), JSON.stringify(bans), app.room.is_public(), Cfg.get_value("host", "mini", true)]
+	if key == _admin_key:
+		return
+	_admin_key = key
+	for c in _admin.get_children():
+		c.queue_free()
+	_admin.add_child(UI.label("Кто может зайти", 15, UI.TEXT, UI.font_bold))
+	var seg := UI.segmented([["friends", "Друзья по коду"], ["all", "Все в LANTERN"]], "all" if app.room.is_public() else "friends", func(k):
+		app.room.set_public(k == "all"))
+	_admin.add_child(seg)
+	_admin.add_child(UI.para("Мир виден в «Открытых мирах» на главной у всех — зайти можно в один клик." if app.room.is_public() else "Зайдут только те, кому вы дали код.", 13, UI.MUTED))
+	_admin.add_child(UI.label("Игроки из LANTERN: %d" % peers.size(), 15, UI.TEXT, UI.font_bold))
+	if peers.is_empty():
+		_admin.add_child(UI.label("Пока никто не зашёл", 14, UI.DIM))
+	for pe in peers:
+		var r := UI.hbox(8)
+		var nm := String(pe.name) + (" · в Minecraft: " + String(pe.mc) if String(pe.mc) != "" else "")
+		var l := UI.label(nm, 15, UI.TEXT)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		r.add_child(l)
+		var pid := String(pe.peer)
+		r.add_child(UI.button("Выгнать", "ghost", func(): app.room.kick(pid)))
+		r.add_child(UI.button("Забанить", "danger", func(): app.room.ban(pid)))
+		_admin.add_child(r)
+	if not bans.is_empty():
+		_admin.add_child(UI.label("Вход закрыт: %d" % bans.size(), 14, UI.MUTED, UI.font_bold))
+		for b in bans:
+			var r := UI.hbox(8)
+			var l := UI.label(String(b.get("tag", b.get("nick", "Игрок"))), 14, UI.MUTED)
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			r.add_child(l)
+			var bid := int(b.id)
+			r.add_child(UI.button("Пустить снова", "ghost", func(): app.room.unban(bid)))
+			_admin.add_child(r)
+	if not _own and app.server.edition == "java":
+		var nick := UI.line_edit(String(Cfg.get_value("host", "mc_nick", "")), "Ваш ник в Minecraft — станете оператором")
+		nick.text_changed.connect(func(t): Cfg.set_value("host", "mc_nick", t.strip_edges()))
+		_admin.add_child(nick)
+		_admin.add_child(UI.para("В игре: /kick и /ban работают сразу, а LANTERN пишет в чат, кто зашёл, и код для друзей.", 12, UI.DIM))
+	if not Cfg.mobile() and OS.get_name() != "Android":
+		_admin.add_child(UI.button(("✓ " if Cfg.get_value("host", "mini", true) else "") + "Окошко LANTERN поверх Minecraft", "ghost", func():
+			app.room.set_mini(not bool(Cfg.get_value("host", "mini", true)))
+			_admin_key = ""
+			_refresh_admin(), "desktop"))
+		_admin.add_child(UI.para("Окошко не видно поверх игры? Включите в Minecraft оконный режим без рамки (Java: F11 — выключить полный экран).", 12, UI.DIM))
 
 
 ## Карточка «Код для друзей»: плитки кода, QR, «Скопировать» и «Поделиться», живой счётчик друзей.
@@ -279,6 +386,12 @@ static func self_join_card(app, own: bool) -> Control:
 		return p
 	var s: ServerHost = app.server
 	if s.edition == "java":
+		var vt := UI.para(s.versions_text(), 13, UI.GREEN)
+		vt.visible = vt.text != ""
+		v.add_child(vt)
+		var upd := func(): vt.text = s.versions_text(); vt.visible = vt.text != ""
+		s.versions_changed.connect(upd)
+		vt.tree_exiting.connect(func(): if s.versions_changed.is_connected(upd): s.versions_changed.disconnect(upd))
 		var jp: int = s.java_port()
 		var addr := "localhost" if jp == 25565 else "localhost:%d" % jp
 		v.add_child(_self_row(app, "java", UI.JAVA, "Minecraft Java на этом компьютере", "«Сетевая игра» → «Прямое подключение» → адрес:", addr))
@@ -333,7 +446,7 @@ func _ready_own() -> void:
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.texture("res://assets/img/mini_stone.png" if bed else "res://assets/img/mini_grass.png", 44, 44))
+	hr.add_child(UI.icon_tile("phone" if bed else "java", UI.BEDROCK if bed else UI.JAVA, 44, 22))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(String(w.name), 19, UI.TEXT, UI.font_black)
@@ -349,6 +462,7 @@ func _ready_own() -> void:
 	hr.add_child(_state_pill)
 	_status = UI.para("", 14, UI.MUTED)
 	hv.add_child(_status)
+	left.add_child(_live_card())
 	left.add_child(head)
 	left.add_child(_make_code_card(compact))
 	left.add_child(_self_join_card())
@@ -361,6 +475,7 @@ func _ready_own() -> void:
 	_players_box = UI.flow(8)
 	pv.add_child(_players_box)
 	left.add_child(pp)
+	left.add_child(_admin_card())
 	# --- важно знать
 	var tp := UI.panel(18)
 	_tips = UI.vbox(12)
@@ -371,7 +486,7 @@ func _ready_own() -> void:
 	if bed:
 		_tips.add_child(_tip("phone", UI.BEDROCK, "Зайдут только друзья с Bedrock", "Телефон, планшет, Windows, консоли. Друзья с Java в этот мир зайти не смогут."))
 	else:
-		_tips.add_child(_tip("java", UI.JAVA, "Зайдут друзья с Java", "Если ваш Minecraft купленный, друзей с TLauncher игра не пустит. Для них нужен «Отдельный сервер»."))
+		_tips.add_child(_tip("java", UI.JAVA, "Зайдут друзья с Java", "Компьютер или ноутбук с Minecraft: Java Edition той же версии."))
 	if not Cfg.mobile():
 		_tips.add_child(_tip("server", UI.MUTED, "Мир открыт, пока открыт Minecraft", "Чтобы друзья играли без вас — запустите «Отдельный сервер»."))
 	right.add_child(tp)
@@ -387,8 +502,10 @@ func _ready_own() -> void:
 	br.add_child(_btns.other)
 	right.add_child(br)
 	app.own.changed.connect(_refresh_own)
+	app.room.changed.connect(_refresh_admin)
 	_refresh_own()
 	_refresh_relay()
+	right.add_child(Report.button(app, "own_world"))
 	FX.stagger(left, 0.05)
 
 
@@ -449,6 +566,7 @@ func _process(d: float) -> void:
 	if _tick > 0.4:
 		_tick = 0
 		_refresh_relay()
+		_refresh_live()
 		if _own:
 			_refresh_own()
 
@@ -469,6 +587,9 @@ func _on_progress(label: String, f: float) -> void:
 			_bar_lbl.text = "%s — %d%%" % [label, int(f * 100)]
 
 
+var _error_offered := false
+
+
 func _on_state(st: String) -> void:
 	var info: Array = STATES.get(st, ["", UI.MUTED])
 	var l: Label = _state_pill.get_meta("label")
@@ -485,8 +606,12 @@ func _on_state(st: String) -> void:
 	_btns.backup.disabled = busy
 	_btns.check.visible = st == "error"
 	if st == "error":
-		_status.text = "Что-то пошло не так: " + app.server.last_error
+		_status.text = "Что-то пошло не так: " + app.server.last_error + "\nНажмите «Запустить» ещё раз. Не помогло — «Сообщить о проблеме» ниже, мы разберёмся."
 		_status.add_theme_color_override("font_color", Color("ff9d9d"))
+		if not _error_offered:
+			_error_offered = true
+			if Cfg.autotest == "":
+				(func(): Report.dialog(app, "server_error", "Сервер остановился с ошибкой. Отправьте отчёт — это поможет нам быстро всё починить.")).call_deferred()
 	else:
 		_status.add_theme_color_override("font_color", UI.MUTED)
 	if st == "running":
@@ -610,6 +735,9 @@ func _refresh_relay() -> void:
 		_btns.qr.disabled = not shown
 	if shown:
 		_set_code(RoomCode.pretty(code))
+		var num := String(r.get("num", ""))
+		var q: String = RoomControl.QUALITY_TEXT.get(String(r.get("quality", "")), "")
+		_code_hint.text = ("Номер в списке «Игры»: № %s%s. " % [num, (" · " + q) if q != "" else ""] if num != "" else "") + "Друг вводит код или номер в «Зайти по коду» — мир сам появится у него в Minecraft."
 	elif starting:
 		_set_code("······")
 	if code != _last_code:
@@ -631,7 +759,7 @@ func _refresh_relay() -> void:
 			_relay_lbl.text = "открываем комнату…"
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
 		"reconnecting", "error":
-			_relay_lbl.text = "⚠ " + str(r.error)
+			_relay_lbl.text = "⚠ " + (("Мир в Minecraft найден (%s), но связь для друзей не открылась: " % ("новый Minecraft, NetherNet" if app.own.world.get("transport", "") == "nethernet" else "RakNet")) if _own and app.own.world.get("edition", "") == "bedrock" else "") + str(r.error)
 			_relay_lbl.add_theme_color_override("font_color", UI.YELLOW)
 		_:
 			_relay_lbl.text = "код появится после запуска" if starting else ""

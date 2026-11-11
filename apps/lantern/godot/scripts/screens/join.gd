@@ -22,13 +22,21 @@ var _step := 1
 var _next1: Button
 var _plays_box: VBoxContainer
 
-const PLAYS := [["java", "java", "Java Edition", "Minecraft на компьютере (лицензия или TLauncher)"], ["bedrock", "phone", "Bedrock Edition", "Телефон, планшет, Windows 10/11, консоли"], ["both", "globe", "Не знаю / оба", "Подключим и то, и другое — найдёте мир в любой версии"]]
+const PLAYS := [["java", "java", "Java", "Minecraft из лаунчера на ПК (Java Edition)"], ["bedrock", "phone", "Bedrock", "Minecraft из Microsoft Store на Windows 10/11"], ["both", "globe", "Не знаю", "Подключим оба — мир появится в любой версии"]]
 const STEP_NAMES := ["Код", "Ваша игра", "Играем"]
+
+
+var _password := ""
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 20)
-	_plays = arg.get("edition", Cfg.get_value("join", "plays", "both")) if arg is Dictionary else "both"
+	if arg is Dictionary:
+		_password = String(arg.get("password", ""))
+	# 1.6: на ПК спрашиваем один раз «На чём вы играете?» и запоминаем навсегда
+	_plays = String(Cfg.get_value("app", "play_on", ""))
+	if _plays == "":
+		_plays = "both"
 	if Cfg.mobile():
 		_plays = "bedrock"     # на телефоне только Bedrock — не спрашиваем
 	_steps_box = UI.vbox(0)
@@ -196,8 +204,9 @@ func _next_from_code() -> void:
 		return
 	if String(r.get("edition", "")) != "":
 		_plays = "both" if r.edition == "both" else _plays
-	if Cfg.mobile():
-		_plays = "bedrock"
+	if Cfg.mobile() or String(Cfg.get_value("app", "play_on", "")) != "":
+		if Cfg.mobile():
+			_plays = "bedrock"
 		_connect()
 		return
 	_goto(2)
@@ -219,11 +228,11 @@ func _qr_help() -> void:
 # ------------------------------------------------------------------ шаг 2: на чём играете
 func _page_plays(p: VBoxContainer) -> void:
 	p.add_child(UI.h2("На чём вы играете?"))
-	p.add_child(UI.para("Так мир появится в нужной версии Minecraft.", 15, UI.MUTED))
+	p.add_child(UI.para("Спросим один раз и запомним. Телефоны и консоли — это Bedrock, LANTERN на телефоне выберет его сам.", 15, UI.MUTED))
 	_plays_box = UI.vbox(10)
 	p.add_child(_plays_box)
 	_render_plays()
-	var go := UI.button("Подключиться", "primary", _connect, "play")
+	var go := UI.button("Подключиться", "primary", func(): Cfg.set_value("app", "play_on", _plays); _connect(), "play")
 	go.custom_minimum_size.y = 56
 	go.add_theme_font_size_override("font_size", 17)
 	p.add_child(go)
@@ -238,7 +247,7 @@ func _render_plays() -> void:
 		var col: Color = {"java": UI.JAVA, "bedrock": UI.BEDROCK, "both": UI.accent()}[it[0]]
 		_plays_box.add_child(UI.choice(it[1], col, it[2], it[3], _plays == it[0], func():
 			_plays = it[0]
-			Cfg.set_value("join", "plays", _plays)
+			Cfg.set_value("app", "play_on", _plays)
 			_render_plays()))
 
 
@@ -249,7 +258,7 @@ func _process(d: float) -> void:
 		return
 	_tick = 0
 	var st: Dictionary = app.relay_join.stats()
-	var key := "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
+	var key := "%s|%s|%s|%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol, st.get("nethernet", false), st.get("nn_error", ""), st.get("in_game", false)]
 	if _status_lbl and is_instance_valid(_status_lbl):
 		_traffic_lbl.text = "Передано: ↓ %s  ↑ %s · соединений: %d" % [_kb(st.rx), _kb(st.tx), st.streams]
 	if key != _shown_state and _shown_state != "":
@@ -294,6 +303,8 @@ func _connect() -> void:
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
 	app.relay_join.token = Social.token
+	app.relay_join.password = _password
+	app.relay_join.nn_port = int(Cfg.autotest_args.get("join_nn_port", NetherNet.PORT))
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
@@ -347,7 +358,7 @@ func _ring(icon: String, col: Color) -> Control:
 func _show_room() -> void:
 	_clear()
 	var st: Dictionary = app.relay_join.stats()
-	_shown_state = "%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol]
+	_shown_state = "%s|%s|%s|%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol, st.get("nethernet", false), st.get("nn_error", ""), st.get("in_game", false)]
 	var code := RoomCode.pretty(app.relay_join.code)
 	match st.state:
 		"connecting":
@@ -362,23 +373,51 @@ func _show_room() -> void:
 			_result.add_child(_disconnect_btn("Отмена"))
 			return
 		"error":
-			_result.add_child(_hero(_ring("close", UI.RED), "Не получилось подключиться", st.error, Color("ff9d9d")))
+			if String(st.get("error_code", "")) in ["need_password", "bad_password"]:
+				# игра с паролем: спросить прямо здесь и зайти снова
+				var locked: bool = st.error_code == "need_password"
+				_result.add_child(_hero(_ring("lock", UI.accent()), "Игра с паролем" if locked else "Неверный пароль", "Спросите пароль у хозяина игры", UI.MUTED))
+				var pw := UI.line_edit("", "Пароль")
+				pw.secret = true
+				pw.max_length = 32
+				_result.add_child(pw)
+				var go := func(): _password = pw.text; _connect()
+				pw.text_submitted.connect(func(_t): go.call())
+				_result.add_child(UI.button("Войти", "primary", go, "play"))
+				_result.add_child(UI.button("Назад", "secondary", func(): app.relay_join.stop(); app.go("home", true)))
+				pw.grab_focus.call_deferred()
+				return
+			_result.add_child(_hero(_ring("close", UI.RED), "Не получилось подключиться", _human_error(st), Color("ff9d9d")))
 			_result.add_child(UI.button("Попробовать ещё раз", "primary", _connect, "refresh"))
 			_result.add_child(UI.button("Изменить код", "secondary", func(): app.relay_join.stop(); _goto(1)))
+			if not String(st.get("error_code", "")) in ["not_found", "full", "kicked", "banned_by_host"]:
+				_result.add_child(Report.button(app, "join_error"))
 			return
 		"online":
 			pass
 		_:
-			_result.add_child(_hero(_ring("wifi", UI.MUTED), "Вы отключились", "Можно зайти снова по тому же коду", UI.MUTED))
-			_result.add_child(UI.button("Подключиться снова", "primary", _connect, "refresh"))
-			_result.add_child(UI.button("Другой код", "secondary", func(): _goto(1)))
-			return
-	# --- в мире
+			if st.state == "reconnecting":
+				pass
+			else:
+				_result.add_child(_hero(_ring("wifi", UI.MUTED), "Вы отключились", "Можно зайти снова по тому же коду", UI.MUTED))
+				_result.add_child(UI.button("Подключиться снова", "primary", _connect, "refresh"))
+				_result.add_child(UI.button("Другой код", "secondary", func(): _goto(1)))
+				return
+	# --- в мире (1.6: один понятный экран — статус и 2–3 больших шага)
 	var ok: bool = st.host
-	var top := UI.panel(20, Color("17241c") if ok else Color("2a2414"))
+	var recon: bool = st.state == "reconnecting"
+	var in_game: bool = st.get("in_game", false)
+	var top := UI.panel(20, Color("17241c") if ok and not recon else Color("2a2414"))
 	var tv := UI.vbox(14)
 	top.add_child(tv)
-	tv.add_child(_hero(_ring("check" if ok else "refresh", UI.JAVA if ok else UI.YELLOW), "Мир «%s» уже в вашем Minecraft!" % st.name if ok else "Друг временно отключился…", "Комната %s" % code if ok else "Сервер друга перезапускается или пропал интернет. Мир вернётся сам — ничего делать не нужно.", UI.MUTED))
+	if recon:
+		tv.add_child(_hero(_ring("refresh", UI.YELLOW), "Связь прервалась — восстанавливаем…", "Не выходите из игры: если связь вернётся за полминуты, Minecraft даже не заметит.", UI.MUTED))
+	elif not ok:
+		tv.add_child(_hero(_ring("refresh", UI.YELLOW), "Друг временно отключился…", "Сервер друга перезапускается или пропал интернет. Мир вернётся сам — ничего делать не нужно.", UI.MUTED))
+	elif in_game:
+		tv.add_child(_hero(_ring("check", UI.JAVA), "Вы в игре ✓", "Мир «%s» · комната %s" % [st.name, code], UI.MUTED))
+	else:
+		tv.add_child(_hero(_ring("play", UI.accent()), "Ждём, когда вы зайдёте…", "Мир «%s» уже виден в вашем Minecraft — сделайте шаги ниже." % st.name, UI.MUTED))
 	var acts := UI.hbox(8)
 	if Social.online():
 		var like := UI.button("Нравится", "tonal", func(): app.relay_join.like(); app.toast("Спасибо! Хозяин мира получит ♥", UI.accent()), "heart")
@@ -389,38 +428,42 @@ func _show_room() -> void:
 	acts.add_child(dc)
 	tv.add_child(acts)
 	_result.add_child(top)
-	if ok and FX.on():
+	if ok and in_game and FX.on():
 		top.create_tween().tween_callback(func(): FX.burst(app, top.get_global_rect().get_center() - Vector2(0, top.size.y * 0.2) - app.global_position, 28))
 	var ed: String = st.edition
 	var java_on: bool = st.java_port > 0
-	var bed_on: bool = st.bedrock_port > 0
-	if java_on or bed_on:
-		_result.add_child(UI.section("Где найти мир в игре"))
-	if java_on:
-		_result.add_child(_edition_block("Java Edition", UI.JAVA, [
-			["Откройте Minecraft Java", "Главное меню", ""],
-			["Нажмите", "", "Сетевая игра"],
-			["Внизу списка — «%s»" % st.name, "Выберите и нажмите «Подключиться»", ""],
-		], "Если не видно: «Добавить сервер», адрес", "127.0.0.1:%d" % st.java_port, ""))
-	if bed_on and st.state == "online":
-		var om := UI.button("Открыть Minecraft", "primary", OwnWorld.open_minecraft, "play")
-		om.custom_minimum_size.y = 52
-		_result.add_child(om)
-	if bed_on:
-		_result.add_child(_edition_block("Bedrock Edition" + (" · сервер друга отвечает" if st.pong else " · ждём ответ…"), UI.BEDROCK, [
-			["Откройте Minecraft", "На телефоне, планшете или ПК", ""],
-			["Нажмите", "", "Играть → Друзья"],
-			["Раздел «Игры по сети рядом»", "Там появится мир друга — нажмите на него", ""],
-		], "Если не видно: «Серверы» → «Добавить сервер», адрес", "127.0.0.1:%d" % st.bedrock_port, "minecraft://?addExternalServer=%s|127.0.0.1:%d" % [String(st.name).replace("|", " "), st.bedrock_port]))
+	var bed_on: bool = st.bedrock_port > 0 or st.get("nethernet", false)
+	if not in_game and ok:
+		if java_on:
+			_result.add_child(_steps_card("Minecraft Java (лаунчер на ПК)", UI.JAVA, [
+				["Откройте Minecraft Java", "Любая версия от 1.8.9 до новейшей", ""],
+				["Нажмите «Сетевая игра»", "Внизу списка появится «%s» — выберите и нажмите «Подключиться»" % st.name, ""],
+				["Не видно мира?", "«Добавить сервер» → адрес ниже (уже можно скопировать)", "127.0.0.1:%d" % st.java_port],
+			], "" if Cfg.mobile() else "launcher"))
+		if bed_on:
+			var bport: int = st.bedrock_port if st.bedrock_port > 0 else 19132
+			var addr := "127.0.0.1:%d" % bport
+			if ed == "both":
+				# сервер LANTERN на ПК (Geyser): надёжнее всего через «Серверы» — кнопка сама добавит сервер в Minecraft
+				_result.add_child(_steps_card("Minecraft на телефоне, Windows или консоли", UI.BEDROCK, [
+					["Нажмите «Открыть Minecraft» ниже", "Minecraft сам добавит сервер «%s»" % st.name, ""],
+					["Играть → «Серверы» → «%s»" % st.name, "Он в самом низу списка серверов. Нажмите «Играть»", ""],
+					["Сервера нет в списке?", "«Добавить сервер»: адрес 127.0.0.1, порт %d. Или «Друзья» → «Игры по сети рядом»" % bport, addr],
+				], "bedrock_add", "minecraft://?addExternalServer=%s|%s" % [String(st.name).replace("|", " "), addr]))
+			else:
+				_result.add_child(_steps_card("Minecraft на телефоне, Windows или консоли", UI.BEDROCK, [
+					["Откройте Minecraft", "Нажмите большую кнопку ниже", ""],
+					["Играть → «Друзья»", "Внизу, в «Играх по сети рядом», — «%s». Нажмите на него" % st.name, ""],
+					["Не видно мира?", "«Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d" % bport, addr],
+				], "bedrock"))
 	if bed_on and String(st.host_version) != "":
 		_result.add_child(_version_hint(st))
-	if st.bedrock_error != "":
-		_result.add_child(UI.para("Bedrock: " + st.bedrock_error, 14, UI.YELLOW))
-	if st.java_error != "":
-		_result.add_child(UI.para("Java: " + st.java_error, 14, UI.YELLOW))
+	for e in [st.get("nn_error", ""), st.bedrock_error, st.java_error]:
+		if String(e) != "":
+			_result.add_child(UI.para(String(e), 14, UI.YELLOW))
 	if not java_on and not bed_on:
-		var need := "Java" if ed == "java" else "Bedrock"
-		_result.add_child(UI.para("Этот мир для %s. Выберите «%s» на шаге 2 и подключитесь снова." % [need, need], 15, UI.YELLOW))
+		var need := "Java (лаунчер на ПК)" if ed == "java" else "Bedrock (Minecraft из Microsoft Store, телефон, консоль)"
+		_result.add_child(UI.para("Этот мир для Minecraft %s. Выберите его и подключитесь снова." % need, 15, UI.YELLOW))
 		_result.add_child(UI.button("Выбрать игру", "secondary", func(): _goto(2)))
 	if Social.online():
 		if Social.room_code != app.relay_join.code:
@@ -439,17 +482,34 @@ func _show_room() -> void:
 	_traffic_lbl = UI.label("", 12, UI.DIM)
 	foot.add_child(_traffic_lbl)
 	_result.add_child(foot)
+	if not Cfg.mobile():
+		_result.add_child(UI.button("Играю на другом Minecraft — сменить", "ghost", func(): Cfg.set_value("app", "play_on", ""); app.relay_join.stop(); _goto(2)))
+	var rb := Report.button(app, "join")
+	rb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_result.add_child(rb)
+
+
+## Номера протокола Bedrock → версия игры (для подсказки «у тебя 1.21.110»). Неизвестный номер — без названия.
+const BEDROCK_PROTOCOLS := {766: "1.21.50", 776: "1.21.60", 786: "1.21.70", 800: "1.21.80", 818: "1.21.90", 819: "1.21.93",
+	827: "1.21.100", 844: "1.21.110", 859: "1.21.120", 860: "1.21.124"}
 
 
 ## Bedrock: телефон, Windows и консоли играют вместе, только если версия Minecraft у всех одинаковая.
+## Сервер с Geyser («both») пускает целый диапазон версий — там разница не страшна.
 static func version_text(st: Dictionary) -> Array:
 	var hv := String(st.get("host_version", ""))
 	var hp := int(st.get("host_protocol", 0))
 	var cp := int(st.get("client_protocol", 0))
+	var mine := String(BEDROCK_PROTOCOLS.get(cp, ""))
+	if String(st.get("edition", "")) == "both":
+		if cp > 0 and hp > 0 and cp > hp:
+			return ["bad", "У вас Minecraft %sновее, чем знает сервер друга (до %s). Пусть хозяин перезапустит сервер в LANTERN — Geyser обновится сам." % [mine + " " if mine != "" else "", hv]]
+		return ["ok", "Сервер друга пускает телефоны и консоли с актуальной версией Minecraft (до %s)." % hv]
 	if cp > 0 and hp > 0 and cp != hp:
+		var yours := ("у вас " + mine) if mine != "" else "у вас другая версия"
 		if cp < hp:
-			return ["bad", "У вас Minecraft старее, чем мир друга (%s). Обновите Minecraft — у всех должна быть одна версия." % hv]
-		return ["bad", "У вас Minecraft новее, чем мир друга (%s). Пусть друг обновит Minecraft — у всех должна быть одна версия." % hv]
+			return ["bad", "У хозяина %s, %s — обновите Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
+		return ["bad", "У хозяина %s, %s — пусть хозяин обновит Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
 	return ["ok", "Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе)." % hv]
 
 
@@ -518,9 +578,10 @@ func _edition_block(title: String, color: Color, steps: Array, manual: String, a
 	var mv := UI.vbox(0)
 	mv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mv.add_child(UI.para(manual, 12, UI.MUTED))
-	mv.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
 	mr.add_child(mv)
-	mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "Копировать", UI.MUTED))
+	if addr != "":
+		mv.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
+		mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "Копировать", UI.MUTED))
 	v.add_child(mr)
 	if deeplink != "":
 		v.add_child(UI.button("Открыть в Minecraft", "tonal", func(): OS.shell_open(deeplink), "play"))
@@ -582,3 +643,54 @@ func _fill_recent() -> void:
 		trail.add_child(UI.icon_button("close", func(): Cfg.remove_recent(i); _fill_recent(), "Убрать из списка", UI.DIM))
 		var col := UI.BEDROCK if e.get("edition", "") == "bedrock" else UI.JAVA
 		_recent_box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 40, 20), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), trail))
+
+
+## Ошибка входа простыми словами: что случилось + что сделать.
+static func _human_error(st: Dictionary) -> String:
+	match String(st.get("error_code", "")):
+		"unreachable":
+			return "Нет связи с LANTERN. Проверьте интернет (Wi-Fi или мобильные данные) и нажмите «Попробовать ещё раз»."
+		"lost":
+			return "Интернет пропал надолго. Когда он вернётся — нажмите «Попробовать ещё раз», мир друга на месте."
+	var e := String(st.get("error", ""))
+	if e.begins_with("связь с сервером-посредником"):
+		return "Связь с LANTERN оборвалась. Проверьте интернет и нажмите «Попробовать ещё раз»."
+	if e.begins_with("сервер-посредник недоступен"):
+		return "Нет связи с LANTERN. Проверьте интернет и нажмите «Попробовать ещё раз»."
+	return e
+
+
+## Карточка «как зайти»: 2–3 больших пронумерованных шага и большая кнопка «Открыть Minecraft».
+func _steps_card(title: String, color: Color, steps: Array, open_kind: String, deeplink := "") -> Control:
+	var p := UI.panel(18)
+	var v := UI.vbox(14)
+	p.add_child(v)
+	v.add_child(UI.label(title, 17, color.lightened(0.25), UI.font_black))
+	var i := 0
+	for s in steps:
+		i += 1
+		var row: Control = app._num_row(str(i), s[0], s[1])
+		v.add_child(row)
+		if String(s[2]) != "":
+			var ar := UI.hbox(8)
+			var al := UI.label(String(s[2]), 18, UI.TEXT, UI.font_bold)
+			al.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			ar.add_child(UI.gap(36))
+			ar.add_child(al)
+			var addr := String(s[2])
+			ar.add_child(UI.button("Копировать", "tonal", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "copy"))
+			v.add_child(ar)
+	if open_kind == "bedrock_add":
+		var oa := UI.button("Открыть Minecraft", "primary", func():
+			AppLog.add("join", "кнопка «Открыть Minecraft» (добавить сервер)")
+			if OS.shell_open(deeplink) != OK:
+				OwnWorld.open_minecraft(), "play")
+		oa.custom_minimum_size.y = 56
+		oa.add_theme_font_size_override("font_size", 17)
+		v.add_child(oa)
+	if open_kind == "bedrock":
+		var om := UI.button("Открыть Minecraft", "primary", OwnWorld.open_minecraft, "play")
+		om.custom_minimum_size.y = 56
+		om.add_theme_font_size_override("font_size", 17)
+		v.add_child(om)
+	return p

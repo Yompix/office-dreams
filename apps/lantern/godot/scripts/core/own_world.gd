@@ -28,6 +28,9 @@ var _lan: PacketPeerUDP
 var _guid := 0
 var _t := 0.0
 var _bport := 19132
+var _nport := NetherNet.PORT
+var _nn_id := 0
+var probes := 0              # сколько раз уже искали (для подсказок на экране поиска)
 var _was_alive := true
 var _paused_at := 0
 
@@ -36,6 +39,8 @@ func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	_guid = (rng.randi() << 31) | rng.randi()
 	_bport = int(Cfg.autotest_args.get("own_bedrock_port", "19132"))
+	_nport = int(Cfg.autotest_args.get("own_nn_port", str(NetherNet.PORT)))
+	_nn_id = NetherNet.new_id()
 
 
 ## Java «Открыть для сети» есть только на ПК; на телефоне — только Bedrock.
@@ -136,6 +141,13 @@ func _send_pings() -> void:
 	# если игра слушает только адрес Wi-Fi — найдём её по широковещанию (ответ должен прийти с этого же устройства)
 	_udp.set_dest_address("255.255.255.255", _bport)
 	_udp.put_packet(pk)
+	# новые версии Bedrock (2025+) открывают мир по NetherNet: поиск на UDP 7551
+	var rq := NetherNet.request(_nn_id)
+	_udp.set_dest_address("127.0.0.1", _nport)
+	_udp.put_packet(rq)
+	_udp.set_dest_address("255.255.255.255", _nport)
+	_udp.put_packet(rq)
+	probes += 1
 
 
 func _read() -> bool:
@@ -148,6 +160,19 @@ func _read() -> bool:
 		var port := _udp.get_packet_port()
 		if not mine.has(ip):
 			continue    # мир на другом устройстве в той же сети — это не «мой мир»
+		if pk.size() >= 48 and pk[0] != 0x1C:
+			var nw := parse_nethernet(pk)
+			if nw.is_empty() or int(nw.nn_id) == _joiner_nn_id():
+				continue
+			nw.host = ip
+			nw.seen = now
+			dirty = dirty or not found.has(nw.key) or found[nw.key].players != nw.players
+			found[nw.key] = nw
+			if active and world.key == nw.key:
+				world.seen = now
+				world.players = nw.players
+				world.max = nw.max
+			continue
 		var w := parse_pong(pk)
 		if w.is_empty() or int(w.guid) == _joiner_guid():
 			continue
@@ -183,6 +208,10 @@ func _read() -> bool:
 	return dirty
 
 
+func _joiner_nn_id() -> int:
+	return int(app.relay_join.nn_id) if app and app.relay_join.stats().state == "online" else -1
+
+
 func _joiner_guid() -> int:
 	return int(app.relay_join._guid) if app and app.relay_join.stats().state == "online" else -1
 
@@ -202,7 +231,9 @@ func alive() -> bool:
 		return false
 	if world.get("manual", false) and _lan == null:
 		return true
-	return Time.get_ticks_msec() - int(world.get("seen", 0)) < FORGET_MS
+	# мост сам пингует мир Bedrock (в фоне на Android основной цикл стоит)
+	var seen := maxi(int(world.get("seen", 0)), app.relay_host.world_seen() if app else 0)
+	return Time.get_ticks_msec() - seen < FORGET_MS
 
 
 func start(w: Dictionary) -> void:
@@ -215,10 +246,18 @@ func start(w: Dictionary) -> void:
 	_open_sockets()
 	app.relay_host.local_host = String(w.get("host", "127.0.0.1"))
 	var jp := int(w.port) if w.edition == "java" else 25565
-	var bp := int(w.port) if w.edition == "bedrock" else 19132
+	var bp := int(w.port) if w.edition == "bedrock" and w.get("transport", "") != "nethernet" else 19132
+	app.relay_host.bedrock_nn_port = _nport
+	app.relay_host.probe_world = w.edition == "bedrock"
+	var mx := int(w.get("max", 0))
+	app.relay_host.public_card = {"title": String(w.name), "tags": [], "version": String(w.get("version", "")), "slots": mx if mx > 0 else 10}
+	app.relay_host.public_on = RoomControl.own_public_default()
 	app.relay_host.start(Cfg.relay_url(), w.edition, String(w.name), jp, bp, app.host_extra({"world": w.name}))
 	Cfg.set_value("own", "last_edition", w.edition)
+	if String(w.get("version", "")) != "":
+		Cfg.set_value("own", "last_version", "%s %s" % ["Bedrock" if w.edition == "bedrock" else "Java", w.version])
 	_keepalive(true)
+	app.room.room_opened()
 	app.update_presence()
 	changed.emit()
 
@@ -230,6 +269,7 @@ func stop() -> void:
 	app.relay_host.stop()
 	app.relay_host.local_host = "127.0.0.1"
 	_keepalive(false)
+	app.room.room_closed()
 	if not scanning:
 		_close_sockets()
 	app.update_presence()
@@ -250,7 +290,7 @@ func on_resume() -> void:
 	var st: Dictionary = app.relay_host.stats()
 	if st.state in ["off", "error"]:
 		app.relay_host.start(Cfg.relay_url(), world.edition, String(world.name), int(world.port) if world.edition == "java" else 25565,
-			int(world.port) if world.edition == "bedrock" else 19132, app.host_extra({"world": world.name}), true)
+			int(world.port) if world.edition == "bedrock" and world.get("transport", "") != "nethernet" else 19132, app.host_extra({"world": world.name}), true)
 	_keepalive(true)
 
 
@@ -270,7 +310,7 @@ func _keepalive(on: bool) -> void:
 		push_warning("LANTERN: нет службы " + ANDROID_SERVICE)
 		return
 	if on:
-		cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "LANTERN держит связь. Не закрывайте Minecraft и LANTERN.")
+		cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь.")
 	else:
 		cls.stop()
 
@@ -309,6 +349,20 @@ static func parse_pong(pk: PackedByteArray) -> Dictionary:
 	return {"edition": "bedrock", "name": name if name != "" else "Мир Bedrock", "host_name": f[1].strip_edges(),
 		"version": f[3], "players": int(f[4]), "max": int(f[5]), "mode": f[8] if f.size() > 8 else "",
 		"port": int(f[10]) if f.size() > 10 and f[10].is_valid_int() else 0, "motd": s, "guid": guid}
+
+
+## Ответ NetherNet на 7551 → мир (новые версии Bedrock). {} — не ответ на поиск.
+static func parse_nethernet(pk: PackedByteArray) -> Dictionary:
+	var d := NetherNet.decode(pk)
+	if d.is_empty() or d.id != NetherNet.ID_RESPONSE:
+		return {}
+	var sd := NetherNet.parse_server_data(d.appdata)
+	var name: String = sd.get("level", "").strip_edges()
+	if name == "":
+		name = String(sd.get("server", "")).strip_edges()
+	return {"edition": "bedrock", "transport": "nethernet", "key": "nethernet:%d" % int(d.sender), "nn_id": int(d.sender),
+		"name": name if name != "" else "Мир Bedrock", "host_name": String(sd.get("server", "")), "version": String(sd.get("version", "")),
+		"protocol": int(sd.get("protocol", 0)), "players": int(sd.get("players", -1)), "max": int(sd.get("max", 0)), "port": NetherNet.PORT, "motd": ""}
 
 
 ## «[MOTD]Стив - Мой мир[/MOTD][AD]54321[/AD]» → мир Java.

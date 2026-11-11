@@ -35,6 +35,7 @@ func run(a) -> void:
 		"proc": code = await _proc()
 		"syscheck": code = await _syscheck()
 		"phone": code = await _phone()
+		"touch": code = await _touch()
 		"tour": code = await _tour()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
@@ -62,6 +63,50 @@ func _shot(name: String) -> void:
 
 
 # ------------------------------------------------------------------ core
+## 1.5.1: Java для версии сервера, выбор ViaVersion, диапазон версий, разбор HTTP-входа Bedrock и подмена SDP.
+func _core_versions() -> int:
+	var fails := 0
+	var chk := func(name: String, got: Variant, want: Variant) -> int:
+		var ok: bool = got == want
+		_log(("ок: " if ok else "ОШИБКА: ") + "%s = %s%s" % [name, str(got), "" if ok else " (ждали %s)" % str(want)])
+		return 0 if ok else 1
+	fails += chk.call("java 1.8.8", ServerHost.java_for("1.8.8", 8), 8)
+	fails += chk.call("java 1.12.2", ServerHost.java_for("1.12.2", 8), 8)
+	fails += chk.call("java 1.16.5", ServerHost.java_for("1.16.5", 8), 11)
+	fails += chk.call("java 1.18.2", ServerHost.java_for("1.18.2", 17), 17)
+	fails += chk.call("java 1.20.1", ServerHost.java_for("1.20.1", 17), 17)
+	fails += chk.call("java 1.20.6", ServerHost.java_for("1.20.6", 21), 21)
+	fails += chk.call("java 26.3", ServerHost.java_for("26.3", 25), 25)
+	var list := [
+		{"version_number": "5.13.0-SNAPSHOT+9", "version_type": "beta", "game_versions": ["1.8", "26.4"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/b.jar", "hashes": {"sha1": "bb"}}]},
+		{"version_number": "5.12.2", "version_type": "release", "game_versions": ["1.8", "26.1.2", "26.3", "26.3-rc-1"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/a.jar", "hashes": {"sha1": "aa"}}]},
+		{"version_number": "4.10.2", "version_type": "release", "game_versions": ["1.8", "1.20.6", "1.9.4"], "files": [{"primary": true, "url": "https://cdn.modrinth.com/c.jar", "hashes": {"sha1": "cc"}}]},
+	]
+	fails += chk.call("via релиз", ServerHost.pick_via(list, "viaversion", 25).get("version"), "5.12.2")
+	fails += chk.call("via для Java 8", ServerHost.pick_via(list, "viaversion", 8).get("version"), "4.10.2")
+	fails += chk.call("via только бета", ServerHost.pick_via([list[0]], "viaversion", 25).get("version"), "5.13.0-SNAPSHOT+9")
+	var via := {"viaversion": ServerHost.pick_via(list, "viaversion", 25), "viabackwards": {}, "viarewind": {}}
+	fails += chk.call("диапазон с Via", ServerHost.java_range("26.3", via), ["1.8", "26.3"])
+	fails += chk.call("диапазон без Via", ServerHost.java_range("1.20.1", {}), ["1.20.1", "1.20.1"])
+	fails += chk.call("сравнение версий", ServerHost.ver_cmp("1.21.11", "26.3"), -1)
+	# HTTP-вход Bedrock: разбор запроса и ответа, подмена кандидатов в SDP на сокет моста
+	var rq := NetherNet.http_parse("POST /v1/join/123 HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nv=0\r\n".to_utf8_buffer())
+	fails += chk.call("HTTP запрос", [rq.get("line"), rq.get("headers", {}).get("host"), (rq.get("body", PackedByteArray()) as PackedByteArray).get_string_from_utf8()], ["POST /v1/join/123 HTTP/1.1", "x", "v=0\r\n"])
+	fails += chk.call("HTTP неполный", NetherNet.http_parse("POST / HTTP/1.1\r\nContent-Length: 9\r\n\r\nab".to_utf8_buffer()), {})
+	var ch := NetherNet.http_parse("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n2\r\nde\r\n0\r\n\r\n".to_utf8_buffer())
+	fails += chk.call("HTTP chunked", (ch.get("body", PackedByteArray()) as PackedByteArray).get_string_from_utf8(), "abcde")
+	var sess := NetherNet.new_session("123")
+	var sdp := "v=0\r\na=ice-ufrag:x\r\na=candidate:1 1 udp 2130706431 192.168.1.20 19134 typ host\r\na=candidate:2 1 udp 1694498815 203.0.113.5 19134 typ srflx raddr 0.0.0.0 rport 0\r\n"
+	var out := NetherNet.http_sdp_remote(sess, "CONNECTRESPONSE", sdp)
+	fails += chk.call("SDP: чужие кандидаты заменены", [out.contains("192.168.1.20"), out.contains("203.0.113.5"), out.contains("127.0.0.1 %d typ host" % sess.u.get_local_port()), out.contains("ice-ufrag:x")], [false, false, true, true])
+	NetherNet.http_sdp_local(sess, "CONNECTREQUEST", sdp)
+	fails += chk.call("SDP: свои кандидаты запомнены", sess.cands, [["192.168.1.20", 19134]])
+	NetherNet.close_session(sess)
+	var jv := preload("res://scripts/screens/join.gd")
+	fails += chk.call("версии Bedrock в подсказке", jv.version_text({"host_version": "1.21.120", "host_protocol": 859, "client_protocol": 844})[1].begins_with("У хозяина 1.21.120, у вас 1.21.110 — обновите Minecraft"), true)
+	return fails
+
+
 func _core() -> int:
 	var fails := 0
 	var out := Cfg.autotest_args.get("out", "/tmp/lantern-core")
@@ -87,6 +132,7 @@ func _core() -> int:
 		["2345", {"ok": false}],
 		["minecraft://?addExternalServer=Мир|a.b.c:1234", {"kind": "address", "address": "a.b.c:1234", "edition": "bedrock"}],
 	]
+	fails += _core_versions()
 	for c in cases:
 		var r := Invite.parse(c[0], "java")
 		var ok := true
@@ -171,8 +217,69 @@ func _core() -> int:
 	if props.get("max-players") != "7" or props.get("motd") != "\\u041c\\u0438\\u0440 Yompix":
 		_log("properties FAIL " + str(props))
 		fails += 1
+	fails += _core_16(out)
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
+
+
+## 1.6: журнал и отчёт без личного, Geyser с Floodgate, Via не пускает 1.7, поток с возобновлением.
+func _core_16(out: String) -> int:
+	var fails := 0
+	var dirty := "Authorization: XBL3.0 x=123;eyJabc password=кот token=\"abc\" a=ice-pwd:SECRET друг 95.31.2.7 лан 192.168.1.5 версия 1.21.130.1"
+	var clean := AppLog.scrub(dirty)
+	_log("scrub: " + clean)
+	for bad in ["x=123", "кот", "SECRET", "95.31.2.7", "\"abc\""]:
+		if clean.contains(bad):
+			_log("scrub FAIL: осталось " + bad)
+			fails += 1
+	if not clean.contains("192.168.1.5") or not clean.contains("1.21.130.1"):
+		_log("scrub FAIL: вырезано лишнее")
+		fails += 1
+	AppLog.add("test", "проверка отчёта token=zzz")
+	var rep := Report.collect(app, "test", "заметка")
+	if not String(rep.app_log).contains("проверка отчёта") or String(rep.app_log).contains("zzz") or String(rep.app).find(Cfg.APP_VERSION) < 0:
+		_log("report FAIL")
+		fails += 1
+	_log("отчёт: %d байт журнала, устройство %s" % [String(rep.app_log).length(), rep.device])
+	# Geyser: короткий файл до первого запуска и полный с auth-type: online → floodgate
+	var gc := out + "/geyser/config.yml"
+	DirAccess.remove_absolute(gc)
+	ServerHost._geyser_config(gc, true)
+	var g1 := FileAccess.get_file_as_string(gc)
+	FileAccess.open(gc, FileAccess.WRITE).store_string("bedrock:\n  port: 19132\n  transport: nethernet\njava:\n  # c\n  auth-type: online\nmotd:\n  x: 1\n")
+	ServerHost._geyser_config(gc, true)
+	var g2 := FileAccess.get_file_as_string(gc)
+	if not g1.contains("auth-type: floodgate") or not g2.contains("auth-type: floodgate") or g2.contains("auth-type: online") or not g2.contains("transport: both"):
+		_log("geyser config FAIL:\n" + g1 + "\n---\n" + g2)
+		fails += 1
+	DirAccess.make_dir_recursive_absolute(out + "/via")
+	DirAccess.remove_absolute(out + "/via/ViaVersion/config.yml")
+	ServerHost._via_config(out + "/via")
+	var v1 := FileAccess.get_file_as_string(out + "/via/ViaVersion/config.yml")
+	FileAccess.open(out + "/via/ViaVersion/config.yml", FileAccess.WRITE).store_string("a: 1\nblock-versions: []\nblock-disconnect-msg: You are using an unsupported Minecraft version!\nb: 2\n")
+	ServerHost._via_config(out + "/via")
+	var v2 := FileAccess.get_file_as_string(out + "/via/ViaVersion/config.yml")
+	if not v1.contains("\"<1.8\"") or not v2.contains("block-versions: [\"<1.8\"]") or not v2.contains("1.8.9") or not v2.contains("b: 2"):
+		_log("via config FAIL:\n" + v1 + "\n---\n" + v2)
+		fails += 1
+	# поток: отправили 10 байт, подтверждено 4, на той стороне 6 → досылаем 4 последних
+	var s := {}
+	RelStream.init(s, true)
+	RelStream.on_sent(s, "0123456789".to_utf8_buffer())
+	RelStream.on_ack(s, 4)
+	if s.buf.get_string_from_utf8() != "456789":
+		_log("relstream ack FAIL " + s.buf.get_string_from_utf8())
+		fails += 1
+	var fake := RelayLink.new()
+	if not RelStream.replay(fake, 1, s, 6) or s.buf.get_string_from_utf8() != "6789" or RelStream.replay(fake, 1, s, 3):
+		_log("relstream replay FAIL")
+		fails += 1
+	var opts: Dictionary = load("res://scripts/screens/create.gd").universal_opts("Мир теста", "creative", 5, true)
+	if not opts.crossplay or opts.version != "latest" or opts.gamemode != "creative" or not opts.any_version:
+		_log("universal opts FAIL " + str(opts))
+		fails += 1
+	_log("1.6 core: FAILS=%d" % fails)
+	return fails
 
 
 # ------------------------------------------------------------------ скриншоты
@@ -188,6 +295,11 @@ func _screens() -> int:
 	await _shot("04_join")
 	app.go("settings", true)
 	await _shot("05_settings")
+	app.go("create", true)
+	await _shot("06_create")
+	Report.dialog(app, "test")
+	await _shot("07_report")
+	Overlays.close_sheet(app)
 	return 0
 
 
@@ -218,7 +330,7 @@ func _social() -> int:
 		Overlays.register(app)
 		await get_tree().create_timer(0.5).timeout
 		await _shot("20_register")
-		Social.register("Стив")
+		Social.register("Ночной_Лис")
 		await _wait(func(): return Social.online(), 10, "профиль создан")
 	await _close_overlays()
 	var tag_file := data.path_join("autotest-tag.txt")
@@ -345,7 +457,7 @@ func _host(ed: String) -> int:
 	await get_tree().create_timer(1.0).timeout
 	js = app.relay_join.stats()
 	await _shot("11_join_%s" % ed)
-	var ready := {"code": code, "edition": js.edition, "java_port": js.java_port, "bedrock_port": js.bedrock_port, "motd": js.motd, "name": js.name}
+	var ready := {"code": code, "edition": js.edition, "java_port": js.java_port, "bedrock_port": js.bedrock_port, "nethernet": js.nethernet, "nn_port": app.relay_join.nn_port, "motd": js.motd, "name": js.name}
 	var rf := FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE)
 	rf.store_string(JSON.stringify(ready))
 	rf.close()
@@ -434,7 +546,7 @@ func _phone() -> int:
 		Overlays.register(app)
 		await get_tree().create_timer(0.6).timeout
 		await _shot("50_phone_register")
-		Social.register("Стив")
+		Social.register("Ночной_Лис")
 		await _wait(func(): return Social.online(), 10, "профиль создан")
 	await _close_overlays()
 	var tag_file := data.path_join("autotest-tag.txt")
@@ -481,8 +593,8 @@ func _phone() -> int:
 	await _wait(func(): return Social.eco.get("pro", false), 5, "Pro (ДЕМО) активна")
 	Social.request("vanity_set", {"code": "yompix"})
 	await get_tree().create_timer(0.5).timeout
-	Social.request("vanity_set", {"code": "ste-ve"})
-	if not await _wait(func(): return Social.eco.get("vanity", "") == "STEVE", 5, "свой код STEVE"):
+	Social.request("vanity_set", {"code": "lu-na7"})
+	if not await _wait(func(): return Social.eco.get("vanity", "") == "LUNA7", 5, "свой код LUNA7"):
 		fails += 1
 	app.go("shop", true, {"kind": "pro"})
 	await get_tree().create_timer(1.0).timeout
@@ -543,6 +655,32 @@ func _phone() -> int:
 	if DeepLink.parse("lantern://friend?tag=x").kind != "" or DeepLink.parse("lantern://evil?c=ABC234").kind != "":
 		_log("FAIL: неверные ссылки приняты")
 		fails += 1
+	# --- «Создать игру» (кнопка «+»)
+	app._nav["play"].pressed.emit()
+	await get_tree().create_timer(0.8).timeout
+	if app.current != "create":
+		_log("FAIL: «+» не открыл «Создать игру»")
+		fails += 1
+	await _shot("62_phone_create")
+	# --- экранная клавиатура (имитация --kb=300): поле ввода видно над ней, меню спрятано
+	if Cfg.autotest_args.has("kb"):
+		app.go("friends", true)
+		await get_tree().create_timer(0.8).timeout
+		var fe: LineEdit = app._screen.get("_tag_in")
+		if fe:
+			fe.grab_focus()
+			await get_tree().create_timer(0.8).timeout
+			var vis := get_viewport().get_visible_rect().size.y - float(Cfg.autotest_args.kb)
+			_log("клавиатура: низ поля %.0f, верх клавиатуры %.0f, меню видно: %s" % [fe.get_global_rect().end.y, vis, app._nav_bar.visible])
+			if fe.get_global_rect().end.y > vis + 1.0 or app._nav_bar.visible:
+				_log("FAIL: поле под клавиатурой")
+				fails += 1
+			await _shot("61_phone_keyboard")
+			fe.release_focus()
+			await get_tree().create_timer(0.6).timeout
+			if not app._nav_bar.visible:
+				_log("FAIL: меню не вернулось после клавиатуры")
+				fails += 1
 	# --- меню «Ещё» и поворот
 	app.go("home", true)
 	await get_tree().create_timer(0.5).timeout
@@ -892,6 +1030,20 @@ func _ownworld() -> int:
 	if RelayJoin.client_protocol(frame) != 700:
 		_log("client_protocol FAIL %d" % RelayJoin.client_protocol(frame))
 		fails += 1
+	# NetherNet: шифрование туда-обратно, карточка мира, подмена ICE-кандидатов
+	var sdx := PackedByteArray([7, 3]) + "S1A".to_utf8_buffer() + PackedByteArray([0x80, 0x22, 6]) + "1.26.6".to_utf8_buffer() + PackedByteArray([3]) + "Wld".to_utf8_buffer() + PackedByteArray([2, 16, 2, 0, 0, 1, 1, 0, 8])
+	var nr := OwnWorld.parse_nethernet(NetherNet.response(42, sdx))
+	var nd := NetherNet.decode(NetherNet.message(1, 2, "CONNECTREQUEST 5 x"))
+	if nr.get("transport") != "nethernet" or nr.get("nn_id") != 42 or nr.get("version") != "1.26.6" or nr.get("name") != "Wld" or nr.get("players") != 1 or nd.get("text") != "CONNECTREQUEST 5 x" or nd.get("recipient") != 2:
+		_log("nethernet FAIL %s %s" % [nr, nd])
+		fails += 1
+	var ss := NetherNet.new_session("5")
+	var rw := NetherNet.remote_signal(ss, "CANDIDATEADD 5 candidate:1 1 udp 2130706431 10.1.2.3 19132 typ host generation 0 ufrag ab network-id 1 network-cost 0")
+	var rs := NetherNet.remote_signal(ss, "CANDIDATEADD 5 candidate:2 1 udp 1694498815 5.6.7.8 4444 typ srflx raddr 0.0.0.0 rport 0 generation 0")
+	if rw.is_empty() or not rw[0].contains(" %d typ host" % ss.u.get_local_port()) or rw[0].contains("10.1.2.3") or not rs.is_empty():
+		_log("nethernet ICE FAIL %s %s" % [rw, rs])
+		fails += 1
+	NetherNet.close_session(ss)
 	# --- 1. «Создать мир» → два способа
 	app.go("setup", true)
 	await _shot("60_own_step1")
@@ -902,6 +1054,12 @@ func _ownworld() -> int:
 		_log("FAIL: мир найден до запуска")
 		fails += 1
 	await _shot("61_own_help_bedrock")
+	if shots != "":
+		await get_tree().create_timer(6.5).timeout
+		await _shot("61c_own_check")
+		if scr._own_page._check.visible != true:
+			_log("FAIL: чек-лист «мир не найден» не показан")
+			fails += 1
 	if pc:
 		var pg = scr._own_page
 		pg._seg.get_meta("tabs")["java"].pressed.emit()
@@ -961,6 +1119,14 @@ func _ownworld() -> int:
 	await _shot("64_own_join_version")
 	if not await _wait(func(): return int(app.relay_host.stats().peers) >= 1, 10, "хозяин видит друга"):
 		fails += 1
+	# 1.4: relay сообщает, кто зашёл; статус «друзья могут зайти»; «Все в LANTERN» включено по умолчанию
+	if not await _wait(func(): return app.room.peers().size() >= 1, 10, "хозяин видит друга в списке игроков"):
+		fails += 1
+	if not await _wait(func(): return app.room.status().ok, 10, "статус «Друзья могут зайти прямо сейчас»"):
+		fails += 1
+	if not app.relay_host.public_on:
+		_log("FAIL: мир не открыт для всех в LANTERN по умолчанию")
+		fails += 1
 	app.go("host", true)
 	await get_tree().create_timer(1.0).timeout
 	await _shot("65_own_host_friend")
@@ -984,6 +1150,20 @@ func _ownworld() -> int:
 	if app.relay_host.stats().code != code:
 		_log("FAIL: код комнаты сменился после переподключения")
 		fails += 1
+	# 1.4: хозяин выгоняет друга → у друга «Хозяин мира закрыл вам вход»
+	if await _wait(func(): return app.room.peers().size() >= 1, 15, "друг снова в списке после переподключения"):
+		app.room.kick(String(app.room.peers()[0].peer))
+		if not await _wait(func(): return String(app.relay_join.stats().error).contains("закрыл вам вход"), 10, "друг видит «Хозяин мира закрыл вам вход»"):
+			_log("друг: " + str(app.relay_join.stats()))
+			fails += 1
+		if not await _wait(func(): return app.room.peers().is_empty(), 10, "после «Выгнать» список игроков пуст"):
+			fails += 1
+	else:
+		fails += 1
+	app.room.set_public(false)
+	if not await _wait(func(): return app.room.is_public() == false, 3, "«Только друзья» переключилось"):
+		fails += 1
+	app.room.set_public(true)
 	u.close()
 	app.relay_join.stop()
 	own.stop()
@@ -1067,7 +1247,12 @@ func _ownworld() -> int:
 	Cfg.set_value("own", "last_edition", "bedrock")
 	app.go("home", true)
 	await _shot("70_home_one_tap")
-	app.quick_host()
+	app.quick_host()   # 1.5: «+» → «Создать игру» → «Создать» → дальше всё само
+	await get_tree().create_timer(0.5).timeout
+	await _shot("70b_create_game")
+	if app.current == "create":
+		app._screen._kind = "own"   # 1.6: на ПК по умолчанию сервер для всех; свой мир — в «Ещё настройки»
+		app._screen._create()
 	if not await _wait(func(): return own.active and app.relay_host.stats().code != "", 15, "одна кнопка: комната открылась сама"):
 		fails += 1
 	await get_tree().create_timer(0.8).timeout
@@ -1091,9 +1276,11 @@ func _ownreal() -> int:
 	if not await _wait(func(): return app.relay_host.stats().code != "", 20, "комната открыта"):
 		return 1
 	app.go("join", true, {"input": RoomCode.pretty(app.relay_host.stats().code), "edition": "both"})
-	if not await _wait(func(): return app.relay_join.stats().pong, 20, "мир виден у друга (понг через relay)"):
+	if not await _wait(func(): return app.relay_join.stats().pong or app.relay_join.stats().nethernet, 20, "мир виден у друга (RakNet-понг или карточка NetherNet через relay)"):
 		return 1
 	var js: Dictionary = app.relay_join.stats()
+	_log("друг: " + JSON.stringify(js))
+	await _shot("70_ownreal_join")
 	var rf := FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE)
 	rf.store_string(JSON.stringify({"code": app.relay_host.stats().code, "edition": "bedrock", "java_port": 0, "bedrock_port": js.bedrock_port, "motd": js.motd, "name": js.name}))
 	rf.close()
@@ -1105,3 +1292,97 @@ func _ownreal() -> int:
 	app.relay_join.stop()
 	own.stop()
 	return 0 if res is Dictionary and res.get("ok", false) else 1
+
+
+# ------------------------------------------------------------------ 1.4: касания на телефоне (--phone=1)
+## Палец ведёт вверх, начав на кнопке: экран листается, кнопка НЕ срабатывает. Короткое касание — срабатывает.
+func _touch() -> int:
+	var fails := 0
+	Input.emulate_touch_from_mouse = true      # чтобы ScrollContainer считал устройство сенсорным (как телефон)
+	if get_window().size.y < 600:
+		get_window().size = Vector2i(412, 892)
+	await get_tree().create_timer(0.3).timeout
+	app.go("home")
+	await get_tree().create_timer(1.0).timeout
+	var sc = app._screen_root
+	# длинный список кнопок, как «Открытые миры» с десятками миров
+	var many := UI.vbox(8)
+	for i in 30:
+		many.add_child(UI.list_row(UI.icon_tile("globe", UI.JAVA, 44, 22), "Мир %d" % i, "Bedrock · 1/10", UI.button("Зайти", "primary", func(): pass)))
+	app._screen.add_child(many)
+	app._screen.move_child(many, 0)
+	await get_tree().create_timer(0.5).timeout
+	if not sc is ScrollContainer:
+		_log("FAIL: экран не прокручивается")
+		return 1
+	if (sc as ScrollContainer).horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+		_log("FAIL: экран листается вбок")
+		fails += 1
+	var btn: Button = null
+	for b in app._screen.find_children("*", "Button", true, false):
+		var r: Rect2 = (b as Control).get_global_rect()
+		if b.is_visible_in_tree() and not b.disabled and r.size.y > 30 and r.get_center().y > 200 and r.get_center().y < get_viewport().get_visible_rect().size.y - 200:
+			btn = b
+			break
+	if btn == null:
+		_log("FAIL: нет кнопки для проверки (экран %s, кнопок %d, высота прокрутки %d)" % [get_viewport().get_visible_rect().size, app._screen.find_children("*", "Button", true, false).size(), (sc as ScrollContainer).get_v_scroll_bar().max_value])
+		for b in app._screen.find_children("*", "Button", true, false):
+			_log("  %s %s %s" % [b.text, b.get_global_rect(), b.is_visible_in_tree()])
+		return 1
+	var fired := [0]
+	btn.pressed.connect(func(): fired[0] += 1)
+	var p := btn.get_global_rect().get_center()
+	var y0: int = sc.scroll_vertical
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.position = p
+	t.pressed = true
+	Input.parse_input_event(t)
+	await get_tree().process_frame
+	for i in 12:
+		var d := InputEventScreenDrag.new()
+		d.index = 0
+		d.position = p - Vector2(0, 20 * (i + 1))
+		d.relative = Vector2(0, -20)
+		Input.parse_input_event(d)
+		await get_tree().process_frame
+	t = t.duplicate()
+	t.position = p - Vector2(0, 240)
+	t.pressed = false
+	Input.parse_input_event(t)
+	await get_tree().create_timer(0.5).timeout
+	_log("прокрутка пальцем: %d → %d, нажатий кнопки «%s»: %d (сенсор %s, фильтр %d, макс %d)" % [y0, sc.scroll_vertical, btn.text, fired[0], DisplayServer.is_touchscreen_available(), btn.mouse_filter, sc.get_v_scroll_bar().max_value])
+	if sc.scroll_vertical <= y0:
+		_log("FAIL: палец, начавший на кнопке, не листает экран")
+		fails += 1
+	if fired[0] != 0:
+		_log("FAIL: кнопка сработала при прокрутке")
+		fails += 1
+	# короткое касание — нажатие
+	fired[0] = 0
+	await get_tree().create_timer(2.5).timeout     # инерция прокрутки затихла
+	var vh := get_viewport().get_visible_rect().size.y
+	for b in app._screen.find_children("*", "Button", true, false):
+		var r: Rect2 = (b as Control).get_global_rect()
+		if b.is_visible_in_tree() and (b as Button).text == "Зайти" and r.get_center().y > 150 and r.get_center().y < vh - 150:
+			btn = b
+			break
+	btn.pressed.connect(func(): fired[0] += 1)
+	p = btn.get_global_rect().get_center()
+	var t2 := InputEventScreenTouch.new()
+	t2.index = 0
+	t2.position = p
+	t2.pressed = true
+	Input.parse_input_event(t2)
+	await get_tree().process_frame
+	var t3 := t2.duplicate()
+	t3.pressed = false
+	Input.parse_input_event(t3)
+	await get_tree().create_timer(0.3).timeout
+	if fired[0] != 1:
+		_log("FAIL: короткое касание не нажало кнопку (%d)" % fired[0])
+		fails += 1
+	else:
+		_log("ок: касание нажимает, прокрутка — нет")
+	_log("FAILS=%d" % fails)
+	return 0 if fails == 0 else 1

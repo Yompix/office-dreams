@@ -2,7 +2,7 @@ class_name Doctor
 extends RefCounted
 ## «Доктор» сервера: по строкам журнала Paper/BDS узнаёт типичные беды и говорит, что делать — простыми словами.
 ## Что можно — ServerHost чинит сам (белый список, занятый порт, падение, память) и пишет в «Что LANTERN исправил сам».
-## Что требует решения хозяина — кнопка в одно нажатие на «Мой мир» (пускать TLauncher, разбанить, больше мест).
+## Что требует решения хозяина — кнопка в одно нажатие на «Мой мир» (разбанить, больше мест).
 ## Здесь только распознавание (чистые функции — их проверяет autotest core).
 
 static var _re_name := RegEx.create_from_string("name=([\\.\\w]{1,32})")
@@ -97,11 +97,11 @@ static func text(d: Dictionary, server_version := "") -> String:
 		v = server_version
 	match String(d.get("rule", "")):
 		"auth":
-			return "%s не может зайти: сервер пускает только купленный Minecraft, а у него, похоже, TLauncher." % who
+			return "%s не прошёл проверку аккаунта Microsoft: на сервер заходят только игроки со своим аккаунтом Minecraft." % who
 		"outdated_client":
-			return "%s пришёл со старой версией Minecraft. Сервер на версии %s — пусть выберет в TLauncher версию %s." % [who, v, v] if v != "" else "%s пришёл со старой версией Minecraft. Пусть выберет в TLauncher ту же версию, что у сервера." % who
+			return "%s пришёл со старой версией Minecraft. Сервер на версии %s — пусть выберет в лаунчере версию %s." % [who, v, v] if v != "" else "%s пришёл со старой версией Minecraft. Пусть выберет в лаунчере ту же версию, что у сервера." % who
 		"outdated_server":
-			return "У %s версия Minecraft новее сервера (%s). Пусть выберет в TLauncher версию %s." % [n if n != "" else "игрока", v, v] if v != "" else "У игрока версия Minecraft новее сервера. Пусть выберет в TLauncher версию сервера."
+			return "У %s версия Minecraft новее сервера (%s). Пусть выберет в лаунчере версию %s." % [n if n != "" else "игрока", v, v] if v != "" else "У игрока версия Minecraft новее сервера. Пусть выберет в лаунчере версию сервера."
 		"banned":
 			return "%s забанен на этом сервере." % who
 		"full":

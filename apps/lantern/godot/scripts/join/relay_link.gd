@@ -41,10 +41,11 @@ func poll() -> Array:
 	var ev := []
 	ws.poll()
 	var st := ws.get_ready_state()
-	if st == WebSocketPeer.STATE_OPEN:
-		if not _was_open:
-			_was_open = true
-			ev.append({"k": "open"})
+	if st == WebSocketPeer.STATE_OPEN and not _was_open:
+		_was_open = true
+		ev.append({"k": "open"})
+	if st != WebSocketPeer.STATE_CONNECTING:
+		# и при закрытии: последнее сообщение relay («Хозяин мира закрыл вам вход») не теряем
 		while ws.get_available_packet_count() > 0:
 			var pk := ws.get_packet()
 			if ws.was_string_packet():
@@ -54,7 +55,7 @@ func poll() -> Array:
 			elif pk.size() >= 4:
 				var sid := (pk[0] << 24) | (pk[1] << 16) | (pk[2] << 8) | pk[3]
 				ev.append({"k": "bin", "sid": sid, "data": pk.slice(4)})
-	elif st == WebSocketPeer.STATE_CLOSED:
+	if st == WebSocketPeer.STATE_CLOSED:
 		ev.append({"k": "closed", "code": ws.get_close_code(), "reason": ws.get_close_reason(), "was_open": _was_open})
 	return ev
 
@@ -90,11 +91,14 @@ func close() -> void:
 static func error_text(code: String) -> String:
 	match code:
 		"not_found": return "Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново."
-		"full": return "В комнате уже максимум друзей."
+		"full": return "Все места заняты."
+		"need_password": return "Эта игра с паролем."
+		"bad_password": return "Неверный пароль."
+		"kicked", "banned_by_host": return "Хозяин мира закрыл вам вход."
 		"rate": return "Слишком много попыток. Подождите минуту."
-		"busy": return "Сервер-посредник перегружен. Попробуйте позже."
+		"busy": return "Серверы LANTERN сейчас перегружены. Попробуйте через пару минут."
 		"bad_version": return "Нужна новая версия LANTERN."
 		"host_left", "host_ended", "room_closed": return "Хозяин закрыл мир."
-		"server_restart": return "Сервер-посредник перезапускается. Попробуйте через минуту."
+		"server_restart": return "LANTERN обновляется. Попробуйте через минуту."
 		"expired": return "Комната устарела. Попросите друга запустить мир заново."
-	return "Ошибка relay: " + code
+	return "Не получилось подключиться (%s). Попробуйте ещё раз; не помогло — нажмите «Сообщить о проблеме»." % code

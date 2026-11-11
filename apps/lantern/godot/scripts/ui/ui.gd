@@ -46,6 +46,7 @@ const R_M := 12
 const R_L := 16
 const R_XL := 24
 
+static var last_scroll_ms := -1    # когда последний раз начали листать пальцем (нажатие после этого не считается)
 static var font_regular: Font = preload("res://assets/fonts/Montserrat-Medium.ttf")
 static var font_bold: Font = preload("res://assets/fonts/Montserrat-Bold.ttf")
 static var font_black: Font = preload("res://assets/fonts/Montserrat-ExtraBold.ttf")
@@ -117,7 +118,11 @@ static func make_theme() -> Theme:
 	t.set_stylebox("pressed", "Button", _hpad(box(CARD_HI.darkened(0.2), R_M), 16, 10))
 	t.set_stylebox("hover_pressed", "Button", _hpad(box(CARD_HI.darkened(0.2), R_M), 16, 10))
 	t.set_stylebox("disabled", "Button", _hpad(box(Color(CARD_HI, 0.5), R_M), 16, 10))
-	t.set_stylebox("focus", "Button", box(Color(0, 0, 0, 0), R_M, 0, Color(a, 0.6), 2))
+	t.set_stylebox("focus", "Button", box(Color(0, 0, 0, 0), R_M, 0, Color(a, 0.6) if not Cfg.mobile() else Color(0, 0, 0, 0), 2))
+	if Cfg.mobile():
+		# на телефоне нет «наведения»: после касания кнопка не остаётся подсвеченной
+		t.set_stylebox("hover", "Button", _hpad(box(CARD_HI, R_M), 16, 10))
+		t.set_color("font_hover_color", "Button", TEXT)
 	t.set_font("font", "Button", font_bold)
 	t.set_font_size("font_size", "Button", T_BODY)
 	t.set_color("font_color", "Button", TEXT)
@@ -330,6 +335,10 @@ static func button(text: String, kind := "secondary", cb := Callable(), icon_nam
 			b.add_theme_color_override("font_color", fc)
 			b.add_theme_color_override("font_hover_color", TEXT if kind == "ghost" else a.lightened(0.15))
 			b.add_theme_color_override("font_pressed_color", TEXT if kind == "ghost" else a)
+	if Cfg.mobile() and b.has_theme_stylebox_override("normal"):
+		# телефон: без «наведения» — после касания кнопка не остаётся подсвеченной
+		b.add_theme_stylebox_override("hover", b.get_theme_stylebox("normal"))
+		b.add_theme_color_override("font_hover_color", b.get_theme_color("font_color"))
 	if icon_name != "":
 		b.icon = icon_tex(icon_name, 20, fc)
 	if cb.is_valid():
@@ -563,25 +572,36 @@ static func list_row(lead: Control, title: String, sub := "", trail: Control = n
 	return p
 
 
+static func mark_scroll() -> void:
+	last_scroll_ms = Time.get_ticks_msec()
+
+
+## Палец листал после нажатия — это прокрутка, а не нажатие.
+static func scrolled_since(ms: int) -> bool:
+	return last_scroll_ms >= ms
+
+
 ## Делает панель нажимаемой (подсветка при наведении и нажатии; прокрутку пальцем не считает нажатием).
 static func tappable(p: Control, cb: Callable, st: StyleBoxFlat = null) -> void:
-	p.mouse_filter = Control.MOUSE_FILTER_STOP
+	# PASS: палец, начавший на карточке, листает список (на телефоне)
+	p.mouse_filter = Control.MOUSE_FILTER_PASS if Cfg.mobile() else Control.MOUSE_FILTER_STOP
 	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var base := st.bg_color if st else Color()
-	var down := [Vector2.ZERO]
+	var down := [Vector2.ZERO, 0]
 	p.mouse_entered.connect(func(): if st: st.bg_color = base.lightened(0.04))
 	p.mouse_exited.connect(func(): if st: st.bg_color = base)
 	p.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 			if e.pressed:
 				down[0] = e.position
+				down[1] = Time.get_ticks_msec()
 				if st:
 					st.bg_color = base.lightened(0.08)
 				FX.ripple(p, e.position)
 			else:
 				if st:
 					st.bg_color = base
-				if e.position.distance_to(down[0]) < 12 and Rect2(Vector2.ZERO, p.size).has_point(e.position):
+				if e.position.distance_to(down[0]) < 12 and Rect2(Vector2.ZERO, p.size).has_point(e.position) and not scrolled_since(down[1]):
 					cb.call())
 	FX.press(p, 0.985)
 
@@ -652,7 +672,7 @@ static func steps(cur: int, total: int, names: Array = [], prev := -1) -> Contro
 		var was := i < (prev if prev >= 0 else cur)
 		fill.anchor_right = 1.0 if (was if FX.on() else full) else 0.0
 		if FX.on() and full != was:
-			fill.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(fill, "anchor_right", 1.0 if full else 0.0, 0.32)
+			fill.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(fill, "anchor_right", 1.0 if full else 0.0, 0.2)
 		bars.add_child(track)
 	v.add_child(bars)
 	return v

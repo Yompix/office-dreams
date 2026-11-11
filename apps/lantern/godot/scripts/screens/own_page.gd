@@ -15,12 +15,18 @@ var _shown_keys := "?"
 var auto := false            # одна кнопка: нашли мир — сразу открываем комнату
 var _actions: VBoxContainer
 var _auto_done := false
+var _check: VBoxContainer        # «мир не находится» — чек-лист вместо пассивного ожидания
+var _check_key := ""
+var _since := 0
+const CHECK_AFTER_MS := 8000
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 16)
 	var head := UI.vbox(4)
-	head.add_child(UI.h2("Мой мир из Minecraft"))
+	var h := UI.h2("Мой мир из Minecraft")
+	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.add_child(h)
 	head.add_child(UI.para("Друзья зайдут прямо в мир, который вы открыли в игре. Ничего скачивать не нужно.", 15, UI.MUTED))
 	add_child(head)
 	# --- поиск
@@ -35,6 +41,10 @@ func _ready() -> void:
 	_status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	sr.add_child(_status)
 	add_child(sp)
+	_check = UI.vbox(10)
+	_check.visible = false
+	add_child(_check)
+	_since = Time.get_ticks_msec()
 	# --- не нашли: одна кнопка «Открыть Minecraft» (+ на ПК — свой сервер)
 	_actions = UI.vbox(10)
 	add_child(_actions)
@@ -74,6 +84,78 @@ func _ready() -> void:
 	_refresh()
 
 
+func _process(_d: float) -> void:
+	if not app or not is_instance_valid(_check):
+		return
+	var want: bool = app.own.worlds().is_empty() and Time.get_ticks_msec() - _since > CHECK_AFTER_MS
+	var key := "%s|%d" % [want, app.own.probes / 5]
+	if key != _check_key:
+		_check_key = key
+		_build_check(want)
+
+
+## Чек-лист «мир не находится»: что проверить в игре + что делает LANTERN прямо сейчас.
+func _build_check(on: bool) -> void:
+	var was := _check.visible
+	_check.visible = on
+	for c in _check.get_children():
+		c.queue_free()
+	if not on:
+		return
+	var phone := Cfg.mobile()
+	var p := UI.panel(16)
+	var v := UI.vbox(12)
+	p.add_child(v)
+	var tl := UI.label("Мир пока не найден. Проверьте:", 17, UI.TEXT, UI.font_bold)
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(tl)
+	v.add_child(_check_row("?", "Minecraft открыт", "Можно маленьким окном («картинка в картинке») — главное, не закрывать игру." if phone else "Окно игры можно свернуть — главное, не закрывать её."))
+	v.add_child(_check_row("?", "Вы в самом мире, а не в меню", "Главное меню и список миров не считаются — зайдите в мир."))
+	v.add_child(_check_row("?", "Включена «Видимость для игроков LAN»", "В мире: пауза → «Настройки» → «Мультиплеер». Там же должна быть включена «Многопользовательская игра»."))
+	var lv: String = Cfg.get_value("own", "last_version", "")
+	if lv != "":
+		v.add_child(_check_row("ok", "Ваша версия Minecraft: " + lv, "Так было в прошлый раз. Друзьям нужна та же версия игры."))
+	else:
+		v.add_child(_check_row("ok", "Подойдёт любая версия Minecraft", "LANTERN понимает и новый способ открытия мира (NetherNet, 2025+), и старый (RakNet). Друзьям нужна та же версия, что у вас."))
+	v.add_child(_check_row("search", "LANTERN ищет мир на этом " + ("телефоне" if phone else "компьютере"),
+		"Проверено %d раз: новый Minecraft (порт 7551) и старый (порт 19132)." % app.own.probes))
+	if app.own.lan_error != "" and OwnWorld.java_supported():
+		v.add_child(_check_row("no", "Java: не слышим объявления миров", app.own.lan_error))
+	var b := UI.button("Проверить ещё раз", "secondary", _recheck, "refresh")
+	b.custom_minimum_size.y = 48
+	v.add_child(b)
+	_check.add_child(p)
+	if not was:
+		FX.enter(p)
+
+
+func _check_row(state: String, title: String, sub: String) -> Control:
+	var r := UI.hbox(12)
+	var col: Color = {"ok": UI.JAVA, "no": UI.YELLOW, "search": UI.accent()}.get(state, UI.YELLOW)
+	var ic: String = {"ok": "check", "no": "close", "search": "search"}.get(state, "info")
+	var t := UI.icon_tile(ic, col, 32, 16)
+	t.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	if state == "search":
+		FX.pulse(t, 1.06, 1.4)
+	r.add_child(t)
+	var tv := UI.vbox(2)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tl := UI.para(title, 15, UI.TEXT)
+	tl.add_theme_font_override("font", UI.font_bold)
+	tv.add_child(tl)
+	if sub != "":
+		tv.add_child(UI.para(sub, 13, UI.MUTED))
+	r.add_child(tv)
+	return r
+
+
+func _recheck() -> void:
+	app.own.begin_scan()
+	_since = Time.get_ticks_msec()
+	_check_key = ""
+	app.toast("Ищем мир ещё раз…")
+
+
 func _exit_tree() -> void:
 	if app and app.own:
 		if app.own.changed.is_connected(_refresh):
@@ -86,15 +168,15 @@ func _build_help() -> void:
 		c.queue_free()
 	var phone := Cfg.mobile()
 	if _help_ed == "bedrock":
-		_help_body.add_child(_step("1", "Откройте Minecraft и зайдите в свой мир", "Или создайте новый — подойдёт любой.", McMock.make("world")))
-		_help_body.add_child(_step("2", "Пауза → «Настройки» → «Мультиплеер»", "Кнопка паузы — вверху экрана" + ("." if phone else " (или Esc)."), McMock.make("settings")))
-		_help_body.add_child(_step("3", "Включите «Видимость для игроков LAN»", "И «Многопользовательская игра», если она выключена.", McMock.make("toggle")))
+		_help_body.add_child(_step("1", "Откройте Minecraft и зайдите в свой мир", "Или создайте новый — подойдёт любой.", MenuHint.make("world")))
+		_help_body.add_child(_step("2", "Пауза → «Настройки» → «Мультиплеер»", "Кнопка паузы — вверху экрана" + ("." if phone else " (или Esc)."), MenuHint.make("settings")))
+		_help_body.add_child(_step("3", "Включите «Видимость для игроков LAN»", "И «Многопользовательская игра», если она выключена.", MenuHint.make("toggle")))
 		_help_body.add_child(_step("4", "Вернитесь в LANTERN, не закрывая Minecraft", "Мир найдётся сам за пару секунд.", null))
 		_help_body.add_child(_note("friends", "Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. Друзья с Java (ПК) в такой мир зайти не смогут — для них нужен «Отдельный сервер» на компьютере."))
 	else:
-		_help_body.add_child(_step("1", "Зайдите в свой мир в Minecraft Java", "Одиночная игра → ваш мир.", McMock.make("world")))
-		_help_body.add_child(_step("2", "Нажмите Esc → «Открыть для сети»", "", McMock.make("pause")))
-		_help_body.add_child(_step("3", "Нажмите «Открыть мир для сети»", "В чате появится «Локальный сервер запущен на порту …».", McMock.make("lan")))
+		_help_body.add_child(_step("1", "Зайдите в свой мир в Minecraft Java", "Одиночная игра → ваш мир.", MenuHint.make("world")))
+		_help_body.add_child(_step("2", "Нажмите Esc → «Открыть для сети»", "", MenuHint.make("pause")))
+		_help_body.add_child(_step("3", "Нажмите «Открыть мир для сети»", "В чате появится «Локальный сервер запущен на порту …».", MenuHint.make("lan")))
 		_help_body.add_child(_step("4", "Вернитесь в LANTERN", "Мир найдётся сам за пару секунд. Не нашёлся — введите номер порта из чата:", null))
 		var pr := UI.hbox(8)
 		_port = UI.line_edit("", "Порт, например 54321")
@@ -104,7 +186,7 @@ func _build_help() -> void:
 		pr.add_child(_port)
 		pr.add_child(UI.button("Подключить", "secondary", _manual_port))
 		_help_body.add_child(pr)
-		_help_body.add_child(_note("lock", "Купленный Minecraft пускает в такой мир только игроков с лицензией — друзья с TLauncher не зайдут. Для них выберите «Отдельный сервер» и вариант «TLauncher и другие»."))
+		_help_body.add_child(_note("lock", "Друзьям нужна та же версия Minecraft: Java Edition и свой аккаунт Microsoft."))
 	FX.stagger(_help_body, 0.03)
 
 
@@ -206,7 +288,7 @@ func _world_card(w: Dictionary) -> Control:
 	var v := UI.vbox(12)
 	p.add_child(v)
 	var row := UI.hbox(12)
-	row.add_child(UI.texture("res://assets/img/mini_stone.png" if bed else "res://assets/img/mini_grass.png", 44, 44))
+	row.add_child(UI.icon_tile("phone" if bed else "java", UI.BEDROCK if bed else UI.JAVA, 44, 22))
 	var tv := UI.vbox(2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var nl := UI.label(String(w.name), 18, UI.TEXT, UI.font_black)
@@ -216,6 +298,9 @@ func _world_card(w: Dictionary) -> Control:
 	var bits := PackedStringArray(["Bedrock" if bed else "Java"])
 	if String(w.get("version", "")) != "":
 		bits.append(String(w.version))
+	if bed:
+		if w.get("transport", "") == "nethernet":
+			bits.append("новый Minecraft")
 	if int(w.get("players", -1)) >= 0:
 		bits.append("в мире %d из %d" % [int(w.players), int(w.max)])
 	elif not bed:
@@ -224,7 +309,7 @@ func _world_card(w: Dictionary) -> Control:
 	row.add_child(tv)
 	v.add_child(row)
 	v.add_child(UI.para("Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. С Java — не получится." if bed else
-		"Зайдут друзья с Java. Если ваш Minecraft купленный, друзьям с TLauncher игра войти не даст.", 13, UI.MUTED))
+		"Зайдут друзья с Java той же версии.", 13, UI.MUTED))
 	var b := UI.button("Открыть для друзей", "primary", func(): _open(w), "play")
 	b.custom_minimum_size.y = 52
 	v.add_child(b)

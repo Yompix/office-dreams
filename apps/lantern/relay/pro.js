@@ -54,6 +54,13 @@ class Pro {
   q(sql) { return this.db.prepare(sql); }
   isPro(uid) { const u = uid && this.social.user(uid); return !!u && (u.pro_until || 0) > Date.now(); }
 
+  // Удаление профиля: свой код и все облачные копии (файлы тоже)
+  wipe(uid) {
+    for (const r of this.q('SELECT id FROM cloud WHERE uid=?').all(uid)) { if (this.cloudDir) fs.rmSync(this.file(r.id), { force: true }); }
+    this.q('DELETE FROM cloud WHERE uid=?').run(uid);
+    this.q('DELETE FROM vanity WHERE uid=?').run(uid);
+  }
+
   // ---------------------------------------------------------------- свой код комнаты
   vanityOf(uid) { const r = this.q('SELECT code FROM vanity WHERE uid=?').get(uid); return r ? r.code : ''; }
 

@@ -3,9 +3,17 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.3.0"
+const APP_VERSION := "1.6.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
+## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
+## В Google Play 1.5.0 выходит бесплатной: покупки и AdMob не подключены — всё это скрыто.
+## Включить для проверки: --paid=1 в командной строке (автотесты) или PAID := true в сборке.
+const PAID := false
+## Обязательная оговорка (Minecraft Usage Guidelines): на «О программе», первом экране, в магазине и на сайте.
+const DISCLAIMER := "НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ ПРОДУКТОМ MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С MOJANG ИЛИ MICROSOFT."
+const DISCLAIMER_EN := "NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT."
+const SITE := "https://office-dreams-production.up.railway.app/lantern"
 ## Адрес relay по умолчанию: ретранслятор работает на нашем сервере Railway вместе с сайтом
 ## (apps/lantern/relay подключён в server/index.js, путь /lantern/ws). Свой отдельный сервис — см. relay/README.md.
 const DEFAULT_RELAY := "wss://office-dreams-production.up.railway.app/lantern/ws"
@@ -163,6 +171,28 @@ func phone_preview() -> bool:
 
 
 ## Телефон или телефонный вид: создавать мир нельзя (сервер — только на ПК).
+## Настройки игры из формы «Создать игру»: название, режим, мест (всего, с хозяином), пароль, видна всем
+const MODES := [["survival", "Выживание"], ["creative", "Творчество"], ["minigame", "Мини-игра"], ["pvp", "PvP"], ["roleplay", "Ролевая"], ["other", "Другое"]]
+
+
+func game() -> Dictionary:
+	return {"title": String(get_value("game", "title", "")), "mode": String(get_value("game", "mode", "survival")),
+		"cap": int(get_value("game", "cap", 6)), "password": String(get_value("game", "password", "")),
+		"public": bool(get_value("game", "public", true))}
+
+
+static func mode_name(m: String) -> String:
+	for x in MODES:
+		if x[0] == m:
+			return x[1]
+	return "Другое"
+
+
+## Показывать ли платные функции (см. PAID)
+func paid() -> bool:
+	return PAID or autotest_args.has("paid")
+
+
 func mobile() -> bool:
 	return OS.has_feature("mobile") or phone_preview()
 

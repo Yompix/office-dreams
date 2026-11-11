@@ -1,152 +1,118 @@
-# Процедурная графика LANTERN: свои пиксельные кубы (без ассетов Mojang).
-import math, random, sys, os
-from PIL import Image, ImageDraw, ImageFilter
+# Процедурная графика LANTERN: иконка (гладкий фонарь со своим силуэтом) и графика для Google Play.
+# Никаких блоков, пиксельных текстур и других элементов, похожих на Minecraft (см. docs/LEGAL.md).
+# python3 tools/make_art.py [assets/img] [папка для Play (feature graphic 1024x500, иконка 512)]
+import math, sys, os
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 OUT = sys.argv[1] if len(sys.argv) > 1 else "assets/img"
+PLAY = sys.argv[2] if len(sys.argv) > 2 else ""
 os.makedirs(OUT, exist_ok=True)
 SS = 4
+BG = (18, 19, 28)
+METAL = (52, 46, 44)
+METAL_HI = (86, 76, 70)
 
-def tex(kind, seed):
-    r = random.Random(seed); t = [[None]*16 for _ in range(16)]
-    for y in range(16):
-        for x in range(16):
-            n = r.random()
-            if kind == "grass_top":
-                base = [(94,168,62),(108,184,70),(84,152,56),(120,196,80)]
-                t[y][x] = base[int(n*4)]
-            elif kind == "grass_side":
-                edge = 3 + (1 if r.random() < .5 else 0) + (1 if (x*7) % 5 == 0 else 0)
-                if y < edge: t[y][x] = [(94,168,62),(108,184,70),(84,152,56)][int(n*3)]
-                else: t[y][x] = [(134,94,62),(150,106,70),(118,82,54),(160,116,78)][int(n*4)]
-            elif kind == "stone":
-                t[y][x] = [(112,116,128),(98,102,114),(128,132,144),(84,88,100)][int(n*4)]
-            elif kind == "deep":
-                t[y][x] = [(52,56,70),(70,74,90),(40,42,54),(88,92,110)][int(n*4)]
-            elif kind == "gem":
-                t[y][x] = [(112,116,128),(98,102,114),(128,132,144)][int(n*3)]
-    if kind == "gem":
-        for (gx, gy) in [(3,3),(10,5),(5,10),(11,11)]:
-            for dx in range(2):
-                for dy in range(2):
-                    t[gy+dy][gx+dx] = (90,230,220) if (dx+dy)%2==0 else (40,180,190)
-    return t
 
-def shade(c, k): return tuple(max(0, min(255, int(v*k))) for v in c)
+def radial(size, cx, cy, r, color, alpha):
+    g = Image.new("RGBA", size, (0, 0, 0, 0)); d = ImageDraw.Draw(g)
+    for i in range(40, 0, -1):
+        rr = r * i / 40
+        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=color + (int(alpha * (1 - i / 40) ** 1.6),))
+    return g.filter(ImageFilter.GaussianBlur(r * 0.08))
 
-def cube(d, ox, oy, s, top, left, right):
-    c30, s30 = math.cos(math.pi/6), math.sin(math.pi/6)
-    ex = (s*c30, -s*s30); ey = (-s*c30, -s*s30); ez = (0, -s)
-    def P(a, b, c):  # a по ex, b по ey, c по ez (0..1)
-        return (ox + ex[0]*a + ey[0]*b + ez[0]*c, oy + ex[1]*a + ey[1]*b + ez[1]*c)
-    n = 16
-    for i in range(n):
-        for j in range(n):
-            # верх: z=1, a=i, b=j
-            a0, a1, b0, b1 = i/n, (i+1)/n, j/n, (j+1)/n
-            d.polygon([P(a0,b0,1),P(a1,b0,1),P(a1,b1,1),P(a0,b1,1)], fill=shade(top[j][i], 1.0))
-            # правая грань: b=0, a и z
-            z0, z1 = 1-(j+1)/n, 1-j/n
-            d.polygon([P(a0,0,z0),P(a1,0,z0),P(a1,0,z1),P(a0,0,z1)], fill=shade(right[j][i], 0.78))
-            # левая грань: a=0, b и z
-            d.polygon([P(0,a0,z0),P(0,a1,z0),P(0,a1,z1),P(0,a0,z1)], fill=shade(left[j][i], 0.6))
 
-def soft_shadow(img, cx, cy, w, h, alpha=110):
-    sh = Image.new("RGBA", img.size, (0,0,0,0)); sd = ImageDraw.Draw(sh)
-    sd.ellipse([cx-w, cy-h, cx+w, cy+h], fill=(0,0,0,alpha))
-    sh = sh.filter(ImageFilter.GaussianBlur(12*SS))
-    return Image.alpha_composite(img, sh)
+def lantern(img, cx, cy, h):
+    """Гладкий фонарь высотой h с центром (cx, cy): ручка, крышка, стекло со светом и пламенем, основание."""
+    d = ImageDraw.Draw(img)
+    w = h * 0.56
+    top = cy - h / 2
+    # ручка
+    hr = w * 0.26
+    d.arc([cx - hr, top, cx + hr, top + hr * 1.7], 180, 360, fill=METAL_HI, width=max(2, int(h * 0.035)))
+    # крышка — трапеция и обод
+    cap_t, cap_b = top + hr * 0.85, top + h * 0.24
+    d.polygon([(cx - w * 0.22, cap_t), (cx + w * 0.22, cap_t), (cx + w * 0.56, cap_b), (cx - w * 0.56, cap_b)], fill=METAL)
+    d.rounded_rectangle([cx - w * 0.6, cap_b - h * 0.02, cx + w * 0.6, cap_b + h * 0.05], radius=int(h * 0.025), fill=METAL_HI)
+    # стекло: тёплый градиент сверху вниз
+    gt, gb = cap_b + h * 0.05, top + h * 0.86
+    gx0, gx1 = cx - w * 0.46, cx + w * 0.46
+    glass = Image.new("RGBA", img.size, (0, 0, 0, 0)); gd = ImageDraw.Draw(glass)
+    steps = 60
+    for i in range(steps):
+        k = i / (steps - 1)
+        y0 = gt + (gb - gt) * i / steps
+        gd.rectangle([gx0, y0, gx1, y0 + (gb - gt) / steps + 1], fill=(255, int(214 - 70 * k), int(120 - 90 * k), 255))
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([gx0, gt, gx1, gb], radius=int(w * 0.16), fill=255)
+    img.paste(glass, (0, 0), mask)
+    d = ImageDraw.Draw(img)
+    # пламя — капля с острым язычком
+    fh = (gb - gt) * 0.56
+    fcx, fcy = cx, gt + (gb - gt) * 0.58
+    pts = []
+    for a in range(0, 361, 4):
+        t = math.radians(a)
+        r = fh * 0.30
+        x = fcx + r * math.sin(t)
+        y = fcy + r * math.cos(t) * 0.9
+        if 110 < a < 250:
+            k = (1 - abs(a - 180) / 70) ** 1.3
+            y -= fh * 0.45 * k
+            x = fcx + (x - fcx) * (1 - 0.8 * k)
+        pts.append((x, y))
+    d.polygon(pts, fill=(255, 250, 232))
+    # обвод стекла и перемычка
+    lw = max(2, int(h * 0.03))
+    d.rounded_rectangle([gx0, gt, gx1, gb], radius=int(w * 0.16), outline=METAL, width=lw)
+    # основание
+    d.rounded_rectangle([cx - w * 0.58, gb - h * 0.01, cx + w * 0.58, top + h * 0.95], radius=int(h * 0.03), fill=METAL_HI)
+    d.rounded_rectangle([cx - w * 0.48, top + h * 0.95, cx + w * 0.48, top + h], radius=int(h * 0.02), fill=METAL)
 
-def save(img, name, size):
-    img.resize(size, Image.LANCZOS).save(os.path.join(OUT, name))
 
-# --- Java: стопка травяных блоков
-W, H = 440*SS, 320*SS
-img = Image.new("RGBA", (W, H), (0,0,0,0))
-img = soft_shadow(img, W//2, int(H*0.86), 170*SS, 26*SS)
-d = ImageDraw.Draw(img)
-g_top, g_side = tex("grass_top", 1), tex("grass_side", 2)
-cube(d, W*0.36, H*0.90, 92*SS, tex("grass_top",3), tex("grass_side",4), tex("grass_side",5))
-cube(d, W*0.64, H*0.86, 80*SS, tex("stone",6), tex("stone",7), tex("stone",8))
-cube(d, W*0.50, H*0.60, 86*SS, g_top, g_side, tex("grass_side",9))
-save(img, "card_java.png", (440, 320))
-
-# --- Bedrock: тёмный камень + кристаллы + телефон
-img = Image.new("RGBA", (W, H), (0,0,0,0))
-img = soft_shadow(img, W//2, int(H*0.86), 170*SS, 26*SS)
-d = ImageDraw.Draw(img)
-cube(d, W*0.40, H*0.90, 92*SS, tex("deep",11), tex("deep",12), tex("deep",13))
-cube(d, W*0.40, H*0.90 - 92*SS, 92*SS, tex("gem",14), tex("gem",15), tex("gem",16))
-# телефон
-px, py, pw, ph = int(W*0.62), int(H*0.30), 120*SS, 210*SS
-d.rounded_rectangle([px, py, px+pw, py+ph], radius=20*SS, fill=(28,30,40), outline=(90,96,120), width=4*SS)
-d.rounded_rectangle([px+10*SS, py+22*SS, px+pw-10*SS, py+ph-26*SS], radius=8*SS, fill=(60,140,220))
-d.ellipse([px+pw-48*SS, py+36*SS, px+pw-24*SS, py+60*SS], fill=(255,226,120))
-for cx0, cy0 in [(px+22*SS, py+70*SS), (px+50*SS, py+100*SS)]:
-    d.rectangle([cx0, cy0, cx0+36*SS, cy0+10*SS], fill=(235,242,255))
-cube(d, px+pw*0.5, py+ph-26*SS-28*SS, 22*SS, tex("grass_top",41), tex("grass_side",42), tex("grass_side",43))
-d.rectangle([px+10*SS, py+ph-26*SS-28*SS, px+pw-10*SS, py+ph-26*SS-18*SS], fill=(108,184,70))
-d.rectangle([px+10*SS, py+ph-26*SS-18*SS, px+pw-10*SS, py+ph-26*SS], fill=(134,94,62))
-d.ellipse([px+pw//2-6*SS, py+ph-18*SS, px+pw//2+6*SS, py+ph-6*SS], fill=(90,96,120))
-save(img, "card_bedrock.png", (440, 320))
-
-# --- иконка приложения: светящийся кубический фонарь (LANTERN)
-def lantern_tex(face_light):
-    t = [[None]*16 for _ in range(16)]
-    for y in range(16):
-        for x in range(16):
-            edge = x < 2 or x > 13 or y < 2 or y > 13 or (y in (5,) and 1 < x < 14)
-            bar = False
-            if edge:
-                t[y][x] = (58, 52, 50) if (x + y) % 3 else (74, 66, 60)
-            elif bar:
-                t[y][x] = (66, 58, 54)
-            else:
-                d = ((x - 7.5) ** 2 + (y - 8) ** 2) ** 0.5
-                k = max(0.0, 1 - d / 9) * face_light
-                t[y][x] = (min(255, int(255 * (0.85 + 0.15 * k))), min(255, int(150 + 95 * k)), min(255, int(40 + 140 * k * k)))
-    return t
-def cap_tex():
-    return [[(46, 42, 42) if (x + y) % 4 else (62, 56, 52) for x in range(16)] for y in range(16)]
-def draw_lantern(S, scale=1.0, bg=True):
-    img = Image.new("RGBA", (S, S), (0,0,0,0)); d = ImageDraw.Draw(img)
+def icon(S, scale=1.0, bg=True):
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     if bg:
-        d.rounded_rectangle([int(S*0.03), int(S*0.03), int(S*0.97), int(S*0.97)], radius=int(S*0.22), fill=(18, 19, 28))
-    glow = Image.new("RGBA", (S, S), (0,0,0,0)); gd = ImageDraw.Draw(glow)
-    cx, cy = S*0.5, S*0.56
-    for i in range(30, 0, -1):
-        r = S*0.46*i/30
-        gd.ellipse([cx-r, cy-r, cx+r, cy+r], fill=(255, 150, 40, int(3 + (30-i)*3.6)))
-    glow = glow.filter(ImageFilter.GaussianBlur(S*0.03))
+        ImageDraw.Draw(img).rounded_rectangle([int(S * .03), int(S * .03), int(S * .97), int(S * .97)], radius=int(S * .22), fill=BG)
+    glow = radial((S, S), S * .5, S * .55, S * .46 * scale, (255, 150, 40), 170)
     if bg:
-        mask = Image.new("L", (S, S), 0); ImageDraw.Draw(mask).rounded_rectangle([int(S*0.03), int(S*0.03), int(S*0.97), int(S*0.97)], radius=int(S*0.22), fill=255)
-        glow.putalpha(Image.composite(glow.split()[3], Image.new("L", (S,S), 0), mask))
-    img = Image.alpha_composite(img, glow); d = ImageDraw.Draw(img)
-    s = S*0.30*scale
-    base_y = cy + S*0.5*s/S*1.0 + s*0.45
-    cube(d, cx, base_y, s, lantern_tex(1.0), lantern_tex(0.8), lantern_tex(0.95))
-    top_c = base_y - 1.5*s
-    c = s*0.42
-    co = top_c + 0.5*c
-    cube(d, cx, co, c, cap_tex(), cap_tex(), cap_tex())
-    cap_top = co - 1.5*c
-    hr = c*0.55
-    d.arc([cx-hr, cap_top-hr*1.6, cx+hr, cap_top+hr*0.4], 180, 360, fill=(92, 82, 74), width=max(2, int(S*0.02)))
+        m = Image.new("L", (S, S), 0); ImageDraw.Draw(m).rounded_rectangle([int(S * .03), int(S * .03), int(S * .97), int(S * .97)], radius=int(S * .22), fill=255)
+        glow.putalpha(Image.composite(glow.split()[3], Image.new("L", (S, S), 0), m))
+    img = Image.alpha_composite(img, glow)
+    lantern(img, S * .5, S * .52, S * .66 * scale)
     return img
-S = 256*SS
-icon = draw_lantern(S)
-icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "icon.png"))
-icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.png"))
-icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
-big = draw_lantern(512*SS)
-big.resize((512,512), Image.LANCZOS).save(os.path.join(OUT, "icon_512.png"))
-# Android adaptive: передний план без фона (432x432, сам фонарь в центре 66%), фон — сплошной
-fg = draw_lantern(432*SS, 0.8, bg=False)
-fg.resize((432,432), Image.LANCZOS).save(os.path.join(OUT, "android_fg.png"))
-Image.new("RGBA", (432,432), (18,19,28,255)).save(os.path.join(OUT, "android_bg.png"))
-g_top, g_side = tex("grass_top", 1), tex("grass_side", 2)
 
-# --- маленькие кубики для заголовков (32px)
-for name, t in [("mini_grass", (g_top, g_side, tex("grass_side",31))), ("mini_stone", (tex("deep",32),tex("deep",33),tex("deep",34)))]:
-    S = 96*SS; img = Image.new("RGBA", (S,S), (0,0,0,0)); d = ImageDraw.Draw(img)
-    cube(d, S*0.5, S*0.95, 46*SS, *t)
-    img.resize((96,96), Image.LANCZOS).save(os.path.join(OUT, name + ".png"))
+
+def down(img, size):
+    return img.resize(size, Image.LANCZOS)
+
+
+big = icon(512 * SS)
+down(big, (512, 512)).save(os.path.join(OUT, "icon_512.png"))
+small = down(big, (256, 256))
+small.save(os.path.join(OUT, "icon.png"))
+small.save(os.path.join(OUT, "..", "..", "icon.png"))
+small.save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+# Android adaptive: передний план без фона (фонарь в безопасной зоне 66%), фон — сплошной
+down(icon(432 * SS, 0.72, bg=False), (432, 432)).save(os.path.join(OUT, "android_fg.png"))
+Image.new("RGBA", (432, 432), BG + (255,)).save(os.path.join(OUT, "android_bg.png"))
+
+if PLAY:
+    os.makedirs(PLAY, exist_ok=True)
+    # Play: иконка 512x512 без прозрачности по краям (Play сам скругляет)
+    full = Image.new("RGBA", (512 * SS, 512 * SS), BG + (255,))
+    full = Image.alpha_composite(full, radial(full.size, 256 * SS, 280 * SS, 236 * SS, (255, 150, 40), 170))
+    lantern(full, 256 * SS, 266 * SS, 338 * SS)
+    down(full.convert("RGB"), (512, 512)).save(os.path.join(PLAY, "icon_512.png"))
+    # Feature graphic 1024x500: фонарь слева, название и строка справа (без слова Minecraft и чужих логотипов)
+    W, H = 1024 * 2, 500 * 2
+    f = Image.new("RGBA", (W, H), BG + (255,))
+    f = Image.alpha_composite(f, radial((W, H), W * .24, H * .55, H * .75, (255, 140, 30), 150))
+    lantern(f, W * .24, H * .53, H * .72)
+    d = ImageDraw.Draw(f)
+    fonts = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "fonts")
+    big_f = ImageFont.truetype(os.path.join(fonts, "Montserrat-ExtraBold.ttf"), 176)
+    sub_f = ImageFont.truetype(os.path.join(fonts, "Montserrat-Bold.ttf"), 60)
+    d.text((W * .44, H * .26), "LANTERN", font=big_f, fill=(242, 243, 246))
+    d.text((W * .445, H * .56), "Играйте с друзьями", font=sub_f, fill=(255, 182, 72))
+    d.text((W * .445, H * .67), "по коду комнаты", font=sub_f, fill=(164, 170, 184))
+    down(f.convert("RGB"), (1024, 500)).save(os.path.join(PLAY, "feature_1024x500.png"))
 print("ok")

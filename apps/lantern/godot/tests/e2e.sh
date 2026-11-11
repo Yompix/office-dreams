@@ -6,11 +6,13 @@ MODE=${1:-java}
 DATA=${2:-/tmp/lantern-e2e-$MODE}
 SHOTS=${3:-}
 HERE=$(cd "$(dirname "$0")/.." && pwd)
-RELAY_DIR=$(cd "$HERE/../../relay" && pwd)
+RELAY_DIR=${RELAY_DIR:-$(cd "$HERE/../relay" 2>/dev/null || cd "$HERE/../../relay"; pwd)}
 GODOT=${GODOT:-/home/user/tools/godot/godot}
 PORT=${RELAY_PORT:-18930}
 mkdir -p "$DATA"; rm -f "$DATA/autotest-ready.json" "$DATA/autotest-done.json"
+export LANTERN_ROOM_SECRET=${LANTERN_ROOM_SECRET:-e2e-room-secret} RELAY_DIR PORT
 PORT=$PORT node "$RELAY_DIR/server.js" > "$DATA/relay.log" 2>&1 & RELAY=$!
+echo $RELAY > "$DATA/relay.pid"
 sleep 1
 EXTRA=()
 # В облачной песочнице нет IPv6, а BDS без него не стартует — подкладываем тестовую заглушку (только BDS, только тест)
@@ -24,10 +26,14 @@ else
   RUN=("$GODOT" --headless)
 fi
 "${RUN[@]}" --path "$HERE" -- --autotest "$MODE" --data="$DATA" --relay=ws://127.0.0.1:$PORT/ws \
-  --join_java_port=25570 --join_bedrock_port=19142 --shots="$SHOTS" "${EXTRA[@]}" > "$DATA/app.log" 2>&1 & APP=$!
+  --join_java_port=25570 --join_bedrock_port=19142 --client_timeout=${CLIENT_TIMEOUT:-600} --shots="$SHOTS" "${EXTRA[@]}" > "$DATA/app.log" 2>&1 & APP=$!
 NODE_PATH=${E2E_NODE_PATH:-/tmp/claude-0/bot/node_modules:/tmp/claude-0/bp/node_modules} node "$HERE/tests/e2e_client.js" "$DATA" "$MODE" > "$DATA/client.log" 2>&1 & CL=$!
 wait $APP; RC=$?
+# приложение упало до готовности — клиенту ждать нечего; сервер, оставшийся без приложения, гасим
+[ -f "$DATA/autotest-ready.json" ] || kill $CL 2>/dev/null
+pkill -f "$DATA/runtime/" 2>/dev/null
 wait $CL; CRC=$?
 kill $RELAY 2>/dev/null; wait $RELAY 2>/dev/null
+kill "$(cat "$DATA/relay.pid")" 2>/dev/null   # relay, перезапущенный тестом долгой игры
 echo "app exit=$RC client exit=$CRC"
 exit $(( RC != 0 || CRC != 0 ))

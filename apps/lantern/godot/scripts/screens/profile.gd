@@ -54,7 +54,7 @@ func _render() -> void:
 	pills.alignment = BoxContainer.ALIGNMENT_CENTER
 	if String(e.get("title", "")) != "":
 		pills.add_child(UI.pill("«%s»" % e.title, UI.AMBER))
-	if e.get("pro", false):
+	if e.get("pro", false) and Cfg.paid():
 		pills.add_child(UI.pill("LANTERN Pro" + (" · ДЕМО" if Social.demo else ""), UI.JAVA))
 	if pills.get_child_count() > 0:
 		lv.add_child(pills)

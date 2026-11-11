@@ -20,7 +20,10 @@ func _ready() -> void:
 		_kind = arg.kind
 	if Social.demo:
 		add_child(preload("res://scripts/screens/quests.gd")._demo_banner())
-	_tabs = UI.tabs(KINDS, _kind, func(k): _kind = k; _render())
+	var kinds: Array = KINDS if Cfg.paid() else KINDS.filter(func(k): return k[0] != "pro")
+	if _kind == "pro" and not Cfg.paid():
+		_kind = "flame"
+	_tabs = UI.tabs(kinds, _kind, func(k): _kind = k; _render())
 	add_child(_tabs)
 	_body = UI.vbox(14)
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -167,7 +170,7 @@ func _pro() -> void:
 	hv.add_child(UI.label(("Активна до " + Time.get_date_string_from_unix_time(until / 1000) + (" (ДЕМО)" if Social.demo else "")) if active else "99,99 ₴ в месяц · $2.49", 14, UI.JAVA if active else UI.MUTED, UI.font_bold))
 	hr.add_child(hv)
 	v.add_child(hr)
-	for line in [["close", "Без рекламы совсем"], ["lock", "Свой код комнаты, например STEVE"], ["cloud", "Облачные копии миров"], ["star", "Особая косметика каждый месяц"], ["heart", "Поддержка автора LANTERN — Yompix"]]:
+	for line in [["close", "Без рекламы совсем"], ["lock", "Свой код комнаты, например LUNA7"], ["cloud", "Облачные копии миров"], ["star", "Особая косметика каждый месяц"], ["heart", "Поддержка автора LANTERN — Yompix"]]:
 		var r := UI.hbox(12)
 		var ic := UI.icon("check", 18, UI.AMBER)
 		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -181,7 +184,7 @@ func _pro() -> void:
 		v.add_child(UI.pill("✓ Pro активна", UI.JAVA))
 		v.add_child(UI.caption("Свой код комнаты"))
 		var vr := UI.hbox(8)
-		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), "Например STEVE")
+		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), "Например LUNA7")
 		ve.max_length = 8
 		ve.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ve.add_theme_font_override("font", UI.font_black)

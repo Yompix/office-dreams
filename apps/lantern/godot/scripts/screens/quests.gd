@@ -146,11 +146,12 @@ func _quests() -> void:
 		lv.add_child(bar)
 		lv.add_child(UI.label("%d / %d очков света до следующего уровня" % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
 	right.add_child(lp)
-	var left_ads := int(e.get("ads_left", 3))
-	var ab := UI.button("Смотреть рекламу", "tonal", func(): Store.show_rewarded(app), "play")
-	ab.disabled = left_ads <= 0
-	right.add_child(UI.list_row(UI.icon_tile("spark", UI.AMBER, 44, 22), "+20 искр за ролик", "Осталось сегодня: %d из 3 · в Pro рекламы нет" % left_ads, null))
-	right.add_child(ab)
+	if Cfg.paid():
+		var left_ads := int(e.get("ads_left", 3))
+		var ab := UI.button("Смотреть рекламу", "tonal", func(): Store.show_rewarded(app), "play")
+		ab.disabled = left_ads <= 0
+		right.add_child(UI.list_row(UI.icon_tile("spark", UI.AMBER, 44, 22), "+20 искр за ролик", "Осталось сегодня: %d из 3 · в Pro рекламы нет" % left_ads, null))
+		right.add_child(ab)
 	right.add_child(UI.list_row(UI.icon_tile("friends", UI.BEDROCK, 44, 22), "Позовите друга — +100 искр", "Пусть впишет ваш тег %s в профиле и наиграет час" % Social.me.get("tag", ""), null))
 	FX.stagger(left, 0.035)
 
@@ -236,7 +237,7 @@ func _season() -> void:
 	hv.add_child(bar)
 	if s.premium:
 		hv.add_child(UI.pill("✓ Премиум-путь открыт", UI.AMBER))
-	else:
+	elif Cfg.paid():
 		var b := UI.button("Премиум-путь · 149,99 ₴", "primary", func():
 			if not s.get("premium_available", false):
 				app.toast("Скоро! Покупки появятся после запуска в Google Play.")
@@ -252,12 +253,13 @@ func _season() -> void:
 	sc.add_child(row)
 	var labels := UI.vbox(10)
 	labels.add_child(UI.gap(22))
-	for tr in [["Бесплатно", UI.MUTED], ["Премиум", UI.AMBER]]:
+	var prem_on := Cfg.paid() or bool(s.premium)
+	for tr in ([["Бесплатно", UI.MUTED], ["Премиум", UI.AMBER]] if prem_on else []):
 		var fl := UI.label(tr[0], 12, tr[1], UI.font_bold)
 		fl.custom_minimum_size = Vector2(0, 132)
 		fl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		labels.add_child(fl)
-	if not UI.compact():
+	if not UI.compact() and prem_on:
 		row.add_child(labels)
 	var claimed: Array = s.get("claimed", [])
 	for tier in range(1, int(s.tiers) + 1):
@@ -267,10 +269,11 @@ func _season() -> void:
 		tl.custom_minimum_size.y = 22
 		col.add_child(tl)
 		col.add_child(_reward_cell(s, tier, "free", s.free.get(str(tier)), claimed))
-		col.add_child(_reward_cell(s, tier, "premium", s.premiumTrack.get(str(tier)), claimed))
+		if prem_on:
+			col.add_child(_reward_cell(s, tier, "premium", s.premiumTrack.get(str(tier)), claimed))
 		row.add_child(col)
 	_body.add_child(sc)
-	if UI.compact():
+	if UI.compact() and prem_on:
 		_body.add_child(UI.para("Верхний ряд — бесплатные награды, нижний — премиум.", 12, UI.DIM))
 	FX.stagger(row, 0.03, Vector2(16, 0))
 

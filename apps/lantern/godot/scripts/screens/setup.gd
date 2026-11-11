@@ -13,6 +13,7 @@ var step := 1
 var _name: LineEdit
 var _version: OptionButton
 var _versions: PackedStringArray = []
+var _ver_hint: Label
 var _mode_i := 0
 var _mode_seg: Control
 var _diff: OptionButton
@@ -133,7 +134,7 @@ func _page_edition(p: VBoxContainer) -> void:
 	var sub := UI.vbox(12)
 	sub.add_child(UI.gap(4))
 	sub.add_child(UI.h3("На чём играют друзья?"))
-	sub.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере — лицензия или TLauncher. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
+	sub.add_child(UI.choice("java", UI.JAVA, "Java Edition", "Minecraft на компьютере. Друзья с телефона тоже смогут зайти.", edition == "java", _pick.bind("java")))
 	sub.add_child(UI.choice("phone", UI.BEDROCK, "Bedrock Edition", "Телефон, планшет, Windows 10/11, Xbox, PlayStation, Switch.", edition == "bedrock", _pick.bind("bedrock")))
 	var tip := UI.panel(16, Color(1, 1, 1, 0.03))
 	var tr := UI.hbox(12)
@@ -180,7 +181,7 @@ func _show_own(on: bool) -> void:
 		add_child(_own_page)
 		FX.enter(_own_page, Vector2(48, 0), 0.0, 0.3)
 		app.set_back(func(): _show_own(false))
-		app.set_title("Мой мир из Minecraft")
+		app.set_title("Мой мир" if Cfg.mobile() or UI.compact() else "Мой мир из Minecraft")
 	else:
 		kind = ""
 		_pick_kind_refresh()
@@ -234,21 +235,30 @@ func _page_world(p: VBoxContainer) -> void:
 	v.add_child(UI.field("Сложность", _diff))
 	if edition == "java":
 		var lic := UI.vbox(10)
-		lic.add_child(UI.label("Как друзья запускают Minecraft?", 13, UI.MUTED, UI.font_bold))
+		lic.add_child(UI.label("Проверка аккаунтов", 13, UI.MUTED, UI.font_bold))
 		_online = _saved.get("online_mode", true)
 		var lic_box := UI.vbox(10)
 		lic.add_child(lic_box)
 		var draw_lic := func(self_ref: Callable):
 			for c in lic_box.get_children():
 				c.queue_free()
-			lic_box.add_child(UI.choice("lock", UI.accent(), "Купленный Minecraft", "Ники защищены — никто не зайдёт под чужим именем.", _online, func(): _online = true; self_ref.call(self_ref); _update()))
-			lic_box.add_child(UI.choice("user", UI.YELLOW, "TLauncher и другие", "Можно без лицензии. Но любой может взять любой ник — не давайте код посторонним.", not _online, func(): _online = false; self_ref.call(self_ref); _update()))
+			lic_box.add_child(UI.choice("lock", UI.accent(), "Включена (рекомендуется)", "Вход только с аккаунтом Microsoft — никто не зайдёт под чужим ником.", _online, func(): _online = true; self_ref.call(self_ref); _update()))
+			lic_box.add_child(UI.choice("user", UI.YELLOW, "Выключена", "Сервер не проверяет аккаунты (online-mode=false): любой может взять любой ник. Только для тех, кому доверяете.", not _online, func(): _online = false; self_ref.call(self_ref); _update()))
 		draw_lic.call(draw_lic)
 		v.add_child(lic)
 		var cr := UI.switch_row("Пустить друзей с телефона", "Друзья с Bedrock (телефон, консоль) зайдут в этот же мир по тому же коду.", _saved.get("crossplay", true), func(_b): _update())
 		_cross = cr.switch
 		v.add_child(UI.divider())
 		v.add_child(cr.row)
+		# версия сервера: друзьям она не важна — ViaVersion пускает Java любых версий (1.8 – новейшая)
+		v.add_child(UI.divider())
+		_version = UI.option(["Новейшая (рекомендуется)"])
+		_ver_hint = UI.para("", 12, UI.DIM)
+		var vf := UI.field("Версия сервера", _version)
+		vf.add_child(_ver_hint)
+		v.add_child(vf)
+		_version.item_selected.connect(func(_i): _update())
+		_load_versions(_saved.get("version", "latest"))
 
 
 # ------------------------------------------------------------------ шаг 3: запуск
@@ -307,9 +317,6 @@ func _page_launch(p: VBoxContainer) -> void:
 	_players.custom_minimum_size.y = UI.touch_h()
 	body.add_child(UI.field("Сколько игроков максимум", _players))
 	if edition == "java":
-		_version = UI.option(["Последняя версия"])
-		body.add_child(UI.field("Версия Minecraft", _version, "Должна совпадать с версией у друзей. С кроссплеем — только последняя."))
-		_load_versions(_saved.get("version", "latest"))
 		var total := int(OS.get_memory_info().get("physical", 8 << 30) / (1 << 20))
 		_mem = HSlider.new()
 		_mem.min_value = 1024
@@ -361,13 +368,23 @@ func _load_versions(want: String) -> void:
 	var r: Dictionary = await Net.get_json(ServerHost.FILL)
 	if not is_inside_tree() or not r.ok or not is_instance_valid(_version):
 		return
-	_versions = ServerHost.paper_versions(r.data)
+	var all := ServerHost.paper_versions(r.data)
+	# новейшая, потом популярные (под них моды и сборки), потом остальные
+	_versions = PackedStringArray(["latest"])
 	_version.clear()
-	_version.add_item("Последняя (%s)" % (_versions[0] if _versions.size() > 0 else "?"))
-	for v in _versions.slice(0, 40):
-		_version.add_item(v)
+	_version.add_item("Новейшая — %s (рекомендуется)" % (all[0] if all.size() > 0 else "?"))
+	for v in ServerHost.POPULAR:
+		if v in all and v != all[0]:
+			_versions.append(v)
+			_version.add_item(v)
+	_version.add_separator("Другие версии")
+	_versions.append("")
+	for v in all.slice(1, 60):
+		if not v in ServerHost.POPULAR:
+			_versions.append(v)
+			_version.add_item(v)
 	var i := _versions.find(want)
-	_version.select(i + 1 if i >= 0 else 0)
+	_version.select(i if i > 0 else 0)
 	_update()
 
 
@@ -384,7 +401,8 @@ func _opts() -> Dictionary:
 		"tags": _ptags.keys().filter(func(k): return _ptags[k].button_pressed),
 	}
 	if edition == "java":
-		o["version"] = "latest" if _version.selected <= 0 else _versions[_version.selected - 1]
+		var vi := _version.selected
+		o["version"] = _versions[vi] if vi > 0 and vi < _versions.size() and _versions[vi] != "" else "latest"
 		o["online_mode"] = _online
 		o["crossplay"] = _cross.button_pressed
 		o["memory_mb"] = int(_mem.value)
@@ -396,16 +414,20 @@ func _opts() -> Dictionary:
 func _update() -> void:
 	if _sum == null or _eula == null:
 		return
-	if edition == "java" and _version and _cross:
-		_version.disabled = _cross.button_pressed
-		if _cross.button_pressed:
-			_version.select(0)
 	var o := _opts()
+	if edition == "java" and _ver_hint:
+		if o.version == "latest":
+			_ver_hint.text = "Друзья зайдут с любой версии Java — от 1.8 до новейшей." + (" Телефоны — с актуальной версии Minecraft." if o.crossplay else "")
+		elif o.crossplay:
+			_ver_hint.text = "Для телефонов нужен новый сервер — поставим новейший. Старые версии Java (и %s) всё равно смогут зайти." % o.version
+		else:
+			_ver_hint.text = "Сервер %s (Java %d скачаем сами). Зайти можно и с других версий Java — LANTERN поставит ViaVersion." % [o.version, ServerHost.java_for(o.version)]
 	var lines := PackedStringArray()
 	lines.append("•  Мир «%s» — %s, сложность %s" % [o.world, MODES[_mode_i][1].to_lower(), DIFFS[_diff.selected][1].to_lower()])
 	if edition == "java":
-		lines.append("•  Скачаем сервер Paper и, если нужно, Java — один раз")
-		lines.append("•  Вход: " + ("только купленный Minecraft" if o.online_mode else "лицензия и TLauncher"))
+		lines.append("•  Скачаем сервер Paper %s и, если нужно, Java — один раз" % ("новейший" if o.version == "latest" or o.crossplay else o.version))
+		lines.append("•  Друзья зайдут с любой версии Java (ViaVersion)")
+		lines.append("•  Вход: " + ("с проверкой аккаунта Microsoft" if o.online_mode else "без проверки аккаунтов"))
 		if o.crossplay:
 			lines.append("•  Друзья с телефона тоже зайдут (последняя версия)")
 		if o.whitelist:

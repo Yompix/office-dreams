@@ -33,8 +33,8 @@ static func _center(ov: Control, child: Control) -> void:
 		child.modulate.a = 0
 		child.scale = Vector2(0.94, 0.94)
 		child.resized.connect(func(): child.pivot_offset = child.size / 2)
-		var tw := child.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_property(child, "scale", Vector2.ONE, 0.3)
+		var tw := child.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(child, "scale", Vector2.ONE, 0.22)
 		tw.tween_property(child, "modulate:a", 1.0, 0.18)
 
 
@@ -112,7 +112,7 @@ static func sheet(app: Control, title := "", sub := "", light := false) -> VBoxC
 				var y := p.position.y
 				p.position.y = y + p.size.y * 0.6
 				p.modulate.a = 1
-				p.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(p, "position:y", y, 0.34))
+				p.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(p, "position:y", y, 0.24))
 	else:
 		p.custom_minimum_size.x = 480
 		_center(ov, p)
@@ -204,7 +204,7 @@ static func register(app: Control) -> void:
 			nw.position.x = 60 * dir
 			nw.modulate.a = 0
 			var tw := nw.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(nw, "position:x", 0.0, 0.3)
+			tw.tween_property(nw, "position:x", 0.0, 0.22)
 			tw.tween_property(nw, "modulate:a", 1.0, 0.22)
 			var to := old.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 			to.tween_property(old, "position:x", -60.0 * dir, 0.2)
@@ -246,7 +246,7 @@ static func register(app: Control) -> void:
 	var t1 := UI.label("LANTERN", 34, UI.TEXT, UI.font_black)
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(t1)
-	var s1 := UI.para("Minecraft с друзьями — по короткому коду. Java и Bedrock, без VPN и настройки роутера.", 16, UI.MUTED)
+	var s1 := UI.para("Играйте с друзьями по короткому коду — в Minecraft: Java Edition и Bedrock Edition. Без VPN и настройки роутера.", 16, UI.MUTED)
 	s1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(s1)
 	p1.add_child(UI.spacer(false))
@@ -255,6 +255,9 @@ static func register(app: Control) -> void:
 	b1.custom_minimum_size.y = 56
 	b1.add_theme_font_size_override("font_size", 17)
 	p1.add_child(b1)
+	var disc := UI.para(Cfg.DISCLAIMER, 10, UI.DIM)
+	disc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p1.add_child(disc)
 
 	# --- 2. ник
 	var p2: VBoxContainer = mk_page.call()
