@@ -1560,8 +1560,14 @@ function backAway(name, from, to, t, v, look) {   // пятится: идёт с
 SH.h_guard_back = { loc: 'lobby', pos: [5.6, 1.0, -.95], look: [5.6, 1.4, 2.5], fov: 54, face: { smenshik: 'fear' }, set: (o, t) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false;
   return [['temych', CROUCH_AM[0], 0, CROUCH_AM[1], PI, eCrouch(t), null], backAway('smenshik', [6.15, .95], [5.4, 3.6], t, .55, [5.72, .45, -.3])]; } };
 // отражение: Итан встал и смотрит в стекло будки — кадр снят через стекло и отзеркален, поверх грязь стекла
-SH.h_reflect = { loc: 'lobby', pos: [5.12, 1.62, 1.02], look: [5.12, 1.6, -.2], fov: 30, mirror: true, set: (o, t) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false; A.temych.faceSet = 'smile';
-  return [['temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']]; } };
+// «ВНУТРИ»: отражение Итана. Раньше он с первого кадра по-доброму улыбался — выходило смешно (владелец, 11 ноя). Теперь: стоит неживо, не дышит
+// и не моргает, смотрит в себя; улыбка ползёт медленно и становится шире человеческой, глаза в ней не участвуют (как у «Лили» у стекла),
+// голова медленно клонится набок, камера всё это время подползает к лицу
+SH.h_reflect = { loc: 'lobby', pos: [5.12, 1.62, 1.02], look: [5.12, 1.6, -.2], fov: 30, mirror: true, noRim: 1, set: (o, t, sh) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false;
+  const C = A.temych, k = seg(t, 1.4, 6), k2 = seg(t, 4.2, 8.5);
+  C.faceSets.h_in = { dead: Math.min(1, .45 + k), smile: 1.38 * k, wide: 1 + .32 * k2, browUp: .5 * k2 }; C.faceSet = 'h_in'; C.tiltNow = .32 * k2;
+  sh.fov = 30 - 9 * seg(t, .5, 9); o.amb.intensity = .8 - .45 * k2;
+  return [['temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', 1.3, 1]], still: 1, legs: 'feet' }, 'cam']]; } };
 // ---- А2: бег по служебному коридору — лампы гаснут у него за спиной; под дождём; звонок ----
 SH.x_run = { loc: 'corridor', pos: [0, 1.5, -2.5], look: [0, 1.35, -14], fov: 56, set: (o, t, sh) => { const z = -14 + t * 3.2; sh.pos[2] = z + 4.2 + Math.sin(t * 9) * .02; sh.look[2] = z;
   lampSet(o, i => -1.8 - i * 3.6 > z - 3.0 - t * .2); o.amb.intensity = .3;   // гаснут те, что уже позади него
@@ -2204,11 +2210,15 @@ function ethanProp(t, extra = {}) {
   return Object.assign({ clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: armWaist(locR(XF[0], XF[2], XFR)) }, fing: { r: ['grip', .3] } }, extra);
 }
 // сигарета в правой: k = 0 — у груди (пальцы вперёд, ладонь вниз), 1 — у губ (пальцы вверх буквой V, ладонь к лицу, фильтр в губах)
-function frankCig(F, C, k, w = 1) { const [m, f] = mouthOf(C), R = locR(XF[0], XF[2], XFR), lo = R.p(-.15, 1.21, .27), lip = [m.x + f.x * .012, m.y - .004, m.z + f.z * .012], e = k * k * (3 - 2 * k);
+// затяжка — отдельным движением, а не качелями: рука идёт к губам 1,1 с, держит .8 с, опускается 1,2 с; между затяжками 9 с сигарета внизу, у пояса.
+// Пока Фрэнк говорит — не курит: рука с сигаретой опущена (владелец, 11 ноя: «когда говорит, сигарету не должен курить»)
+const cigDrag = (t, t0, per = 9) => { if (t < t0) return 0; const u = (t - t0) % per; return seg(u, 0, 1.1) * (1 - seg(u, 1.9, 3.1)); };
+function cigTalk(C, k) { C.cigQ = lerp(C.cigQ || 0, C.talkingNow ? 1 : 0, C.talkingNow ? .12 : .03); return k * (1 - clamp(C.cigQ * 1.6, 0, 1)); }
+function frankCig(F, C, k, w = 1) { const [m, f] = mouthOf(C), R = locR(XF[0], XF[2], XFR), lo = R.p(-.2, 1.07, .25), lip = [m.x + f.x * .012, m.y - .004, m.z + f.z * .012], e = k * k * (3 - 2 * k);
   F.arm.r = { at: lin(lo, lip, e), by: 'pinch', fdir: lin([f.x, -.15, f.z], [f.x * .35, .9, f.z * .35], e), pdir: lin([0, -1, 0], R.v(1, 0, 0), e), w }; F.fing.r = ['pinch', 1]; }
 SH.x_two = { loc: 'lobby', pos: [1.75, 1.5, 10.3], look: [-.4, 1.35, 7.5], fov: 44, set: (o, t) => {
   const F = frankOut(t, { look: [XE[0], 1.62, XE[1]] });
-  if (curProps && curProps.cig) { frankCig(F, A.mihalych, Math.max(0, Math.sin((t - 2.5) * .7))); F.hold = { r: 'cig' }; }
+  if (curProps && curProps.cig) { frankCig(F, A.mihalych, cigTalk(A.mihalych, cigDrag(t, 1.4))); F.hold = { r: 'cig' }; }
   return [['temych', XE[0], 0, XE[1], XER, ethanProp(t, { talk: 1, look: [1.5, 1.6, 12] }), null], ['mihalych', XF[0], 0, XF[2], XFR, F, null]]; } };
 // «Я покачал головой»: качает головой на своей стойке (react 'no' в story.js) — не переходит всем телом в клип Quaternius
 SH.x_no = { loc: 'lobby', pos: [.75, 1.62, 8.9], look: [-.2, 1.58, 7.45], fov: 38, set: (o, t) => [['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null],
@@ -2218,13 +2228,17 @@ function mouthOf(C) { const h = C.bone.Head.getWorldPosition(new T.Vector3()), m
   const f = m.clone().sub(h); f.y *= .25; return [m, f.normalize()]; }
 SH.x_smoke = { loc: 'lobby', pos: [.55, 1.62, 9.0], look: [-.55, 1.55, 7.6], fov: 36, set: (o, t) => {
   // 0–2.1 зажигалка у кончика и обратно; 2.3–2.75 рука к губам, с 2.8 сигарета в пальцах — от губ к груди; дальше затяжки
-  const up = seg(t, 0, .5) * (1 - seg(t, 1.6, 2.1)), flame = t > .45 && t < 1.6, rise = seg(t, 2.3, 2.75), took = t >= 2.8, puff = Math.max(0, Math.sin((t - 6) * .8));
+  const lit = !!(curProps && curProps.cig);   // уже курит (следующий кадр той же сцены: Фрэнк говорит) — зажигалка второй раз не достаётся
+  const up = seg(t, 0, .5) * (1 - seg(t, 1.6, 2.1)), flame = t > .45 && t < 1.6, rise = seg(t, 2.3, 2.75), took = t >= 2.8, puff = cigDrag(t, 7);
   const F = frankOut(t, { look: [.55, 1.62, 9.0] });
+  if (lit) { frankCig(F, A.mihalych, cigTalk(A.mihalych, cigDrag(t, 2.5))); F.hold = { r: 'cig' };
+    return [['mihalych', XF[0], 0, XF[2], XFR, F, null], ['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null]]; }
   const C = A.mihalych, [m, f] = mouthOf(C), tip = [m.x + f.x * .085, m.y + f.y * .085 - .01, m.z + f.z * .085];
   if (rise > 0) { frankCig(F, C, took ? Math.max(1 - seg(t, 2.8, 3.4), puff) : 1, rise); F.hold = { r: took ? 'cig' : null }; }
   else { F.arm.r = { at: [tip[0], tip[1] - .03, tip[2]], by: 'tip', fdir: [f.x, .9, f.z], pdir: [f.z, 0, -f.x], w: up }; F.fing.r = ['grip', up]; F.hold = { r: up > .3 ? 'lighter' : null }; }
-  F.after = () => { const lt = window.__W3chars.prop3('lighter').obj.userData.flame; if (lt) lt.visible = flame;
-    if (!took) { const [m2, f2] = mouthOf(C); propX('cig', o.S, [m2.x + f2.x * .005, m2.y - .006, m2.z + f2.z * .005], [f2.x, -.12, f2.z]); } };
+  F.after = () => { const lt = window.__W3chars.prop3('lighter').obj.userData.flame; if (lt) lt.visible = flame; };
+  // сигарета в губах ставится после взгляда и поворота головы (post) — раньше ставилась до них и при повороте головы висела в воздухе у щеки
+  F.post = () => { if (!took) { C.root.updateWorldMatrix(true, true); const [m2, f2] = mouthOf(C); propX('cig', o.S, [m2.x + f2.x * .005, m2.y - .006, m2.z + f2.z * .005], [f2.x, -.12, f2.z]); } };
   return [['mihalych', XF[0], 0, XF[2], XFR, F, null], ['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null]]; } };
 function propX(name, scene, pos, dir) { const pr = window.__W3chars.prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
   pr.obj.quaternion.setFromUnitVectors(new T.Vector3(1, 0, 0), new T.Vector3(...dir).normalize()); pr.obj.visible = true; pr.C = null; }
@@ -2296,10 +2310,18 @@ SH.st_down = { loc: 'stairs', pos: [-.7, 6.1, -4.9], look: [-.7, 4.0, -1.2], fov
   const k = clamp(t / 5.5, 0, 1), y = lerp(4.5, 3.0, k) + 1.6 + Math.abs(Math.sin(t * 4.2)) * .035, z = lerp(-4.7, -1.5, k);
   sh.pos = [-.7 + Math.sin(t * 2.1) * .03, y, z]; sh.look = [-.68, y - 1.6, z + 3.2]; return []; } };
 // d22 (CAM 04): Итан ведёт Фрэнка по средней площадке — рука Фрэнка через его плечи, как у входа на рассвете
-SH.st_up = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 58, cctv: 1, set: (o, t) => { const k = clamp(t / 7, 0, 1), x = lerp(-.75, .7, k), y = 4.5;
-  const E = A.temych, cyc = (x + .75) / (1.3 * E.ss) * 1.333, RE = locR(x + .1, -5.35, PI / 2), fp = RE.p(-.45, 0, -.17), RF = locR(fp[0], fp[2], PI / 2);   // шаг — по пройденному; Фрэнк чуть позади — с камеры видны оба
-  return [['temych', x + .1, y, -5.35, PI / 2, { clips: [['Walk_Loop', cyc, 1]], arm: { r: armWaist(RF, y) }, fing: { r: ['grip', .3] } }, null],
-    ['mihalych', fp[0], y, fp[2], PI / 2, { clips: [['Walk_Loop', cyc + .3, 1]], wear: { splint: SPLINT }, arm: { l: armOver(RE, y) }, fing: { l: ['grip', .45] } }, null]]; } };
+SH.st_up = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 58, cctv: 1, set: (o, t) => {
+  // Итан ведёт Фрэнка: медленно (16 см/с), короткими шагами. Фрэнк хромает на левую (шина): на больную ногу наступает коротко и проседает,
+  // корпусом висит на Итане, голова опущена; Итан под весом клонится к нему. Раньше оба шли одинаковым бодрым шагом, рука Фрэнка торчала над головами
+  const k = clamp(t / 9, 0, 1), x = lerp(-.75, .7, k * k * (3 - 2 * k) * .5 + k * .5), y = 4.5;
+  const E = A.temych, u = (x + .75) / (.95 * E.ss), cyc = u * 1.333, TAU = PI * 2;   // шаг короче обычного (.95 м на цикл вместо 1,3)
+  const lame = u + .085 * Math.sin(TAU * u), dip = Math.max(0, Math.sin(TAU * u + .6)), bob = Math.sin(TAU * 2 * u) * .012;
+  const RE = locR(x + .1, -5.35, PI / 2), fp = RE.p(-.43, 0, -.12), RF = locR(fp[0], fp[2], PI / 2);
+  const over = { at: (() => { const a = RE.p(.1, 1.43, -.13); a[1] += y; return a; })(), by: 'palm', fdir: RE.v(.6, -.6, .3), pdir: RE.v(-.1, -1, .1), pole: [0, .4, -1], w: 1 };
+  const lean = RE.p(0, 1.25, .05); lean[1] += y; const leanE = RF.p(0, 1.2, .1); leanE[1] += y;
+  return [['temych', x + .1, y + bob * .5, -5.35, PI / 2, { clips: [['Walk_Loop', cyc, .8], ['Idle_Loop', t, .2]], arm: { r: armWaist(RF, y) }, fing: { r: ['grip', .4] }, spine: { to: leanE, k: .1 }, look: [x + 1.6, y + 1.2, -5.4] }, null],
+    ['mihalych', fp[0], y + bob - dip * .035, fp[2], PI / 2, { clips: [['Walk_Loop', lame * 1.333 + .3, .72], ['Idle_Loop', t + 2, .28]], wear: { splint: SPLINT }, arm: { l: over }, fing: { l: ['grip', .5], r: ['grip', .35] },
+      spine: { to: lean, k: .2 }, look: [x + .9, y + .35, -5.3], toes: 1 }, null]]; } };
 function bsDark(o, k = 0) { o.flickOn = false; o.bulbs.forEach(b => { b.li.intensity = b.base * k; b.bulb.material.color.setHex(k ? 0xffe8b8 : 0x1c1a14); }); }
 SH.bs_dark = { loc: 'basement', pos: [0, 1.6, -.6], look: [0, 1.0, -14], fov: 56, set: (o, t) => { bsDark(o); return []; } };
 SH.bs_walk = { loc: 'basement', pos: [0, 1.6, -3], look: [0, 1.1, -14], fov: 56, torch: { x: .5, y: .66 }, set: (o, t, sh) => { bsDark(o);
