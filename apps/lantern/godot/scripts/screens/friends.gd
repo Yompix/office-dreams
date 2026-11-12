@@ -30,7 +30,7 @@ func _ready() -> void:
 	# --- мой тег
 	var tag: String = Social.me.get("tag", "—")
 	var mp := PanelContainer.new()
-	var mst := UI.box(Color("201a10"), UI.R_L, 0, Color(UI.accent(), 0.25), 1)
+	var mst := UI.glass(2, UI.R_XL, 0, UI.accent())
 	UI._hpad(mst, 16, 14)
 	mp.add_theme_stylebox_override("panel", mst)
 	var mr := UI.hbox(12)
@@ -54,7 +54,7 @@ func _ready() -> void:
 	_tag_in.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tag_in.text_submitted.connect(func(_t): _add())
 	arow.add_child(_tag_in)
-	var ab := UI.button("Добавить", "primary", _add, "plus")
+	var ab := UI.button("Добавить", "tonal", _add, "plus")
 	arow.add_child(ab)
 	left.add_child(arow)
 	_list = UI.vbox(8)
@@ -62,7 +62,7 @@ func _ready() -> void:
 	left.add_child(_list)
 	# --- чат
 	var right := PanelContainer.new()
-	right.add_theme_stylebox_override("panel", UI.box(UI.CARD if not _compact else Color(0, 0, 0, 0), UI.R_L, 0 if _compact else 16))
+	right.add_theme_stylebox_override("panel", UI.glass(1, UI.R_XL, 16) if not _compact else UI.box(Color(0, 0, 0, 0), UI.R_L, 0))
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_holder = UI.vbox(10)
 	right.add_child(_chat_holder)
@@ -151,7 +151,7 @@ func _render() -> void:
 		for u in Social.incoming:
 			var tr := UI.hbox(4)
 			tr.add_child(UI.icon_button("close", func(): Social.request("friend_decline", {"id": u.id}), "Отклонить", UI.MUTED))
-			tr.add_child(UI.button("Принять", "primary", func(): Social.request("friend_accept", {"id": u.id})))
+			tr.add_child(UI.button("Принять", "tonal", func(): Social.request("friend_accept", {"id": u.id})))
 			_list.add_child(_row(u, "хочет дружить", tr))
 	if not Social.outgoing.is_empty():
 		_list.add_child(UI.section("Отправленные заявки"))
@@ -171,14 +171,14 @@ func _render() -> void:
 		if unread > 0:
 			tr.add_child(UI.badge(unread))
 		if a is Dictionary and a.get("code", "") != "":
-			tr.add_child(UI.button("Зайти", "primary", func(): app.go("join", true, {"input": a.code, "edition": "both"})))
+			tr.add_child(UI.button("Зайти", "tonal", func(): app.go("join", true, {"input": a.code, "edition": "both"})))
 		elif my_code != "" and f.online:
 			tr.add_child(UI.button("Позвать", "tonal", func():
 				Social.request("invite", {"to": f.id, "code": my_code, "world": app.server.opts.get("world", ""), "edition": app.relay_host.edition})
 				app.toast("Приглашение отправлено", UI.JAVA)))
 		var row := _row(f, status_text(f), tr, func(): _open_chat(int(f.id)))
 		if not _compact and int(f.id) == _peer:
-			(row.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = UI.CARD_HI
+			UI.halo(row, UI.accent(), UI.R_XL, 0.7)
 		_list.add_child(row)
 
 
@@ -186,16 +186,13 @@ func _avatar(u: Dictionary, px := 46) -> Control:
 	var holder := Control.new()
 	holder.custom_minimum_size = Vector2(px, px)
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var li := LanternIcon.new().setup(int(u.get("lantern", {}).get("level", 1)), u.get("equip", ""), px)
-	li.modulate.a = 1.0 if u.get("online", true) else 0.45
-	holder.add_child(li)
+	# аватар-градиент с первой буквой ника; кольцо — «в сети»; значок — уровень фонаря
+	var av := Avatar.of(u, px)
+	av.size = Vector2(px, px)
 	if u.get("online", false):
-		var dot := Panel.new()
-		dot.add_theme_stylebox_override("panel", UI.box(UI.JAVA, 99, 0, UI.CARD, 2))
-		dot.size = Vector2(14, 14)
-		dot.position = Vector2(px - 13, px - 13)
-		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		holder.add_child(dot)
+		av.ring = UI.JAVA
+	av.modulate.a = 1.0 if u.get("online", true) else 0.5
+	holder.add_child(av)
 	return holder
 
 

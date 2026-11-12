@@ -17,7 +17,8 @@ var relay_url := ""
 var code := ""
 var want_java := true
 var want_bedrock := true
-var java_port := 25565       # предпочитаемый локальный порт Java (если занят — любой свободный)
+var java_port := 25565       # предпочитаемый локальный порт Java (если занят — прошлый, потом любой свободный)
+var java_port_alt := 0       # 1.7: порт с прошлого раза — адрес «localhost:порт» у игрока не меняется
 var bedrock_port := 19132    # Bedrock ищет LAN-миры только на 19132
 var nn_port := NetherNet.PORT  # Bedrock 1.21.1xx+ ищет LAN-миры по NetherNet на 7551
 var nn_id := 0               # наш id NetherNet — чтобы «Мой мир» не нашёл сам себя
@@ -216,7 +217,7 @@ func _loop() -> void:
 							AppLog.add("join", "в комнате: %s, издание %s, хозяин %s" % [name, edition, "на месте" if host_here else "отошёл"])
 							if want_java and edition in ["java", "both"]:
 								tcp_server = TCPServer.new()
-								if tcp_server.listen(java_port, "*") != OK and tcp_server.listen(0, "*") != OK:
+								if tcp_server.listen(java_port, "*") != OK and (java_port_alt <= 0 or java_port_alt == java_port or tcp_server.listen(java_port_alt, "*") != OK) and tcp_server.listen(0, "*") != OK:
 									_st("java_error", "не удалось открыть локальный порт")
 									AppLog.add("join", "не удалось открыть локальный порт Java")
 									tcp_server = null

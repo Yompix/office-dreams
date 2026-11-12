@@ -89,7 +89,7 @@ func run() -> void:
 func _add(key: String, ok: String, title: String, text: String) -> Control:
 	results.append({"key": key, "ok": ok, "title": title, "text": text})
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.CARD, UI.R_L), 14, 12))
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(1, UI.R_XL, 0), 14, 12))
 	var row := UI.hbox(14)
 	p.add_child(row)
 	var col: Color = {"ok": UI.JAVA, "warn": UI.YELLOW, "bad": UI.RED}.get(ok, UI.BEDROCK)

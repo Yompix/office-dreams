@@ -33,6 +33,12 @@ var _nn_id := 0
 var probes := 0              # сколько раз уже искали (для подсказок на экране поиска)
 var _was_alive := true
 var _paused_at := 0
+# 1.7 «Создать» на телефоне: LANTERN сразу открывает Minecraft, а мир ищет и в фоне (основной цикл Godot в фоне стоит —
+# ищет отдельный поток, пока работает служба с уведомлением). Нашёл — открыл комнату и прислал «Комната открыта · код …».
+var auto_pending := false
+var bg_opened := false
+var _bg: Thread
+var _bg_stop := false
 
 
 func _ready() -> void:
@@ -236,8 +242,78 @@ func alive() -> bool:
 	return Time.get_ticks_msec() - seen < FORGET_MS
 
 
-func start(w: Dictionary) -> void:
-	if app.server.is_alive():
+## Ждать мир и открыть комнату самим (в том числе пока LANTERN в фоне, а игрок — в Minecraft).
+func arm_auto() -> void:
+	auto_pending = true
+	bg_opened = false
+	AppLog.add("own", "ждём мир в Minecraft: комната откроется сама (в фоне тоже)")
+	if OS.get_name() != "Android":
+		return
+	if not OS.get_granted_permissions().has("android.permission.POST_NOTIFICATIONS"):
+		OS.request_permission("android.permission.POST_NOTIFICATIONS")
+	var cls = JavaClassWrapper.wrap(ANDROID_SERVICE)
+	if cls == null:
+		return
+	cls.start("Ждём ваш мир в Minecraft", "Зайдите в свой мир — комната для друзей откроется сама.")
+	cls.update(JSON.stringify({"code": "······", "ok": false, "why": "Зайдите в свой мир в Minecraft — комната откроется сама.", "world": "", "peers": [], "public": RoomControl.own_public_default(), "share": ""}))
+
+
+func disarm_auto() -> void:
+	if not auto_pending:
+		return
+	auto_pending = false
+	_bg_join()
+	if not active:
+		_keepalive(false)
+
+
+func _bg_join() -> void:
+	if _bg != null:
+		_bg_stop = true
+		_bg.wait_to_finish()
+		_bg = null
+	_bg_stop = false
+
+
+## Поток поиска мира, пока приложение в фоне: те же запросы, что и на экране поиска; нашли — открываем комнату.
+func _bg_loop() -> void:
+	AppLog.add("own", "фон: ищем мир в Minecraft")
+	var t0 := Time.get_ticks_msec()
+	var n := 0
+	while not _bg_stop and Time.get_ticks_msec() - t0 < 30 * 60 * 1000:
+		_send_pings()
+		OS.delay_msec(300)
+		_read()
+		n += 1
+		var list := worlds().filter(func(w): return w.edition == "bedrock" or java_supported())
+		if not list.is_empty():
+			var w: Dictionary = list[0]
+			AppLog.add("own", "фон: мир найден после %d попыток — «%s», открываем комнату" % [n, w.get("name", "")])
+			start(w, true)
+			bg_opened = true
+			# ждём код комнаты и сообщаем игроку (он сейчас в Minecraft)
+			var t1 := Time.get_ticks_msec()
+			while not _bg_stop and Time.get_ticks_msec() - t1 < 25000:
+				var code := String(app.relay_host.stats().get("code", ""))
+				if code != "":
+					var cls = JavaClassWrapper.wrap(ANDROID_SERVICE) if OS.get_name() == "Android" else null
+					if cls != null:
+						cls.event("Комната открыта · код %s — отправьте его друзьям" % RoomCode.pretty(code), false)
+					AppLog.add("own", "фон: комната открыта, код получен")
+					break
+				OS.delay_msec(300)
+			return
+		for i in 7:
+			if _bg_stop:
+				return
+			OS.delay_msec(100)
+	AppLog.add("own", "фон: поиск мира остановлен")
+
+
+## bg — вызов из фонового потока: только то, что не трогает экран (остальное основной поток доделает в on_resume).
+func start(w: Dictionary, bg := false) -> void:
+	auto_pending = false
+	if not bg and app.server.is_alive():
 		app.server.stop()
 	world = w.duplicate()
 	world.seen = Time.get_ticks_msec()
@@ -256,6 +332,14 @@ func start(w: Dictionary) -> void:
 	Cfg.set_value("own", "last_edition", w.edition)
 	if String(w.get("version", "")) != "":
 		Cfg.set_value("own", "last_version", "%s %s" % ["Bedrock" if w.edition == "bedrock" else "Java", w.version])
+	if bg:
+		app.relay_host.bans = RoomControl.ban_ids()
+		if OS.get_name() == "Android":
+			var cls = JavaClassWrapper.wrap(ANDROID_SERVICE)
+			if cls != null:
+				app.relay_host.android = cls
+				cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь.")
+		return
 	_keepalive(true)
 	app.room.room_opened()
 	app.update_presence()
@@ -263,6 +347,7 @@ func start(w: Dictionary) -> void:
 
 
 func stop() -> void:
+	disarm_auto()
 	if not active:
 		return
 	active = false
@@ -284,6 +369,14 @@ func players() -> int:
 ## Android: приложение вернулось из фона. Если связь с relay оборвалась — мост сам переподключится
 ## (тот же код комнаты, relay держит его 5 минут). Здесь — сразу проверить мир и поторопить переподключение.
 func on_resume() -> void:
+	_bg_join()
+	if bg_opened:
+		# комнату открыл фоновый поток, пока игрок был в Minecraft — доделываем то, что связано с экраном
+		bg_opened = false
+		app.room.room_opened()
+		app.update_presence()
+		changed.emit()
+		app.go("host", true, {"fresh": true})
 	if not active:
 		return
 	_t = 99.0
@@ -296,6 +389,10 @@ func on_resume() -> void:
 
 func on_pause() -> void:
 	_paused_at = Time.get_ticks_msec()
+	if auto_pending and not active and _bg == null:
+		_bg_stop = false
+		_bg = Thread.new()
+		_bg.start(_bg_loop)
 
 
 # ------------------------------------------------------------------ Android: служба «мир открыт» (уведомление)

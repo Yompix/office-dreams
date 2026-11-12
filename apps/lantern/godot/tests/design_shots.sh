@@ -17,6 +17,6 @@ xvfb-run -a -s "-screen 0 $((W+64))x$((H+64))x24" env LIBGL_ALWAYS_SOFTWARE=1 ${
   --path "$HERE" -- --autotest tour "${EXTRA[@]}" "$@" --data="$DATA" --relay=ws://127.0.0.1:$PORT/ws --shots="$SHOTS" > "$DATA/app.log" 2>&1
 RC=$?
 kill $S $R 2>/dev/null
-grep -E "autotest|SCRIPT ERROR|ERROR: " "$DATA/app.log" | grep -v "скриншот" | head -60
+grep -E "autotest|SCRIPT ERROR|ERROR: " "$DATA/app.log" | grep -v "скриншот" | grep -v "\] ок: " | head -150
 echo "data: $DATA exit=$RC"
 exit $RC

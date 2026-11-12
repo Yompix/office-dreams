@@ -29,14 +29,15 @@ async function bot(nick) {
   const bots = [await bot('Алекс'), await bot('Маша_Кубик'), await bot('Кирилл'), await bot('Нюта')];
   for (const b of bots.slice(0, 3)) tx(b, { t: 'friend_add', tag });
   const rooms = [
-    [0, 'java', { title: 'Выживание с нуля', tags: ['выживание'], version: '1.21.11', slots: 10 }],
-    [1, 'both', { title: 'Новоград: город мечты', tags: ['новоград', 'творчество'], version: '26.3', slots: 20 }],
-    [3, 'bedrock', { title: 'Мини-игры у Нюты', tags: ['мини-игры', 'pvp'], version: '', slots: 8 }],
+    [0, 'java', { title: 'Выживание с нуля', tags: ['выживание'], version: '1.21.11', slots: 10 }, 'survival'],
+    [1, 'both', { title: 'Новоград: город мечты', tags: ['новоград', 'творчество'], version: '26.3', slots: 20 }, 'creative'],
+    [3, 'bedrock', { title: 'Мини-игры у Нюты', tags: ['мини-игры', 'pvp'], version: '', slots: 8 }, 'minigame'],
   ];
   const hosts = [];
-  for (const [bi, ed, pub] of rooms) {
+  for (const [bi, ed, pub, mode] of rooms) {
     const h = await conn();
-    tx(h, { t: 'host', v: 1, edition: ed, name: pub.title, public: pub, token: bots[bi].token });
+    // 1.7: режим игры — у каждой комнаты своя палитра обложки
+    tx(h, { t: 'host', v: 1, edition: ed, name: pub.title, public: pub, token: bots[bi].token, settings: { mode, cap: pub.slots, password: '' } });
     while (!h.inbox.find((m) => m.t === 'room')) await sleep(20);
     h.code = h.inbox.find((m) => m.t === 'room').code;
     hosts.push(h);

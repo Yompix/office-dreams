@@ -75,7 +75,7 @@ func _ready() -> void:
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.icon_tile("java" if s.edition == "java" else "phone", UI.JAVA if s.edition == "java" else UI.BEDROCK, 44, 22))
+	hr.add_child(Cover.tile(String(s.opts.get("world", "Мир")), Cfg.game().mode, 52))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(s.opts.get("world", "Мир"), 19, UI.TEXT, UI.font_black)
@@ -151,7 +151,8 @@ func _ready() -> void:
 	right.add_child(lp)
 
 	# --- журнал сервера
-	var logp := UI.panel(14, Color("0b0d12"))
+	var logp := PanelContainer.new()
+	logp.add_theme_stylebox_override("panel", UI.box(Color(0.02, 0.03, 0.07, 0.6), UI.R_L, 14, Color(1, 1, 1, 0.08), 1))
 	logp.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var lgv := UI.vbox(10)
 	logp.add_child(lgv)
@@ -230,7 +231,7 @@ func _refresh_live() -> void:
 	_live_lbl.text = String(st.text)
 	_live_lbl.add_theme_color_override("font_color", col.lightened(0.25))
 	_live_dot.add_theme_stylebox_override("panel", UI.box(col, 99))
-	_live.add_theme_stylebox_override("panel", UI.box(Color(col, 0.12), UI.R_L, 16, Color(col, 0.45), 1))
+	_live.add_theme_stylebox_override("panel", UI.glass(2, UI.R_XL, 16, col))
 	var why := String(st.why)
 	if st.ok:
 		why = "Даже пока вы в Minecraft. Не закрывайте игру и LANTERN." if Cfg.mobile() else "В игре нажмите Esc — и кликните по окошку LANTERN, чтобы увидеть, кто зашёл."
@@ -251,7 +252,7 @@ func _refresh_admin() -> void:
 		return
 	var peers: Array = app.room.peers()
 	var bans: Array = RoomControl.bans()
-	var key := "%s|%s|%s|%s" % [JSON.stringify(peers), JSON.stringify(bans), app.room.is_public(), Cfg.get_value("host", "mini", true)]
+	var key := "%s|%s|%s|%s|%s|%s|%s" % [JSON.stringify(peers), JSON.stringify(bans), app.room.is_public(), Cfg.get_value("host", "mini", true), Cfg.get_value("host", "notify", true), JSON.stringify(app.room.protect_get()), app.room.protect_available()]
 	if key == _admin_key:
 		return
 	_admin_key = key
@@ -292,20 +293,35 @@ func _refresh_admin() -> void:
 		nick.text_changed.connect(func(t): Cfg.set_value("host", "mc_nick", t.strip_edges()))
 		_admin.add_child(nick)
 		_admin.add_child(UI.para("В игре: /kick и /ban работают сразу, а LANTERN пишет в чат, кто зашёл, и код для друзей.", 12, UI.DIM))
+	# --- защита мира (1.7): сервер LANTERN — переключатели (команды сервера); мир из Minecraft — одна строка
+	_admin.add_child(UI.divider())
+	_admin.add_child(UI.label("Защита мира", 15, UI.TEXT, UI.font_bold))
+	if app.room.protect_available():
+		var pr: Dictionary = app.room.protect_get()
+		for it in RoomControl.PROTECT:
+			var pk: String = it[0]
+			_admin.add_child(UI.switch_row(String(it[1]), "", bool(pr.get(pk, false)), func(b): app.room.protect_set(pk, b)).row)
+		_admin.add_child(UI.para("Запоминаем для этого мира и включаем при каждом запуске.", 12, UI.DIM))
+	else:
+		_admin.add_child(UI.para(RoomControl.PROTECT_OWN_HINT, 13, UI.MUTED))
 	if not Cfg.mobile() and OS.get_name() != "Android":
-		_admin.add_child(UI.button(("✓ " if Cfg.get_value("host", "mini", true) else "") + "Окошко LANTERN поверх Minecraft", "ghost", func():
-			app.room.set_mini(not bool(Cfg.get_value("host", "mini", true)))
-			_admin_key = ""
-			_refresh_admin(), "desktop"))
+		_admin.add_child(UI.divider())
+		_admin.add_child(UI.switch_row("Окошко поверх Minecraft", "Маленькое окно LANTERN поверх игры: кто зашёл, выгнать, код.", bool(Cfg.get_value("host", "mini", true)), func(b):
+			app.room.set_mini(b)).row)
+		_admin.add_child(UI.switch_row("Уведомление, когда друг зашёл", "Покажем и тогда, когда игра открыта во весь экран.", bool(Cfg.get_value("host", "notify", true)), func(b):
+			Cfg.set_value("host", "notify", b)).row)
 		_admin.add_child(UI.para("Окошко не видно поверх игры? Включите в Minecraft оконный режим без рамки (Java: F11 — выключить полный экран).", 12, UI.DIM))
+	elif OS.get_name() == "Android" or Cfg.autotest_args.has("vendor"):
+		_admin.add_child(UI.button("Кнопка не видна в игре?", "ghost", func(): RoomControl.vendor_sheet(app, true, String(Cfg.autotest_args.get("vendor", ""))), "info"))
 
 
 ## Карточка «Код для друзей»: плитки кода, QR, «Скопировать» и «Поделиться», живой счётчик друзей.
 func _make_code_card(compact: bool) -> PanelContainer:
 	_code_card = PanelContainer.new()
-	var cst := UI.box(Color("201a10"), UI.R_XL, 0, Color(UI.accent(), 0.35), 1)
+	var cst := UI.glass(3, UI.R_XL, 0, UI.accent())
 	UI._hpad(cst, 20, 20)
 	_code_card.add_theme_stylebox_override("panel", cst)
+	UI.halo(_code_card, UI.accent(), UI.R_XL, 0.6, true)
 	var cv := UI.vbox(14)
 	_code_card.add_child(cv)
 	var ctop := UI.hbox(8)
@@ -330,7 +346,10 @@ func _make_code_card(compact: bool) -> PanelContainer:
 		if i == 3:
 			_code_row.add_child(UI.label("–", 26, UI.DIM, UI.font_black))
 		var tile := PanelContainer.new()
-		tile.add_theme_stylebox_override("panel", UI.box(Color(0, 0, 0, 0.35), UI.R_M))
+		var tst := UI.box(Color(0.02, 0.03, 0.08, 0.55), UI.R_BTN, 0, Color(UI.accent(), 0.45), 1)
+		tst.shadow_color = Color(UI.accent(), 0.18)
+		tst.shadow_size = 8
+		tile.add_theme_stylebox_override("panel", tst)
 		tile.custom_minimum_size = Vector2(34 if compact else 52, 58 if compact else 68)
 		if compact:
 			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -446,7 +465,7 @@ func _ready_own() -> void:
 	head.add_child(hv)
 	var hr := UI.hbox(12)
 	hv.add_child(hr)
-	hr.add_child(UI.icon_tile("phone" if bed else "java", UI.BEDROCK if bed else UI.JAVA, 44, 22))
+	hr.add_child(Cover.tile(String(w.name), Cfg.game().mode, 52))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var wl := UI.label(String(w.name), 19, UI.TEXT, UI.font_black)
@@ -635,7 +654,7 @@ func _refresh_doctor() -> void:
 		var br := UI.flow(8)
 		var id := String(it.id)
 		if String(it.action) != "":
-			br.add_child(UI.button(String(it.button), "primary", func(): s.resolve(id), "check"))
+			br.add_child(UI.button(String(it.button), "tonal", func(): s.resolve(id), "check"))
 			br.add_child(UI.button("Не сейчас", "ghost", func(): s.dismiss(id)))
 		else:
 			br.add_child(UI.button(String(it.button), "secondary", func(): s.dismiss(id)))
@@ -708,11 +727,13 @@ func _set_code(c: String) -> void:
 		_code_tiles[i].text = chars[i] if i < chars.length() else "·"
 	if reveal and not c.contains("·"):
 		FX.flip_in(_code_tiles, 0.08)
-		var st: StyleBoxFlat = _code_card.get_theme_stylebox("panel")
-		if FX.on():
+		# код раскрылся: карточка вспыхивает тёплым светом и гаснет до обычного
+		var st := _code_card.get_theme_stylebox("panel") as StyleBoxTexture
+		if FX.on() and st:
+			var base := st.modulate_color
 			var tw := _code_card.create_tween()
-			tw.tween_property(st, "border_color", Color(UI.accent(), 0.9), 0.25)
-			tw.tween_property(st, "border_color", Color(UI.accent(), 0.35), 0.8)
+			tw.tween_property(st, "modulate_color", Color(base.r * 1.7, base.g * 1.6, base.b * 1.4, 1.0), 0.25)
+			tw.tween_property(st, "modulate_color", base, 0.8)
 
 
 func _refresh_relay() -> void:
@@ -790,7 +811,7 @@ func _share() -> void:
 	var r: Dictionary = app.relay_host.stats()
 	if r.code == "":
 		return
-	UI.copy("Заходи в мой мир «%s» в Minecraft через LANTERN!\nКод: %s\n%s" % [_world_name(), RoomCode.pretty(r.code), _invite_link()])
+	UI.copy(app.room.share_text())
 	app.toast("Приглашение со ссылкой скопировано — вставьте его в чат", UI.JAVA)
 
 

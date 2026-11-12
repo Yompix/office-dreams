@@ -9,6 +9,7 @@ extends Node
 ##   phone    — экраны в портретном телефоне (--shots, окно 412×892), нужен relay и social_seed.js
 ##   ownworld — «Мой мир из Minecraft»: поддельный мир (tests/fake_world.js) → поиск → комната → друг получает данные (tests/ownworld.sh)
 ##   ownreal  — то же с настоящим BDS вместо «мира в игре» и настоящим клиентом (tests/e2e_client.js bedrock)
+##   mini     — ПК: окошко поверх игры — настоящее окно системы (tests/mini_window.sh смотрит его через xwininfo/xprop)
 ##   tour     — обход ВСЕХ экранов и сценариев для дизайн-скриншотов (tests/design_shots.sh), нужен relay и social_seed.js
 ## Код выхода 0 — успех.
 
@@ -37,6 +38,7 @@ func run(a) -> void:
 		"phone": code = await _phone()
 		"touch": code = await _touch()
 		"tour": code = await _tour()
+		"mini": code = await _mini()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
 		"java", "bedrock": code = await _host(Cfg.autotest)
@@ -218,6 +220,7 @@ func _core() -> int:
 		_log("properties FAIL " + str(props))
 		fails += 1
 	fails += _core_16(out)
+	fails += _core_17()
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
 
@@ -279,6 +282,53 @@ func _core_16(out: String) -> int:
 		_log("universal opts FAIL " + str(opts))
 		fails += 1
 	_log("1.6 core: FAILS=%d" % fails)
+	return fails
+
+
+## 1.7: одна ссылка https://…/lantern/j/<код>, ссылка «открыть Minecraft и зайти», адрес Java, защита мира, шаги для Xiaomi и др.
+func _core_17() -> int:
+	var fails := 0
+	var checks := [
+		[Invite.web_link("K7M2QX", "both", "Мир", Cfg.DEFAULT_RELAY), Cfg.SITE + "/j/K7M2QX"],
+		[Invite.web_code("https://office-dreams-production.up.railway.app/lantern/j/k7m-2qx"), "K7M2QX"],
+		[Invite.web_code("https://office-dreams-production.up.railway.app/lantern/j/35821626?x=1"), "35821626"],
+		[Invite.web_code("https://example.com/other/j/K7M2QX"), ""],
+		[Invite.web_code("https://office-dreams-production.up.railway.app/lantern/j/<script>"), ""],
+		[String(Invite.parse("https://office-dreams-production.up.railway.app/lantern/j/K7M2QX").get("code", "")), "K7M2QX"],
+		[String(Invite.parse("lantern://join?code=K7M2QX").get("code", "")), "K7M2QX"],
+		[String(Invite.parse("lantern://join?v=1&c=K7M2QX&e=both&n=%D0%9C%D0%B8%D1%80").get("code", "")), "K7M2QX"],
+		[String(DeepLink.parse("lantern://join?code=35821626").get("code", "")), "35821626"],
+		[String(DeepLink.parse("https://office-dreams-production.up.railway.app/lantern/j/K7M2QX").get("kind", "")), "join"],
+		[Launcher.connect_url(19132), "minecraft://connect/?serverUrl=127.0.0.1&serverPort=19132"],
+		[Launcher.java_address(25565), "localhost"],
+		[Launcher.java_address(25570), "localhost:25570"],
+		[RoomControl.vendor_kind("Xiaomi Redmi Note 12"), "xiaomi"],
+		[RoomControl.vendor_kind("POCO X5"), "xiaomi"],
+		[RoomControl.vendor_kind("HUAWEI P30"), "huawei"],
+		[RoomControl.vendor_kind("samsung SM-A515F"), "samsung"],
+		[RoomControl.vendor_kind("Google Pixel 8"), ""],
+		[" | ".join(RoomControl.protect_commands("bedrock", {"pvp": true})), "gamerule pvp false"],
+		[" | ".join(RoomControl.protect_commands("bedrock", {"keep": true, "fire": true})), "gamerule keepinventory true | gamerule dofiretick false"],
+		[" | ".join(RoomControl.protect_commands("java", {"keep": false})), "gamerule keepInventory false | gamerule keep_inventory false"],
+		[" | ".join(RoomControl.protect_commands("java", {"fire": true})), "gamerule doFireTick false | gamerule fire_spread_radius_around_player 0"],
+	]
+	for c in checks:
+		if String(c[0]) != String(c[1]):
+			_log("1.7 FAIL: «%s» вместо «%s»" % [c[0], c[1]])
+			fails += 1
+	if RoomControl.protect_commands("java", {"boom": true}).size() != 4:
+		_log("1.7 FAIL: взрывы — 4 правила (старые и новые имена)")
+		fails += 1
+	# открытие Minecraft в автотесте ничего не запускает, но запоминает ссылку
+	Launcher.open_bedrock(19142, "тест")
+	if Launcher.last_url != "minecraft://connect/?serverUrl=127.0.0.1&serverPort=19142":
+		_log("1.7 FAIL: ссылка запуска " + Launcher.last_url)
+		fails += 1
+	# поделиться игрой — ссылкой https (её видно в мессенджерах), а не lantern://
+	var g := Cfg.game()
+	if int(g.cap) < 2:
+		fails += 1
+	_log("1.7 core: FAILS=%d" % fails)
 	return fails
 
 
@@ -716,8 +766,22 @@ func _overflow(n: Node, limit: float, where: String) -> bool:
 		if n is Label or n is Button:
 			t = String(n.text).substr(0, 50)
 		_log("ШИРЕ ЭКРАНА [%s] %s %s (%d px) «%s»" % [where, n.get_class(), n.name, int(w), t])
+		_widest(n, 0)
 		return true
 	return w > limit or deeper
+
+
+## Подсказка к «ШИРЕ ЭКРАНА»: самая широкая ветка (что именно распирает экран)
+func _widest(n: Node, depth: int) -> void:
+	var best: Control = null
+	for c in n.get_children():
+		if c is Control and (c as Control).visible and (best == null or (c as Control).get_combined_minimum_size().x > best.get_combined_minimum_size().x):
+			best = c
+	if best == null or depth > 12:
+		return
+	var t := String(best.get("text")).substr(0, 30) if best is Label or best is Button else ""
+	_log("%s└ %s (%d px) %s" % ["  ".repeat(depth + 1), best.get_class(), int(best.get_combined_minimum_size().x), t])
+	_widest(best, depth + 1)
 
 
 # ------------------------------------------------------------------ дизайн-обход: все экраны и сценарии (tests/design_shots.sh)
@@ -751,7 +815,7 @@ func _tour() -> int:
 		_find_button(ov, "Начать").pressed.emit()
 		await get_tree().create_timer(0.5).timeout
 		var e: LineEdit = ov.find_children("*", "LineEdit", true, false)[0]
-		e.text = "Стив"
+		e.text = "Ночной_Лис"     # ник для скриншотов: без имён персонажей игры (docs/LEGAL.md)
 		await _shot("02_onboard_nick")
 		_find_button(ov, "Готово").pressed.emit()
 		await _wait(func(): return Social.online(), 10, "профиль создан")
@@ -783,6 +847,9 @@ func _tour() -> int:
 	app.play_sheet()
 	await _shot("11_play_sheet")
 	await _close_overlays()
+	app.go("create", true)
+	await get_tree().create_timer(0.4).timeout
+	await _shot("12c_create")
 	if Cfg.mobile():
 		app.go("setup", true)
 		await _shot("12_host_step1_phone")
@@ -813,6 +880,8 @@ func _tour() -> int:
 		await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
 		app.go("host", true)
 		await _shot("16_host_room")
+		await _scroll_down(1150)
+		await _shot("16b_host_protect")
 		if Cfg.autotest_args.has("hostonly"):
 			await get_tree().create_timer(float(Cfg.autotest_args.get("hostwait", "3"))).timeout
 			_log("host: живы")
@@ -843,14 +912,23 @@ func _tour() -> int:
 	js._next_from_code()
 	await _shot("22_join_step2_game")
 	js._plays = "both"
-	js._connect()
+	js.preview("connecting")
 	await _shot("23_join_connecting")
+	js._connect()
 	if not await _wait(func(): return app.relay_join.stats().state == "online", 15, "вошли в комнату друга"):
 		fails += 1
 	await _wait(func(): return Social.room_code == app.relay_join.code, 5, "чат комнаты открыт")
 	Social.room_say("Всем привет! Я с телефона")
 	await get_tree().create_timer(1.5).timeout
 	await _shot("24_join_step3_in_world")
+	js.preview("launch")
+	await get_tree().create_timer(0.1).timeout
+	await _shot("24b_join_auto_open")
+	js._launch.on = false
+	js._launch_done = true
+	js._plays = "both"
+	js._shown_state = "-"
+	js._show_room()
 	await _scroll_down(int(900 if phone else 500))
 	await _shot("25_join_where_to_find")
 	await _scroll_down()
@@ -927,6 +1005,14 @@ func _tour() -> int:
 		await _close_overlays()
 	app.toast("Код K7M-2QX скопирован — отправьте его друзьям", UI.JAVA)
 	await _shot("55_toast")
+	await get_tree().create_timer(3.4).timeout
+	Report.dialog(app, "test")
+	await _shot("56_report")
+	await _close_overlays()
+	if phone:
+		RoomControl.vendor_sheet(app, true, "Xiaomi")
+		await _shot("57_vendor_xiaomi")
+		await _close_overlays()
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
 
@@ -964,6 +1050,8 @@ func _rec(name: String, sec: float, action: Callable) -> void:
 func _rec_all() -> int:
 	app.go("home", true)
 	await get_tree().create_timer(0.8).timeout
+	await _rec("00_splash", 1.5, func(): app._splash(true))
+	await _rec("01_home_live", 1.6, func(): app.go("home", true))
 	await _rec("tabs", 0.9, func(): app.go("friends"))
 	await get_tree().create_timer(0.4).timeout
 	await _rec("sheet", 0.9, func(): app.play_sheet())
@@ -983,7 +1071,10 @@ func _rec_all() -> int:
 			await get_tree().create_timer(0.12 * Engine.time_scale).timeout)
 	await _rec("wizard_step", 0.9, func(): js._next_from_code())
 	js._plays = "both"
+	await _rec("connect_beam", 1.6, func(): js.preview("connecting"))
 	await _rec("connect_success", 2.2, func(): js._connect())
+	await _rec("launch_countdown", 1.6, func(): js.preview("launch"))
+	js._launch.on = false
 	app.relay_join.stop()
 	# экран мира: «переворот» цифр кода и искры (сервер не запускаем — только комната на relay)
 	var s: ServerHost = app.server
@@ -1386,3 +1477,48 @@ func _touch() -> int:
 		_log("ок: касание нажимает, прокрутка — нет")
 	_log("FAILS=%d" % fails)
 	return 0 if fails == 0 else 1
+
+
+# ------------------------------------------------------------------ 1.7: окошко поверх игры — настоящее окно системы (tests/mini_window.sh)
+func _mini() -> int:
+	var s: ServerHost = app.server
+	s.edition = "java"
+	s.opts = {"world": "Наш мир", "crossplay": true, "internet": true}
+	s.state = "running"
+	app.relay_host.start(Cfg.relay_url(), "both", "Наш мир", 25565, 19132, app.host_extra())
+	await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
+	app.room._open_mini()
+	await get_tree().create_timer(1.0).timeout
+	var m: Window = app.room.mini
+	var info := {"embedded": m.is_embedded(), "id": m.get_window_id(), "main_id": get_window().get_window_id(),
+		"native": DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, m.get_window_id()) if not m.is_embedded() else 0,
+		"main_native": DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, 0),
+		"pos": [m.position.x, m.position.y], "size": [m.size.x, m.size.y], "on_top": m.always_on_top, "no_focus": m.unfocusable,
+		"main_pos": [get_window().position.x, get_window().position.y], "main_size": [get_window().size.x, get_window().size.y]}
+	_log("mini: " + JSON.stringify(info))
+	var fails := 0
+	if m.is_embedded() or m.get_window_id() == get_window().get_window_id():
+		_log("ОШИБКА: окошко встроено в главное окно")
+		fails += 1
+	FileAccess.open(data.path_join("mini-1.json"), FileAccess.WRITE).store_string(JSON.stringify(info))
+	await _wait(func(): return FileAccess.file_exists(data.path_join("mini-1.ok")), 30, "скрипт посмотрел окна")
+	# главное окно сворачиваем: окошко должно остаться
+	get_window().mode = Window.MODE_MINIMIZED
+	await get_tree().create_timer(1.5).timeout
+	m.flash("Алекс зашёл в ваш мир", false)
+	await get_tree().create_timer(1.0).timeout
+	info["main_minimized"] = get_window().mode == Window.MODE_MINIMIZED
+	info["visible_after"] = m.visible and m.mode != Window.MODE_MINIMIZED
+	info["size"] = [m.size.x, m.size.y]
+	info["focused_after_flash"] = m.has_focus()
+	_log("mini после сворачивания: " + JSON.stringify(info))
+	if not info.visible_after:
+		fails += 1
+	if shots != "":
+		DirAccess.make_dir_recursive_absolute(shots)
+		m.get_texture().get_image().save_png(shots.path_join("mini_window.png"))
+	FileAccess.open(data.path_join("mini-2.json"), FileAccess.WRITE).store_string(JSON.stringify(info))
+	await _wait(func(): return FileAccess.file_exists(data.path_join("mini-2.ok")), 30, "скрипт посмотрел окна ещё раз")
+	app.relay_host.stop()
+	s.state = "idle"
+	return fails

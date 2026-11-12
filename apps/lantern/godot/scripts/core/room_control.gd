@@ -64,13 +64,18 @@ func edition() -> String:
 
 
 func invite_link() -> String:
+	return Invite.web_link(app.relay_host.stats().get("code", ""), edition(), world_name(), Cfg.relay_url())
+
+
+## Ссылка lantern:// (QR-код: камера открывает приложение сразу)
+func app_link() -> String:
 	return Invite.link(app.relay_host.stats().get("code", ""), edition(), world_name(), Cfg.relay_url())
 
 
 func share_text() -> String:
 	if code() == "":
 		return ""
-	return "Заходи в мой мир «%s» в Minecraft через LANTERN!\nКод: %s\n%s" % [world_name(), code(), invite_link()]
+	return "Заходи в мой мир «%s» через LANTERN — нажми на ссылку:\n%s\nКод: %s" % [world_name(), invite_link(), code()]
 
 
 # ------------------------------------------------------------------ игроки
@@ -219,6 +224,9 @@ func close_room() -> void:
 
 func _ready() -> void:
 	app.server.players_changed.connect(_on_mc_players)
+	app.server.state_changed.connect(func(st):
+		if st == "running":
+			protect_apply())
 
 
 ## Комнату только что открыли (OwnWorld.start / сервер).
@@ -230,6 +238,7 @@ func room_opened() -> void:
 	_opped = false
 	app.relay_host.bans = ban_ids()
 	app.relay_host.share_text = ""
+	app.remember_hosted()
 	if OS.get_name() == "Android":
 		app.relay_host.android = JavaClassWrapper.wrap(OwnWorld.ANDROID_SERVICE)
 		_ask_overlay()
@@ -265,6 +274,15 @@ func _process(d: float) -> void:
 		if mini:
 			room_closed()
 		return
+	# Android: что с кнопкой поверх игры — в журнал (для «Сообщить о проблеме»), когда состояние меняется
+	if OS.get_name() == "Android" and app.relay_host.android != null:
+		_ov_t += 0.5
+		if _ov_t >= 5.0:
+			_ov_t = 0.0
+			var ovs := "%s; разрешение=%s" % [String(app.relay_host.android.overlayState()), bool(app.relay_host.android.canDrawOverlays())]
+			if ovs != _ov_last:
+				_ov_last = ovs
+				AppLog.add("overlay", ovs)
 	app.relay_host.share_text = share_text()
 	var fl := []
 	for f in Social.friends:
@@ -279,7 +297,7 @@ func _process(d: float) -> void:
 			_mc_names.erase(e.peer)
 		var text := "%s %s ваш мир" % [nm, "зашёл в" if e.on else "вышел из"]
 		app.toast(text, UI.JAVA if e.on else UI.MUTED)
-		_attention(text, false)
+		_attention(text, false, e.on)
 		if app.server.is_alive() and app.server.edition == "java" and not app.own.active:
 			app.server.command('tellraw @a {"text":"[LANTERN] %s","color":"%s"}' % [text.json_escape(), "green" if e.on else "gray"])
 	var s := status()
@@ -319,13 +337,38 @@ func _on_mc_players(list: PackedStringArray) -> void:
 		app.server.command('tellraw @a {"text":"[LANTERN] Код для друзей: %s","color":"aqua"}' % code())
 
 
-func _attention(text: String, alert: bool) -> void:
+func _attention(text: String, alert: bool, notify := true) -> void:
 	if OS.get_name() == "Android":
 		return   # уведомление и окошко шлёт поток моста
 	if mini:
 		mini.flash(text, alert)
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_request_attention()
+	if notify:      # системное уведомление — когда друг зашёл или мир пропал (не на каждый выход)
+		os_notify("LANTERN", text)
+
+
+## Уведомление системы (Windows — всплывающее в углу и в центре уведомлений; Linux — notify-send).
+## Запасной путь, когда игра во весь экран закрывает окошко. Текст передаём через переменные окружения — не в команду.
+static func os_notify(title: String, text: String) -> bool:
+	if Cfg.autotest != "" and not Cfg.autotest_args.has("notify"):
+		return false
+	if not bool(Cfg.get_value("host", "notify", true)):
+		return false
+	OS.set_environment("LANTERN_NOTE_TITLE", title)
+	OS.set_environment("LANTERN_NOTE_TEXT", text)
+	var pid := -1
+	match OS.get_name():
+		"Windows":
+			var ps := "Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $n = New-Object System.Windows.Forms.NotifyIcon; " + \
+				"$n.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($env:LANTERN_NOTE_EXE); $n.Visible = $true; " + \
+				"$n.ShowBalloonTip(6000, $env:LANTERN_NOTE_TITLE, $env:LANTERN_NOTE_TEXT, [System.Windows.Forms.ToolTipIcon]::None); Start-Sleep -Seconds 7; $n.Dispose()"
+			OS.set_environment("LANTERN_NOTE_EXE", OS.get_executable_path().replace("/", "\\"))
+			pid = OS.create_process("powershell.exe", ["-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps])
+		"Linux", "FreeBSD":
+			pid = OS.create_process("notify-send", ["-a", "LANTERN", "-t", "6000", title, text])
+	AppLog.add("mini", "уведомление системы: %s (pid %d)" % [text, pid])
+	return pid > 0
 
 
 # ------------------------------------------------------------------ Android: разрешение «поверх других приложений»
@@ -334,9 +377,16 @@ func _ask_overlay() -> void:
 	if _overlay_asked or Cfg.autotest != "":
 		return
 	var cls = app.relay_host.android
-	if cls == null or bool(cls.canDrawOverlays()):
+	if cls == null:
+		AppLog.add("overlay", "служба Android недоступна — кнопки поверх игры не будет")
 		return
+	var can := bool(cls.canDrawOverlays())
+	var maker := String(cls.maker())
+	AppLog.add("overlay", "разрешение «поверх других приложений»: %s; устройство: %s; %s" % ["есть" if can else "НЕТ", maker, String(cls.overlayState())])
 	_overlay_asked = true
+	if can:
+		vendor_sheet(app, false)
+		return
 	if bool(Cfg.get_value("own", "overlay_asked", false)):
 		return
 	Cfg.set_value("own", "overlay_asked", true)
@@ -344,8 +394,165 @@ func _ask_overlay() -> void:
 	v.add_child(UI.para("Android спросит разрешение «Поверх других приложений» — включите его для LANTERN и вернитесь назад. Без него всё будет в уведомлении.", 14, UI.MUTED))
 	v.add_child(UI.button("Разрешить", "primary", func():
 		Overlays.close_sheet(app)
-		cls.requestOverlay(), "check"))
+		AppLog.add("overlay", "открываем настройку «Поверх других приложений»")
+		cls.requestOverlay()
+		_vendor_after_overlay = true, "check"))
 	v.add_child(UI.button("Не сейчас", "ghost", func(): Overlays.close_sheet(app)))
+
+
+var _vendor_after_overlay := false
+var _ov_t := 0.0
+var _ov_last := ""
+
+
+## Вернулись из настроек: записать в журнал, что вышло с разрешением, и один раз показать шаги для Xiaomi и др.
+func on_resume() -> void:
+	if OS.get_name() != "Android":
+		return
+	var cls = app.relay_host.android if app.relay_host.android != null else JavaClassWrapper.wrap(OwnWorld.ANDROID_SERVICE)
+	if cls == null:
+		return
+	AppLog.add("overlay", "вернулись в LANTERN: поверх других приложений=%s; %s" % [bool(cls.canDrawOverlays()), String(cls.overlayState())])
+	if _vendor_after_overlay and bool(cls.canDrawOverlays()):
+		_vendor_after_overlay = false
+		vendor_sheet(app, false)
+
+
+## Xiaomi / Redmi / POCO (MIUI, HyperOS): одного разрешения мало — нужны ещё «всплывающие окна в фоне», автозапуск
+## и батарея «без ограничений». Huawei / Honor / Oppo / Realme / Vivo / Samsung: батарея. Показываем один раз
+## (force — из «Мой мир» по кнопке «Кнопка не видна в игре?»). Ничего не запрашиваем сами — только открываем экран настроек.
+static func vendor_sheet(app: Control, force: bool, maker_override := "") -> bool:
+	var cls = JavaClassWrapper.wrap(OwnWorld.ANDROID_SERVICE) if OS.get_name() == "Android" else null
+	var maker := maker_override.to_lower() if maker_override != "" else (String(cls.maker()).to_lower() if cls != null else "")
+	var kind := vendor_kind(maker)
+	if kind == "" and not force:
+		return false
+	if not force and bool(Cfg.get_value("own", "vendor_sheet", false)):
+		return false
+	Cfg.set_value("own", "vendor_sheet", true)
+	AppLog.add("overlay", "показываем шаги для «%s» (%s)" % [maker, kind if kind != "" else "общие"])
+	var steps: Array = VENDOR_STEPS.get(kind, VENDOR_STEPS["other"])
+	var v: VBoxContainer = Overlays.sheet(app, "Чтобы кнопка была видна в игре", String(steps[0]))
+	for i in range(1, steps.size()):
+		v.add_child(app._num_row(str(i), String(steps[i][0]), String(steps[i][1])))
+	v.add_child(UI.button("Открыть настройки", "primary", func():
+		if cls != null:
+			AppLog.add("overlay", "открыли экран настроек: " + String(cls.openVendorSettings()))
+		Overlays.close_sheet(app), "settings"))
+	v.add_child(UI.button("Уже сделано", "ghost", func(): Overlays.close_sheet(app)))
+	return true
+
+
+static func vendor_kind(maker: String) -> String:
+	var m := maker.to_lower()
+	for k in ["xiaomi", "redmi", "poco"]:
+		if m.contains(k):
+			return "xiaomi"
+	for k in ["huawei", "honor"]:
+		if m.contains(k):
+			return "huawei"
+	for k in ["oppo", "realme", "oneplus", "vivo", "iqoo"]:
+		if m.contains(k):
+			return "oppo"
+	if m.contains("samsung"):
+		return "samsung"
+	return ""
+
+
+const VENDOR_STEPS := {
+	"xiaomi": ["На Xiaomi, Redmi и POCO кнопку поверх игры нужно разрешить отдельно — три переключателя:",
+		["«Другие разрешения»", "Включите «Отображать всплывающие окна при работе в фоновом режиме» и «Всплывающие окна»"],
+		["«Автозапуск»", "Включите — иначе система выгрузит LANTERN, пока вы играете"],
+		["«Контроль активности» (батарея)", "Выберите «Нет ограничений»"]],
+	"huawei": ["На Huawei и Honor система закрывает приложения в фоне. Два шага:",
+		["«Запуск приложений» → LANTERN", "Выключите «Автоматическое управление» и оставьте все три переключателя включёнными"],
+		["Батарея", "Разрешите LANTERN работать в фоне"]],
+	"oppo": ["На Oppo, Realme, OnePlus и Vivo система закрывает приложения в фоне. Два шага:",
+		["«Расход батареи» → LANTERN", "Включите «Разрешить работу в фоне»"],
+		["«Плавающие окна»", "Разрешите LANTERN показывать окна поверх других приложений"]],
+	"samsung": ["На Samsung система может «усыпить» LANTERN, пока вы в игре. Один шаг:",
+		["«Батарея» → LANTERN", "Выберите «Не ограничено»"]],
+	"other": ["Если кнопка пропадает в игре, проверьте два пункта:",
+		["«Поверх других приложений»", "Разрешение должно быть включено для LANTERN"],
+		["Батарея", "Выберите «Без ограничений» — иначе система остановит LANTERN в фоне"]],
+}
+
+
+# ------------------------------------------------------------------ защита мира (сервер LANTERN: правила — командами сервера)
+
+const PROTECT := [["pvp", "Без PvP"], ["boom", "Без взрывов"], ["fire", "Огонь не распространяется"], ["keep", "Вещи остаются после смерти"]]
+const PROTECT_OWN_HINT := "Эти правила включаются в настройках самого мира в Minecraft."
+
+
+## Переключатели работают только на сервере LANTERN (Paper / BDS). Мир из самого Minecraft снаружи не настроить.
+func protect_available() -> bool:
+	return not app.own.active and app.server.state in ["starting", "running", "installing"]
+
+
+func _protect_key() -> String:
+	return "%s:%s" % [app.server.edition, String(app.server.opts.get("world", "Мир"))]
+
+
+func protect_get() -> Dictionary:
+	var all: Variant = Cfg.get_value("host", "protect", {})
+	var d: Variant = (all as Dictionary).get(_protect_key(), {}) if all is Dictionary else {}
+	return d if d is Dictionary else {}
+
+
+func protect_set(key: String, on: bool) -> void:
+	var all: Variant = Cfg.get_value("host", "protect", {})
+	var a: Dictionary = (all as Dictionary).duplicate(true) if all is Dictionary else {}
+	var d: Dictionary = a.get(_protect_key(), {})
+	d[key] = on
+	a[_protect_key()] = d
+	Cfg.set_value("host", "protect", a)
+	for c in protect_commands(app.server.edition, {key: on}):
+		app.server.command(c)
+	AppLog.add("host", "защита мира: %s = %s" % [key, on])
+	changed.emit()
+
+
+## Сервер заработал — применяем сохранённые правила этого мира заново.
+func protect_apply() -> void:
+	if app.own.active or not app.server.is_alive():
+		return
+	var d := protect_get()
+	if d.is_empty():
+		return
+	for c in protect_commands(app.server.edition, d):
+		app.server.command(c)
+	AppLog.add("host", "защита мира применена: " + JSON.stringify(d))
+
+
+## Команды сервера для правил. Java: имена правил менялись (1.21.11: snake_case, правило pvp, огонь — радиус),
+## поэтому шлём и старое, и новое имя — неизвестное сервер просто отклонит. Bedrock (BDS): имена в нижнем регистре.
+static func protect_commands(edition: String, d: Dictionary) -> PackedStringArray:
+	var out := PackedStringArray()
+	for k in d:
+		var on := bool(d[k])
+		var off_s := "false" if on else "true"
+		var on_s := "true" if on else "false"
+		if edition == "bedrock":
+			match String(k):
+				"pvp": out.append("gamerule pvp " + off_s)
+				"boom":
+					out.append("gamerule tntexplodes " + off_s)
+					out.append("gamerule mobgriefing " + off_s)
+				"fire": out.append("gamerule dofiretick " + off_s)
+				"keep": out.append("gamerule keepinventory " + on_s)
+		else:
+			match String(k):
+				"pvp": out.append("gamerule pvp " + off_s)
+				"boom":
+					for r in ["tntExplodes", "tnt_explodes", "mobGriefing", "mob_griefing"]:
+						out.append("gamerule %s %s" % [r, off_s])
+				"fire":
+					out.append("gamerule doFireTick " + off_s)
+					out.append("gamerule fire_spread_radius_around_player " + ("0" if on else "128"))
+				"keep":
+					for r in ["keepInventory", "keep_inventory"]:
+						out.append("gamerule %s %s" % [r, on_s])
+	return out
 
 
 # ------------------------------------------------------------------ ПК: окошко поверх всех окон

@@ -51,11 +51,22 @@ static func sheet(app: Control, title := "", sub := "", light := false) -> VBoxC
 	var phone := UI.compact()
 	var bg := Color("f7f8fa") if light else Color("1b1f28")
 	var p := PanelContainer.new()
-	var st := UI.elevated(bg, UI.R_XL, 0)
-	st.shadow_offset = Vector2(0, -2)
-	if phone:
-		st.corner_radius_bottom_left = 0
-		st.corner_radius_bottom_right = 0
+	var st: StyleBox
+	if light:
+		var fl := UI.elevated(bg, UI.R_2XL, 0)
+		fl.shadow_offset = Vector2(0, -2)
+		if phone:
+			fl.corner_radius_bottom_left = 0
+			fl.corner_radius_bottom_right = 0
+		st = fl
+	else:
+		# тёмное плотное стекло со светлой кромкой сверху; на телефоне низ листа уходит за край экрана
+		var sx := UI.solid(UI.R_XL, 0)
+		if phone:
+			sx.expand_margin_bottom = UI.GLASS_M + 60
+			sx.expand_margin_left = UI.GLASS_M + 2
+			sx.expand_margin_right = UI.GLASS_M + 2
+		st = sx
 	st.content_margin_left = 20
 	st.content_margin_right = 20
 	st.content_margin_top = 10 if phone else 24
@@ -84,7 +95,7 @@ static func sheet(app: Control, title := "", sub := "", light := false) -> VBoxC
 		v.add_child(handle)
 	if title != "":
 		var hv := UI.vbox(4)
-		var tl := UI.label(title, 20, Color("202124") if light else UI.TEXT, UI.font_black)
+		var tl := UI.label(title, 24, Color("202124") if light else UI.TEXT, UI.font_title)
 		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		tl.custom_minimum_size.x = 120
 		hv.add_child(tl)
@@ -171,6 +182,7 @@ static func register(app: Control) -> void:
 	app.add_child(ov)
 	var glow := preload("res://scripts/ui/backdrop.gd").new()
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.warm = 1.4
 	ov.add_child(glow)
 	var safe: Vector2 = app.get("_safe") if app.get("_safe") is Vector2 else Vector2.ZERO
 	var m := MarginContainer.new()
@@ -223,6 +235,22 @@ static func register(app: Control) -> void:
 		pages.append(pv)
 		return pv
 
+	# иллюстрация страницы: пейзаж в стиле LANTERN во всю ширину, снизу растворяется в ночном небе
+	var art := func(pv: VBoxContainer, seed_text: String, mode: String, frac: float) -> Control:
+		var a := Control.new()
+		a.custom_minimum_size.y = maxf(120.0, h * frac)
+		a.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var cov := Cover.make(seed_text, mode, 28 if not UI.compact() else 0, 0.35)
+		(cov.material as ShaderMaterial).set_shader_parameter("fade", 1.0)
+		cov.set_anchors_preset(Control.PRESET_FULL_RECT)
+		if UI.compact():
+			cov.offset_left = -side
+			cov.offset_right = side
+			cov.offset_top = -(safe.x + 8)
+		a.add_child(cov)
+		pv.add_child(a)
+		return a
+
 	var dots := func(n: int) -> Control:
 		var r := UI.hbox(6)
 		r.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -235,18 +263,25 @@ static func register(app: Control) -> void:
 
 	# --- 1. знакомство
 	var p1: VBoxContainer = mk_page.call()
+	var a1: Control = art.call(p1, "lantern-camp-7", "other", 0.46)
 	var top1 := UI.hbox(0)
+	top1.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	top1.add_child(UI.spacer())
-	top1.add_child(UI.button("Позже", "ghost", func(): ov.queue_free()))
-	p1.add_child(top1)
-	p1.add_child(UI.spacer(false))
-	var li := LanternIcon.new().setup(7, {"flame": "flame_amber"}, 132)
-	li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	p1.add_child(li)
-	var t1 := UI.label("LANTERN", 34, UI.TEXT, UI.font_black)
+	var later := UI.button("Позже", "ghost", func(): ov.queue_free())
+	later.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
+	top1.add_child(later)
+	a1.add_child(top1)
+	var li := LanternIcon.new().setup(7, {"flame": "flame_amber"}, 124)
+	li.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	li.offset_left = -62
+	li.offset_right = 62
+	li.offset_top = -112
+	li.offset_bottom = 12
+	a1.add_child(li)
+	var t1 := UI.label("LANTERN", 40, UI.TEXT, UI.font_title)
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(t1)
-	var s1 := UI.para("Играйте с друзьями по короткому коду — в Minecraft: Java Edition и Bedrock Edition. Без VPN и настройки роутера.", 16, UI.MUTED)
+	var s1 := UI.para("Нажал — и ты в игре с друзьями. Java и Bedrock, телефон и ПК. Без VPN и настроек.", 16, UI.MUTED)
 	s1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(s1)
 	p1.add_child(UI.spacer(false))
@@ -261,12 +296,13 @@ static func register(app: Control) -> void:
 
 	# --- 2. ник
 	var p2: VBoxContainer = mk_page.call()
+	var a2: Control = art.call(p2, "lantern-nick-3", "roleplay", 0.27)
 	var top2 := UI.hbox(0)
+	top2.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	top2.add_child(UI.icon_button("back", func(): show_page.call(0, -1), "Назад"))
-	p2.add_child(top2)
-	p2.add_child(UI.gap(8))
+	a2.add_child(top2)
 	p2.add_child(UI.h1("Как вас зовут в игре?"))
-	p2.add_child(UI.para("Ник видят друзья. Пароль не нужен — профиль живёт на этом устройстве. Вы получите тег вида Ник#4821: по нему вас добавят в друзья.", 15, UI.MUTED))
+	p2.add_child(UI.para("Ник видят друзья. Пароль не нужен. Вы получите тег вида Ник#4821 — по нему вас добавят в друзья.", 15, UI.MUTED))
 	p2.add_child(UI.gap(4))
 	var e := UI.line_edit("", "Ник: 3–16 букв, цифр или _")
 	e.max_length = 16
@@ -293,7 +329,7 @@ static func register(app: Control) -> void:
 
 	# --- 3. как играть
 	var p3: VBoxContainer = mk_page.call()
-	p3.add_child(UI.gap(32))
+	art.call(p3, "lantern-ready-5", "survival", 0.24)
 	var hi := UI.h1("Готово!")
 	p3.add_child(hi)
 	var tagl := UI.para("", 15, UI.MUTED)
@@ -342,7 +378,7 @@ static func register(app: Control) -> void:
 
 static func _how_card(n: String, icon: String, col: Color, title: String, desc: String, cb: Callable) -> Control:
 	var p := PanelContainer.new()
-	var st := UI.box(Color(col, 0.10), UI.R_L, 0, Color(col, 0.3), 1)
+	var st := UI.glass(2, UI.R_XL, 0, col)
 	UI._hpad(st, 16, 16)
 	p.add_theme_stylebox_override("panel", st)
 	var row := UI.hbox(14)
@@ -464,7 +500,7 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	var ov := _dim(app, 0.92)
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.elevated(Color("1b2130"), UI.R_XL, 24))
+	p.add_theme_stylebox_override("panel", UI.solid(UI.R_XL, 24))
 	p.custom_minimum_size = Vector2(UI.dialog_width(560), 380)
 	var v := UI.vbox(14)
 	p.add_child(v)

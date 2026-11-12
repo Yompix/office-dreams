@@ -107,14 +107,16 @@ func _preview(it: Dictionary) -> Control:
 func _card(it: Dictionary, equip: Dictionary) -> Control:
 	var worn: bool = equip.get(it.kind, "") == it.id
 	var p := PanelContainer.new()
-	var st := UI.box(Color(UI.accent(), 0.08) if worn else UI.CARD, UI.R_L, 0, Color(UI.accent(), 0.6) if worn else Color(1, 1, 1, 0.045), 2 if worn else 1)
+	var st := UI.glass(2 if worn else 1, UI.R_XL, 0, UI.accent() if worn else Color(0, 0, 0, 0))
 	UI._hpad(st, 12, 12)
 	p.add_theme_stylebox_override("panel", st)
+	if worn:
+		UI.halo(p, UI.accent(), UI.R_XL, 0.75)
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := UI.vbox(8)
 	p.add_child(v)
 	var stage := PanelContainer.new()
-	stage.add_theme_stylebox_override("panel", UI.box(Color(0, 0, 0, 0.25), UI.R_M))
+	stage.add_theme_stylebox_override("panel", UI.box(Color(0.02, 0.03, 0.08, 0.45), UI.R_L, 0, Color(1, 1, 1, 0.06), 1))
 	stage.add_child(_preview(it))
 	v.add_child(stage)
 	var nl := UI.label(it.name, 14, UI.TEXT, UI.font_bold)
@@ -129,7 +131,7 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 		b = UI.button("Сезон", "ghost", func(): app.go("quests", true, {"tab": "season"}), "star")
 	elif not it.owned:
 		var can: bool = int(Social.eco.get("sparks", 0)) >= int(it.price)
-		b = UI.button("%d" % int(it.price), "primary" if can else "secondary", func():
+		b = UI.button("%d" % int(it.price), "tonal" if can else "secondary", func():
 			Social.request("buy", {"item": it.id})
 			FX.burst(app, p.get_global_rect().get_center() - app.global_position, 18), "spark")
 		b.tooltip_text = "" if can else "Не хватает искр — выполняйте задания"
@@ -153,7 +155,7 @@ func _pro() -> void:
 	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body.add_child(_scroll_wrap(cols))
 	var pro := PanelContainer.new()
-	var pst := UI.box(Color("221b10"), UI.R_XL, 0, Color(UI.AMBER, 0.6), 1)
+	var pst := UI.glass(3, UI.R_XL, 0, UI.AMBER)
 	UI._hpad(pst, 20, 20)
 	pro.add_theme_stylebox_override("panel", pst)
 	pro.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -189,7 +191,7 @@ func _pro() -> void:
 		ve.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ve.add_theme_font_override("font", UI.font_black)
 		vr.add_child(ve)
-		vr.add_child(UI.button("Сохранить", "primary", func(): Social.request("vanity_set", {"code": ve.text})))
+		vr.add_child(UI.button("Сохранить", "tonal", func(): Social.request("vanity_set", {"code": ve.text})))
 		if String(Social.eco.get("vanity", "")) != "":
 			vr.add_child(UI.icon_button("close", func(): Social.request("vanity_clear"), "Убрать свой код", UI.MUTED))
 		v.add_child(vr)

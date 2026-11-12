@@ -240,6 +240,8 @@ func _install_java() -> bool:
 		"server-port": str(java_port()),
 		"enable-status": "true",
 		"spawn-protection": "0",
+		# «Защита мира → Без PvP»: до 1.21.11 это настройка сервера (после — правило игры, его шлёт RoomControl)
+		"pvp": "false" if _protect("pvp") else "true",
 		# белый список — только если хозяин сам включил «Только для своих» (иначе друзей выкидывает «not whitelisted»)
 		"white-list": "true" if opts.get("whitelist", false) else "false",
 		"enforce-whitelist": "true" if opts.get("whitelist", false) else "false",
@@ -895,6 +897,12 @@ func _on_exit(code: int) -> void:
 			hint = " Возможно, не хватает памяти — закройте лишние программы."
 		var why := (" Последняя ошибка: " + _last_err.substr(0, 160) + ".") if _last_err != "" else ""
 		_fail("сервер неожиданно остановился (код %d).%s%s Подробности — в журнале." % [code, why, hint])
+
+
+func _protect(key: String) -> bool:
+	var all: Variant = Cfg.get_value("host", "protect", {})
+	var d: Variant = (all as Dictionary).get("%s:%s" % [edition, String(opts.get("world", "Мир"))], {}) if all is Dictionary else {}
+	return d is Dictionary and bool((d as Dictionary).get(key, false))
 
 
 func command(cmd: String) -> void:

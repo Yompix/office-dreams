@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.6.0"
+const APP_VERSION := "1.7.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -177,7 +177,7 @@ const MODES := [["survival", "Выживание"], ["creative", "Творчес
 
 func game() -> Dictionary:
 	return {"title": String(get_value("game", "title", "")), "mode": String(get_value("game", "mode", "survival")),
-		"cap": int(get_value("game", "cap", 6)), "password": String(get_value("game", "password", "")),
+		"cap": int(get_value("game", "cap", 10)), "password": String(get_value("game", "password", "")),
 		"public": bool(get_value("game", "public", true))}
 
 

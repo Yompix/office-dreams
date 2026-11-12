@@ -13,6 +13,10 @@ var _seg: Control
 var _port: LineEdit
 var _shown_keys := "?"
 var auto := false            # одна кнопка: нашли мир — сразу открываем комнату
+var launch := false          # 1.7: сразу открыть Minecraft сами («Создать» на телефоне) — без лишних экранов
+var _launch := {"t": 3.0, "on": false}
+var _launch_card: Control
+var _launched := false
 var _actions: VBoxContainer
 var _auto_done := false
 var _check: VBoxContainer        # «мир не находится» — чек-лист вместо пассивного ожидания
@@ -24,7 +28,7 @@ const CHECK_AFTER_MS := 8000
 func _ready() -> void:
 	add_theme_constant_override("separation", 16)
 	var head := UI.vbox(4)
-	var h := UI.h2("Мой мир из Minecraft")
+	var h := UI.hero("Мой мир из Minecraft", 28)
 	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head.add_child(h)
 	head.add_child(UI.para("Друзья зайдут прямо в мир, который вы открыли в игре. Ничего скачивать не нужно.", 15, UI.MUTED))
@@ -45,6 +49,17 @@ func _ready() -> void:
 	_check.visible = false
 	add_child(_check)
 	_since = Time.get_ticks_msec()
+	# --- 1.7: «Создать» → LANTERN сам открывает Minecraft и ждёт мир (в фоне тоже)
+	if auto:
+		app.own.arm_auto()
+	if auto and launch and Cfg.mobile() and (Cfg.autotest == "" or Cfg.autotest_args.has("autoopen")):
+		_launch.t = Launcher.COUNTDOWN
+		_launch.on = true
+		_launch_card = Launcher.countdown(_launch, "Открываем Minecraft…", "Зайдите в свой мир — комната откроется сама, код придёт уведомлением.", _fire_launch, func():
+			_launch_card.queue_free()
+			_launch_card = null
+			_refresh())
+		add_child(_launch_card)
 	# --- не нашли: одна кнопка «Открыть Minecraft» (+ на ПК — свой сервер)
 	_actions = UI.vbox(10)
 	add_child(_actions)
@@ -52,7 +67,7 @@ func _ready() -> void:
 	om.custom_minimum_size.y = 56
 	om.add_theme_font_size_override("font_size", 17)
 	_actions.add_child(om)
-	_actions.add_child(UI.para("Зайдите в мир и включите «Видимость для игроков LAN» — LANTERN сам откроет комнату для друзей, нажимать ничего не нужно.", 14, UI.MUTED))
+	_actions.add_child(UI.para("Зайдите в свой мир — LANTERN сам откроет комнату и пришлёт код уведомлением. В настройках мира должна быть включена «Видимость для игроков LAN».", 14, UI.MUTED))
 	if not Cfg.mobile():
 		var row := UI.flow(8)
 		var last_ed: String = Cfg.get_value("host", "last_edition", "")
@@ -149,6 +164,19 @@ func _check_row(state: String, title: String, sub: String) -> Control:
 	return r
 
 
+func _fire_launch() -> void:
+	_launch.on = false
+	_launched = true
+	if is_instance_valid(_launch_card):
+		_launch_card.queue_free()
+		_launch_card = null
+	if not app.own.worlds().is_empty() or app.own.active:
+		_refresh()
+		return     # мир уже нашёлся, пока шёл отсчёт — открывать игру не нужно
+	Launcher.open_bedrock(0, "создать игру: зайдите в свой мир")
+	_refresh()
+
+
 func _recheck() -> void:
 	app.own.begin_scan()
 	_since = Time.get_ticks_msec()
@@ -161,6 +189,9 @@ func _exit_tree() -> void:
 		if app.own.changed.is_connected(_refresh):
 			app.own.changed.disconnect(_refresh)
 		app.own.end_scan()
+		# ушли с экрана, не дождавшись мира, и не в Minecraft — больше не ждём
+		if app.own.auto_pending and not app.own.active:
+			app.own.disarm_auto()
 
 
 func _build_help() -> void:
@@ -252,7 +283,7 @@ func _refresh() -> void:
 	else:
 		_status.text = "Нашли! Нажмите «Открыть для друзей»." if list.size() == 1 else "Нашли несколько миров — выберите нужный."
 	_help.visible = list.is_empty()
-	_actions.visible = list.is_empty()
+	_actions.visible = list.is_empty() and not _launch.on    # идёт отсчёт — главная кнопка одна («Отмена» у отсчёта)
 	if auto and not _auto_done and not list.is_empty() and not app.own.active:
 		var pick: Variant = null
 		var last: String = Cfg.get_value("own", "last_edition", "bedrock")
@@ -284,7 +315,8 @@ func _world_card(w: Dictionary) -> Control:
 	var bed: bool = w.edition == "bedrock"
 	var col := UI.BEDROCK if bed else UI.JAVA
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(col, 0.10), UI.R_L, 0, Color(col, 0.5), 1), 16, 16))
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(2, UI.R_XL, 0, col), 16, 16))
+	UI.halo(p, col, UI.R_XL, 0.6, true)
 	var v := UI.vbox(12)
 	p.add_child(v)
 	var row := UI.hbox(12)
@@ -317,5 +349,6 @@ func _world_card(w: Dictionary) -> Control:
 
 
 func _open(w: Dictionary) -> void:
+	_launch.on = false
 	app.own.start(w)
 	app.go("host", false, {"fresh": true})

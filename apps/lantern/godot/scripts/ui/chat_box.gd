@@ -137,7 +137,7 @@ func _render() -> void:
 		if not grouped:
 			_list.add_child(UI.gap(4))
 		var bubble := PanelContainer.new()
-		var st := UI.box(Color(UI.accent(), 0.22) if mine else UI.CARD_HI, 18, 0)
+		var st := UI.box(Color(UI.accent(), 0.24) if mine else UI.CARD_HI, 18, 0, Color(UI.accent(), 0.45) if mine else Color(1, 1, 1, 0.10), 1)
 		UI._hpad(st, 14, 8)
 		if mine:
 			st.corner_radius_bottom_right = 6

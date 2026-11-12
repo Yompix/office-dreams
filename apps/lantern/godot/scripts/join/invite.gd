@@ -14,6 +14,20 @@ static func link(code: String, edition: String, name: String, relay := "") -> St
 	return SCHEME + "?" + q
 
 
+## Ссылка для мессенджеров (1.7): https://…/lantern/j/<код> — её видно как ссылку в любом чате; страница открывает
+## LANTERN (lantern://join) или предлагает скачать. Свой relay — обычная ссылка lantern:// (страницы там может не быть).
+static func web_link(code: String, edition: String, name: String, relay := "") -> String:
+	if relay != "" and relay != Cfg.DEFAULT_RELAY and not Cfg.autotest_args.has("weblink"):
+		return link(code, edition, name, relay)
+	return Cfg.SITE + "/j/" + code
+
+
+## Код комнаты из ссылки https://…/lantern/j/<код> (или "").
+static func web_code(url: String) -> String:
+	var m := RegEx.create_from_string("^https?://[^/]+/lantern/j/([A-Za-z0-9-]{6,9})(?:[/?#].*)?$").search(url.strip_edges())
+	return RoomCode.normalize(m.get_string(1)) if m else ""
+
+
 ## Разобрать ввод: код комнаты, ссылку lantern://, ссылку minecraft:// или адрес host:port.
 ## → {ok, kind:"room"|"address", code, relay, edition, name, host, port, address} или {ok:false, error}
 static func parse(text: String, default_edition := "java") -> Dictionary:
@@ -24,11 +38,14 @@ static func parse(text: String, default_edition := "java") -> Dictionary:
 		var q := _query(t)
 		if int(q.get("v", "1")) > VERSION:
 			return {"ok": false, "error": "Приглашение из более новой версии — обновите LANTERN"}
-		var c := RoomCode.normalize(q.get("c", ""))
+		# c — код в приглашении приложения; code — в ссылке со страницы /lantern/j/<код> (1.7)
+		var c := RoomCode.normalize(q.get("c", q.get("code", "")))
 		if c == "":
 			return {"ok": false, "error": "В приглашении нет кода комнаты"}
 		return {"ok": true, "kind": "room", "code": c, "relay": q.get("r", ""), "edition": q.get("e", ""), "name": q.get("n", "")}
 	var code := RoomCode.normalize(t)
+	if code == "":
+		code = web_code(t)
 	if code != "":
 		return {"ok": true, "kind": "room", "code": code, "relay": "", "edition": "", "name": ""}
 	if t.begins_with("minecraft://"):

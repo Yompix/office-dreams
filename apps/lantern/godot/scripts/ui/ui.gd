@@ -5,23 +5,27 @@ extends RefCounted
 ## поэтому 48 здесь — это 48 dp, удобная для пальца высота кнопки на любом экране.
 ## Анимации — в fx.gd (FX).
 
-# ---------------------------------------------------------------- цвета (тёплая тёмная тема «фонарь»)
-const BG := Color("0e1015")          # фон приложения
-const PANEL := Color("161920")       # поверхность 1: панели, нижнее меню, боковая панель
-const CARD := Color("1c2029")        # поверхность 2: карточки
-const CARD_HI := Color("252a35")     # поверхность 3: кнопки, поля, выделение
-const SURFACE_4 := Color("2e3441")
-const LINE := Color("2a2f3a")        # тонкие разделители
-const FIELD := Color("12151b")       # поля ввода
-const TEXT := Color("f2f3f6")
-const MUTED := Color("a4aab8")       # второстепенный текст
-const DIM := Color("6c7384")         # подписи, подсказки
+# ---------------------------------------------------------------- цвета 1.7: «ночной лагерь, освещённый фонарём»
+# Фон — живое ночное небо (backdrop.gd), поверх него «стекло»: полупрозрачные поверхности со светлой кромкой сверху,
+# мягкой тенью и тёплым свечением у главного элемента. Один акцент (янтарь) + цвета режимов игры (cover.gd).
+const BG := Color("080a14")                    # самый низ неба
+const BG_TOP := Color("171a3d")                # индиго вверху
+const PANEL := Color("13162c")                 # плотная поверхность (то, что должно закрывать фон)
+const CARD := Color(0.72, 0.76, 1.0, 0.075)    # стекло 1: карточки
+const CARD_HI := Color(0.76, 0.80, 1.0, 0.125) # стекло 2: кнопки, выделение
+const SURFACE_4 := Color(0.80, 0.84, 1.0, 0.19)
+const LINE := Color(1, 1, 1, 0.10)             # тонкие разделители и кромки
+const FIELD := Color(0.02, 0.03, 0.09, 0.42)   # поля ввода — «углубление» в стекле
+const TEXT := Color("f5f3ee")                  # тёплый белый
+const MUTED := Color("b6b8cc")                 # второстепенный текст (≈9:1 на стекле)
+const DIM := Color("8d90ab")                   # подписи, подсказки (≥4.5:1 на стекле)
 const RED := Color("ff6b6b")
 const YELLOW := Color("ffc857")
-const GREEN := Color("5ccb7a")
-const JAVA := Color("5ccb7a")
-const BEDROCK := Color("5aa9ff")
+const GREEN := Color("5fd38a")
+const JAVA := Color("5fd38a")
+const BEDROCK := Color("6aaeff")
 const AMBER := Color("ffb648")
+const ORANGE := Color("ff8a3d")
 const ON_ACCENT := Color("1a1206")   # текст на акцентной кнопке
 
 # ---------------------------------------------------------------- отступы (сетка 4/8 dp)
@@ -33,7 +37,8 @@ const S5 := 24
 const S6 := 32
 
 # ---------------------------------------------------------------- шрифты (sp)
-const T_DISPLAY := 28
+const T_HERO := 38      # большие уверенные заголовки экранов (34–40 sp, плотная разрядка)
+const T_DISPLAY := 30
 const T_TITLE := 22
 const T_HEAD := 17
 const T_BODY := 15
@@ -45,6 +50,8 @@ const R_S := 8
 const R_M := 12
 const R_L := 16
 const R_XL := 24
+const R_2XL := 28
+const R_BTN := 16       # кнопки и поля
 
 static var last_scroll_ms := -1    # когда последний раз начали листать пальцем (нажатие после этого не считается)
 static var font_regular: Font = preload("res://assets/fonts/Montserrat-Medium.ttf")
@@ -52,6 +59,8 @@ static var font_bold: Font = preload("res://assets/fonts/Montserrat-Bold.ttf")
 static var font_black: Font = preload("res://assets/fonts/Montserrat-ExtraBold.ttf")
 static var font_mono: Font = preload("res://assets/fonts/JetBrainsMono-Regular.ttf")
 static var font_caps: FontVariation
+static var font_title: FontVariation      # крупные заголовки: ExtraBold с плотной разрядкой
+static var font_num: FontVariation        # номера комнат, счётчики: табличные цифры одной ширины
 
 static var _fallback_done := false
 
@@ -66,7 +75,14 @@ static func _fallbacks() -> void:
 		f.fallbacks = [sym]
 	font_caps = FontVariation.new()
 	font_caps.base_font = font_bold
-	font_caps.set_spacing(TextServer.SPACING_GLYPH, 1)
+	font_caps.set_spacing(TextServer.SPACING_GLYPH, 2)
+	font_title = FontVariation.new()
+	font_title.base_font = font_black
+	font_title.set_spacing(TextServer.SPACING_GLYPH, -1)
+	font_num = FontVariation.new()
+	font_num.base_font = font_bold
+	font_num.opentype_features = {TextServerManager.get_primary_interface().name_to_tag("tnum"): 1}
+	font_num.set_spacing(TextServer.SPACING_GLYPH, 1)
 
 
 static func accent() -> Color:
@@ -86,7 +102,7 @@ static func box(color: Color, radius := 16, pad := 0, border := Color(0, 0, 0, 0
 	return s
 
 
-## Поверхность с мягкой тенью (листы, всплывашки, плавающие элементы).
+## Поверхность с мягкой тенью (плавающие элементы простой формы: круги, «таблетки»).
 static func elevated(color: Color, radius := R_L, pad := 0) -> StyleBoxFlat:
 	var s := box(color, radius, pad)
 	s.shadow_color = Color(0, 0, 0, 0.45)
@@ -95,7 +111,82 @@ static func elevated(color: Color, radius := R_L, pad := 0) -> StyleBoxFlat:
 	return s
 
 
-static func _hpad(s: StyleBoxFlat, h: int, v: int) -> StyleBoxFlat:
+# ---------------------------------------------------------------- стекло (9-patch из tools/make_ui.py)
+
+const GLASS_M := 20     # поле под тень вокруг панели в текстуре (dp)
+const TEX_K := 3.0      # текстуры нарисованы в 3×
+static var _tex := {}
+
+
+## Текстура интерфейса из assets/ui с «логическим» размером (в dp): на плотных экранах остаётся чёткой.
+static func ui_tex(name: String) -> Texture2D:
+	if not _tex.has(name):
+		var src: Texture2D = load("res://assets/ui/%s.png" % name)
+		var img := src.get_image()
+		if img.is_compressed():
+			img.decompress()
+		var t := ImageTexture.create_from_image(img)
+		t.set_size_override(Vector2i(Vector2(img.get_size()) / TEX_K))
+		_tex[name] = t
+	return _tex[name]
+
+
+static func _nine(name: String, radius: int, pad: int, expand := true) -> StyleBoxTexture:
+	var s := StyleBoxTexture.new()
+	s.texture = ui_tex(name)
+	var m := GLASS_M + radius + 1
+	s.set_texture_margin_all(m)
+	if expand:
+		s.set_expand_margin_all(GLASS_M)
+	s.set_content_margin_all(pad)
+	return s
+
+
+## Стекло: полупрозрачная поверхность со светлой кромкой сверху, внутренним бликом и большой мягкой тенью.
+## level 1..3 — высота (карточка в списке · выделенная карточка · плавающая панель); tint — подкрасить (режим, акцент).
+static func glass(level := 1, radius := R_XL, pad := 0, tint := Color(0, 0, 0, 0)) -> StyleBoxTexture:
+	var r := 24 if radius >= 20 else 16
+	var s := _nine("glass_%d_%d" % [r, clampi(level, 1, 3)], r, pad)
+	if tint.a > 0.0:
+		s.modulate_color = glass_tint(tint)
+	return s
+
+
+## Цвет для подкраски стекла: светлая версия оттенка (заливка у стекла почти белая — умножение даёт нужный тон).
+static func glass_tint(c: Color) -> Color:
+	var t := Color.from_hsv(c.h, clampf(c.s * 0.75, 0.0, 0.7), 1.0)
+	return Color(1, 1, 1).lerp(t, 0.85)
+
+
+## Плотное тёмное стекло: листы, диалоги, всплывашки, окно поверх игры — то, под чем лежит другой контент.
+static func solid(radius := R_XL, pad := 0) -> StyleBoxTexture:
+	var r := 24 if radius >= 20 else 16
+	return _nine("solid_%d" % r, r, pad)
+
+
+## Тёплое свечение вокруг элемента (активная карточка, главная кнопка). Добавляется ребёнком позади содержимого.
+static func halo(c: Control, color: Color, radius := R_XL, strength := 0.9, breathe := false) -> Panel:
+	var r := 24 if radius >= 20 else 16
+	var h := Panel.new()
+	var st := _nine("halo_%d" % r, r, 0)
+	st.modulate_color = Color(color, strength)
+	h.add_theme_stylebox_override("panel", st)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# через Node2D: контейнер (PanelContainer) не раскладывает свечение как содержимое и не сдвигает его на отступы
+	var holder := Node2D.new()
+	holder.show_behind_parent = true
+	c.add_child(holder)
+	holder.add_child(h)
+	h.size = c.size
+	c.resized.connect(func(): if is_instance_valid(h): h.size = c.size)
+	if breathe and FX.on():
+		var tw := h.create_tween().set_loops(3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(h, "modulate:a", 0.45, 1.1)
+		tw.tween_property(h, "modulate:a", 1.0, 1.1)
+	return h
+
+
+static func _hpad(s: StyleBox, h: int, v: int) -> StyleBox:
 	s.content_margin_left = h
 	s.content_margin_right = h
 	s.content_margin_top = v
@@ -113,15 +204,15 @@ static func make_theme() -> Theme:
 	t.set_color("font_color", "Label", TEXT)
 	t.set_constant("line_spacing", "Label", 0)
 	# кнопки (по умолчанию — тональные серые)
-	t.set_stylebox("normal", "Button", _hpad(box(CARD_HI, R_M), 16, 10))
-	t.set_stylebox("hover", "Button", _hpad(box(SURFACE_4, R_M), 16, 10))
-	t.set_stylebox("pressed", "Button", _hpad(box(CARD_HI.darkened(0.2), R_M), 16, 10))
-	t.set_stylebox("hover_pressed", "Button", _hpad(box(CARD_HI.darkened(0.2), R_M), 16, 10))
-	t.set_stylebox("disabled", "Button", _hpad(box(Color(CARD_HI, 0.5), R_M), 16, 10))
+	t.set_stylebox("normal", "Button", _hpad(box(CARD_HI, R_BTN, 0, LINE, 1), 16, 10))
+	t.set_stylebox("hover", "Button", _hpad(box(SURFACE_4, R_BTN, 0, Color(1, 1, 1, 0.16), 1), 16, 10))
+	t.set_stylebox("pressed", "Button", _hpad(box(Color(CARD_HI, 0.08), R_BTN, 0, LINE, 1), 16, 10))
+	t.set_stylebox("hover_pressed", "Button", _hpad(box(Color(CARD_HI, 0.08), R_BTN, 0, LINE, 1), 16, 10))
+	t.set_stylebox("disabled", "Button", _hpad(box(Color(CARD_HI, 0.05), R_BTN, 0, Color(1, 1, 1, 0.05), 1), 16, 10))
 	t.set_stylebox("focus", "Button", box(Color(0, 0, 0, 0), R_M, 0, Color(a, 0.6) if not Cfg.mobile() else Color(0, 0, 0, 0), 2))
 	if Cfg.mobile():
 		# на телефоне нет «наведения»: после касания кнопка не остаётся подсвеченной
-		t.set_stylebox("hover", "Button", _hpad(box(CARD_HI, R_M), 16, 10))
+		t.set_stylebox("hover", "Button", _hpad(box(CARD_HI, R_BTN, 0, LINE, 1), 16, 10))
 		t.set_color("font_hover_color", "Button", TEXT)
 	t.set_font("font", "Button", font_bold)
 	t.set_font_size("font_size", "Button", T_BODY)
@@ -139,9 +230,9 @@ static func make_theme() -> Theme:
 	t.set_font("font", "MenuButton", font_bold)
 	# поля ввода
 	for cls in ["LineEdit", "TextEdit", "SpinBox"]:
-		t.set_stylebox("normal", cls, _hpad(box(FIELD, R_M, 0, LINE, 1), 14, 10))
-		t.set_stylebox("focus", cls, _hpad(box(FIELD, R_M, 0, a, 2), 14, 10))
-		t.set_stylebox("read_only", cls, _hpad(box(Color(FIELD, 0.6), R_M, 0, LINE, 1), 14, 10))
+		t.set_stylebox("normal", cls, _hpad(box(FIELD, R_BTN, 0, Color(1, 1, 1, 0.13), 1), 16, 10))
+		t.set_stylebox("focus", cls, _hpad(box(FIELD, R_BTN, 0, a, 2), 16, 10))
+		t.set_stylebox("read_only", cls, _hpad(box(Color(FIELD, 0.25), R_BTN, 0, LINE, 1), 16, 10))
 		t.set_color("font_color", cls, TEXT)
 		t.set_color("font_placeholder_color", cls, DIM)
 		t.set_color("caret_color", cls, a)
@@ -154,14 +245,14 @@ static func make_theme() -> Theme:
 	t.set_font_size("normal_font_size", "RichTextLabel", 13)
 	t.set_color("default_color", "RichTextLabel", Color("c9cfdc"))
 	# выпадающий список
-	t.set_stylebox("normal", "OptionButton", _hpad(box(FIELD, R_M, 0, LINE, 1), 14, 10))
-	t.set_stylebox("hover", "OptionButton", _hpad(box(Color("161a22"), R_M, 0, LINE.lightened(0.2), 1), 14, 10))
-	t.set_stylebox("pressed", "OptionButton", _hpad(box(FIELD, R_M, 0, a, 1), 14, 10))
-	t.set_stylebox("disabled", "OptionButton", _hpad(box(Color(FIELD, 0.5), R_M, 0, LINE, 1), 14, 10))
-	t.set_stylebox("focus", "OptionButton", box(Color(0, 0, 0, 0), R_M, 0, a, 2))
+	t.set_stylebox("normal", "OptionButton", _hpad(box(FIELD, R_BTN, 0, Color(1, 1, 1, 0.13), 1), 16, 10))
+	t.set_stylebox("hover", "OptionButton", _hpad(box(Color(FIELD, 0.3), R_BTN, 0, Color(1, 1, 1, 0.2), 1), 16, 10))
+	t.set_stylebox("pressed", "OptionButton", _hpad(box(FIELD, R_BTN, 0, a, 1), 16, 10))
+	t.set_stylebox("disabled", "OptionButton", _hpad(box(Color(FIELD, 0.2), R_BTN, 0, LINE, 1), 16, 10))
+	t.set_stylebox("focus", "OptionButton", box(Color(0, 0, 0, 0), R_BTN, 0, a, 2))
 	t.set_font("font", "OptionButton", font_regular)
 	t.set_color("font_color", "OptionButton", TEXT)
-	t.set_stylebox("panel", "PopupMenu", elevated(Color("232835"), R_M, 8))
+	t.set_stylebox("panel", "PopupMenu", box(Color("1a1d38"), R_L, 8, Color(1, 1, 1, 0.14), 1))
 	t.set_stylebox("hover", "PopupMenu", box(Color(a, 0.18), R_S, 0))
 	t.set_color("font_color", "PopupMenu", TEXT)
 	t.set_color("font_hover_color", "PopupMenu", Color.WHITE)
@@ -199,8 +290,8 @@ static func make_theme() -> Theme:
 		t.set_stylebox("grabber", cls, box(Color(1, 1, 1, 0.12), 4))
 		t.set_stylebox("grabber_highlight", cls, box(Color(1, 1, 1, 0.22), 4))
 		t.set_stylebox("grabber_pressed", cls, box(Color(a, 0.7), 4))
-	t.set_stylebox("panel", "TooltipPanel", _hpad(elevated(SURFACE_4, R_S), 10, 6))
-	t.set_stylebox("panel", "PanelContainer", box(PANEL, R_L, 0))
+	t.set_stylebox("panel", "TooltipPanel", _hpad(box(Color("23274a"), R_S, 0, Color(1, 1, 1, 0.14), 1), 10, 6))
+	t.set_stylebox("panel", "PanelContainer", glass(1, R_XL, 0))
 	t.set_stylebox("slider", "HSlider", box(Color(1, 1, 1, 0.08), 4, 3))
 	t.set_stylebox("grabber_area", "HSlider", box(a, 4, 3))
 	t.set_stylebox("grabber_area_highlight", "HSlider", box(a.lightened(0.1), 4, 3))
@@ -208,6 +299,7 @@ static func make_theme() -> Theme:
 	t.set_icon("grabber_highlight", "HSlider", _dot(12, Color.WHITE))
 	t.set_stylebox("panel", "Window", box(PANEL, R_L, 18, LINE, 1))
 	t.set_stylebox("embedded_border", "Window", box(PANEL, R_L, 18, LINE, 1))
+	t.set_color("font_color", "Label", TEXT)
 	return t
 
 
@@ -228,8 +320,8 @@ static func _check_icon(on: bool, a: Color) -> Texture2D:
 
 
 static func _switch_icon(on: bool, a: Color) -> Texture2D:
-	var track := ("#%s" % a.to_html(false)) if on else "#3a4150"
-	var knob := ('<circle cx="36" cy="16" r="11" fill="#%s"/>' % ON_ACCENT.to_html(false)) if on else '<circle cx="16" cy="16" r="8" fill="#aab1c0"/>'
+	var track := ("#%s" % a.to_html(false)) if on else "#3b3f63"
+	var knob := '<circle cx="36" cy="16" r="12" fill="#fffaf0"/>' if on else '<circle cx="16" cy="16" r="9" fill="#b6b8cc"/>'
 	return _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="52" height="32"><rect x="0" y="0" width="52" height="32" rx="16" fill="%s"/>%s</svg>' % [track, knob], 52, 32)
 
 
@@ -261,14 +353,33 @@ static func para(text: String, size := T_BODY, color := MUTED) -> Label:
 
 
 static func h1(text: String) -> Label:
-	var l := label(text, T_DISPLAY, TEXT, font_black)
+	_fallbacks()
+	var l := label(text, T_DISPLAY, TEXT, font_title)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size.x = 120
+	l.add_theme_constant_override("line_spacing", -4)
 	return l
 
 
+## Главный заголовок экрана: огромный, уверенный, с плотной разрядкой.
+static func hero(text: String, size := T_HERO) -> Label:
+	_fallbacks()
+	var l := label(text, size, TEXT, font_title)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 120
+	l.add_theme_constant_override("line_spacing", -6)
+	return l
+
+
+## Число табличными цифрами (номер комнаты, «3/10»).
+static func num(text: String, size := T_LABEL, color := MUTED) -> Label:
+	_fallbacks()
+	return label(text, size, color, font_num)
+
+
 static func h2(text: String) -> Label:
-	return label(text, T_TITLE - 2 if compact() else T_TITLE, TEXT, font_black)
+	_fallbacks()
+	return label(text, T_TITLE if compact() else T_TITLE + 2, TEXT, font_title)
 
 
 static func h3(text: String) -> Label:
@@ -292,8 +403,8 @@ static func section(text: String, action := "", cb := Callable()) -> Control:
 		b.custom_minimum_size.y = 32
 		r.add_child(b)
 	var m := MarginContainer.new()
-	m.add_theme_constant_override("margin_top", 8)
-	m.add_theme_constant_override("margin_left", 4)
+	m.add_theme_constant_override("margin_top", 10)
+	m.add_theme_constant_override("margin_left", 6)
 	m.add_child(r)
 	return m
 
@@ -316,9 +427,21 @@ static func button(text: String, kind := "secondary", cb := Callable(), icon_nam
 	var fc := TEXT
 	match kind:
 		"primary":
-			_btn_colors(b, a, a.lightened(0.1), a.darkened(0.12), ON_ACCENT, DIM)
-			b.add_theme_stylebox_override("disabled", _hpad(box(CARD_HI, R_M), 18, 10))
+			# градиент янтарь → оранжевый с бликом сверху и тёплым свечением (текстура умножается на акцент)
+			for st in [["normal", "primary_16", a], ["hover", "primary_16", a.lightened(0.12)], ["pressed", "primary_16_pressed", a], ["hover_pressed", "primary_16_pressed", a]]:
+				var sb := _nine(st[1], 16, 0)
+				sb.modulate_color = st[2]
+				_hpad(sb, 20, 10)
+				b.add_theme_stylebox_override(st[0], sb)
+			for k in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+				b.add_theme_color_override(k, ON_ACCENT)
+			b.add_theme_color_override("font_disabled_color", DIM)
+			b.add_theme_stylebox_override("disabled", _hpad(box(Color(CARD_HI, 0.07), R_BTN, 0, LINE, 1), 20, 10))
+			b.add_theme_font_override("font", font_black)
+			b.add_theme_font_size_override("font_size", T_BODY + 1)
+			b.custom_minimum_size.y = touch_h() + 4
 			fc = ON_ACCENT
+			FX.sheen(b)
 		"tonal":
 			fc = a.lightened(0.25)
 			_btn_colors(b, Color(a, 0.15), Color(a, 0.22), Color(a, 0.3), fc, Color(fc, 0.4))
@@ -327,11 +450,11 @@ static func button(text: String, kind := "secondary", cb := Callable(), icon_nam
 			_btn_colors(b, Color(RED, 0.14), Color(RED, 0.22), Color(RED, 0.32), fc, Color(fc, 0.4))
 		"outline":
 			for st in [["normal", 0.0], ["hover", 0.05], ["pressed", 0.1], ["hover_pressed", 0.1], ["disabled", 0.0]]:
-				b.add_theme_stylebox_override(st[0], _hpad(box(Color(1, 1, 1, st[1]), R_M, 0, Color(1, 1, 1, 0.16), 1), 16, 10))
+				b.add_theme_stylebox_override(st[0], _hpad(box(Color(1, 1, 1, st[1]), R_BTN, 0, Color(1, 1, 1, 0.2), 1), 16, 10))
 		"ghost", "link":
 			fc = MUTED if kind == "ghost" else a
 			for st in [["normal", 0.0], ["hover", 0.06], ["pressed", 0.1], ["hover_pressed", 0.1], ["disabled", 0.0]]:
-				b.add_theme_stylebox_override(st[0], _hpad(box(Color(1, 1, 1, st[1]), R_M), 12, 8))
+				b.add_theme_stylebox_override(st[0], _hpad(box(Color(1, 1, 1, st[1]), R_BTN), 12, 8))
 			b.add_theme_color_override("font_color", fc)
 			b.add_theme_color_override("font_hover_color", TEXT if kind == "ghost" else a.lightened(0.15))
 			b.add_theme_color_override("font_pressed_color", TEXT if kind == "ghost" else a)
@@ -348,11 +471,12 @@ static func button(text: String, kind := "secondary", cb := Callable(), icon_nam
 
 
 static func _btn_colors(b: Button, n: Color, h: Color, p: Color, fc: Color, dis: Color) -> void:
-	b.add_theme_stylebox_override("normal", _hpad(box(n, R_M), 18, 10))
-	b.add_theme_stylebox_override("hover", _hpad(box(h, R_M), 18, 10))
-	b.add_theme_stylebox_override("pressed", _hpad(box(p, R_M), 18, 10))
-	b.add_theme_stylebox_override("hover_pressed", _hpad(box(p, R_M), 18, 10))
-	b.add_theme_stylebox_override("disabled", _hpad(box(Color(n, n.a * 0.4) if n.a < 1 else Color(n, 0.3), R_M), 18, 10))
+	var bc := Color(fc, 0.22)
+	b.add_theme_stylebox_override("normal", _hpad(box(n, R_BTN, 0, bc, 1), 18, 10))
+	b.add_theme_stylebox_override("hover", _hpad(box(h, R_BTN, 0, bc, 1), 18, 10))
+	b.add_theme_stylebox_override("pressed", _hpad(box(p, R_BTN, 0, bc, 1), 18, 10))
+	b.add_theme_stylebox_override("hover_pressed", _hpad(box(p, R_BTN, 0, bc, 1), 18, 10))
+	b.add_theme_stylebox_override("disabled", _hpad(box(Color(n, n.a * 0.4) if n.a < 1 else Color(n, 0.3), R_BTN), 18, 10))
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 		b.add_theme_color_override(k, fc)
 	b.add_theme_color_override("font_disabled_color", dis)
@@ -417,17 +541,20 @@ static func chip(text: String, on := false, cb := Callable()) -> Button:
 
 static func chip_set(b: Button, on: bool) -> void:
 	var a := accent()
-	var n := box(Color(a, 0.16) if on else Color(1, 1, 1, 0.05), 99, 0, Color(a, 0.55) if on else Color(1, 1, 1, 0.08), 1)
+	var n := box(Color(a, 0.20) if on else Color(1, 1, 1, 0.06), 99, 0, Color(a, 0.7) if on else Color(1, 1, 1, 0.12), 1)
+	if on:
+		n.shadow_color = Color(a, 0.22)
+		n.shadow_size = 8
 	_hpad(n, 16, 6)
 	b.add_theme_stylebox_override("normal", n)
 	var h: StyleBoxFlat = n.duplicate()
-	h.bg_color = Color(a, 0.22) if on else Color(1, 1, 1, 0.09)
+	h.bg_color = Color(a, 0.28) if on else Color(1, 1, 1, 0.11)
 	b.add_theme_stylebox_override("hover", h)
 	b.add_theme_stylebox_override("pressed", h)
 	b.add_theme_stylebox_override("hover_pressed", h)
 	b.add_theme_stylebox_override("focus", box(Color(0, 0, 0, 0), 99))
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
-		b.add_theme_color_override(k, a.lightened(0.3) if on else MUTED)
+		b.add_theme_color_override(k, a.lightened(0.35) if on else MUTED)
 	b.add_theme_font_override("font", font_bold)
 
 
@@ -460,12 +587,15 @@ static func tabs_select(sc: Control, key: String) -> void:
 ## Сегменты одинаковой ширины со скользящей подложкой (Java / Bedrock / Оба).
 static func segmented(items: Array, current: String, cb: Callable) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", box(FIELD, R_M + 2, 4, LINE, 1))
+	p.add_theme_stylebox_override("panel", box(FIELD, R_BTN + 2, 4, Color(1, 1, 1, 0.12), 1))
 	var holder := Control.new()
 	holder.custom_minimum_size.y = 42
 	p.add_child(holder)
 	var pill_bg := Panel.new()
-	pill_bg.add_theme_stylebox_override("panel", box(CARD_HI.lightened(0.04), R_M - 2))
+	var pst := box(Color(accent(), 0.22), R_BTN - 2, 0, Color(accent(), 0.6), 1)
+	pst.shadow_color = Color(accent(), 0.2)
+	pst.shadow_size = 8
+	pill_bg.add_theme_stylebox_override("panel", pst)
 	pill_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(pill_bg)
 	var row := hbox(0)
@@ -478,6 +608,9 @@ static func segmented(items: Array, current: String, cb: Callable) -> PanelConta
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		b.clip_text = true        # узкий экран (360 dp): длинная подпись обрезается, а не распирает экран
+		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		b.add_theme_font_size_override("font_size", 14 if compact() else T_BODY)
 		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			b.add_theme_stylebox_override(st, box(Color(0, 0, 0, 0), R_M - 2))
 		b.pressed.connect(cb.bind(it[0]))
@@ -498,7 +631,7 @@ static func segmented_select(p: Control, key: String, animate := true) -> void:
 		var on: bool = k == key
 		var b: Button = d[k]
 		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
-			b.add_theme_color_override(c, TEXT if on else MUTED)
+			b.add_theme_color_override(c, accent().lightened(0.45) if on else MUTED)
 	var pl: Panel = p.get_meta("pill")
 	if not d.has(key):
 		pl.visible = false
@@ -520,15 +653,24 @@ static func segmented_select(p: Control, key: String, animate := true) -> void:
 # ---------------------------------------------------------------- контейнеры
 
 ## Карточка: поверхность 2 без заметной рамки. Подпись совместима со старым кодом: panel(pad, цвет, радиус).
-static func panel(pad := 20, color := CARD, radius := R_L) -> PanelContainer:
-	if color == PANEL:
-		color = CARD
+static func panel(pad := 20, color := CARD, radius := R_XL) -> PanelContainer:
 	pad = mini(pad, 16) if compact() else mini(pad, 24)
 	var p := PanelContainer.new()
-	var s := box(color, radius, pad)
-	s.border_color = Color(1, 1, 1, 0.045)
-	s.set_border_width_all(1)
-	p.add_theme_stylebox_override("panel", s)
+	if color == CARD or color == PANEL:
+		p.add_theme_stylebox_override("panel", glass(1, radius, pad))
+	elif color.a < 0.2:
+		# едва заметная подложка (заметки, подсказки) — тихое стекло без тени
+		p.add_theme_stylebox_override("panel", box(Color(1, 1, 1, 0.04), radius, pad, Color(1, 1, 1, 0.07), 1))
+	else:
+		# «цветная» карточка старого кода (зелёная — всё хорошо, янтарная — внимание): стекло с оттенком
+		p.add_theme_stylebox_override("panel", glass(2, radius, pad, color))
+	return p
+
+
+## Карточка-стекло: level 1..3, tint — оттенок (акцент, цвет режима).
+static func glass_panel(level := 1, pad := S4, tint := Color(0, 0, 0, 0), radius := R_XL) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", glass(level, radius, pad, tint))
 	return p
 
 
@@ -539,8 +681,14 @@ static func card(pad := S4, color := CARD, radius := R_L) -> PanelContainer:
 ## Строка списка: [иконка] заголовок / подзаголовок [справа]. Нажимается целиком, если передан cb.
 static func list_row(lead: Control, title: String, sub := "", trail: Control = null, cb := Callable(), color := CARD) -> PanelContainer:
 	var p := PanelContainer.new()
-	var st := box(color, R_L, 0)
-	_hpad(st, 14, 10)
+	var st: StyleBox
+	if color.a <= 0.0:
+		st = box(color, R_L, 0)
+	elif color == CARD:
+		st = glass(1, R_XL, 0)
+	else:
+		st = glass(2, R_XL, 0, color)
+	_hpad(st, 14, 12)
 	p.add_theme_stylebox_override("panel", st)
 	var row := hbox(14)
 	p.add_child(row)
@@ -566,7 +714,7 @@ static func list_row(lead: Control, title: String, sub := "", trail: Control = n
 	if trail:
 		trail.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(trail)
-	p.custom_minimum_size.y = 64
+	p.custom_minimum_size.y = 68
 	if cb.is_valid():
 		tappable(p, cb, st)
 	return p
@@ -582,35 +730,42 @@ static func scrolled_since(ms: int) -> bool:
 
 
 ## Делает панель нажимаемой (подсветка при наведении и нажатии; прокрутку пальцем не считает нажатием).
-static func tappable(p: Control, cb: Callable, st: StyleBoxFlat = null) -> void:
+static func tappable(p: Control, cb: Callable, st: StyleBox = null) -> void:
 	# PASS: палец, начавший на карточке, листает список (на телефоне)
 	p.mouse_filter = Control.MOUSE_FILTER_PASS if Cfg.mobile() else Control.MOUSE_FILTER_STOP
 	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	var base := st.bg_color if st else Color()
+	var flat := st as StyleBoxFlat
+	var tex := st as StyleBoxTexture
+	var base := flat.bg_color if flat else (tex.modulate_color if tex else Color())
+	# стекло при наведении и нажатии «подсвечивается»: заливка ярче (у текстуры — множитель цвета)
+	var lit := func(k: float):
+		if flat:
+			flat.bg_color = Color(base.r, base.g, base.b, minf(1.0, base.a + k)) if base.a < 1.0 else base.lightened(k)
+		elif tex:
+			tex.modulate_color = Color(base.r * (1.0 + k * 3.0), base.g * (1.0 + k * 3.0), base.b * (1.0 + k * 3.0), base.a)
 	var down := [Vector2.ZERO, 0]
-	p.mouse_entered.connect(func(): if st: st.bg_color = base.lightened(0.04))
-	p.mouse_exited.connect(func(): if st: st.bg_color = base)
+	if not Cfg.mobile():
+		p.mouse_entered.connect(func(): lit.call(0.05))
+		p.mouse_exited.connect(func(): lit.call(0.0))
 	p.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 			if e.pressed:
 				down[0] = e.position
 				down[1] = Time.get_ticks_msec()
-				if st:
-					st.bg_color = base.lightened(0.08)
+				lit.call(0.10)
 				FX.ripple(p, e.position)
 			else:
-				if st:
-					st.bg_color = base
+				lit.call(0.0)
 				if e.position.distance_to(down[0]) < 12 and Rect2(Vector2.ZERO, p.size).has_point(e.position) and not scrolled_since(down[1]):
 					cb.call())
-	FX.press(p, 0.985)
+	FX.press(p, 0.98)
 
 
 static func icon_tile(name: String, color: Color, px := 44, ic := 22) -> PanelContainer:
 	var t := PanelContainer.new()
 	t.custom_minimum_size = Vector2(px, px)
-	t.add_theme_stylebox_override("panel", box(Color(color, 0.16), R_M))
-	var i := UIcon.make(name, ic, color.lightened(0.15))
+	t.add_theme_stylebox_override("panel", box(Color(color, 0.16), int(px * 0.32), 0, Color(color, 0.32), 1))
+	var i := UIcon.make(name, ic, color.lightened(0.25))
 	i.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	i.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	t.add_child(i)
@@ -622,16 +777,29 @@ static func icon_tile(name: String, color: Color, px := 44, ic := 22) -> PanelCo
 static func empty(icon_name: String, text: String, action := "", cb := Callable(), sub := "") -> Control:
 	var v := vbox(12)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	# иллюстрация: маленький ночной пейзаж в нашем стиле + значок в светящемся круге
+	var art := Control.new()
+	art.custom_minimum_size = Vector2(220, 132)
+	art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var cov := Cover.make(icon_name + text, "other", R_XL)
+	cov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	art.add_child(cov)
 	var ring := PanelContainer.new()
-	ring.add_theme_stylebox_override("panel", box(Color(accent(), 0.10), 99))
-	ring.custom_minimum_size = Vector2(88, 88)
-	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var ic := UIcon.make(icon_name, 40, accent())
+	var rst := box(Color(0.03, 0.04, 0.10, 0.55), 99, 0, Color(accent(), 0.8), 2)
+	rst.shadow_color = Color(accent(), 0.35)
+	rst.shadow_size = 16
+	ring.add_theme_stylebox_override("panel", rst)
+	ring.custom_minimum_size = Vector2(64, 64)
+	ring.position = Vector2(110 - 32, 66 - 32)
+	ring.size = Vector2(64, 64)
+	var ic := UIcon.make(icon_name, 30, accent().lightened(0.3))
 	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	ring.add_child(ic)
+	art.add_child(ring)
 	v.add_child(gap(8))
-	v.add_child(ring)
+	v.add_child(art)
 	var t := para(text, T_HEAD, TEXT)
 	t.add_theme_font_override("font", font_bold)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -681,15 +849,19 @@ static func steps(cur: int, total: int, names: Array = [], prev := -1) -> Contro
 ## Большая карточка выбора (мастера): иконка, заголовок, пояснение, отметка выбора.
 static func choice(icon_name: String, color: Color, title: String, desc: String, on: bool, cb: Callable) -> PanelContainer:
 	var p := PanelContainer.new()
-	var st := box(Color(color, 0.10) if on else CARD, R_L, 0, color if on else Color(1, 1, 1, 0.06), 2 if on else 1)
+	var st: StyleBox = glass(2 if on else 1, R_XL, 0, color if on else Color(0, 0, 0, 0))
 	_hpad(st, 16, 16)
 	p.add_theme_stylebox_override("panel", st)
+	if on:
+		halo(p, color, R_XL, 0.8)
 	var row := hbox(14)
 	p.add_child(row)
 	row.add_child(icon_tile(icon_name, color, 52, 26))
 	var v := vbox(4)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.add_child(label(title, T_HEAD, TEXT, font_bold))
+	var ctl := para(title, T_HEAD, TEXT)
+	ctl.add_theme_font_override("font", font_bold)
+	v.add_child(ctl)
 	v.add_child(para(desc, T_LABEL + 1, MUTED))
 	row.add_child(v)
 	var mark := PanelContainer.new()
@@ -778,8 +950,8 @@ static func pill(text: String, color: Color) -> PanelContainer:
 	var p := PanelContainer.new()
 	p.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	p.add_theme_stylebox_override("panel", _hpad(box(Color(color, 0.15), 99), 10, 3))
-	var l := label(text, T_CAPTION, color.lightened(0.3), font_bold)
+	p.add_theme_stylebox_override("panel", _hpad(box(Color(color, 0.16), 99, 0, Color(color, 0.3), 1), 9, 2))
+	var l := label(text, T_CAPTION - 1, color.lightened(0.4), font_bold)
 	p.add_child(l)
 	p.set_meta("label", l)
 	return p
@@ -788,7 +960,10 @@ static func pill(text: String, color: Color) -> PanelContainer:
 ## Счётчик (непрочитанные, заявки).
 static func badge(n: int) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", _hpad(box(RED, 99), 6, 1))
+	var bst := box(RED, 99)
+	bst.shadow_color = Color(RED, 0.5)
+	bst.shadow_size = 6
+	p.add_theme_stylebox_override("panel", _hpad(bst, 6, 1))
 	p.custom_minimum_size = Vector2(20, 20)
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -809,7 +984,7 @@ static func sparks_chip(n: int, cb := Callable()) -> Button:
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	b.custom_minimum_size.y = 36
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	b.add_theme_stylebox_override("normal", _hpad(box(Color(AMBER, 0.12), 99), 12, 4))
+	b.add_theme_stylebox_override("normal", _hpad(box(Color(AMBER, 0.14), 99, 0, Color(AMBER, 0.35), 1), 12, 4))
 	b.add_theme_stylebox_override("hover", _hpad(box(Color(AMBER, 0.2), 99), 12, 4))
 	b.add_theme_stylebox_override("pressed", _hpad(box(Color(AMBER, 0.26), 99), 12, 4))
 	b.add_theme_stylebox_override("hover_pressed", _hpad(box(Color(AMBER, 0.26), 99), 12, 4))
@@ -835,8 +1010,12 @@ static func texture(path: String, w := 0, h := 0) -> TextureRect:
 
 
 static func field(caption_text: String, ctrl: Control, hint := "") -> VBoxContainer:
-	var v := vbox(6)
-	v.add_child(label(caption_text, T_LABEL, MUTED, font_bold))
+	var v := vbox(8)
+	var cl := caption(caption_text, MUTED)
+	var cm := MarginContainer.new()
+	cm.add_theme_constant_override("margin_left", 6)
+	cm.add_child(cl)
+	v.add_child(cm)
 	v.add_child(ctrl)
 	if hint != "":
 		v.add_child(para(hint, T_CAPTION, DIM))
@@ -894,3 +1073,69 @@ static func hover_scale(c: Control, k := 1.02) -> void:
 
 static func copy(text: String) -> void:
 	DisplayServer.clipboard_set(text)
+
+
+## Связь тремя столбиками (как сигнал сети): great — 3, good — 2, poor — 1; неизвестно — тусклые.
+class Bars extends Control:
+	var level := 0
+	var color := Color.WHITE
+
+	func _draw() -> void:
+		for i in 3:
+			var h := 5.0 + i * 4.5
+			var r := Rect2(i * 6.0, size.y - h - 1.0, 4.0, h)
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = color if i < level else Color(1, 1, 1, 0.16)
+			sb.set_corner_radius_all(2)
+			sb.anti_aliasing = true
+			draw_style_box(sb, r)
+
+
+static func signal_bars(quality: String) -> Control:
+	var b := Bars.new()
+	b.level = {"great": 3, "good": 2, "poor": 1}.get(quality, 0)
+	b.color = {"great": GREEN, "good": YELLOW, "poor": RED}.get(quality, DIM)
+	b.custom_minimum_size = Vector2(16, 16)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return b
+
+
+## Маленькая цветная точка + подпись («● Выживание») — компактные метки в строке списка.
+static func dot_label(text: String, color: Color, size := T_CAPTION) -> HBoxContainer:
+	var h := hbox(5)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var d := Panel.new()
+	d.custom_minimum_size = Vector2(7, 7)
+	d.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st := box(color, 99)
+	st.shadow_color = Color(color, 0.6)
+	st.shadow_size = 4
+	d.add_theme_stylebox_override("panel", st)
+	h.add_child(d)
+	h.add_child(label(text, size, MUTED, font_bold))
+	return h
+
+
+## Стопка аватаров игроков + «3/10».
+static func avatar_stack(names: Array, total: int, cap: int, full := false) -> HBoxContainer:
+	var h := hbox(6)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st := Control.new()
+	var n := mini(names.size(), 3)
+	st.custom_minimum_size = Vector2(22 + maxi(0, n - 1) * 14, 22)
+	st.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	st.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for i in n:
+		var a := Avatar.make(String(names[i]), 22)
+		a.position = Vector2(i * 14, 0)
+		a.size = Vector2(22, 22)
+		a.rim = Color(0.07, 0.08, 0.16)
+		st.add_child(a)
+	if n > 0:
+		h.add_child(st)
+	var l := num("%d/%d" % [total, cap], T_LABEL, RED.lightened(0.2) if full else TEXT)
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(l)
+	return h
