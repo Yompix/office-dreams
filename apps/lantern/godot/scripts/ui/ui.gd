@@ -613,7 +613,8 @@ static func segmented(items: Array, current: String, cb: Callable) -> PanelConta
 		b.add_theme_font_size_override("font_size", 14 if compact() else T_BODY)
 		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			b.add_theme_stylebox_override(st, box(Color(0, 0, 0, 0), R_M - 2))
-		b.pressed.connect(cb.bind(it[0]))
+		# подсветка переезжает сама: раньше часть экранов забывала segmented_select — выбор менялся, а выглядело, будто кнопка не работает
+		b.pressed.connect(func(): segmented_select(p, it[0]); cb.call(it[0]))
 		d[it[0]] = b
 		row.add_child(b)
 	p.set_meta("tabs", d)
@@ -1057,6 +1058,17 @@ static func switch_row(title: String, desc: String, on: bool, cb := Callable()) 
 	if cb.is_valid():
 		sw.toggled.connect(cb)
 	row.add_child(sw)
+	# вся строка нажимается, не только сам переключатель (без срабатывания при прокрутке пальцем)
+	v.mouse_filter = Control.MOUSE_FILTER_PASS
+	v.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var st := {"at": Vector2.INF}
+	v.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+			if e.pressed:
+				st.at = e.global_position
+			elif st.at != Vector2.INF and st.at.distance_to(e.global_position) < 12.0 and not sw.disabled:
+				sw.button_pressed = not sw.button_pressed
+				st.at = Vector2.INF)
 	return {"row": row, "switch": sw}
 
 

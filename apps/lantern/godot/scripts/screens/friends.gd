@@ -173,9 +173,7 @@ func _render() -> void:
 		if a is Dictionary and a.get("code", "") != "":
 			tr.add_child(UI.button("Зайти", "tonal", func(): app.go("join", true, {"input": a.code, "edition": "both"})))
 		elif my_code != "" and f.online:
-			tr.add_child(UI.button("Позвать", "tonal", func():
-				Social.request("invite", {"to": f.id, "code": my_code, "world": app.server.opts.get("world", ""), "edition": app.relay_host.edition})
-				app.toast("Приглашение отправлено", UI.JAVA)))
+			tr.add_child(UI.button("Позвать", "tonal", func(): app.room.invite(int(f.id))))   # имя мира — и у сервера, и у мира из Minecraft
 		var row := _row(f, status_text(f), tr, func(): _open_chat(int(f.id)))
 		if not _compact and int(f.id) == _peer:
 			UI.halo(row, UI.accent(), UI.R_XL, 0.7)

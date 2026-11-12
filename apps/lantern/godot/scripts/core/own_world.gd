@@ -413,9 +413,12 @@ func _keepalive(on: bool) -> void:
 
 
 ## «Открыть Minecraft» (Bedrock: телефон, Windows). Нет игры — страница в магазине.
-static func open_minecraft() -> void:
-	if OS.shell_open("minecraft://") != OK and OS.get_name() == "Android":
+static func open_minecraft() -> bool:
+	if OS.shell_open("minecraft://") == OK:
+		return true
+	if OS.get_name() == "Android":
 		OS.shell_open("https://play.google.com/store/apps/details?id=com.mojang.minecraftpe")
+	return false
 
 
 # ------------------------------------------------------------------ протоколы

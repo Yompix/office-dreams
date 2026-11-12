@@ -302,13 +302,13 @@ func _page_launch(p: VBoxContainer) -> void:
 	var adv := UI.panel(18)
 	var av := UI.vbox(14)
 	adv.add_child(av)
-	var ah := UI.button("Дополнительно", "ghost", Callable(), "chevron_down")
+	var ah := UI.button("Подробные настройки", "ghost", Callable(), "chevron_down")
 	ah.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	ah.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	ah.add_theme_color_override("font_color", UI.TEXT)
 	av.add_child(ah)
 	var body := UI.vbox(16)
-	body.visible = false
+	body.visible = true     # подробные настройки видны сразу (12 ноя); заголовок их сворачивает
 	av.add_child(body)
 	ah.pressed.connect(func(): body.visible = not body.visible; if body.visible: FX.stagger(body, 0.03))
 	_players = SpinBox.new()

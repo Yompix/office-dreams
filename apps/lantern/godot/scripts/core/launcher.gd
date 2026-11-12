@@ -22,9 +22,9 @@ static func connect_url(port: int, host := "127.0.0.1") -> String:
 static func open_bedrock(port := 0, why := "") -> bool:
 	var url := connect_url(port) if port > 0 else "minecraft://"
 	last_url = url
-	opened += 1
 	AppLog.add("launch", "открываем Minecraft: %s (%s)" % [url, why])
 	if Cfg.autotest != "":
+		opened += 1
 		return true
 	var err := OS.shell_open(url)
 	if err != OK and port > 0:
@@ -34,6 +34,7 @@ static func open_bedrock(port := 0, why := "") -> bool:
 		if OS.get_name() == "Android":
 			OS.shell_open(STORE)
 		return false
+	opened += 1     # считаем только удачные: иначе экран входа писал «Minecraft открыт» после неудачи
 	return true
 
 

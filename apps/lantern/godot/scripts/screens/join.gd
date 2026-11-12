@@ -59,7 +59,7 @@ func _ready() -> void:
 	_page_plays(_pages[1])
 	_result = _pages[2]
 	var st: Dictionary = app.relay_join.stats()
-	if st.state in ["connecting", "online"]:
+	if st.state in ["connecting", "online", "reconnecting"]:
 		_goto(3, false)
 		_show_room()
 	elif arg is Dictionary and arg.get("input", "") != "":
@@ -136,7 +136,7 @@ func _page_code(p: VBoxContainer) -> void:
 			_next_from_code(), "paste")
 	paste.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tools.add_child(paste)
-	var qr := UI.button("QR-код", "secondary", _qr_help, "qr")
+	var qr := UI.button("Как зайти по QR", "secondary", _qr_help, "qr")
 	qr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tools.add_child(qr)
 	p.add_child(tools)
@@ -745,7 +745,7 @@ func _fill_recent() -> void:
 		trail.add_child(b)
 		trail.add_child(UI.icon_button("close", func(): Cfg.remove_recent(i); _fill_recent(), "Убрать из списка", UI.DIM))
 		var col := UI.BEDROCK if e.get("edition", "") == "bedrock" else UI.JAVA
-		_recent_box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 40, 20), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), trail))
+		_recent_box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 40, 20), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), trail, func(): _input.text = code; _render_tiles(); _connect()))
 
 
 ## Ошибка входа простыми словами: что случилось + что сделать.

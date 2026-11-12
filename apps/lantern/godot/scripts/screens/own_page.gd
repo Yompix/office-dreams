@@ -63,7 +63,9 @@ func _ready() -> void:
 	# --- не нашли: одна кнопка «Открыть Minecraft» (+ на ПК — свой сервер)
 	_actions = UI.vbox(10)
 	add_child(_actions)
-	var om := UI.button("Открыть Minecraft", "primary", OwnWorld.open_minecraft, "play")
+	var om := UI.button("Открыть Minecraft", "primary", func():
+		if not OwnWorld.open_minecraft():
+			app.toast("Minecraft (Bedrock) не найден. Откройте игру сами и зайдите в мир — LANTERN его увидит.", UI.YELLOW), "play")
 	om.custom_minimum_size.y = 56
 	om.add_theme_font_size_override("font_size", 17)
 	_actions.add_child(om)

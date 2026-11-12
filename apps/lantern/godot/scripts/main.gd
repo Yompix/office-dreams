@@ -383,6 +383,8 @@ func _build_phone() -> void:
 	row.add_child(_bar_actions)
 	_sparks = UI.sparks_chip(0, func(): go("shop"))
 	row.add_child(_sparks)
+	# настройки — всегда на виду, а не только в «Ещё» (владелец, 12 ноя: «спрятаны, фиг найдёшь»)
+	row.add_child(UI.icon_button("settings", func(): go("settings"), "Настройки"))
 	_me_btn = _avatar_button(40)
 	row.add_child(_me_btn)
 	# --- содержимое
@@ -760,6 +762,8 @@ func _more_menu(_b: Button = null) -> void:
 	var v: VBoxContainer = Overlays.sheet(self, "Ещё")
 	var items := [["join", "play", "Зайти по коду", "Код или номер комнаты от друга"], ["shop", "shop", "Магазин", "Пламя и рамки за искры"], ["campfire", "campfire", "Костёр", "Друзья в сети — у огня"], ["quests", "quests", "Задания и сезон", "Искры за игру с друзьями"],
 		["backups", "cloud", "Копии миров", "Резервные копии и облако"], ["settings", "settings", "Настройки", "Цвет, анимации, сервер"]]
+	if Cfg.mobile():      # копии мира делает только сервер на ПК — на телефоне экран пустой
+		items = items.filter(func(i): return i[0] != "backups")
 	if own.active or server.state in ["installing", "starting", "running", "stopping", "error"]:
 		items.push_front(["host", "server", "Мой мир", "Код комнаты и игроки"])
 	var list := UI.vbox(2)
@@ -1246,8 +1250,8 @@ func _select_nav(name: String) -> void:
 		elif not _nav.has(name):
 			key = "more"
 	else:
-		if name == "host":
-			key = "setup"
+		if name in ["host", "setup"]:
+			key = "create"
 		elif name == "syscheck":
 			key = "settings"
 	for k in _nav:

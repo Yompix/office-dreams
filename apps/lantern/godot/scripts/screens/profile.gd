@@ -3,12 +3,21 @@ extends BoxContainer
 
 var app
 var arg
+var _nick_wait := ""
 
 
 func _ready() -> void:
 	vertical = UI.compact()
 	add_theme_constant_override("separation", 16 if UI.compact() else 24)
-	Social.changed.connect(func(w): if w in ["me", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
+	Social.changed.connect(func(w):
+		if w == "me" and _nick_wait != "" and is_inside_tree() and Social.me is Dictionary and String(Social.me.get("nick", "")) == _nick_wait:
+			_nick_wait = ""
+			app.toast("Ник изменён", UI.JAVA)
+		if w in ["me", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
+	Social.failed.connect(func(what, text):
+		if what == "register" and _nick_wait != "" and is_inside_tree():
+			_nick_wait = ""
+			app.toast(String(text) if not RegEx.create_from_string("^[a-z_]+$").search(String(text)) else "Такой ник не подходит или занят", UI.YELLOW))
 	Social.request("eco")
 	_render()
 
@@ -116,7 +125,13 @@ func _render() -> void:
 	ne.max_length = 16
 	ne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nr.add_child(ne)
-	nr.add_child(UI.button("Сохранить", "secondary", func(): Social.register(ne.text)))
+	nr.add_child(UI.button("Сохранить", "secondary", func():
+		if not Social.online():
+			app.toast("Нет связи с сервером — ник не сохранён", UI.YELLOW)
+			return
+		ne.release_focus()      # иначе экран не перерисуется, пока курсор в поле
+		_nick_wait = ne.text.strip_edges()
+		Social.register(ne.text)))
 	nv.add_child(nr)
 	nv.add_child(UI.para("Профиль хранится на этом устройстве (без пароля). Не удаляйте папку LANTERN — иначе придётся начать заново.", 12, UI.DIM))
 	right.add_child(np)

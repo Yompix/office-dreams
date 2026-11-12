@@ -259,7 +259,7 @@ func _refresh_admin() -> void:
 	for c in _admin.get_children():
 		c.queue_free()
 	_admin.add_child(UI.label("Кто может зайти", 15, UI.TEXT, UI.font_bold))
-	var seg := UI.segmented([["friends", "Друзья по коду"], ["all", "Все в LANTERN"]], "all" if app.room.is_public() else "friends", func(k):
+	var seg := UI.segmented([["friends", "Закрытая"], ["all", "Открытая"]], "all" if app.room.is_public() else "friends", func(k):
 		app.room.set_public(k == "all"))
 	_admin.add_child(seg)
 	_admin.add_child(UI.para("Мир виден в «Открытых мирах» на главной у всех — зайти можно в один клик." if app.room.is_public() else "Зайдут только те, кому вы дали код.", 13, UI.MUTED))
@@ -373,7 +373,7 @@ func _make_code_card(compact: bool) -> PanelContainer:
 	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	acts.add_child(cb)
 	_btns["copy"] = cb
-	var sh := UI.button("Поделиться ссылкой", "tonal", _share, "share")
+	var sh := UI.button("Скопировать приглашение", "tonal", _share, "share")
 	sh.clip_text = true
 	sh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	acts.add_child(sh)

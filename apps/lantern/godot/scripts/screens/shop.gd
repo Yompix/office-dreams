@@ -132,6 +132,9 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	elif not it.owned:
 		var can: bool = int(Social.eco.get("sparks", 0)) >= int(it.price)
 		b = UI.button("%d" % int(it.price), "tonal" if can else "secondary", func():
+			if not can:
+				app.toast("Не хватает искр — выполняйте задания", UI.YELLOW)
+				return
 			Social.request("buy", {"item": it.id})
 			FX.burst(app, p.get_global_rect().get_center() - app.global_position, 18), "spark")
 		b.tooltip_text = "" if can else "Не хватает искр — выполняйте задания"

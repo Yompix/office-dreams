@@ -14,6 +14,7 @@ var _cap := 6
 var _pw_on := false
 var _pw: LineEdit
 var _public := true
+var _access_hint: Label
 var _cap_lbl: Label
 var _modes: HFlowContainer
 var _eula: CheckBox
@@ -35,6 +36,17 @@ func _ready() -> void:
 	_title = UI.line_edit(def_title, "Например: Выживание с друзьями")
 	_title.max_length = 40
 	add_child(UI.field("Название игры", _title))
+	# --- доступ: открытая / закрытая игра и пароль — сразу на виду (12 ноя)
+	_access_hint = UI.para("", 14, UI.MUTED)
+	add_child(UI.field("Кто может зайти", UI.segmented([["all", "Открытая"], ["code", "Закрытая"]], "all" if _public else "code", func(k): _public = k == "all"; _access_text())))
+	add_child(_access_hint)
+	_access_text()
+	var pw := UI.switch_row("Пароль", "Зайдут только те, кому вы его сказали", _pw_on, func(b): _pw_on = b; _pw.visible = b)
+	add_child(pw.row)
+	_pw = UI.line_edit(g.password, "Пароль (до 32 символов)")
+	_pw.max_length = 32
+	_pw.visible = _pw_on
+	add_child(_pw)
 	var simple := not live and not Cfg.mobile()
 	if not live:
 		add_child(compat_card(not Cfg.mobile()))
@@ -49,20 +61,9 @@ func _ready() -> void:
 		ev.add_child(_eula)
 		ev.add_child(UI.button("Прочитать EULA", "link", func(): OS.shell_open("https://aka.ms/MinecraftEULA")))
 		add_child(ev)
-	var main_btn := UI.button("Создать" if not live else "Сохранить", "primary", _create, "play" if not live else "check")
-	main_btn.custom_minimum_size.y = 56
-	main_btn.add_theme_font_size_override("font_size", 17)
-	add_child(main_btn)
-	# --- «Ещё настройки» (свёрнуто): всё, что не нужно, чтобы просто поиграть
-	var more := UI.button("Ещё настройки", "ghost", Callable(), "chevron_down")
-	more.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	more.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	add_child(more)
+	# --- все настройки видны сразу, без «Ещё настройки» (12 ноя)
 	var adv := UI.vbox(16)
-	adv.visible = live
-	more.visible = not live
 	add_child(adv)
-	more.pressed.connect(func(): adv.visible = not adv.visible; if adv.visible: FX.stagger(adv, 0.03))
 	if not live and not Cfg.mobile():
 		adv.add_child(UI.field("Где идёт игра", UI.segmented([["server", "Сервер LANTERN (для всех)"], ["own", "Мой мир из Minecraft"]], _kind, func(k): _kind = k)))
 	_modes = UI.flow(8)
@@ -87,15 +88,12 @@ func _ready() -> void:
 		cr.add_child(plus)
 		adv.add_child(UI.field("Мест (вместе с вами)", cr))
 	_set_cap(_cap)
-	var pw := UI.switch_row("Пароль", "Зайдут только те, кому вы его сказали", _pw_on, func(b): _pw_on = b; _pw.visible = b)
-	adv.add_child(pw.row)
-	_pw = UI.line_edit(g.password, "Пароль (до 32 символов)")
-	_pw.max_length = 32
-	_pw.visible = _pw_on
-	adv.add_child(_pw)
-	adv.add_child(UI.field("Кто видит", UI.segmented([["all", "Видна всем"], ["code", "Только по коду"]], "all" if _public else "code", func(k): _public = k == "all")))
 	if not live and not Cfg.mobile():
 		adv.add_child(UI.button("Подробная настройка сервера (версия, память, издание…)", "secondary", func(): _save(); app.go("setup", true, {"edition": "java", "step": 2}), "settings"))
+	var main_btn := UI.button("Создать" if not live else "Сохранить", "primary", _create, "play" if not live else "check")
+	main_btn.custom_minimum_size.y = 56
+	main_btn.add_theme_font_size_override("font_size", 17)
+	add_child(main_btn)
 	FX.stagger(self, 0.02)
 
 
@@ -116,6 +114,11 @@ static func compat_card(pc: bool) -> Control:
 	else:
 		v.add_child(UI.para("Вы создаёте мир в Minecraft на телефоне — зайдут телефоны, Windows (Bedrock) и консоли с той же версией Minecraft. Чтобы зашли и друзья с Java (ПК), создайте игру в LANTERN на компьютере.", 14, UI.MUTED))
 	return p
+
+
+func _access_text() -> void:
+	if is_instance_valid(_access_hint):
+		_access_hint.text = "Игра появится в списке «Игры» у всех, зайти сможет любой." if _public else "В списке её нет. Зайдут только те, кому вы отправите код или ссылку."
 
 
 func _render_modes() -> void:

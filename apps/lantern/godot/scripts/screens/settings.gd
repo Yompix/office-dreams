@@ -28,13 +28,6 @@ func _ready() -> void:
 
 	# --- внешний вид
 	var g := _group(v, "Внешний вид")
-	var lr := UI.hbox(10)
-	var ll := UI.label("Язык", 15, UI.TEXT, UI.font_bold)
-	ll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lr.add_child(ll)
-	lr.add_child(UI.label("Русский", 15, UI.MUTED))
-	g.add_child(lr)
-	g.add_child(UI.divider())
 	var av := UI.vbox(10)
 	av.add_child(UI.label("Цвет акцента", 15, UI.TEXT, UI.font_bold))
 	var ar := UI.hbox(10)
@@ -73,7 +66,8 @@ func _ready() -> void:
 
 	# --- миры
 	var gd := _group(v, "Миры и копии")
-	gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), "Копии миров", "Резервные копии, облако, перенос по коду", UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
+	if not Cfg.mobile():      # на телефоне копий нет — сервер только на ПК
+		gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), "Копии миров", "Резервные копии, облако, перенос по коду", UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
 	if not Cfg.mobile():
 		gd.add_child(UI.list_row(UI.icon_tile("info", UI.BEDROCK, 40, 20), "Проверка системы", "Можно ли создать мир на этом компьютере", UI.icon("chevron", 20, UI.DIM), func(): app.go("syscheck", true), Color(0, 0, 0, 0)))
 		gd.add_child(UI.divider())
