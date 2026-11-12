@@ -432,7 +432,10 @@ const goreKind = id => GORE_KIND[id] || GORE_KIND[id.replace(/_(srv|hide)$/, '')
 // финал-сцена по сценарию (scenes.js GTL): своя длина, камера внутри кадра, звуки ровно на кадрах касаний; у остальных — старые 3,4 с
 const goreShotId = id => 'gore@' + (GORE_BASE[id] || (beat && beat.img)) + ':' + goreKind(id);
 const goreTL = id => (goreKind(id) && window.World && World.goreTL && World.goreTL(goreShotId(id))) || null;
-const goreDur = id => (goreTL(id) || {}).d || GORE_D;
+// смерти, где само убийство не показываем (владелец, 12 ноя: «убрать смерти, которые выглядят по-тупому» — кукольная борьба в кадре портит игру):
+// после скримера — темнота, звуки убийства и кровь на объективе, 1,9 с. Скример и место остаются
+const GORE_ON = new Set([]), goreCut = id => !(GORE_ON.has(id) || GORE_ON.has(id.replace(/_(srv|hide)$/, '')));   // 12 ноя: по кадрам всех 15 смертей показ убийства выключен везде; вернуть сцену — внести смерть в GORE_ON
+const goreDur = id => goreCut(id) ? 1.9 : (goreTL(id) || {}).d || GORE_D;
 // откуда снимать финал: последний кадр смерти, а где он тесный (будка, стол) — соседний кадр той же локации с открытым местом
 // смерть там, где Итан проиграл (владелец: «смерти должны быть логичны, смотря где проиграл»): за пультом в будке — hush_face (scenes.js seatSet)
 const GORE_BASE = { over_k1: 'hush_face', over_k3: 'hush_face', over_k4: 'hush_face', over_k9: 'hush_face', over_fmom: 'hush_face', over_door: 'hush_face', over_come: 'hush_face',
@@ -2038,20 +2041,22 @@ function frame(tp) {
           if (sceneId.startsWith('over_') && js < JUMP_D) {   // скример смерти: лицо Жильца с открытой пастью бросается в объектив (зум), тряска, красный; потом чернота
             if (js < .05) { shakeAmp = Math.max(shakeAmp, 40); if (!jumpBuzz) { jumpBuzz = 1; buzz([200, 40, 300]); } }
             // три разных скримера (по смерти — всегда один и тот же): в лоб, снизу-сбоку с головой набок, вплотную — глаза и пасть во весь кадр
-            const jv = ['death_scream', 'death_scream2', 'death_scream3'][(sceneId.length * 3 + sceneId.charCodeAt(sceneId.length - 1)) % 3];
+            const jn = (sceneId.length * 3 + sceneId.charCodeAt(sceneId.length - 1)) % 3, jv = (goreKind(sceneId) && window.World && World.scareAt && World.scareAt(goreShotId(sceneId), jn)) || ['death_scream', 'death_scream2', 'death_scream3'][jn];   // там же, где его убьют; не вышло — прежний, в темноте
             shot(jv, { cx: .5, cy: .5, z: 1.05 + .65 * Math.min(1, js / .4), t: 2.2 + js, T, sx: 0, sy: 0, scare: 1 - js / JUMP_D });
+            if (/^scare@/.test(jv)) { g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = .85; g.drawImage(g.canvas, 0, 0); g.drawImage(g.canvas, 0, 0); g.restore(); }   // в части мест лицо выходило тёмным — кадр скримера высветляется (≈ в 3 раза), это вспышка на ¾ секунды
             if (!calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(255,${60 + 150 * js / JUMP_D | 0},40)`; g.fillRect(0, 0, W, H); g.restore();
               if (js < .05) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); } }
             grain(.3);
           } else if (sceneId.startsWith('over_') && goreKind(sceneId) && js < JUMP_D + goreDur(sceneId)) {   // финал: как оно убивает
             const gt = js - JUMP_D, gk = goreKind(sceneId), GT = goreTL(sceneId), gd = GT ? GT.d : GORE_D;
+            if (goreCut(sceneId)) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const fl = gt > .42 && gt < .95 ? Math.sin((gt - .42) / .53 * Math.PI) : 0; if (fl > 0 && !calm()) { const rg = g.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * .7); rg.addColorStop(0, `rgba(120,0,0,${(.55 * fl).toFixed(3)})`); rg.addColorStop(1, `rgba(40,0,0,${(.9 * fl).toFixed(3)})`); g.fillStyle = rg; g.fillRect(0, 0, W, H); } grain(.25); } else {   // темнота, на ударе — глухая красная вспышка (нарисованные капли на чёрном выглядели мультяшно)
             const cl = !GT && gk !== 'drag' && gt > .55 && gt < 2.15;   // старая раскадровка: общий план → крупно рана (когти, рывок) → общий (ест); у сценария камера своя
             shot(goreShotId(sceneId) + (cl ? '|c' : ''), { cx: .5, cy: .5, z: GT ? 1 : 1 + .04 * gt, t: gt, T, sx: 0, sy: 0 });
             if ((GT ? gt >= GT.hit && gt < GT.hit + .09 : gt < .12) && !calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff3030'; g.fillRect(0, 0, W, H); g.restore(); }   // вспышка — на касании
             const sp = GT ? GT.splat : /^(face|throat|eyes|chest|hang)/.test(gk) ? .55 : null;
             if (sp != null && gt > sp) splatBlood(g, W, H, Math.min(1, (gt - sp) * 3), sceneId.length * 7 + gk.length);
             if (gt > gd - .35) { g.fillStyle = `rgba(0,0,0,${(gt - gd + .35) / .35})`; g.fillRect(0, 0, W, H); }
-            grain(.25);
+            grain(.25); }
           } else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); } }
         else jumpBuzz = 0;
       }

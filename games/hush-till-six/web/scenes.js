@@ -302,10 +302,13 @@ function buildLobby() {
     box(.43, .008, .38, dmi, 0, -.03, .19, o.drawer); for (const sx of [-1, 1]) box(.008, .05, .38, dmi, sx * .21, -.008, .19, o.drawer); box(.43, .05, .008, dmi, 0, -.008, .38, o.drawer);
     box(.12, .002, .17, mat(0xe8e2d2), -.08, -.025, .12, o.drawer); const pen = cyl(.004, .004, .13, 6, mat(0x1a3a8a), o.drawer); pen.rotation.set(PI / 2, 0, .4); pen.position.set(.1, -.022, .1);   // бумаги и ручка
     o.fphone = new T.Group(); o.fphone.position.set(4.6, .8125, -.36); o.fphone.rotation.y = .25; S.add(o.fphone);
-    box(.072, .009, .148, mat(0x111214, null, { metal: .3, rough: .4 }), 0, 0, 0, o.fphone);
+    // телефон Фрэнка — старый кнопочный, тёмно-красный (владелец, 12 ноя: Итан говорит по телефону, а на столе лежит такой же — «где логика?»; теперь видно, что это чужой)
+    box(.05, .014, .118, mat(0x5a1418, null, { metal: .1, rough: .55 }), 0, .002, 0, o.fphone); box(.044, .002, .05, mat(0x1a1c1e, null, { rough: .35 }), 0, .0095, -.028, o.fphone);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) box(.011, .002, .008, mat(0xd8d2c4, null, { rough: .6 }), -.014 + c * .014, .0095, .012 + r * .012, o.fphone).castShadow = false;
+    box(.004, .03, .004, mat(0x1a1c1e), .019, .012, -.062, o.fphone);   // антенна-штырёк
     o.fphoneScr = label(.064, .136, 32, 68, (c, w, h) => { c.fillStyle = '#050607'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d23030'; c.lineWidth = 2; c.strokeRect(9, 26, 14, 22); c.fillStyle = '#d23030'; c.fillRect(13, 23, 6, 3); c.fillRect(11, 44, 10, 3);
       c.fillStyle = '#f2f2f2'; c.beginPath(); c.moveTo(18, 29); c.lineTo(12, 38); c.lineTo(16, 38); c.lineTo(14, 46); c.lineTo(20, 36); c.lineTo(16, 36); c.closePath(); c.fill(); }, o.fphone);   // батарея на нуле, молния — заряжается
-    o.fphoneScr.rotation.x = -PI / 2; o.fphoneScr.position.y = .0048;
+    o.fphoneScr.rotation.x = -PI / 2; o.fphoneScr.position.set(0, .0108, -.028); o.fphoneScr.scale.set(.62, .34, 1);   // маленький экранчик над кнопками
     const cb = mat(0xe8e8e8); box(.006, .005, .2, cb, 0, -.002, .17, o.fphone); box(.18, .005, .006, cb, -.09, -.002, .27, o.fphone);   // провод зарядки к розетке за мониторами
     o.fphone.visible = false;
     // журнал Фрэнка до трёх часов: закрыт и перевязан бечёвкой, на обложке его рукой «До трёх. Весь.»
@@ -1778,6 +1781,19 @@ function goreFit(base, kind, lay, P, dir, shift, dist) {
       if (ok(px, pz, dx, dz)) return (GFIT[key] = { P: new T.Vector3(px, 0, pz), dir: new T.Vector3(dx, 0, dz) }); } } }
   return (GFIT[key] = null);   // тесно везде — как было
 }
+// скример смерти — в том же месте, где потом идёт убийство (владелец, 12 ноя: «почему скример в разных комнатах, если он убивает Итана там, где Итан был?»).
+// Раньше лицо Жильца для всех смертей снималось в серверной. Теперь он встаёт перед камерой сцены убийства, вплотную; три ракурса, у каждой смерти — свой
+function scareAt(gid, v0 = 0) { const id = 'scare@' + gid + '#' + v0; if (SH[id]) return id; const G = goreShot(gid); if (!G || !G.pos || !G.look) return null;
+  const v = v0 === 0 ? 1 : v0, mir = v0 === 0 ? -1 : 1;   // ракурс «в лоб» выходил тёмным в любом месте — вместо него зеркальный «снизу-сбоку» (кадры 12 ноя)
+  const dx = G.look[0] - G.pos[0], dz = G.look[2] - G.pos[2], L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, d = [.95, .62, .42][v] ?? .95, M = [G.pos[0] + ux * d, G.pos[2] + uz * d], ry = Math.atan2(-ux, -uz);
+  const cam = v === 1 ? [G.pos[0] - uz * .2 * mir, 1.84, G.pos[2] + ux * .2 * mir] : [G.pos[0], v === 2 ? 2.17 : 2.14, G.pos[2]];
+  SH[id] = { loc: G.loc, pos: cam, look: [M[0], 2.12, M[1]], fov: v ? 46 : 40, fog: .2, noDolly: 1, set: (o, t) => { const C = A.monster; C.faceSet = 'scream'; C.tiltNow = v === 1 ? mir * (.55 + .1 * Math.sin(t * 31)) : v === 2 ? -.18 : 0;
+    const fl = v === 2 ? (Math.sin(t * 83) + Math.sin(t * 47) > -.4 ? 1 : .08) : v === 1 ? (Math.sin(t * 67) > -.2 ? 1 : .25) : 1;
+    for (const n of ['amb', 'hemi', 'l1', 'l3', 'l4', 'lamp', 'boothLight', 'cold', 'cold2', 'street', 'canopy']) if (o[n] && o[n].intensity != null) o[n].intensity *= .12;   // место то же, но света почти нет: видно лицо
+    if (o.lampBulb) o.lampBulb.visible = false;
+    if (o.faceL) { faceLit(o, [cam[0] - ux * .05, cam[1] - .16, cam[2] - uz * .05], (v ? 3.2 : 5) * fl, v === 2 ? 0xff6a50 : 0xe8dccc); o.faceL.distance = 2.6; }   // лампа у самой камеры, чуть ниже объектива (дальше она оказывалась внутри его груди — лицо оставалось тёмным)   // свет снизу, от камеры
+    return [['monster', M[0], 0, M[1], ry, 'monster', 'cam']]; } };
+  return id; }
 function goreShot(id) {
   if (GORE[id]) return GORE[id]; const m = /^gore@([a-z0-9_]+):([a-zA-Z]+)(\|c)?$/.exec(id); if (!m) return null;
   const base = SH[ALIAS[m[1]] || m[1]]; if (!base || !base.pos || !base.look) return null;
@@ -3745,7 +3761,7 @@ function solidWhy(k) {
 }
 // для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
 function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
-window.World = { release: () => { const R = window.__W3core.R; released = true; if (!R) return; try { R.forceContextLoss(); } catch (e) {} try { R.dispose(); } catch (e) {} },
+window.World = { scareAt, release: () => { const R = window.__W3core.R; released = true; if (!R) return; try { R.forceContextLoss(); } catch (e) {} try { R.dispose(); } catch (e) {} },
   dbgShot: (id, base, d) => { SH[id] = Object.assign({}, SH[base], d); },   /* отладочный ракурс того же кадра (tools/anim/phone_view.js) */
   draw, init, warm, warmMore, get warmLeft() { return warmQ ? warmQ.length : -1; }, get warmBusy() { return !!warmBusy; }, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, goreTL: id => { const g = goreShot(id); return (g && g.tl) || null; }, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();
