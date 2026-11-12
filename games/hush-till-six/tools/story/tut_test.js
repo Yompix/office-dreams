@@ -18,7 +18,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   await p.waitForSelector('#tutCard:not(.hide)', { timeout: 60000 }); await p.waitForTimeout(1500); await shot('1_vera');
   await waitRing('button[data-c="03"]'); await shot('2_cam'); await p.click('button[data-c="03"]');
   await waitRing('#shLog'); await shot('3_lift13'); await p.click('#shLog'); await p.waitForSelector('.sh-grid button'); await shot('4_log');
-  await p.click('.sh-grid button[data-i="2"]');   // «Лифт»
+  await p.click('.sh-grid button[data-k~="Лифт"]');   // «Лифт»
   await p.waitForFunction(() => document.getElementById('tutDo').textContent === window.tr('MIC слева вверху: столбики прыгают — звук'), null, { timeout: 180000 }); await p.waitForTimeout(800); await shot('5_mic');
   await p.waitForFunction(() => document.getElementById('tutDo').textContent === window.tr('Открой «Пульт»'), null, { timeout: 180000 }); await p.click('#shPanel'); await p.waitForSelector('#pDoor'); await p.waitForTimeout(500); await shot('6_panel'); await p.click('#shX');
   await p.waitForFunction(() => document.getElementById('tutDo').textContent === window.tr('Открой «Журнал»'), null, { timeout: 180000 }); await p.click('#shBook'); await p.waitForSelector('.sh-tabs'); await p.waitForTimeout(500); await p.click('#shX');

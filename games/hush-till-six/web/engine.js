@@ -1167,15 +1167,18 @@ function shiftCam(c) {
 }
 function shiftPop(html, noX) { const el = $('shPop'); if (!el) return; shf && (shf.pop = html ? 1 : null); if (!html) { el.classList.add('hide'); el.innerHTML = ''; return; }
   el.innerHTML = html + (noX ? '' : `<button class="sh-x" id="shX">${tr('Закрыть')}</button>`); el.classList.remove('hide'); if (!noX) $('shX').onclick = e => { e.stopPropagation(); shiftPop(null); }; }
+// «Записать»: пять понятных кнопок вместо восьми (владелец, 12 ноя: лишние путали). Виды странностей в данных прежние — кнопка покрывает группу видов.
+// «Всё спокойно» убрана: ни на что не влияла. Подписи собраны из уже переведённых слов (13 языков без новых строк)
+const LOG_BTN = [['Кто-то'], ['Свет'], ['Звук', 'Помехи'], ['Лифт', 'Дверь'], ['Другое']], logName = k => String(k).split('|').map(x => tr(x)).join(' · ');
 function shiftLog() {
   const c = shf.cam;
-  shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid">${KINDS.concat(['Всё спокойно']).map((k, i) => `<button data-i="${i}">${tr(k)}</button>`).join('')}</div>`);
-  $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const k = (KINDS.concat(['Всё спокойно']))[+b.dataset.i];
-    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).includes(k)), my = shf.my;
+  shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid log">${LOG_BTN.map((g, i) => `<button data-i="${i}" data-k="${g.join(' ')}">${logName(g.join('|'))}</button>`).join('')}</div>`);
+  $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const G = LOG_BTN[+b.dataset.i], k = G.join('|');
+    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).some(x => G.includes(x))), my = shf.my;
     shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); run.rec++; play('pen', { gain: .5, cut: 1.3 });
-    shiftPop(`<h3>${tr('Записываю…')}</h3><p>${camLabel(c)} · ${minStr(shf.M)} — ${tr(k)}</p>`, true);
+    shiftPop(`<h3>${tr('Записываю…')}</h3><p>${camLabel(c)} · ${minStr(shf.M)} — ${logName(k)}</p>`, true);
     setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return; shiftPop(null);
-      if (hit && shf.act.includes(hit)) shiftResolve(hit, tr('Записано.')); else shiftToast(k === 'Всё спокойно' ? tr('Записано: всё спокойно.') : tr('Записано. Хотя, может, показалось.'));
+      if (hit && shf.act.includes(hit)) shiftResolve(hit, tr('Записано.')); else shiftToast(tr('Записано. Хотя, может, показалось.'));
       shiftCheck(); }, 1400); });
 }
 function shiftPanel() {
@@ -1195,7 +1198,7 @@ function shiftBook() {
   if (tut) tut.seen.book = 1;
   const fr = flags.jread ? S.shift.frank : S.shift.frankPre || S.shift.frank;   // личные записи Фрэнка — в перевязанном журнале: до 02:50 не прочитаны
   const tabs = [['Памятка', (S.shift.memo || []).map(s => `<li>${tr(s)}</li>`).join('')], ['Фрэнк', (fr || []).map(s => `<li>${tr(s)}</li>`).join('')],
-    ['Моя смена', shk.log.length ? shk.log.map(r => `<li>${r.m} · ${camLabel(r.cam)} — ${tr(r.k)}</li>`).join('') : `<li>${tr('Пока ни одной записи.')}</li>`]];
+    ['Моя смена', shk.log.length ? shk.log.map(r => `<li>${r.m} · ${camLabel(r.cam)} — ${logName(r.k)}</li>`).join('') : `<li>${tr('Пока ни одной записи.')}</li>`]];
   const show = i => { shiftPop(`<h3>${tr('Журнал')}</h3><div class="sh-tabs">${tabs.map((x, j) => `<button data-j="${j}" class="${j === i ? 'on' : ''}">${tr(x[0])}</button>`).join('')}</div><ul class="sh-page">${tabs[i][1]}</ul>`);
     $('shPop').querySelectorAll('.sh-tabs button').forEach(b => b.onclick = e => { e.stopPropagation(); show(+b.dataset.j); }); if (i === 1) shk.read = true; };
   show(0);

@@ -313,6 +313,8 @@ body:not(.land) .sh-toast { white-space: normal; width: 92%; text-align: center;
 .sh-pop h3 { margin: 0 0 calc(1.4 * var(--u)); font-size: calc(4.6 * var(--u)); text-transform: uppercase; letter-spacing: calc(.4 * var(--u)); }
 .sh-pop p { margin: 0 0 calc(2.4 * var(--u)); font-size: calc(3.2 * var(--u)); opacity: .8; }
 .sh-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(1.6 * var(--u)); }
+.sh-grid.log { grid-template-columns: repeat(2, 1fr); } .sh-grid.log button:last-child { grid-column: 1 / -1; }   /* «Записать»: 2 × 2 и «Другое» во всю ширину */
+body.shifting #bRules, body.shifting #bAuto { display: none; }   /* в смене памятка лежит в «Журнале», а «реплики сами» ни на что не влияет — лишние кнопки путали */
 .sh-grid button, .sh-row button { padding: calc(3 * var(--u)) calc(1 * var(--u)); font-size: calc(3.2 * var(--u)); font-weight: 700; text-transform: uppercase; }
 .sh-row { display: flex; gap: calc(2 * var(--u)); margin-bottom: calc(2.4 * var(--u)); } .sh-row button { flex: 1; }
 .sh-row button.on b { color: var(--acc); }
@@ -622,7 +624,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
 <script src="chars2.js?v=44"></script>
 <script src="scenes.js?v=67"></script>
 <script src="story.js?v=30"></script>
-<script src="engine.js?v=72"></script>
+<script src="engine.js?v=73"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
