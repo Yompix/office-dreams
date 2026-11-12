@@ -1392,6 +1392,25 @@ const AB = require('../server/antibot.js');
     });
     await envP.close();
   }
+  await test('channel posts: a post with "channel" goes to that channel with its own 2 h gap and no Office Dreams button', async () => {
+    const envY = await makeEnv({ DEV_IDS: '7001' });
+    const Posts = require('../server/posts.js'), t0 = envY.clock.t, iso = (t) => new Date(t).toISOString();
+    const Q = Posts.check([
+      { id: 'od-one', at: iso(t0 - 60e3), text: 'Office' },
+      { id: 'studio-one', at: iso(t0 - 30e3), text: 'Новости студии', channel: '@yompixgames' },
+      { id: 'studio-two', at: iso(t0 - 20e3), text: 'Ещё', channel: '@yompixgames', button: '▶️ Играть', url: 'https://yompix.github.io' },
+      { id: 'bad-ch', at: iso(t0), text: 'x', channel: 'yompixgames' },
+    ]);
+    assert.deepEqual(Q.map((p) => p.id), ['od-one', 'studio-one', 'studio-two']);
+    assert.equal(await Posts.tick(envY.ctx, t0, Q), 'od-one');
+    assert.equal(await Posts.tick(envY.ctx, t0 + 60e3, Q), 'studio-one', 'the other channel does not wait for the Office Dreams gap');
+    const y = envY.mock.calls.filter((c) => c.method === 'sendMessage' && c.body.chat_id === '@yompixgames');
+    assert.equal(y.length, 1); assert.equal(y[0].body.reply_markup, undefined, 'no default button there');
+    assert.equal(await Posts.tick(envY.ctx, t0 + 120e3, Q), null, 'second studio post waits 2 h');
+    assert.equal(await Posts.tick(envY.ctx, t0 + 2 * 3600e3 + 180e3, Q), 'studio-two');
+    const y2 = envY.mock.calls.filter((c) => c.method === 'sendMessage' && c.body.chat_id === '@yompixgames');
+    assert.equal(y2[1].body.reply_markup.inline_keyboard[0][0].url, 'https://yompix.github.io');
+  });
   await test('posts/queue.json: valid, English only, every picture exists', async () => {
     const fs = require('fs'), path = require('path');
     const f = path.join(__dirname, '../posts/queue.json');
@@ -1400,6 +1419,7 @@ const AB = require('../server/antibot.js');
     const ok = require('../server/posts.js').check(raw);
     assert.equal(ok.length, raw.length, 'every entry is valid (id, at, text, length, photo)');
     for (const p of raw) {
+      if (p.channel) { assert.equal(p.channel, '@yompixgames', p.id + ': the only other channel is @yompixgames'); if (p.photo) assert.ok(fs.existsSync(path.join(__dirname, '../public', p.photo)), p.id + ': picture exists'); continue; }   // studio news: Russian is fine there
       assert.ok(!/[А-Яа-яЁёІіЇїЄєҐґ]/.test(p.text + (typeof p.button === 'string' ? p.button : '')), p.id + ': channel posts are English only (text and button)');
       if (p.photo) assert.ok(fs.existsSync(path.join(__dirname, '../public', p.photo)), p.id + ': picture public/' + p.photo + ' exists');
     }

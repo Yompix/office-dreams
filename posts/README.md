@@ -45,3 +45,27 @@ Style: short (3–8 lines), a bold first line, a few emojis, one call to action 
 4. Check every fact against the code and live data. Re-read each post against the rules above.
 5. `npm test`, commit, `git push origin HEAD:main` (Railway deploys; the server picks up the new queue).
 6. Add a line to HANDOFF.md "Что сделано" only for notable changes (not for every routine batch).
+
+---
+
+# Studio news: @yompixgames (Yompix Games)
+
+The owner asked (12 Nov 2026): «надо чтоб ты автоматически писал в моём канале новости по проектам, модам и играм, а то забываю».
+The same queue and the same bot publish there: add `"channel": "@yompixgames"` to a post. The bot must be an admin of
+@yompixgames with "Post messages" (the owner adds it once); until then the post is retried and the owner gets a message in the bot.
+
+```json
+{ "id": "2026-11-13-yg-hts-update", "at": "2026-11-13T17:00:00Z", "channel": "@yompixgames", "text": "<b>…</b>", "button": "▶️ Играть", "url": "https://yompix.github.io" }
+```
+- `id` starts with the date and `yg-`. `at`: around **17:00 UTC**, at most one studio post a day and **not more than 3 a week**; nothing to say = no post.
+- No button by default; a button needs both `button` and `url` (https).
+- Pictures: same as above (`public/posts/<id>.jpg`).
+
+## Rules for @yompixgames
+- **Language: Russian** (the owner's own posts there are Russian; one short English line at the end is fine).
+- **What:** real news of the owner's projects since the last studio post: Hush Till Six (web https://yompix.github.io, Google Play test builds), What the Lake Keeps, LANTERN, Minecraft mods (Новоград, LifeCraft), new projects. Source: the «Что сделано» section of `HANDOFF.md` and `git log` since the last `yg-` post. Player words, no file names, no version soup.
+- **Only what players can already get or see.** A fix that is only in code (no build, not on the site) is not news. Say honestly when something is a test build.
+- **Not Office Dreams tokens/airdrop** here (that is @officedream). Never promise dates the owner has not confirmed (the only confirmed one today: What the Lake Keeps, 22 Nov, see HANDOFF).
+- Do not announce: unreleased «Арт 2», other people's games or mods the owner only asked about (e.g. fan dubbing experiments), anything about keys, wallets, limits or how the work is done.
+- Style: 3–7 short lines, bold first line, a few emojis, one link or call to action. No hype, no "скоро!" without a fact behind it.
+- Every routine run (the «посты в канал» task): after the Office Dreams posts, check if there is studio news and queue 0–1 studio post for the next 2 days.

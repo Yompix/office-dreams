@@ -4,6 +4,8 @@
  * Telegram translates for the readers). How to write them: posts/README.md.
  *   { "id": "2026-10-19-city", "at": "2026-10-19T16:00:00Z", "text": "<b>…</b>", "photo": "posts/city.jpg", "button": "▶️ Play" }
  *   photo (optional): a file in public/ (e.g. "posts/city.jpg" = public/posts/city.jpg); with a photo the text is a caption (≤ 1024 chars)
+ *   channel (optional): another channel of the owner where the same bot is an admin, e.g. "@yompixgames" (studio news:
+ *   rules in posts/README.md); there the button is off unless both "button" and "url" (https) are given
  * - each post goes out once (posts_sent): the row is reserved ('sending') before the call, so a crash, a lost reply or
  *   a failed write can never post it twice; a send with an unknown outcome (timeout) is not repeated, the owner is told
  * - one more than LATE_MS overdue is dropped, so a downtime or a late commit never floods the channel; at most one post
@@ -19,6 +21,7 @@ const inited = new WeakSet();
 function init(ctx) {
   if (inited.has(ctx.db)) return;
   ctx.db.raw.exec('CREATE TABLE IF NOT EXISTS posts_sent (id TEXT PRIMARY KEY, at INTEGER, status TEXT, msg_id INTEGER, tries INTEGER DEFAULT 0, err TEXT)');
+  try { ctx.db.raw.exec('ALTER TABLE posts_sent ADD COLUMN ch TEXT'); } catch (e) { /* the column is there */ }
   inited.add(ctx.db);
 }
 const file = (ctx) => ctx.cfg.postsFile || path.join(ctx.cfg.root, 'posts', 'queue.json');
@@ -51,10 +54,13 @@ function check(list, ctx) {
     const at = p && Date.parse(p.at), text = p && typeof p.text === 'string' ? p.text.trim() : '';
     const why = !p || !/^[a-z0-9][a-z0-9-]{2,63}$/.test(p.id || '') ? 'id' : seen.has(p.id) ? 'duplicate id' : !Number.isFinite(at) ? 'at' : !text ? 'text'
       : text.length > (p.photo ? 1024 : 4096) ? 'too long' : badHtml(text) ? 'html: ' + badHtml(text)
-      : p.photo && !/^(posts\/)?[\w-][\w.-]*\.(jpg|png|webp)$/.test(p.photo) ? 'photo (a file in public/ or public/posts/)' : '';
+      : p.photo && !/^(posts\/)?[\w-][\w.-]*\.(jpg|png|webp)$/.test(p.photo) ? 'photo (a file in public/ or public/posts/)'
+      : p.channel != null && p.channel !== '' && !/^@[A-Za-z][A-Za-z0-9_]{3,31}$/.test(p.channel) ? 'channel (@name)' : p.url != null && p.url !== '' && !/^https:\/\/[^\s"<>]{4,200}$/.test(p.url) ? 'url (https)' : '';
     if (why) { if (ctx && ctx.log && ctx.cache.postsBad !== (p && p.id) + why) { ctx.cache.postsBad = (p && p.id) + why; ctx.log('posts: skipped a bad entry', p && p.id, why); } continue; }
     seen.add(p.id);
-    out.push({ id: p.id, at, text, photo: p.photo || '', button: p.button === false ? '' : cut(String(p.button || '▶️ Play Office Dreams'), 40) });
+    const other = p.channel || '';   // another channel: no default "Play Office Dreams" button
+    out.push({ id: p.id, at, text, photo: p.photo || '', channel: other, url: p.url || '',
+      button: p.button === false || (other && !(p.button && p.url)) ? '' : cut(String(p.button || '▶️ Play Office Dreams'), 40) });
   }
   return out.sort((a, b) => a.at - b.at);
 }
@@ -65,13 +71,13 @@ function appLink(ctx) {
   return c.botUsername ? `https://t.me/${c.botUsername}${c.appShort ? '/' + c.appShort : ''}` : '';
 }
 async function publish(ctx, p) {
-  const link = appLink(ctx);
+  const link = p.url || appLink(ctx), chat = p.channel || ctx.cfg.channel;
   // a channel cannot open a mini app button (web_app works only in private chats): a plain t.me link does
   const markup = p.button && link ? { inline_keyboard: [[{ text: p.button, url: link }]] } : undefined;
   if (p.photo && /^https:/.test(ctx.cfg.publicUrl)) {
-    return ctx.tg.call('sendPhoto', { chat_id: ctx.cfg.channel, photo: ctx.cfg.publicUrl + '/' + p.photo, caption: p.text, parse_mode: 'HTML', reply_markup: markup });
+    return ctx.tg.call('sendPhoto', { chat_id: chat, photo: ctx.cfg.publicUrl + '/' + p.photo, caption: p.text, parse_mode: 'HTML', reply_markup: markup });
   }
-  return ctx.tg.call('sendMessage', { chat_id: ctx.cfg.channel, text: p.text, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: markup });
+  return ctx.tg.call('sendMessage', { chat_id: chat, text: p.text, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: markup });
 }
 // can the bot publish in the channel? It must be an admin there with "Post messages"
 async function canPost(ctx) {
@@ -83,7 +89,7 @@ async function canPost(ctx) {
 }
 let busy = false;
 async function tick(ctx, now = Date.now(), list = load(ctx)) {
-  if (!ctx.cfg.channel || busy) return null;
+  if ((!ctx.cfg.channel && !list.some((p) => p.channel)) || busy) return null;
   busy = true;
   try {
     init(ctx);
@@ -94,6 +100,7 @@ async function tick(ctx, now = Date.now(), list = load(ctx)) {
     }
     for (const p of list) {
       if (p.at > now) break;
+      if (!p.channel && !ctx.cfg.channel) continue;
       const row = sentRow(ctx, p.id);
       if (row && row.status !== 'retry') continue;
       if (now - p.at > LATE_MS) { // missed its moment: drop it quietly instead of posting stale news
@@ -102,10 +109,11 @@ async function tick(ctx, now = Date.now(), list = load(ctx)) {
         continue;
       }
       if (row && now - row.at < RETRY_MS * 2 ** (row.tries - 1)) continue; // a refused one waits 10, 20, 40… min
-      const last = ctx.db.get("SELECT MAX(at) AS t FROM posts_sent WHERE status='sent'");
-      if (last && last.t && now - last.t < GAP_MS) return null;
+      const last = ctx.db.get("SELECT MAX(at) AS t FROM posts_sent WHERE status='sent' AND IFNULL(ch,'')=?", p.channel || '');   // the gap is per channel
+      if (last && last.t && now - last.t < GAP_MS) { if (!list.some((q) => (q.channel || '') !== (p.channel || ''))) return null; continue; }
       const tries = (row ? row.tries : 0) + 1;
       ctx.db.run("INSERT INTO posts_sent(id,at,status,tries) VALUES(?,?,'sending',?) ON CONFLICT(id) DO UPDATE SET status='sending', at=excluded.at, tries=excluded.tries", p.id, now, tries);
+      ctx.db.run('UPDATE posts_sent SET ch=? WHERE id=?', p.channel || '', p.id);
       let r;
       try { r = await publish(ctx, p); } catch (e) { r = { ok: false, description: String(e && e.message) }; }
       if (r && r.ok) {
@@ -138,7 +146,7 @@ function ownerReport(ctx, now = Date.now(), list = load(ctx)) {
   const done = ctx.db.all("SELECT id, at, status, err FROM posts_sent ORDER BY at DESC LIMIT 4");
   const lines = ['📢 <b>Посты в канал</b> ' + esc(ctx.cfg.channel || '(CHANNEL не задан)'), ''];
   lines.push(next.length ? '<b>Скоро:</b>' : 'В очереди пусто.');
-  for (const p of next) lines.push(`• ${when(p.at)} <code>${esc(p.id)}</code>${p.photo ? ' 🖼' : ''}\n  ${esc(plain(p.text, 110))}`);
+  for (const p of next) lines.push(`• ${when(p.at)} <code>${esc(p.id)}</code>${p.photo ? ' 🖼' : ''}${p.channel ? ' → ' + esc(p.channel) : ''}\n  ${esc(plain(p.text, 110))}`);
   if (done.length) { lines.push('', '<b>Последние:</b>'); for (const d of done) lines.push(`• ${when(d.at)} <code>${esc(d.id)}</code> — ${{ sent: '✅', late: '⏭ опоздал', skipped: '🚫 отменён', failed: '⚠️ ошибка', retry: '🔁 повтор', sending: '⏳ отправляется', unknown: '❓ не знаю, вышел ли — проверь канал' }[d.status] || esc(d.status)}${d.err ? ' ' + esc(plain(d.err, 80)) : ''}`); }
   lines.push('', 'Отменить пост: /postskip id');
   return lines.join('\n');

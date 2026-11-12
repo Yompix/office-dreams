@@ -86,5 +86,13 @@
     "at": "2026-12-01T16:00:00Z",
     "text": "<b>🪙 About the OFFX token — honestly</b>\n\n🔗 OFFX is a token on Solana, tied to the game. You get it through the airdrop by playing — not by buying hype.\n📉 Right now the pool is tiny, so the price is very jumpy and the chart may be empty. That's normal for an early, low-liquidity token.\n🧭 Our plan is simple: a real, fun game first → real players → real demand. No promises of profit, no price games.\n\n👉 See the token in Airdrop → Token.\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market, and can go down.</i>",
     "button": "🪙 Airdrop → Token"
+  },
+  {
+    "id": "2026-11-13-yg-hts-update",
+    "at": "2026-11-13T17:00:00Z",
+    "channel": "@yompixgames",
+    "text": "<b>🌙 Hush Till Six — большое обновление</b>\n\nЗа эту неделю в игре многое поменялось:\n\n🎬 Все четыре концовки пересняты заново\n👁 Скример теперь там, где погиб герой, а не в случайной комнате\n📓 Журнал странностей стал проще: 5 кнопок вместо 8\n🛗 Открытый лифт можно записать с любой камеры холла\n⚙️ Язык и графика меняются без перезагрузки на каждый клик\n🧹 Уборщик больше не моет пол сквозь стены\n\nИграть можно прямо в браузере, с телефона или ПК. Версия для Google Play сейчас в закрытом тесте.\n\n<i>Play in your browser — link below.</i>",
+    "button": "▶️ Играть",
+    "url": "https://yompix.github.io"
   }
 ]
