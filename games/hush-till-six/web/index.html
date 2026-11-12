@@ -275,6 +275,7 @@ html.tv #dlg { background: rgba(6, 6, 8, .88); }
 .sx { position: absolute; top: calc(3 * var(--u)); right: calc(3 * var(--u)); z-index: 3; width: calc(11 * var(--u)); height: calc(11 * var(--u)); display: flex; align-items: center; justify-content: center; padding: 0;
   border-radius: 50%; border: calc(.4 * var(--u)) solid rgba(255,255,255,.3); background: rgba(10,10,12,.7); color: #ece8dc; cursor: pointer; pointer-events: auto; }
 .sx .ic { width: 55%; height: 55%; stroke-width: 2.2; }
+.sx { display: none !important; }   /* крестик убран: на каждом таком экране есть «Назад» / «Продолжить», а сам он после редизайна стоял криво (владелец, 12 ноя). В разметке остаётся — по нему закрывают Esc и кнопка «назад» телефона */
 .screen.pz { background: rgba(0,0,0,.8); backdrop-filter: blur(3px); }
 #pz .screen.sub { background: rgba(4,4,6,.95); }   /* настройки поверх игры: субтитры и кнопки игры не просвечивают */
 .screen.pz h1 { margin-bottom: calc(8 * var(--u)); }
