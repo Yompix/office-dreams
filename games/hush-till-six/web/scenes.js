@@ -2223,8 +2223,11 @@ function ethanProp(t, extra = {}) {
 // Пока Фрэнк говорит — не курит: рука с сигаретой опущена (владелец, 11 ноя: «когда говорит, сигарету не должен курить»)
 const cigDrag = (t, t0, per = 9) => { if (t < t0) return 0; const u = (t - t0) % per; return seg(u, 0, 1.1) * (1 - seg(u, 1.9, 3.1)); };
 function cigTalk(C, k) { C.cigQ = lerp(C.cigQ || 0, C.talkingNow ? 1 : 0, C.talkingNow ? .12 : .03); return k * (1 - clamp(C.cigQ * 1.6, 0, 1)); }
-function frankCig(F, C, k, w = 1) { const [m, f] = mouthOf(C), R = locR(XF[0], XF[2], XFR), lo = R.p(-.2, 1.07, .25), lip = [m.x + f.x * .012, m.y - .004, m.z + f.z * .012], e = k * k * (3 - 2 * k);
-  F.arm.r = { at: lin(lo, lip, e), by: 'pinch', fdir: lin([f.x, -.15, f.z], [f.x * .35, .9, f.z * .35], e), pdir: lin([0, -1, 0], R.v(1, 0, 0), e), w }; F.fing.r = ['pinch', 1]; }
+function frankCig(F, C, k, w = 1) { const [m, f] = mouthOf(C), R = locR(XF[0], XF[2], XFR), lo = R.p(-.27, 1.07, .27), lip = [m.x + f.x * .012, m.y - .004, m.z + f.z * .012], e = k * k * (3 - 2 * k);
+  // рука идёт ко рту дугой перед грудью, локоть — вбок и вперёд: по прямой и с локтем назад предплечье проходило сквозь туловище до 11 см
+  // (владелец видел в игре, замер tools/anim/arm_body_probe.js, 12 ноя)
+  const cv = R.v(-.1, 0, .2), mid = [(lo[0] + lip[0]) / 2 + cv[0], (lo[1] + lip[1]) / 2, (lo[2] + lip[2]) / 2 + cv[2]], bz = (a, b, c) => (1 - e) * (1 - e) * a + 2 * e * (1 - e) * b + e * e * c;
+  F.arm.r = { at: [bz(lo[0], mid[0], lip[0]), bz(lo[1], mid[1], lip[1]), bz(lo[2], mid[2], lip[2])], pole: [-.55, -.45, .9], by: 'pinch', fdir: lin([f.x, -.15, f.z], [f.x * .35, .9, f.z * .35], e), pdir: lin([0, -1, 0], R.v(1, 0, 0), e), w }; F.fing.r = ['pinch', 1]; }
 SH.x_two = { loc: 'lobby', pos: [1.75, 1.5, 10.3], look: [-.4, 1.35, 7.5], fov: 44, set: (o, t) => {
   const F = frankOut(t, { look: [XE[0], 1.62, XE[1]] });
   if (curProps && curProps.cig) { frankCig(F, A.mihalych, cigTalk(A.mihalych, cigDrag(t, 1.4))); F.hold = { r: 'cig' }; }
