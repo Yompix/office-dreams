@@ -1320,8 +1320,8 @@ SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], 
 // fb05: журнал перевязан бечёвкой, на обложке «До трёх. Весь.»
 SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
 // 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
-function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха (голова сидя — на 24–31 см позади корня), пальцы вперёд по щеке, локоть вниз
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.13, 1.2, -.31]), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
+function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха, запястье у скулы перед ухом, пальцы назад вокруг телефона, локоть вниз-вперёд (замер tools/anim/phone_probe.js: локоть на 4 см ниже плеча; было на 19 см выше)
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.105, 1.222, -.225]), by: 'palm', fdir: R.v(0, .3, -.95), pdir: R.v(-1, 0, 0), w: 1, pole: [.45, -1, .25] } },   /* локоть вниз, чуть в сторону и вперёд (pole — направление в осях тела; раньше сюда попадала точка мира, и локоть задирался вверх-назад: владелец, 12 ноя) */   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
     fing: { l: ['phone', 1] }, hold: { l: 'phone' }, look: R.p(.6, 1.05, 2) }; }
 SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
@@ -2201,7 +2201,7 @@ SH.x_building = { loc: 'lobby', pos: [2.6, 1.5, 21.5], look: [-1.0, 22.5, 6], fo
 SH.x_rain = { loc: 'lobby', pos: [2.35, 1.6, 17.6], look: [.9, 1.6, 15.0], fov: 44, set: (o, t) => { o.fac.material = o.facDark; o.ghostWin.visible = true; lobbyOff(o); o.sky.material.map = TX.skyCity;
   const ry = 1.0, R = locR(1.15, 15.6, ry);   // лицом почти к камере, телефон у правого уха: ладонь к щеке, пальцы вперёд, локоть вниз (клип клал руку поперёк лица)
   return [['temych', 1.15, 0, 15.6, ry, { clips: [['Idle_TalkingPhone_Loop', t + 1, 1]], legs: 'feet', look: R.p(-.3, 1.62, 3),
-    arm: { r: { at: R.p(-.105, 1.53, -.06), by: 'palm', fdir: R.v(0, .25, 1), pdir: R.v(1, 0, 0), w: 1, pole: R.p(-.35, 1.0, .05) } }, fing: { r: ['phone', 1] }, hold: { r: 'phone' } }, null]]; } };
+    arm: { r: { at: R.p(-.105, 1.542, -.036), by: 'palm', fdir: R.v(0, .3, -.95), pdir: R.v(1, 0, 0), w: 1, pole: [-.45, -1, .25] } }, fing: { r: ['phone', 1] }, hold: { r: 'phone' } }, null]]; } };
 // Б1, рассвет: вдвоём под козырьком. Фрэнк (левая нога в картоне) висит на Итане: левая рука через его плечи, кисть на дальнем плече;
 // Итан правой держит его сзади за пояс. Оси Итана: x — влево, z — вперёд (корпус в стойке Idle сидит на 11 см позади точки ног)
 const XE = [-.1, 7.45], XER = -.1, XRE = () => locR(XE[0], XE[1], XER), XF = XRE().p(-.45, 0, -.04), XFR = .12;
@@ -2689,7 +2689,7 @@ SH.k1_face = { loc: 'lobby', pos: [5.12, 1.25, -.38], look: [5.2, 1.21, -.99], f
 } };
 // руки висят вдоль тела (у мокап-стойки в этот миг одна рука была отведена в сторону): запястья у бёдер
 const hangArms = (x, z, ry, h = 1) => { const R = locR(x, z, ry);
-  return { l: { at: R.p(.2 * h, .86 * h, .02), by: 'wrist', w: 1, pole: R.p(.45, 1.15 * h, -.35) }, r: { at: R.p(-.2 * h, .86 * h, .02), by: 'wrist', w: 1, pole: R.p(-.45, 1.15 * h, -.35) } }; };
+  return { l: { at: R.p(.2 * h, .86 * h, .02), by: 'wrist', w: 1, pole: [.3, 0, -1] }, r: { at: R.p(-.2 * h, .86 * h, .02), by: 'wrist', w: 1, pole: [-.3, 0, -1] } }; };
 SH.k1_taken = { loc: 'corridor', pos: C13P, look: [.3, 1.55, -4.6], fov: 44, cctv: 1, set: (o, t) => { c13Set(o, 4); faceLit(o, [.55, 2.3, -3.2], 1.6);
   const ry = Math.atan2(C13P[0] - C13M[0], C13P[2] - C13M[1]);
   return [['ethanThing', C13M[0], 0, C13M[1], ry, Object.assign(STILL('Idle_Loop', 1.7), { arm: hangArms(C13M[0], C13M[1], ry), fing: { l: ['relax', 1], r: ['relax', 1] } }), 'cam']]; } };
