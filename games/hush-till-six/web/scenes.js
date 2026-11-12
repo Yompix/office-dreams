@@ -1663,7 +1663,7 @@ function goreFx(loc) {
   const pm = ps1(new T.MeshPhongMaterial({ color: 0x3a0306, specular: 0x5a2020, shininess: 110, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
   f.pool = new T.Mesh(new T.CircleGeometry(1, 32), pm); f.pool.rotation.x = -PI / 2; f.pool.visible = false; S.add(f.pool);
   f.trail = new T.Mesh(new T.PlaneGeometry(1, 1), pm); f.trail.rotation.x = -PI / 2; f.trail.visible = false; S.add(f.trail);
-  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0105, 6, 4), mat(0x4a0404, null, { basic: true }), 240); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
+  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0105, 10, 6), mat(0x3a0303, null, { basic: true }), 240); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
   f.heart = new T.Mesh(new T.SphereGeometry(.055, 10, 8), loc.gutM || (loc.gutM = GUT_M())); f.heart.scale.set(1, 1.25, .9); f.heart.visible = false; S.add(f.heart);
   return f;
 }
@@ -1675,7 +1675,7 @@ function sprayAt(f, from, dir, t, bursts) {   // брызги дугой из р
     for (let i = 0; i < 44 && n < 240; i++, n++) { const h1 = _fr(Math.sin(i * 12.9898 + b * 78.233) * 43758.5453), h2 = _fr(Math.sin(i * 39.346 + b * 11.135) * 24634.634), h3 = _fr(Math.sin(i * 73.156 + b * 52.235) * 12874.313);
       const vx = dir.x * 1.5 + (h1 - .5) * 2.1, vy = .9 + h2 * 1.9, vz = dir.z * 1.5 + (h3 - .5) * 2.1, tl = (vy + Math.sqrt(vy * vy + 19.6 * Math.max(0, from.y - .012))) / 9.8, dt = Math.min(dt0, tl), y = from.y + vy * dt - 4.9 * dt * dt, down = dt0 >= tl;
       _dp.set(from.x + vx * dt, Math.max(.008, y), from.z + vz * dt); _dv.set(vx, vy - 9.8 * dt, vz); const sp = _dv.length() || 1, k = .6 + 1.1 * h3;
-      if (down) { _dq.identity(); _ds.set(k * 2.6 * (1 + h1), .1, k * 2.6 * (1 + h2)); } else { _dq.setFromUnitVectors(_dy, _dv.multiplyScalar(1 / sp)); _ds.set(k, k * (1 + Math.min(3, sp * .55)), k); }   // летит — вытянута; упала — пятнышко
+      if (down) { _dq.identity(); _ds.set(k * 1.3 * (1 + .6 * h1), .1, k * 1.3 * (1 + .6 * h2)); }   // упавшая капля — небольшое пятно (крупные читались красными шестиугольниками) else { _dq.setFromUnitVectors(_dy, _dv.multiplyScalar(1 / sp)); _ds.set(k, k * (1 + Math.min(3, sp * .55)), k); }   // летит — вытянута; упала — пятнышко
       _gm4.compose(_dp, _dq, _ds); f.spray.setMatrixAt(n, _gm4); } }
   for (; n < 240; n++) { _gm4.makeScale(0, 0, 0); f.spray.setMatrixAt(n, _gm4); }
   f.spray.instanceMatrix.needsUpdate = true; f.spray.visible = true;

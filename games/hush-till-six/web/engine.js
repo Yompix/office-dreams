@@ -1789,11 +1789,13 @@ function phoneIn(P, t) {   // экран телефона в координат�
 function splatBlood(g, W, H, k, seed) {
   const r = i => { const x = Math.sin(seed * 91.7 + i * 12.9898) * 43758.5453; return x - Math.floor(x); }, U = Math.min(W, H);
   const ox = W * (.25 + r(1) * .5), oy = H * (.3 + r(2) * .35), spread = Math.min(1, k * 1.6);   // откуда брызнуло
-  const blob = (x, y, rr, a, i0) => { g.fillStyle = `rgba(${58 + 26 * r(i0)},${1 + 3 * r(i0 + 1)},3,${a})`; g.beginPath();
-    const n = 14; for (let q = 0; q <= n; q++) { const an = q / n * Math.PI * 2, rad = rr * (.72 + .5 * r(i0 + q % n * 3) * r(i0 + q % n * 5 + 1) + (q % 5 === 0 ? .35 * r(i0 + q) : 0));
+  const blob = (x, y, rr, a, i0) => { g.fillStyle = `rgba(${40 + 20 * r(i0)},${1 + 2 * r(i0 + 1)},2,${a})`; g.beginPath();
+    // край — плавная волна из трёх гармоник (у 14 прямых отрезков клякса читалась красным многоугольником)
+    const n = 44, p1 = r(i0) * 6.28, p2 = r(i0 + 1) * 6.28, p3 = r(i0 + 2) * 6.28, a2 = .1 + .12 * r(i0 + 3), a3 = .05 + .09 * r(i0 + 4), a5 = .03 + .05 * r(i0 + 5);
+    for (let q = 0; q <= n; q++) { const an = q / n * Math.PI * 2, rad = rr * (.86 + a2 * Math.sin(an * 2 + p1) + a3 * Math.sin(an * 3 + p2) + a5 * Math.sin(an * 5 + p3));
       const px = x + Math.cos(an) * rad, py = y + Math.sin(an) * rad; q ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); g.fill(); };
   g.save(); g.globalAlpha = Math.min(1, .92 * k * 1.3); g.lineCap = 'round';
-  for (let i = 0; i < 7; i++) {   // крупные кляксы: тёмная середина, светлее край, блик
+  for (let i = 0; i < 5; i++) {   // крупные кляксы: тёмная середина, светлее край, блик
     const an = r(i + 10) * Math.PI * 2, d = U * (.08 + r(i + 20) * .5) * spread, x = ox + Math.cos(an) * d * 1.5, y = oy + Math.sin(an) * d * .8, rr = U * (.022 + r(i + 30) * .06);
     blob(x, y, rr * 1.12, .55, i * 17 + 3); blob(x, y, rr * .86, .9, i * 17 + 40);
     g.fillStyle = 'rgba(255,170,160,.10)'; g.beginPath(); g.ellipse(x - rr * .3, y - rr * .32, rr * .28, rr * .14, -.6, 0, 7); g.fill();
