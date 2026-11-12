@@ -744,12 +744,12 @@ window.STORY = {
       door01: { cam: '01', kind: 'Дверь', props: { door01: 1 }, fix: 'door', unlock: 1, need: 'locked', win: 20, notice: 'Пульт пискнул: «ВХОД — ОТКРЫТ».' },
       cat: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { cat: 1 }, win: 25, say: 'n06' },
       streetOff: { cam: '01', kind: 'Свет', props: { streetOff: 1 }, win: 22 },
-      wet: { cam: '02', kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
-      hallDark: { cam: '02', kind: 'Свет', props: { hallDark: 1 }, win: 20 },
+      wet: { cam: '02', also: ['03'], kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
+      hallDark: { cam: '02', also: ['03'], kind: 'Свет', props: { hallDark: 1 }, win: 20 },
       lift: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
-      lift13: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 20 },
-      clockSpin: { cam: '03', kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
-      palmMove: { cam: '03', kind: 'Другое', props: { palmMove: 1 }, win: 25 },
+      lift13: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift13: 1 }, win: 20 },
+      clockSpin: { cam: '03', also: ['02'], kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
+      palmMove: { cam: '03', also: ['02'], kind: 'Другое', props: { palmMove: 1 }, win: 25 },
       stDark: { cam: '04', kind: 'Свет', props: { stDark: 1 }, win: 20 },
       chair10: { cam: '10', kind: 'Другое', props: { chair10: 1 }, win: 22 },
       bucket7: { cam: '07', kind: 'Другое', props: { bucket7: 1 }, win: 30, need: 'nogus' },
@@ -780,7 +780,7 @@ window.STORY = {
       slam04: { cam: '04', kind: 'Звук', snd: ['door_slams', { gain: .5, lp: 1500 }, 8], win: 18 },
       // кто-то стоит и смотрит (это не они)
       lily01: { cam: '01', kind: 'Кто-то', props: { lily01: 1 }, win: 16 },
-      frank02: { cam: '02', kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
+      frank02: { cam: '02', also: ['03'], kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
       guard04: { cam: '04', kind: 'Кто-то', props: { guard04: 1 }, win: 16 },
       // сюжет
       gus7: { cam: '07', fix: 'none', win: 70, say: 'c03' },

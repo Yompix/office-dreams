@@ -2541,6 +2541,7 @@ SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 7
   o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }   // на камере мокрые следы блестят
   if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }
   setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; if (s.lift13) setLift(o, o.lifts[1], 0, '13'); if (s.liftBoth) setLift(o, o.lifts[1], 1, '1');   // лифты видно и отсюда — то же состояние, что на CAM 03
+  shClock(o, s, t); if (s.palmMove) { o.palm.position.set(-.82, 0, -5.3); o.palmShadow.visible = false; }
   if (s.selfStare && !s.noEthan) return [['temych', 3.4, 0, 1.6, .55, STILL('Idle_Loop', 1.4), [7.45, 3.85, 5.45]]];   // «ты» не сидишь в будке, а стоишь в холле и смотришь в камеру
   const A2 = s.noEthan ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, s.ethR > 0 ? eRadioK(t, s.ethR) : { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];   // отвечает Гасу по рации — рация у рта
   if (s.frank02) A2.push(['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]);   // в глубине холла, лицом к камере
@@ -2551,7 +2552,9 @@ SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58
   if (s.liftBoth) setLift(o, o.lifts[1], 1, '1');   // второй тоже открыт — в нём темно
   shClock(o, s, t);
   if (s.palmMove) { o.palm.position.set(-.82, 0, -5.3); o.palmShadow.visible = false; }
-  return []; } };
+  o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }
+  if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }   // холл один — то же, что видно на CAM 02
+  return s.frank02 ? [['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]] : []; } };
 SH.cam04 = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 62, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(1, 4); o.setFloor(0, 3); o.setFloor(2, 5);
   if (s.stDark) { stDim(o, 0); irOn(o, [1.2, 7.1, -.5], 1.7); } else if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; });
   if (s.lily04) return [['katya', .25, 4.5, -5.3, PI, STILL('Idle_Loop', 2.3), null]];   // на площадке, спиной к камере, лицом в стену
