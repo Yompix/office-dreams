@@ -55,14 +55,16 @@ The same queue and the same bot publish there: add `"channel": "@yompixgames"` t
 @yompixgames with "Post messages" (the owner adds it once); until then the post is retried and the owner gets a message in the bot.
 
 ```json
-{ "id": "2026-11-13-yg-hts-update", "at": "2026-11-13T17:00:00Z", "channel": "@yompixgames", "text": "<b>…</b>", "button": "▶️ Играть", "url": "https://yompix.github.io" }
+{ "id": "2026-11-13-yg-hts-update", "at": "2026-11-13T17:00:00Z", "channel": "@yompixgames", "photo": "posts/2026-11-13-yg-hts-update.jpg", "text": "<b>…</b>", "button": "▶️ Play", "url": "https://yompix.github.io" }
 ```
 - `id` starts with the date and `yg-`. `at`: around **17:00 UTC**, at most one studio post a day and **not more than 3 a week**; nothing to say = no post.
 - No button by default; a button needs both `button` and `url` (https).
 - Pictures: same as above (`public/posts/<id>.jpg`).
 
 ## Rules for @yompixgames
-- **Language: Russian** (the owner's own posts there are Russian; one short English line at the end is fine).
+- **Language: English only** (the owner, 12 Nov: «на английском»). Telegram translates for readers; the `npm test` check for Cyrillic covers these posts too.
+- **Always with a picture** (the owner: «с картинками, скриншотами и моментами с разработки, может даже и видео»): a fresh screenshot from the game, a before/after, a behind-the-scenes shot (a location without characters, a wireframe or a camera test, a contact sheet of frames, a tool at work), or a short clip (`"video": "posts/<id>.mp4"`, vertical or 16:9, 5–20 s, under 20 MB). Render it yourself from the current build (HTS: `games/hush-till-six/tools/anim/shot_view.js`, `tools/story/beats.js`); never reuse the same picture twice.
+- **Leak-safe** (the owner: «такое, что даже если сольют, чтоб не критично было»): nothing that hurts if it spreads. No endings, no death scenes, no late-night plot twists or the monster's face in full, no unreleased games' story beats, no source code, file trees, admin pages, keys, wallets, logs, e-mails, real names or faces, no Play Console / Railway / GitHub screens. Early locations, the lobby, the booth, cameras, UI, props and "how it was fixed" are fine.
 - **What:** real news of the owner's projects since the last studio post: Hush Till Six (web https://yompix.github.io, Google Play test builds), What the Lake Keeps, LANTERN, Minecraft mods (Новоград, LifeCraft), new projects. Source: the «Что сделано» section of `HANDOFF.md` and `git log` since the last `yg-` post. Player words, no file names, no version soup.
 - **Only what players can already get or see.** A fix that is only in code (no build, not on the site) is not news. Say honestly when something is a test build.
 - **Not Office Dreams tokens/airdrop** here (that is @officedream). Never promise dates the owner has not confirmed (the only confirmed one today: What the Lake Keeps, 22 Nov, see HANDOFF).

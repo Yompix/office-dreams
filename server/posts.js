@@ -53,13 +53,14 @@ function check(list, ctx) {
   for (const p of list || []) {
     const at = p && Date.parse(p.at), text = p && typeof p.text === 'string' ? p.text.trim() : '';
     const why = !p || !/^[a-z0-9][a-z0-9-]{2,63}$/.test(p.id || '') ? 'id' : seen.has(p.id) ? 'duplicate id' : !Number.isFinite(at) ? 'at' : !text ? 'text'
-      : text.length > (p.photo ? 1024 : 4096) ? 'too long' : badHtml(text) ? 'html: ' + badHtml(text)
+      : text.length > (p.photo || p.video ? 1024 : 4096) ? 'too long' : badHtml(text) ? 'html: ' + badHtml(text)
       : p.photo && !/^(posts\/)?[\w-][\w.-]*\.(jpg|png|webp)$/.test(p.photo) ? 'photo (a file in public/ or public/posts/)'
+      : p.video != null && p.video !== '' && !/^(posts\/)?[\w-][\w.-]*\.mp4$/.test(p.video) ? 'video (an .mp4 in public/ or public/posts/)'
       : p.channel != null && p.channel !== '' && !/^@[A-Za-z][A-Za-z0-9_]{3,31}$/.test(p.channel) ? 'channel (@name)' : p.url != null && p.url !== '' && !/^https:\/\/[^\s"<>]{4,200}$/.test(p.url) ? 'url (https)' : '';
     if (why) { if (ctx && ctx.log && ctx.cache.postsBad !== (p && p.id) + why) { ctx.cache.postsBad = (p && p.id) + why; ctx.log('posts: skipped a bad entry', p && p.id, why); } continue; }
     seen.add(p.id);
     const other = p.channel || '';   // another channel: no default "Play Office Dreams" button
-    out.push({ id: p.id, at, text, photo: p.photo || '', channel: other, url: p.url || '',
+    out.push({ id: p.id, at, text, photo: p.photo || '', video: p.video || '', channel: other, url: p.url || '',
       button: p.button === false || (other && !(p.button && p.url)) ? '' : cut(String(p.button || '▶️ Play Office Dreams'), 40) });
   }
   return out.sort((a, b) => a.at - b.at);
@@ -74,6 +75,9 @@ async function publish(ctx, p) {
   const link = p.url || appLink(ctx), chat = p.channel || ctx.cfg.channel;
   // a channel cannot open a mini app button (web_app works only in private chats): a plain t.me link does
   const markup = p.button && link ? { inline_keyboard: [[{ text: p.button, url: link }]] } : undefined;
+  if (p.video && /^https:/.test(ctx.cfg.publicUrl)) {   // a short clip (mp4, under 20 MB: Telegram fetches it by URL)
+    return ctx.tg.call('sendVideo', { chat_id: chat, video: ctx.cfg.publicUrl + '/' + p.video, caption: p.text, parse_mode: 'HTML', supports_streaming: true, reply_markup: markup });
+  }
   if (p.photo && /^https:/.test(ctx.cfg.publicUrl)) {
     return ctx.tg.call('sendPhoto', { chat_id: chat, photo: ctx.cfg.publicUrl + '/' + p.photo, caption: p.text, parse_mode: 'HTML', reply_markup: markup });
   }

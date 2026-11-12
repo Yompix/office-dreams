@@ -1419,7 +1419,7 @@ const AB = require('../server/antibot.js');
     const ok = require('../server/posts.js').check(raw);
     assert.equal(ok.length, raw.length, 'every entry is valid (id, at, text, length, photo)');
     for (const p of raw) {
-      if (p.channel) { assert.equal(p.channel, '@yompixgames', p.id + ': the only other channel is @yompixgames'); if (p.photo) assert.ok(fs.existsSync(path.join(__dirname, '../public', p.photo)), p.id + ': picture exists'); continue; }   // studio news: Russian is fine there
+      if (p.channel) { assert.equal(p.channel, '@yompixgames', p.id + ': the only other channel is @yompixgames'); for (const f2 of [p.photo, p.video]) if (f2) assert.ok(fs.existsSync(path.join(__dirname, '../public', f2)), p.id + ': file public/' + f2 + ' exists'); }
       assert.ok(!/[А-Яа-яЁёІіЇїЄєҐґ]/.test(p.text + (typeof p.button === 'string' ? p.button : '')), p.id + ': channel posts are English only (text and button)');
       if (p.photo) assert.ok(fs.existsSync(path.join(__dirname, '../public', p.photo)), p.id + ': picture public/' + p.photo + ' exists');
     }

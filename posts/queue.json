@@ -91,8 +91,9 @@
     "id": "2026-11-13-yg-hts-update",
     "at": "2026-11-13T17:00:00Z",
     "channel": "@yompixgames",
-    "text": "<b>🌙 Hush Till Six — большое обновление</b>\n\nЗа эту неделю в игре многое поменялось:\n\n🎬 Все четыре концовки пересняты заново\n👁 Скример теперь там, где погиб герой, а не в случайной комнате\n📓 Журнал странностей стал проще: 5 кнопок вместо 8\n🛗 Открытый лифт можно записать с любой камеры холла\n⚙️ Язык и графика меняются без перезагрузки на каждый клик\n🧹 Уборщик больше не моет пол сквозь стены\n\nИграть можно прямо в браузере, с телефона или ПК. Версия для Google Play сейчас в закрытом тесте.\n\n<i>Play in your browser — link below.</i>",
-    "button": "▶️ Играть",
-    "url": "https://yompix.github.io"
+    "text": "<b>🌙 Hush Till Six — a big week of fixes</b>\n\nBehind the scenes: both lobby lifts open on the security camera. Until this week the second one opened onto a bare wall. Now there is a dark cabin inside, and you can log it from either lobby camera.\n\nAlso new:\n🎬 all four endings were re-staged\n📓 the anomaly log has 5 buttons instead of 8\n⚙️ language and graphics change without a reload on every tap\n🧹 the janitor no longer mops through walls\n\nPlay free in your browser, phone or PC. The Google Play version is in closed testing.",
+    "button": "▶️ Play in browser",
+    "url": "https://yompix.github.io",
+    "photo": "posts/2026-11-13-yg-hts-update.jpg"
   }
 ]
