@@ -67,7 +67,7 @@ window.STORY = {
     dg_call: {
       music: 'drone', time: '22:00',
       beats: [
-        { img: null, phone: { kind: 'call', name: '+1 (914) 207-3318' }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
+        { img: null, phone: { kind: 'call', name: '+1 (914) 207-3318', take: 2.9 }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['dg02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Дневной охранник', topics: [
@@ -254,7 +254,7 @@ window.STORY = {
       beats: [
         { img: 'x_out', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x03'], sfx: [['door', 0], ['rain_burst', .1]], pad: .4 },
         { img: 'x_building', fx: 'rain', cams: [[.5, .45, 1.0, 1.12]], say: ['x04'], pad: .6 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
+        { img: null, phone: { kind: 'call', name: 'Лили', take: 1.65 }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x06'], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .45, 1.1, 1.16]], say: ['x07'], pad: .4 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 24 }, say: ['x08'], heart: true, pad: 1.4 }
@@ -350,13 +350,13 @@ window.STORY = {
       beats: [
         { img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['d20', 'd21'], pad: .4, react: { 'ФРЭНК': ['yes+calm', 3.6, 99] } },   // «всё, до ночи оно спит» — кивает
         { img: 'st_up', fx: 'cctv', label: 'CAM 04  ЛЕСТНИЦА', cams: [[.5, .5, 1.0, 1.06]], say: ['d22'], pad: .4 },
-        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['d23'], sfx: [['tram', .8, { gain: .4 }]], pad: .4 },
-        { img: 'x_two', fx: 'rain', cams: [[.52, .45, 1.2, 1.25]], say: ['d24'], pad: .3, react: { 'ФРЭНК': ['worry', 0, 99] } },
-        { img: 'x_no', fx: 'rain', cams: [[.5, .45, 1.0, 1.06]], say: ['d25'], pad: .3, react: { 'ИТАН': ['no+grim', .3, 9] } },   // «Я покачал головой» — головой, лицо тяжёлое
-        { img: 'x_two', fx: 'rain', cams: [[.5, .45, 1.25, 1.3]], say: ['d26'], pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },
-        { img: 'x_smoke', fx: 'rain', cams: [[.5, .45, 1.0, 1.06]], say: ['d27'], sfx: [['lighter', .3]], pad: 1.2 },
-        { img: 'x_smoke', fx: 'rain', cams: [[.5, .42, 1.1, 1.16]], say: ['d28', 'd29'], pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },
-        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], props: { cig: 1 }, pad: .6 },
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .5, 1.0, 1.06]], say: ['d23'], sfx: [['tram', .8, { gain: .4 }]], pad: .4 },
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.52, .45, 1.2, 1.25]], say: ['d24'], pad: .3, react: { 'ФРЭНК': ['worry', 0, 99] } },
+        { img: 'x_no', fx: 'rain', cover: 1, cams: [[.5, .45, 1.0, 1.06]], say: ['d25'], pad: .3, react: { 'ИТАН': ['no+grim', .3, 9] } },   // «Я покачал головой» — головой, лицо тяжёлое
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .45, 1.25, 1.3]], say: ['d26'], pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },
+        { img: 'x_smoke', fx: 'rain', cover: 1, cams: [[.5, .45, 1.0, 1.06]], say: ['d27'], sfx: [['lighter', .3]], pad: 1.2 },
+        { img: 'x_smoke', fx: 'rain', cover: 1, cams: [[.5, .42, 1.1, 1.16]], say: ['d28', 'd29'], props: { cig: 1 }, pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },   // уже курит: говорит — сигарета внизу, затяжка только в паузе
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], props: { cig: 1 }, pad: .6 },
         { img: 'hall_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ', hud: { date: '05.11.2026', at: '03:00' }, cams: [[.5, .5, 1.0, 1.04], [.36, .46, 2.2, 2.6]], say: ['d31'], pad: 1.6 }   // «теперь каждую ночь в три»: запись другой ночи
       ],
       then: { ending: 'dawn', title: 'РАССВЕТ', sub: 'Ты ни разу не ответил. Пока.' }
@@ -379,8 +379,8 @@ window.STORY = {
     call540: {
       music: 'tension', time: '05:40',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .2 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring_mob', 0]], heart: true, pad: .3 }
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring_mob', 0, { rate: .95, rev: .3 }], ['buzz', 0]], pad: .2 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring_mob', 0, { rate: .88, rev: .5 }], ['ring_mob', .04, { rate: .85, gain: .35, lp: 2400 }]], heart: true, pad: .3 }   // «Лили» в 05:40 — не Лили: звонок поплыл
       ],
       then: { choice: 'Звонит «Лили».', timeout: 8, def: 1, opts: [{ t: 'Ответить', go: 'over_k9' }, { t: 'Сбросить', go: 'morning' }] }
     },
@@ -551,7 +551,7 @@ window.STORY = {
     ly_call: {
       music: 'drone', time: '01:15',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['ly01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4 },
+        { img: null, phone: { kind: 'call', name: 'Лили', take: 1.6 }, say: ['ly01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4 },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['ly02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Лили', topics: [
@@ -744,12 +744,12 @@ window.STORY = {
       door01: { cam: '01', kind: 'Дверь', props: { door01: 1 }, fix: 'door', unlock: 1, need: 'locked', win: 20, notice: 'Пульт пискнул: «ВХОД — ОТКРЫТ».' },
       cat: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { cat: 1 }, win: 25, say: 'n06' },
       streetOff: { cam: '01', kind: 'Свет', props: { streetOff: 1 }, win: 22 },
-      wet: { cam: '02', kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
-      hallDark: { cam: '02', kind: 'Свет', props: { hallDark: 1 }, win: 20 },
-      lift: { cam: '03', kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
-      lift13: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 20 },
-      clockSpin: { cam: '03', kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
-      palmMove: { cam: '03', kind: 'Другое', props: { palmMove: 1 }, win: 25 },
+      wet: { cam: '02', also: ['03'], kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
+      hallDark: { cam: '02', also: ['03'], kind: 'Свет', props: { hallDark: 1 }, win: 20 },
+      lift: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
+      lift13: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift13: 1 }, win: 20 },
+      clockSpin: { cam: '03', also: ['02'], kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
+      palmMove: { cam: '03', also: ['02'], kind: 'Другое', props: { palmMove: 1 }, win: 25 },
       stDark: { cam: '04', kind: 'Свет', props: { stDark: 1 }, win: 20 },
       chair10: { cam: '10', kind: 'Другое', props: { chair10: 1 }, win: 22 },
       bucket7: { cam: '07', kind: 'Другое', props: { bucket7: 1 }, win: 30, need: 'nogus' },
@@ -761,13 +761,26 @@ window.STORY = {
       snd03: { cam: '03', kind: 'Звук', snd: ['metal_groan', { gain: .5, lp: 1500 }, 8], win: 18 },
       snd04: { cam: '04', kind: 'Звук', snd: ['steps_barefoot', { gain: .55, cut: 2.4, lp: 1600 }, 6], win: 18 },
       snd07: { cam: '07', kind: 'Звук', snd: ['cleaner_hum', { gain: .4, lp: 1800 }, 6], win: 20, need: 'nogus' },
-      snd10: { cam: '10', kind: 'Звук', snd: ['ring', { gain: .35, lp: 1700 }, 3.6], win: 18 },
+      snd10: { cam: '10', kind: 'Звук', snd: ['ring', { gain: .35, lp: 1700, rate: .86, rev: .5 }, 3.6], win: 18 },
       snd_m2: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .6, lp: 1600 }, 5], win: 18 },
       knock3x: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .7, lp: 1700 }, 6, 3], win: 20, say: 'n28' },   // три удара, как просил Фрэнк
       lilyDoor: { cam: '01', kind: 'Кто-то', props: { lilyDoor: 1 }, win: 26, say: 'n29', trap: 'door', die: 'over_door' },   // открыть вход, пока она там, — смерть
+      // новые (11 ноя, владелец: «больше аномалий»)
+      handprint: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { handprint: 1 }, win: 22 },                // на стекле входа изнутри — отпечаток ладони
+      selfStare: { cam: '02', kind: 'Кто-то', props: { selfStare: 1 }, win: 14 },                             // «ты» на камере холла стоишь у стойки и смотришь в объектив
+      liftBoth: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift: '1', liftOpen: 1, liftBoth: 1 }, win: 16, sfx: ['ding', { gain: .5, lp: 1400 }] },   // оба лифта открыты, во втором темно
+      lily04: { cam: '04', kind: 'Кто-то', props: { lily04: 1 }, win: 14 },                                   // «Лили» на площадке лестницы, спиной
+      frank10: { cam: '10', kind: 'Кто-то', props: { frank10: 1 }, win: 14 },                                 // в конце тёмного коридора десятого
+      gusTwin: { cam: '10', kind: 'Кто-то', props: { gusTwin: 1 }, win: 16, need: 'gus' },                    // Гас моет седьмой — и он же стоит на десятом
+      mopAlone: { cam: '07', kinds: ['Другое', 'Кто-то'], props: { mopAlone: 1 }, win: 20, need: 'nogus' },   // швабра стоит посреди коридора сама
+      crawl_m2: { cam: 'm2', kind: 'Кто-то', props: { crawl_m2: 1 }, win: 14 },                               // в подвале кто-то лежит лицом вниз
+      snd02: { cam: '02', kind: 'Звук', snd: ['ring_mob', { gain: .4, lp: 2000 }, 5], win: 18 },
+      breath07: { cam: '07', kind: 'Звук', snd: ['breath_close', { gain: .7, lp: 2600 }, 4], win: 18, need: 'nogus' },
+      tick10: { cam: '10', kind: 'Звук', snd: ['skin_stretch', { gain: .5, lp: 2200 }, 5], win: 18 },
+      slam04: { cam: '04', kind: 'Звук', snd: ['door_slams', { gain: .5, lp: 1500 }, 8], win: 18 },
       // кто-то стоит и смотрит (это не они)
       lily01: { cam: '01', kind: 'Кто-то', props: { lily01: 1 }, win: 16 },
-      frank02: { cam: '02', kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
+      frank02: { cam: '02', also: ['03'], kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
       guard04: { cam: '04', kind: 'Кто-то', props: { guard04: 1 }, win: 16 },
       // сюжет
       gus7: { cam: '07', fix: 'none', win: 70, say: 'c03' },
@@ -785,13 +798,13 @@ window.STORY = {
     segs: {
       S1: { from: '21:10', to: '22:00', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Камеры — внизу. Странное — «Записать». Свет, вход и лифт — на пульте.',
         events: [{ at: '21:14', an: 'light10' }, { at: '21:28', an: 'cat' }, { at: '21:46', task: { text: 'К 22:00 запереть вход и остановить лифт', need: ['door', 'lift'], by: '22:00', say: 'n01' } }],
-        rnd: { pool: ['door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 2 }, next: 'dg_call' },
+        rnd: { pool: ['handprint', 'snd02', 'door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 3 }, next: 'dg_call' },
       S2: { st: { gus: 0, gusGone: 0, blackout: 0 }, from: '22:20', to: '23:59', spm: 2.2, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '22:25', state: { gus: 1 } }, { at: '22:26', an: 'gus7' }, { at: '22:40', radio: ['f01', 'f02'] }, { at: '23:05', an: 'lift' }, { at: '23:30', radio: ['n08', 'n09', 'n10', 'n11'] }],
-        rnd: { pool: ['door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 4 }, next: 'sh_S3' },
+        rnd: { pool: ['handprint', 'liftBoth', 'gusTwin', 'snd02', 'slam04', 'door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 5 }, next: 'sh_S3' },
       S3: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '00:00', to: '00:59', spm: 3.3, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '00:12', an: 'st04' }, { at: '00:45', an: 'palm' }],
-        rnd: { pool: ['door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 3 }, next: 'round2' },
+        rnd: { pool: ['selfStare', 'lily04', 'liftBoth', 'tick10', 'slam04', 'gusTwin', 'door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 4 }, next: 'round2' },
       S4: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '01:20', to: '02:50', spm: 2.4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '01:40', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
           { at: '02:00', c13: true, say: 'n19' }, { at: '02:12', an: 'st10' },
@@ -801,7 +814,7 @@ window.STORY = {
           { at: '02:20', if: 'fphone', sms: { from: 'Телефон Фрэнка · Номер не определён', text: 'Фрэнки, сынок, спустись ко мне. Я внизу', dur: 6 }, say: 'fp01', set: 'fpcall' },
           { at: '02:25', if: 'fphone', call: { title: 'Телефон Фрэнка', sub: 'На зарядке. Номер не определён.', take: 'Ответить: «Алло?»', no: 'Сбросить', takeDie: 1, die: 'over_fmom', noSay: 'fp02' } },
           { at: '02:31', say: 'n18' }],
-        rnd: { pool: ['door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 5 }, next: 'journal' },
+        rnd: { pool: ['selfStare', 'lily04', 'frank10', 'gusTwin', 'handprint', 'tick10', 'crawl_m2', 'door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 6 }, next: 'journal' },
       // st — что видно на камерах с начала часа: с 22:25 до трёх Гас моет седьмой (S3, S4 — и после «Продолжить»), после 03:00 его нет — брошены ведро и швабра;
       // blackout: 0 — свет гаснет только в своём часе: повтор часа после смерти и «Вернуться к выбору» начинаются со светом
       // ветка «остаться в будке»: самый трудный час. Рация голосом Гаса, стук снизу, «Лили» у входа, свет гаснет сверху вниз

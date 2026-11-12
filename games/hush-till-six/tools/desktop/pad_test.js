@@ -1,7 +1,7 @@
 // Проверка pad.js в браузере: клавиатура (стрелки, Enter, Esc) и пульт с нестандартной раскладкой — xpad (Steam Deck / виртуальный пульт Steam в Linux)
 // и DirectInput с крестовиной на оси 9. Сервер игры: python3 -m http.server 8771. Запуск: node tools/desktop/pad_test.js
 const { chromium } = require('playwright');
-const U = `http://127.0.0.1:${process.env.PORT || 8771}/nightshift/index.html?lang=ru&gfx=retro`;
+const U = `http://127.0.0.1:${process.env.PORT || 8771}/web/index.html?lang=ru&gfx=retro`;
 let fails = 0; const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m); if (!c) fails++; };
 (async () => {
   const br = await chromium.launch(); const pg = await br.newPage({ viewport: { width: 1280, height: 800 } });

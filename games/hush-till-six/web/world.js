@@ -78,9 +78,13 @@ const GPU = (() => {
 if (/[?&]rp=1\b/.test(location.search)) { try { if (JSON.parse(localStorage.getItem('ns1_gfx')) !== 'retro') { localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '6'); } } catch {}
   try { history.replaceState(null, '', location.pathname + location.hash); } catch {} }
 const GFX = (() => { const q = /[?&]gfx=(retro|cine|ultra)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine' || (v === 'ultra' && FINE)) return v; } catch {}
-  return GPU.tier === 0 ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
-const CINE = GFX === 'cine' || GFX === 'ultra', ULTRA = GFX === 'ultra';
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; if (v === 'ultra') return 'cine'; } catch {}
+  return GPU.tier === 0 ? 'retro' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
+// 11 ноя (владелец: «убрать графику Ультра, а Кино поднять до уровня современных игр»): отдельного режима «Ультра» больше нет —
+// его качество (тени 1024, отражения в половину кадра, анизотропия 16, резкость FSR) теперь и есть «Кино» на ПК с видеокартой от
+// встроенной Radeon/Iris и выше; разрешение подстраивает perfTick. ns1_hq = 0 — видеокарта дала битый кадр, качество попроще.
+const CINE = GFX === 'cine' || GFX === 'ultra';
+const ULTRA = CINE && FINE && (GFX === 'ultra' || GPU.tier >= 2) && (() => { try { return localStorage.getItem('ns1_hq') !== '0'; } catch { return true; } })();
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); if (q) return Math.max(.2, Math.min(2, +q[1]));
   try { const v = +JSON.parse(localStorage.getItem('ns1_res')); if (v > 0) return Math.max(.5, Math.min(ULTRA ? 2 : 1, v)); } catch {} return 0; })();   // настройка «Разрешение»: 0 — авто (подстройка по кадрам); 150–200 % — суперсэмплинг в «Ультра»   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
 const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
@@ -94,7 +98,7 @@ const SNAP = { value: new T.Vector2(108, 192) };
 const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = Math.min(5120, Math.min(ULTRA ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
+  if (CINE) { const L = Math.min(5120, Math.min(ULTRA && GPU.tier === 4 ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }
@@ -234,6 +238,8 @@ function makeTextures() {
   TX.sign = ctex(256, 48, (x, w, h) => { x.fillStyle = '#101214'; x.fillRect(0, 0, w, h); x.fillStyle = '#c9cdd2'; x.font = '700 28px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('БЦ  «ГОРИЗОНТ»'), w / 2, h / 2 + 1); });
   TX.signOut = ctex(256, 48, (x, w, h) => { x.fillStyle = '#0a0b0c'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8eef5'; x.shadowColor = '#9fd0ff'; x.shadowBlur = 8; x.font = '700 30px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ГОРИЗОНТ'), w / 2, h / 2 + 1); });
   TX.guardSign = ctex(64, 16, (x, w, h) => { x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '700 11px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОХРАНА'), w / 2, h / 2 + 1); });
+  // на этажах в конце коридора — не «ВЫХОД» (выход из здания только на первом), а указатель на лестницу (владелец, 12 ноя: «как выход может быть на 7 этаже?»)
+  TX.stairs = ctex(64, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 9px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ЛЕСТНИЦА') + ' →', w / 2, h / 2 + 1, w - 4); });
   TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ВЫХОД'), w / 2, h / 2 + 1, w - 3); });
   TX.poster = ctex(32, 48, (x, w, h) => { x.fillStyle = '#d8d2c0'; x.fillRect(0, 0, w, h); x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, 10); x.fillStyle = '#222'; for (let i = 0; i < 8; i++) x.fillRect(4, 14 + i * 4, 10 + rnd() * 14, 1); x.fillStyle = '#333'; x.font = '700 6px Arial'; x.fillText(tr('ПРАВИЛА'), 4, 7); });
   TX.note = noteTex(false); TX.note2 = noteTex(true);
@@ -475,9 +481,16 @@ function hiTextures() {
   });
   TX.tileSide = hiTex(256, 256, 20, 3, (u, v) => {   // плитка тротуара под дождём: мокрые пятна темнее и блестят, в швах вода
     let c = mul([94, 96, 94], .88 + .2 * fbm(u, v, 8, 8, 4, 101)); const gr = Math.min(Math.abs(u - .5), u, 1 - u, Math.abs(v - .5), v, 1 - v);
-    const wet = sm(.42, .62, fbm(u, v, 2, 2, 3, 103)); c = mul(c, 1 - .3 * wet);
-    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7, gr < .01 ? .3 : Math.max(.14, .6 - .42 * wet)];
+    const wet = .35 * fbm(u, v, 6, 6, 3, 103);   // мокрая вся, без пятен: одно и то же пятно в каждой плитке читалось узором, а не лужами (фото владельца, 11 ноя)
+    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7, gr < .01 ? .22 : .42 - .2 * wet];
   });
+  // настоящие лужи тротуара: один неповторяющийся слой на всю длину (40×5 м) — редкие, неровные, с мелкими затёками по швам рядом
+  TX.puddles = ctex(1024, 128, (x, w, h) => { const d = x.createImageData(w, h);
+    for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) { const u = px / w, v = py / h, i = (py * w + px) * 4;
+      const n = fbm(u, v, 24, 3, 4, 131) + .1 * fbm(u, v, 90, 12, 2, 132) - .05, e = Math.min(v, 1 - v) * 8, a = sm(.6, .68, n) * clamp(e, 0, 1);
+      d.data[i] = 22; d.data[i + 1] = 26; d.data[i + 2] = 32; d.data[i + 3] = 105 * a; }   // вода тонкая: плитка под ней видна, лужу выдаёт блик фонаря, а не чёрное пятно
+    x.putImageData(d, 0, 0); }, 1, 1, 'raw');
+  TX.puddles.magFilter = T.LinearFilter; TX.puddles.wrapS = TX.puddles.wrapT = T.ClampToEdgeWrapping;
   TX.curb = hiTex(256, 128, 20, 1, (u, v) => { let c = mul([91, 93, 96], .8 + .3 * fbm(u, v, 8, 4, 4, 111)); if (v > .88) c = [51, 51, 51]; return [...c, v > .88 ? .1 : .6]; });
   for (const [k, t] of Object.entries({ wall: 'wall', ceil: 'ceil', marble: 'marble', lino: 'lino', panel: 'panel', door: 'door', wood: 'wood', concrete: 'concrete', asphalt: 'asphalt', carpet: 'carpet', metal: 'metal', tileSide: 'tileSide', curb: 'curb' })) TX[k].kind = t;
 }

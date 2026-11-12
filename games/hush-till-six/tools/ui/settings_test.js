@@ -1,0 +1,20 @@
+// настройки: язык и графика не перезагружают игру на каждом нажатии — одна загрузка при выходе; без изменений — выхода без загрузки. node settings_test.js [снимок.png]
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+(async () => { const br = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const p = await br.newPage({ viewport: { width: 1280, height: 720 } }); let bad = 0, loads = 0; const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m); if (!c) bad++; };
+  p.on('pageerror', e => { console.log('JS: ' + String(e.stack || e).slice(0, 500)); bad++; }); p.on('load', () => loads++);
+  const menu = () => p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 200000 });
+  const openSets = async () => { if (await p.evaluate(() => { const t = document.querySelector('.title'); return !!t && !t.classList.contains('open'); })) await p.mouse.click(640, 360); await p.waitForTimeout(1200);
+    await p.evaluate(() => [...document.querySelectorAll('.mlist button')].find(x => x.id === 'mSet' || /Настройки|Settings/i.test(x.textContent)).click()); await p.waitForSelector('#sGfx'); };
+  await p.goto('http://127.0.0.1:8771/web/index.html'); await menu(); await p.evaluate(() => { localStorage.setItem('ns1_lang', '"ru"'); localStorage.setItem('ns1_gfx', '"retro"'); });
+  await p.reload(); await menu(); loads = 0; await openSets();
+  await p.click('#mBack'); await p.waitForTimeout(800); ok(loads === 0, 'ничего не менял → «Назад» без загрузки');
+  await openSets(); await p.click('#sGfx i[data-g="cine"]'); await p.waitForTimeout(500);
+  ok(loads === 0 && await p.evaluate(() => document.querySelector('#sGfx i.on').dataset.g === 'cine' && !!document.querySelector('small.pend')), 'выбрал «Кино» → без загрузки, выбор виден, есть подсказка');
+  await p.click('#sLang'); await p.waitForSelector('[data-l="en"]'); await p.click('[data-l="en"]'); await p.waitForSelector('#sGfx'); await p.waitForTimeout(400);
+  ok(loads === 0 && await p.evaluate(() => /ENGLISH/.test(document.getElementById('sLang').textContent)), 'выбрал English → без загрузки, в строке «Язык» — ENGLISH');
+  if (process.argv[2]) await p.screenshot({ path: process.argv[2] });
+  await p.click('#mBack'); await p.waitForTimeout(1500); await menu();
+  ok(loads === 1, 'вышел из настроек → одна загрузка (было ' + loads + ')');
+  ok(await p.evaluate(() => window.NS_LANG + ' ' + !!(window.World && World.cine) + ' ' + !!(window.World && World.ok) === 'en true true'), 'после неё: язык en, графика «Кино», мир собран');
+  await br.close(); console.log(bad ? 'ПРОВАЛ: ' + bad : 'всё в порядке'); process.exit(bad ? 1 : 0); })();

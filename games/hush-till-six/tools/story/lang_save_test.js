@@ -32,7 +32,7 @@ const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/pla
       await p.waitForFunction(an => window.__ns.shf.act.some(a => a.id === an), an, { timeout: 10000 }).catch(() => {});
       await p.evaluate(c => window.__ns.shiftCam(c), cam); await p.waitForTimeout(700);
       await p.evaluate(() => window.__ns.shiftLog());
-      await p.evaluate(k => { const i = ['Свет', 'Дверь', 'Лифт', 'Помехи', 'Кто-то', 'Звук', 'Другое'].indexOf(k); document.querySelectorAll('#shPop .sh-grid button')[i].click(); }, kind);
+      await p.evaluate(k => { [...document.querySelectorAll('#shPop .sh-grid button')].find(b => b.dataset.k.split(' ').includes(k)).click(); }, kind);
       await p.waitForTimeout(1900);
       ok(await p.evaluate(an => !window.__ns.shf.act.some(a => a.id === an), an), `${L}: «${kind}» на камере ${cam} засчитано (${an})`);
     }

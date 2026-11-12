@@ -17,6 +17,18 @@ const HUMANS = ['ethan', 'frank', 'gus', 'dayguard', 'lily', 'tenant'];
 let V3 = false, QW = null;   // v3 загрузились; мировые повороты костей Quaternius в покое
 
 // XHR, а не fetch: так модели читаются и в Android-приложении (file://)
+// петля мокапа без шва: у записей с актёра последний кадр не совпадает с первым — на стыке петли обе руки прыгали разом (замер: рывок 60+ м/с²).
+// Последние .7 с клипа плавно подводятся к первому кадру (по всем костям), скорость на стыке гасится сглаженной ступенью
+function loopSeam(c) {
+  const d = c.duration, w = Math.min(.7, d * .22); if (!(d > 1)) return;
+  let gap = 0; for (const tr of c.tracks) { const v = tr.values, n = tr.getValueSize(), o = v.length - n; if (n !== 4) continue; let dot = 0; for (let j = 0; j < 4; j++) dot += v[o + j] * v[j]; gap = Math.max(gap, 2 * Math.acos(Math.min(1, Math.abs(dot)))); }
+  if (gap < .05) return;   // петля и так сходится (шаг, мытьё) — не трогаем
+  for (const tr of c.tracks) { const tm = tr.times, v = tr.values, n = tr.getValueSize(), isQ = n === 4 && /quaternion$/.test(tr.name);
+    for (let i = 0; i < tm.length; i++) { const u = (tm[i] - (d - w)) / w; if (u <= 0) continue; const k = u >= 1 ? 1 : u * u * (3 - 2 * u), o = i * n;
+      if (isQ) { let dot = 0; for (let j = 0; j < 4; j++) dot += v[o + j] * v[j]; const sg = dot < 0 ? -1 : 1; let len = 0;
+        for (let j = 0; j < 4; j++) { v[o + j] = v[o + j] * (1 - k) + sg * v[j] * k; len += v[o + j] * v[o + j]; } len = Math.sqrt(len) || 1; for (let j = 0; j < 4; j++) v[o + j] /= len; }
+      else for (let j = 0; j < n; j++) v[o + j] = v[o + j] * (1 - k) + v[j] * k; } }
+}
 const get = url => new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = 'arraybuffer'; x.timeout = 60000; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = x.ontimeout = x.onabort = no; x.send(); });
 async function load(onFile) {
   if (!window.THREE_GLTFLoader || !window.THREE_SkeletonUtils) return false;
@@ -36,6 +48,7 @@ async function load(onFile) {
   for (const c of [...(G.anims || G.male).animations, ...(G.anims2 ? G.anims2.animations : [])]) {
     // только повороты костей (+ высота таза): так одна анимация подходит всем — и мужчине, и женщине, и вытянутому Жильцу
     c.tracks = c.tracks.filter(t => t.name.endsWith('.quaternion') || t.name === 'pelvis.position');
+    if (/^(Rk_|Cmu_).*_Loop$/.test(c.name)) loopSeam(c);
     CLIP[c.name] = c;
   }
   if (V3) { const sk = G.anims.scene; sk.updateMatrixWorld(true); QW = {}; sk.traverse(n => { if (n.name) QW[n.name] = n.getWorldQuaternion(new T.Quaternion()); });
@@ -741,6 +754,24 @@ function kneel(C, tt) {
   }
 }
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
+// запястье без «фантика»: у скелета нет костей скручивания, и весь поворот кисти вокруг предплечья (в мокапе до 75°) сидел в одном суставе —
+// кожа у запястья закручивалась. Половину скручивания берёт на себя предплечье (как лучевая кость у человека); кисть в мире остаётся как была
+const _wa = new T.Vector3(), _wp = new T.Vector3(), _wt = new T.Quaternion(), _wi = new T.Quaternion(), _w0 = new T.Quaternion();
+// кисть в покое продолжает предплечье: в записанных с актёра стойке и шаге запястье бывало выломано вбок, ладонью наружу — рука «манерно» висела
+// (владелец, 12 ноя, пролог: «он нормальный пацан»). Большую часть излома убираем — кисть висит прямо, пальцы вниз
+function wristCalm(C, sides, k = .7) {
+  for (const sd of sides) { const H = C.bone['hand_' + sd], r = C.rest['hand_' + sd]; if (H && r) H.quaternion.slerp(r, k); }
+}
+function wristEase(C, f = .5) {
+  for (const sd of ['l', 'r']) { const H = C.bone['hand_' + sd], Lo = C.bone['lowerarm_' + sd]; if (!H || !Lo) continue;
+    const m = C['_we' + sd] || (C['_we' + sd] = { h: new T.Quaternion(), l: new T.Quaternion(), on: false });
+    if (m.on && m.h.angleTo(H.quaternion) < 1e-5 && m.l.angleTo(Lo.quaternion) < 1e-5) continue;   // кости с прошлого кадра никто не трогал — второй раз не делим
+    const q = H.quaternion; _wa.copy(H.position).normalize(); _wp.set(q.x, q.y, q.z).projectOnVector(_wa); _wt.set(_wp.x, _wp.y, _wp.z, q.w);
+    if (_wt.lengthSq() < 1e-8) continue; _wt.normalize(); if (_wt.w < 0) _wt.set(-_wt.x, -_wt.y, -_wt.z, -_wt.w);
+    _wt.slerp(_w0, 1 - f);   // доля скручивания, которая уходит в предплечье
+    Lo.quaternion.multiply(_wt); H.quaternion.premultiply(_wi.copy(_wt).invert());
+    m.h.copy(H.quaternion); m.l.copy(Lo.quaternion); m.on = true; Lo.updateWorldMatrix(false, true); }
+}
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
 // точка хвата в ладони (в осях персонажа): между запястьем и основанием среднего пальца, чуть к ладони
 const _UP = new T.Vector3(0, 1, 0), _twQ = new T.Quaternion(), _flA = new T.Vector3(), _flB = new T.Vector3(), _flL = new T.Vector3(), _flQ = new T.Quaternion(), _flP = new T.Vector3();
@@ -826,6 +857,7 @@ function buildHands() {
   for (const [name, f] of [['fist', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? 1.2 : 1.3)],          // кулак — туже обычного
                            ['claw', (bn, q) => /_01_/.test(bn) ? qpow(q, R0(bn), .2) : qpow(q, R0(bn), 1.1)],   // «когти»: ровные костяшки, согнутые кончики
                            ['hook', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? .3 : /_01_/.test(bn) ? .28 : /_02_/.test(bn) ? .42 : .5)],   // «крюк» Жильца: пальцы чуть согнуты — когти смотрят вперёд, а не в ладонь
+                           ['write', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), /_01_/.test(bn) ? .5 : .42) : bn.startsWith('middle') ? qpow(q, R0(bn), .68) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.05) : qpow(q, R0(bn), 1.2)],   // пишет: ручка в трёх пальцах (большой, указательный, средний), безымянный и мизинец поджаты — не кулак
                            ['pinch', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), .62) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.25) : q.clone()]]) {   // щепоть
     HANDP[name] = { l: {}, r: {} };
     for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP[name][sd][bn] = f(bn, HANDP.relax[sd][bn]);
@@ -854,9 +886,22 @@ function hookHand(C, sd) {
     setWorldQ(b, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a).multiply(b.getWorldQuaternion(new T.Quaternion())));
   }
 }
+// пальцы веером: в открытых позах (ладонь плашмя, тянется, «когти», мягкая кисть) пальцы лежали вплотную и на крупном плане кисть читалась
+// варежкой или комком (владелец, 11 ноя). Указательный, безымянный и мизинец чуть расходятся от среднего — между пальцами появляются просветы
+const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .3, relax: .25, point: .5 };   // в покое — едва заметно: растопыренные пальцы у опущенной руки выглядели манерно
+function fanHand(C, sd, k) {
+  if (!C.bone['middle_01_' + sd] || !C.bone['middle_02_' + sd]) return; C.bone['hand_' + sd].updateWorldMatrix(true, true);
+  const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
+  for (const [f, a] of [['index', .1], ['ring', .075], ['pinky', .17]]) {
+    const bn = C.bone[f + '_01_' + sd]; if (!bn || !C.bone[f + '_02_' + sd]) continue; const p = W(f + '_01'), d = W(f + '_02').sub(p).normalize(), sv = p.clone().sub(pm); sv.addScaledVector(d, -sv.dot(d));
+    if (sv.lengthSq() < 1e-10) continue;
+    setWorldQ(bn, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a * k).multiply(bn.getWorldQuaternion(new T.Quaternion()))); }
+}
 function setFingers(C, sd, pose, w) {
   const H = HANDP[pose]; if (!H || !(w > 0)) return;
   for (const bn in H[sd]) { const b = C.bone[bn]; if (b) b.quaternion.slerp(H[sd][bn], Math.min(1, w)); }
+  if (FAN[pose] && w >= .6 && !C.o.monster) fanHand(C, sd, FAN[pose] * Math.min(1, w));
+  else if (C.o.monster && (pose === 'flat' || pose === 'claw' || pose === 'open') && w >= .6) fanHand(C, sd, 1.5);   // у Жильца пальцы длинные — расходятся шире
 }
 // точки кисти в мире
 function tipOf(C, a, b, k = .85) { const pa = C.bone[a].getWorldPosition(new T.Vector3()), pb = C.bone[b].getWorldPosition(new T.Vector3()); return pb.clone().addScaledVector(pb.sub(pa), k); }
@@ -905,7 +950,7 @@ function reachArm(C, sd, a) {
   const k = a.w ?? 1; if (!(k > 0)) return;
   const pole = a.pole || (sd === 'r' ? [-.7, -1, -.35] : [.7, -1, -.35]);
   if (typeof a.at === 'function') C.root.updateWorldMatrix(true, true);
-  const at = typeof a.at === 'function' ? a.at(C) : a.at;   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
+  const at = typeof a.at === 'function' ? a.at(C) : a.at; if (typeof a.fdir === 'function' || typeof a.pdir === 'function') a = Object.assign({}, a, { fdir: typeof a.fdir === 'function' ? a.fdir(C) : a.fdir, pdir: typeof a.pdir === 'function' ? a.pdir(C) : a.pdir });   // направления кисти тоже могут идти от тела этого кадра (ладонь у уха поворачивается вместе с головой)   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
   const want = new T.Vector3(at[0], at[1], at[2]), wrist = want.clone();
   if (a.by && a.by !== 'wrist') { const p = handPt(C, sd, a.by), hw = C.bone['hand_' + sd].getWorldPosition(new T.Vector3()); wrist.add(hw.sub(p)); }
   const arm = ['upperarm_', 'lowerarm_', 'hand_'].map(n => C.bone[n + sd]), q0 = k < 1 && a.by && a.by !== 'wrist' ? arm.map(b => b.quaternion.clone()) : null;   // рука только тянется (вес < 1): кончик пальца считаем от кисти в конечной позе, а не от позы клипа — иначе палец пролетал цель (сквозь стекло)
@@ -940,10 +985,17 @@ function propMesh(name) {
       for (let j = 0; j < 4; j++) box(.004, .005, .002, m, .005, -.03 - j * L * .2, 0, k);   // бородка
     });
     const tag = new T.Group(); tag.position.set(.012, -.018, -.004); tag.rotation.z = .4; g.add(tag); box(.022, .045, .003, red, 0, -.03, 0, tag);
-  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z. Корпус светлый, экран чуть светится — иначе у уха на тёмной куртке его не видно
-    box(.072, .152, .008, mat(0xd6d9dc, null, { roughness: .35, metalness: .6 }), 0, 0, 0, g);
-    const scr = new T.Mesh(new T.PlaneGeometry(.066, .144), mat(0x101820, null, { emissive: 0x2a4a66, basic: false })); scr.position.z = .0042; g.add(scr); g.userData.screen = scr;
-    const cam = box(.016, .016, .003, blk, -.022, .058, -.005, g); cam.castShadow = false;   // глазок камеры на спинке
+  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z. Рамка тёмная, спинка светлая, экран светится — у уха на тёмной куртке его видно
+    // (владелец, 12 ноя: «модель телефона нормальную сделай» — был плоский брусок): скруглённые углы из восьмиугольной призмы, рамка, островок камер с двумя объективами, кнопки сбоку
+    const fr = mat(0x2a2c30, null, { roughness: .3, metalness: .85 }), bk = mat(0xc9ccd2, null, { roughness: .28, metalness: .5 });
+    const body = (w, h, d, r, m, z) => { const sh = new T.Shape(), x = w / 2, y = h / 2; sh.moveTo(-x + r, -y); sh.lineTo(x - r, -y); sh.quadraticCurveTo(x, -y, x, -y + r); sh.lineTo(x, y - r); sh.quadraticCurveTo(x, y, x - r, y); sh.lineTo(-x + r, y); sh.quadraticCurveTo(-x, y, -x, y - r); sh.lineTo(-x, -y + r); sh.quadraticCurveTo(-x, -y, -x + r, -y);
+      const me = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: d, bevelEnabled: false, curveSegments: 4 }), m); me.position.z = z; g.add(me); return me; };
+    body(.072, .152, .0078, .011, fr, -.0039); body(.0695, .1495, .0006, .0098, bk, -.0045);   // рамка и спинка
+    const scr = new T.Mesh(new T.ShapeGeometry((() => { const sh = new T.Shape(), x = .0335, y = .0735, r = .0085; sh.moveTo(-x + r, -y); sh.lineTo(x - r, -y); sh.quadraticCurveTo(x, -y, x, -y + r); sh.lineTo(x, y - r); sh.quadraticCurveTo(x, y, x - r, y); sh.lineTo(-x + r, y); sh.quadraticCurveTo(-x, y, -x, y - r); sh.lineTo(-x, -y + r); sh.quadraticCurveTo(-x, -y, -x + r, -y); return sh; })(), 4), mat(0x101820, null, { emissive: 0x2a4a66, basic: false }));
+    scr.position.z = .0041; g.add(scr); g.userData.screen = scr;
+    box(.03, .03, .0016, mat(0x1c1e22, null, { roughness: .25, metalness: .7 }), -.017, .056, -.0054, g).castShadow = false;   // островок камер
+    for (const [x, y] of [[-.023, .062], [-.011, .05]]) { const l = cyl(.0048, .0048, .0012, 10, mat(0x05070a, null, { roughness: .1, metalness: .9 }), g); l.rotation.x = Math.PI / 2; l.position.set(x, y, -.0066); l.castShadow = false; }
+    box(.0012, .016, .003, fr, .0366, .03, 0, g).castShadow = false; box(.0012, .01, .003, fr, -.0366, .04, 0, g).castShadow = false; box(.0012, .01, .003, fr, -.0366, .025, 0, g).castShadow = false;   // питание и громкость
   } else if (name === 'cig') {    // сигарета: начало — фильтр (в губах/пальцах), горит конец (+X)
     const p = cyl(.0042, .0042, .062, 8, mat(0xeeeae0), g); p.rotation.z = Math.PI / 2; p.position.x = .031 + .022;
     const f = cyl(.0043, .0043, .022, 8, mat(0xc98a42), g); f.rotation.z = Math.PI / 2; f.position.x = .011;
@@ -953,15 +1005,21 @@ function propMesh(name) {
     const fl = new T.Mesh(new T.ConeGeometry(.005, .022, 8), new T.MeshBasicMaterial({ color: 0xffc060, transparent: true, opacity: .85, blending: T.AdditiveBlending, depthWrite: false }));
     fl.position.y = .05; g.add(fl); g.userData.flame = fl;
   } else if (name === 'mop') {
-    const al = mat(0x9aa0a8, null, { metal: .8, rough: .35 }), pl = mat(0x2a3a7a, null, { rough: .6 });
-    cyl(.012, .012, 1.56, 8, al, g).position.y = .80; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.52;   // черенок 1,6 м (промышленная швабра: руки уборщика в мокапе — на длинном черенке) и ручка
+    const al = mat(0x8a2a22, null, { metal: .15, rough: .5 }), pl = mat(0x2a3a7a, null, { rough: .6 });   // черенок толще и красный: на камере 07 серый 12-мм алюминий сливался с плиткой — «Гас машет пустыми руками» (фото владельца, 11 ноя)
+    cyl(.019, .019, 1.56, 10, al, g).position.y = .80; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.52;   // черенок 1,6 м (промышленная швабра: руки уборщика в мокапе — на длинном черенке) и ручка
     cyl(.02, .02, .07, 6, pl, g).position.y = .09;                                                                                     // втулка шарнира
     // колодка с тряпкой — на шарнире (как у настоящей плоской швабры): лежит на полу ровно, наклоняется только черенок (propAim).
     // Раньше колодка наклонялась вместе с черенком и край её с тряпкой уходил в пол на 9–15 см
     const hd = new T.Group(); g.add(hd); g.userData.head = hd;
     box(.42, .035, .1, pl, 0, .045, 0, hd);
     const fm = mat(0xd8d2c4, null, { rough: .95 }), fm2 = mat(0xa8a294, null, { rough: .95 });
-    for (let i = 0; i < 40; i++) { const f = box(.026, .022, .2 + rnd() * .07, i % 3 ? fm : fm2, -.21 + (i % 20) * .022, .011, (i < 20 ? .06 : -.06), hd); f.rotation.y = (rnd() - .5) * .5; }   // тряпка — жгуты
+    const fr = hd.userData.fr = [];   // жгуты тряпки: живут сами (mopCloth) — тянутся за колодкой, отстают на разворотах, расходятся веером
+    for (let i = 0; i < 56; i++) { const row = i < 28 ? 1 : -1, x0 = -.205 + (i % 28) * .0152 + (rnd() - .5) * .006, len = .19 + rnd() * .09, r0 = (rnd() - .5) * .5;
+      const pv = new T.Group(); pv.position.set(x0, .012 + rnd() * .006, row * .035); pv.rotation.y = r0; hd.add(pv);   // шарнир жгута — у края колодки
+      box(.017 + rnd() * .008, .016 + rnd() * .008, len, i % 3 ? fm : fm2, 0, 0, row * len / 2, pv);
+      fr.push({ pv, row, r0, w: .55 + rnd() * .45, ph: rnd() * 6.28 }); }
+    const stl = mat(0x9aa0a6, null, { metal: .8, rough: .35 });   // стальная рамка-зажим и вилка шарнира
+    box(.44, .012, .014, stl, 0, .066, .045, hd); box(.44, .012, .014, stl, 0, .066, -.045, hd); for (const sx of [-1, 1]) { box(.014, .012, .1, stl, sx * .214, .066, 0, hd); box(.012, .05, .03, stl, sx * .03, .085, 0, hd); }
   } else if (name === 'splint') {   // картон по бокам голени, обмотан серым скотчем (начало — середина голени, вдоль +Y)
     const cb = mat(0x9a7a50, null, { rough: .9 }), tp = mat(0x8c9094, null, { rough: .45 });
     for (const s of [-1, 1]) box(.012, .38, .11, cb, s * .062, 0, 0, g);
@@ -990,6 +1048,7 @@ const GRIP3 = {
   keys: ['pinch', [0, .002, 0], [0, 0, 0], true],
   keys_palm: ['palm', [.01, .012, 0], [Math.PI / 2, 0, .3], false],
   phone: ['palm', [.012, .014, 0], [-Math.PI / 2, 0, 0], false],   // у уха: длинная сторона поперёк ладони (от уха ко рту), экран к голове — края видны над пальцами и у щеки
+  phone_ear: ['palm', [.05, .016, 0], [-Math.PI / 2, -Math.PI / 2 - .35, 0, 'YXZ'], false],   // у уха: телефон вдоль пальцев (верх к кончикам, низ к запястью и вперёд, ко рту), экран к голове
   cig: ['pinch', [0, 0, 0], [0, Math.PI / 2, 0], false],
   lighter: ['palm', [.01, .016, 0], [0, 0, 0], false],
   radio: ['palm', [.01, .02, 0], [0, 0, 0], false],
@@ -1002,6 +1061,7 @@ function handFrame(C, sd, by) {   // оси кисти: X — вдоль пал�
   return new T.Matrix4().makeBasis(X, Y, Z).setPosition(p);
 }
 const _pa = new T.Vector3(), _pb = new T.Vector3(), _qa3 = new T.Quaternion(), _qb3 = new T.Quaternion(), _M3 = new T.Matrix4();
+const _kE = new T.Euler();
 function holdProp(C, sd, spec, dt) {
   const [name, gname] = Array.isArray(spec) ? spec : [spec, spec];
   const pr = prop3(name), g = GRIP3[gname] || GRIP3[name] || ['palm', [0, 0, 0], [0, 0, 0]], scene = C.root.parent; if (!scene) return;
@@ -1015,9 +1075,20 @@ function holdProp(C, sd, spec, dt) {
   pr.from.decompose(_pa, _qa3, _hv); canon.decompose(_pb, _qb3, _hv);
   _M3.compose(_pa.lerp(_pb, e), _qa3.slerp(_qb3, e), _hs);
   F.multiply(_M3).decompose(pr.obj.position, pr.obj.quaternion, _hv);
-  if (g[3]) {   // висит по отвесу: связка ключей качается, но вниз
+  if (g[3]) {   // висит по отвесу и качается как маятник: рука дёрнулась — связка отстаёт, перелетает и успокаивается; ключи на кольце расходятся и
+    // звякают вразнобой. Раньше связка стояла в руке неподвижно, «деревянная» (владелец, 12 ноя, пролог: сменщик показывает рукой)
     const down = new T.Quaternion().setFromUnitVectors(new T.Vector3(0, -1, 0).applyQuaternion(pr.obj.quaternion), new T.Vector3(0, -1, 0));
-    pr.obj.quaternion.premultiply(down.slerp(new T.Quaternion(), .15));
+    pr.obj.quaternion.premultiply(down);
+    const d = clamp(dt || 0, 0, .05), p = pr.obj.position, now = (pr.tt = (pr.tt || 0) + d);   // время — кадра игры (на паузе связка замирает)
+    if (!pr.pp || p.distanceTo(pr.pp) > .4) { pr.pp = p.clone(); pr.pv = new T.Vector3(); pr.sw = new T.Vector2(); pr.sv = new T.Vector2(); }
+    if (d > 0) { const vx = (p.x - pr.pp.x) / d, vz = (p.z - pr.pp.z) / d, ax = clamp((vx - pr.pv.x) / d, -40, 40), az = clamp((vz - pr.pv.z) / d, -40, 40);
+      pr.pv.set(vx, 0, vz); pr.pp.copy(p);
+      pr.sv.x += (-105 * pr.sw.x - 2.4 * pr.sv.x - ax * 5.5 - vx * 3) * d; pr.sv.y += (-105 * pr.sw.y - 2.4 * pr.sv.y - az * 5.5 - vz * 3) * d;   // длина подвеса ~9 см: качание ~1,6 раза в секунду
+      pr.sw.x = clamp(pr.sw.x + pr.sv.x * d, -1.2, 1.2); pr.sw.y = clamp(pr.sw.y + pr.sv.y * d, -1.2, 1.2); }
+    const idle = .035 * Math.sin(now * 2.3) + .02 * Math.sin(now * 3.7 + 1);   // в неподвижной руке связка всё равно чуть дышит
+    pr.obj.quaternion.premultiply(_qa3.setFromEuler(_kE.set(-pr.sw.y, 0, pr.sw.x + idle)));
+    pr.obj.children.forEach((c, i) => { if (!i) return; const u = c.userData; if (u.rz == null) u.rz = c.rotation.z;
+      c.rotation.z = u.rz + (pr.sw.x + idle) * (.35 + .12 * i) * (i % 2 ? 1 : -.7) + pr.sv.x * .012 * Math.sin(now * 23 + i * 2.1); });
   }
   pr.obj.visible = true; pr.seen = true;
 }
@@ -1027,7 +1098,22 @@ function propAt(name, scene, pos, rot) { const pr = prop3(name); if (pr.obj.pare
 function propAim(name, scene, pos, dir, yaw = 0, floor = null) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
   pr.obj.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...dir).normalize()).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)); pr.obj.visible = true; pr.C = null;
   const hd = pr.obj.userData.head; if (hd) { _hdi.copy(pr.obj.quaternion).invert(); hd.quaternion.copy(_hdi).multiply(_hdq.setFromAxisAngle(_UP, headYaw(dir, yaw)));   // колодка — ровно на полу
-    hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
+    hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); if (hd.userData.fr) mopCloth(pr.obj, hd, dir, yaw); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
+// тряпка швабры живая: жгуты волочатся за колодкой (пружина с затуханием), на развороте отстают и перекидываются, при быстром ходе
+// расходятся веером; швабра стоит — висят ровно. Скорость — по сдвигу колодки между кадрами (любой кадр: мокап Гаса, «сама моет», лежит)
+const _mc = { p: new T.Vector3(), L: new T.Vector3(), V: new T.Vector3(), t: 0, a: new T.Vector3() };
+function mopCloth(obj, hd, dir, yaw) {
+  const now = performance.now() / 1000, dt = now - _mc.t, a = _mc.a.copy(obj.position); _mc.t = now;
+  if (!(dt > 0 && dt < .25) || a.distanceTo(_mc.p) > .6) { _mc.p.copy(a); _mc.L.set(0, 0, 0); _mc.V.set(0, 0, 0); }   // склейка, пауза вкладки — без рывка
+  const hy = headYaw(dir, yaw), c = Math.cos(hy), sn = Math.sin(hy), d = Math.min(dt > 0 ? dt : .016, .05);
+  const vx = (a.x - _mc.p.x) / d, vz = (a.z - _mc.p.z) / d; _mc.p.copy(a);
+  const tx = clamp(-(vx * c - vz * sn) * .09, -.1, .1), tz = clamp(-(vx * sn + vz * c) * .09, -.1, .1);   // куда тянет жгуты — в осях колодки
+  _mc.V.x += ((tx - _mc.L.x) * 90 - _mc.V.x * 11) * d; _mc.V.z += ((tz - _mc.L.z) * 90 - _mc.V.z * 11) * d; _mc.L.x += _mc.V.x * d; _mc.L.z += _mc.V.z * d;
+  const sp = Math.min(Math.hypot(_mc.L.x, _mc.L.z) / .1, 1);
+  for (const f of hd.userData.fr) { const w = f.w, lz = _mc.L.z * w * 9 * f.row;   // lz > 0 — жгут тянет от колодки (вытягивается), < 0 — подминает под неё
+    f.pv.rotation.y = f.r0 * (1 - sp * .5) + _mc.L.x * w * 9 * f.row + Math.sin(now * 7 + f.ph) * .05 * sp;
+    f.pv.scale.z = clamp(1 + lz * .35, .45, 1.25); f.pv.rotation.x = -f.row * clamp(-lz, 0, 1) * .12; }
+}
 // поворот колодки швабры: черенок почти отвесный — как задал кадр (yaw); наклонён — колодка поперёк наклона (буквой «Т»), без переворота на 180°
 const _hdq = new T.Quaternion(), _hdi = new T.Quaternion();
 function headYaw(dir, yaw) {
@@ -1117,7 +1203,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   let list = P.clips || [['Idle_Loop', tt, 1]];
   if (!P.still && !C.o.monster && !window.__NOLIFE) list = ambClock(C, list, dT, cut);
   if (P.talk) {   // говорит — стойка плавно переходит в «говорит руками» и обратно (паузы между словами не сбивают)
-    const on = tt < (C.talkT || -1) ? 1 : 0; C.talkW = lerp(C.talkW ?? on, on, Math.min(1, (dt || 0) * 3));
+    const on = tt < (C.talkT || -1) ? 1 : 0; C.talkW = lerp(C.talkW ?? on, on, Math.min(1, (dt || 0) * 1.8));
     const TK = { Idle_Loop: 'Idle_Talking_Loop', Sitting_Idle_Loop: 'Sitting_Talking_Loop' }, tw = C.talkW * (P.talkK ?? 1);   // talkK < 1 — руки заняты делом (показывает, держит): «говорит руками» тише
     list = list.flatMap(c => TK[c[0]] ? [[c[0], c[1], (c[2] ?? 1) * (1 - tw)], [TK[c[0]], c[1], (c[2] ?? 1) * tw]] : [c]);
   }
@@ -1171,6 +1257,8 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (P.toes) footFloor(C);   // носки не под полом (падает: смесь клипов опускала стопы на 4–5 см под пол)
   if (P.after) P.after(C, tt);
   if (P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], dt);
+  if (!C.o.monster && !P.still && list.every(c => SOFTC.has(c[0]) || /^Rk_/.test(c[0]))) { const fr = ['l', 'r'].filter(sd => !(P.arm && P.arm[sd]) && !(P.hold && P.hold[sd]) && !(P.fing && P.fing[sd])); if (fr.length) wristCalm(C, fr); }
+  if (!C.o.monster) wristEase(C);
   if (P.wear) for (const name in P.wear) wearProp(C, name, P.wear[name]);
 }
 // предмет на теле (рация на нагруднике, фонарь на поясе): [кость, смещение в осях кости, поворот]
@@ -1293,10 +1381,11 @@ function updateSkinned(C, t, dt) {
   const dT = cut ? 0 : Math.max(0, t - C.lastT);   // сколько прошло на самом деле (на паузе — 0; больше 0,5 с — это уже склейка)
   C.cut = false; C.lastT = t; C.cutNow = cut;
   if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; C.flk = null; C.twist = null; }
+  if (cut) { C.talkT = -1; C.hearT = -1; C.cigQ = 0; }   // новый кадр: «говорит»/«слушает» не тянутся из прошлого (время кадра начинается с нуля — старая отметка держала позу говорящего до 9 с: Фрэнк на общем плане не затягивался, замер 12 ноя)
   // реакция по реплике (beat.react в story.js): тело (кивок, «нет», руки скрещены) и/или лицо — 'no+worry', 'sad'
   { const rp = typeof C.react === 'string' ? C.react.split('+') : []; C.reactBody = rp.find(x => REACT[x]) || null; C.reactFace = rp.find(x => !REACT[x] && C.faceSets[x]) || null; }
   C.fsNow = C.faceSets[C.reactFace || C.faceSet] || {};
-  if (C.talk > .06) C.talkT = tt + .7;   // паузы между словами не сбивают анимацию «говорит»
+  if (C.talk > .06) C.talkT = tt + 1.15;   // паузы между словами не сбивают анимацию «говорит»
   const talking = tt < (C.talkT || -1);
   if ((C.hear || 0) > .06) C.hearT = tt + .6;   // слушает: говорит кто-то другой (в кадре, по телефону, по рации)
   const hearing = !talking && tt < (C.hearT || -1);
@@ -1315,7 +1404,10 @@ function updateSkinned(C, t, dt) {
   if (want !== C.clip) {
     const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[natClip(C, want)[0]] || CL[want] || CL.Idle_Loop);
     a.reset().setEffectiveWeight(1).setEffectiveTimeScale(1); a.on3 = false;
-    if (C.act && dt < .2 && !cut) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
+    // стойка ↔ «говорит»: переход долгий (.9 с вместо .35) и клип продолжается с часов персонажа, а не с первого кадра — раньше в конце каждой
+    // реплики руки за треть секунды перескакивали в стойку (замер: кисть до 2,3 м/с, рывок 30 м/с²) и жест каждый раз начинался одинаково
+    const soft = SOFTC.has(want) && SOFTC.has(C.clip) && !/Walk|Jog|Sprint|Crouch_Fwd/.test(want + C.clip);
+    if (C.act && dt < .2 && !cut) { a.play(); if (soft) { const nc = natClip(C, want), d0 = a.getClip().duration || 1; a.time = (((tt * (nc[2] || 1) + (nc[1] || 0)) % d0) + d0) % d0; } C.act.crossFadeTo(a, soft ? .9 : .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
     if (P === 'lay') { C.mixer.stopAllAction(); a.play(); a.time = 0; a.timeScale = 0; }   // тело: первый кадр «лёжа», без движения
     C.act = a; C.clip = want;
@@ -1344,7 +1436,9 @@ function updateSkinned(C, t, dt) {
   if (/^Rk_Sit/.test(natClip(C, want)[0])) seatFeet(C);
   if (P !== 'lay') breathe(C, tt, dT);
   if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) hookHand(C, sd); }   // Жилец: пальцы крючьями, когтями вперёд (клип сжимал их в кулак)
-  if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }   // кисти мягкие: клип Quaternius сжимал их в кулак
+  if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }
+  if (!C.o.monster && (P === 'stand' || P === 'talk' || P === 'walk' || P === 'back' || P === 'sit')) wristCalm(C, ['l', 'r']);
+  if (!C.o.monster) wristEase(C);   // кисти мягкие: клип Quaternius сжимал их в кулак
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, press: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };
@@ -1492,6 +1586,9 @@ function updateSkinned(C, t, dt) {
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }
+  // рука, привязанная к голове (телефон у уха): ставится ещё раз уже после поворота головы — иначе голова уходила за взглядом, а ладонь оставалась на месте,
+  // и телефон висел в 5–8 см от уха (владелец, 12 ноя: «Итан как-то далеко держит телефон»)
+  if (OBJ && P.arm) for (const sd of ['l', 'r']) if (P.arm[sd] && P.arm[sd].ear) { reachArm(C, sd, P.arm[sd]); if (P.hold && P.hold[sd]) holdProp(C, sd, P.hold[sd], 0); }
   if (C.o.monster) C.headBase = (C.headBase || new T.Quaternion()).copy(C.bone.Head.quaternion);
   }
   // Жилец: голова иногда бьётся в мелкой бешеной тряске (как на засвеченной плёнке) — каждый кадр, мимо покадровой рывковости;
@@ -1568,6 +1665,10 @@ const SKIN_PORES = `
     vec2 dh = vec2(dFdx(hp), dFdy(hp)) * 1.5e-4 * smoothstep(1.5, .45, mpp);
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
+  // тени в складках: где поверхность резко меняет направление (между пальцами, у крыльев носа, в уголках губ, у век) — кожа темнее и чуть краснее.
+  // Без этого сжатая кисть и лицо вблизи были ровным комком одного цвета (владелец, 11 ноя: «руки», «лицо Итана»). Вдали (мелко в кадре) — гаснет
+  { float mpp2 = length(fwidth(vB)) * 1000., cav = clamp(length(fwidth(vNormal)) * 1.9 - .1, 0., 1.) * smoothstep(3.2, .9, mpp2);
+    diffuseColor.rgb *= mix(vec3(1.), vec3(.5, .4, .38), cav); }
 `;
 // саван Жильца (поза покоя модели tenant, рост 2,43 м: шея ~2.04, плечи 1.92, грудь ~1.75–1.88, бёдра 1.24, колени .66): силуэт — грудь плоская, ткань свободнее книзу,
 // внутренние стороны бёдер сведены — подол, а не штанины; руки и голени голые
@@ -1656,6 +1757,11 @@ function humanMat(C, n, kind, Q) {
   if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'beard' ? .3 : kind === 'beard2' ? .62 : kind === 'hair' ? .18 : .25, side: T.DoubleSide });   // борода: внутренний слой — плотный, внешний — только длинные волоски   // волосы одинаково в обоих видах: в «Ретро» порог .3 срезал тонкие пряди — Лили была лысой   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
   const m = ps1(litMat(p, R));
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
+  // кромка волос — мягкая: порог альфы плавает по мелкому узору (как у прядей в играх), а не режет по одной линии —
+  // на крупных планах линия волос на лбу шла рваной ступенькой (владелец, 11 ноя: «нормальные волосы»)
+  if (CINE && hk === 'hair') { const ob0 = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { if (ob0) ob0(sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <alphatest_fragment>', 'float aN = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(.06711056, .00583715))));\n  if (diffuseColor.a < mix(.07, .6, aN)) discard;'); };
+    m.customProgramCacheKey = () => 'hairDither'; }
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
   if (CINE && (kind === 'skin' || cloth)) m.envMapIntensity = .22;   // иначе на контровом свете кожа светится ореолом
   if (CINE && hk === 'hair') { m.envMapIntensity = .1; if (m.normalMap) m.normalScale.set(.45, .45); }   // лампы потолка отражались в макушке золотым «обручем» (пробор у Лили); блеск волос — прядями, не зеркалом, рельеф карты мягче
@@ -1704,9 +1810,10 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
   float gore = 0.;
   if (uGore > 0.) {
     vec3 d = (vB - uGoreP) / uH; float nz = hh3(floor(vB * 90.));
-    float blob = smoothstep(.16, .05, length(d * vec3(1., .6, 1.5)) + (nz - .5) * .05);
-    float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
-    gore = uGore * max(blob, drip);
+    float gx = clamp(uGore - 1., 0., 1.);   // uGore > 1 — финал смерти: пятно шире, подтёки длиннее и гуще
+    float blob = smoothstep(.16 + .14 * gx, .05, length(d * vec3(1., .6 - .15 * gx, 1.5 - .5 * gx)) + (nz - .5) * (.05 + .06 * gx));
+    float drip = step(.7 - .25 * gx, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45 - .45 * gx, -.1, d.y) * smoothstep(.2 + .1 * gx, .1, length(d.xz));
+    gore = min(uGore, 1.) * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }
   float rip = 0.;
   if (uRip > 0.) {   // рана как у студий (RE, TLOU): рваная кожа → жёлтый жир → мышца по краю; внутри — своё по виду раны; кровь впитывается в ткань и стекает

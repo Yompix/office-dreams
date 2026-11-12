@@ -55,7 +55,7 @@ const fs = require('fs');
         await p.evaluate(i => document.querySelector(`#choice button[data-i="${i}"]`).click(), i); await p.waitForTimeout(300); continue;
       }
       if (s.mode === 'explore' || s.mode === 'talk') {   // всё осмотреть и обо всём спросить, потом выход
-        const clicked = await p.evaluate(() => { const bs = [...document.querySelectorAll('#act button')].filter(b => !b.classList.contains('bye') && !b.classList.contains('ex-leave'));
+        const clicked = await p.evaluate(() => { const bs = [...document.querySelectorAll('#act button')].filter(b => !b.classList.contains('bye') && !b.classList.contains('ex-leave') && !b.classList.contains('seen'));
           const b = bs[0] || document.querySelector('#act .bye, #act .ex-leave'); if (b) { b.click(); return b.textContent.trim().slice(0, 30); } return null; });
         await p.waitForTimeout(clicked ? 400 : 300); continue;
       }

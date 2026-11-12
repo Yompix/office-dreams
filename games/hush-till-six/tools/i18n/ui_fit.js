@@ -28,7 +28,7 @@ const SCAN = sel => {   // в странице: что не влезает вн�
     const p = await b.newPage({ viewport: land ? { width: 960, height: 540 } : { width: 405, height: 720 } }), errs = [], found = [];
     p.on('pageerror', e => errs.push(String(e.message || e).slice(0, 160)));
     await p.addInitScript(l => { localStorage.setItem('ns1_tutDone', '1'); localStorage.setItem('ns1_qa', 'false'); localStorage.setItem('ns1_land3', l ? 'true' : 'false'); }, land);
-    await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/nightshift/index.html?gfx=retro&lang=${L}&cs=.4`);
+    await p.goto(`http://127.0.0.1:${process.env.PORT || 8771}/web/index.html?gfx=retro&lang=${L}&cs=.4`);
     await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 600000 });
     const step = async (name, sel, act) => { try { if (act) await act(); await p.waitForTimeout(700); const r = await p.evaluate(SCAN, sel); for (const [k, t] of r) found.push(`${name}: ${k} — «${t}»`); await p.screenshot({ path: `${out}/${L}_${name}.png` }); } catch (e) { found.push(`${name}: не открылся (${String(e.message).slice(0, 80)})`); } };
     await p.keyboard.press('Enter'); await p.waitForTimeout(900);
