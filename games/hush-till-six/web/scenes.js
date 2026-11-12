@@ -216,6 +216,31 @@ function buildLobby() {
     const scr = plane(.44, .3, new T.MeshBasicMaterial({ color: 0xffffff, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), g); scr.position.z = .001; crt(ps1(scr.material));
     o.screens.push(scr);
   }
+  // к чему подключены мониторы (владелец, 12 ноя: «раз есть мониторы — они до чего-то подключены?»): видеорегистратор на столе у левой стенки,
+  // от каждого экрана к нему идёт кабель, от регистратора — питание за край стола вниз, к удлинителю на полу
+  { const wireM = mat(0x0c0c0d, null, { rough: .8 }), caseM = mat(0x232527, null, { rough: .55, metal: .4 });
+    const wire = (pts, r = .006) => { const m = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p => new T.Vector3(p[0], p[1], p[2]))), pts.length * 6, r, 5, false), wireM); m.castShadow = false; m.userData.solid = false; S.add(m); return m; };
+    const dvr = new T.Group(); dvr.position.set(4.0, .805, -.3); dvr.rotation.y = -.6; S.add(dvr);   // справа от экранов, лицом к охраннику
+    box(.34, .075, .26, caseM, 0, .045, 0, dvr); for (const x of [-.14, .14]) for (const z of [-.1, .1]) box(.03, .008, .03, mat(0x0a0a0a), x, .004, z, dvr);   // корпус на ножках
+    box(.3, .05, .004, mat(0x111214, null, { rough: .3 }), 0, .045, -.131, dvr);   // лицевая панель
+    box(.1, .018, .003, mat(0x0a0c0e, null, { rough: .2 }), -.08, .05, -.134, dvr);   // лоток диска
+    const led = (c, x) => { const l = box(.008, .008, .003, mat(c, null, { basic: true, glow: 2 }), x, .045, -.134, dvr); l.castShadow = false; return l; };
+    led(0x38e060, .06); o.dvrRec = led(0xff3030, .085); led(0xffb030, .11);   // питание, запись (мигает), диск
+    const lb = plane(.06, .014, mat(0xd8d8d0, null, { basic: true }), dvr); lb.position.set(-.08, .068, -.1345); lb.rotation.y = PI;   // наклейка «DVR-4»
+    const back = dvr.localToWorld.bind(dvr); dvr.updateMatrixWorld(true);
+    // четыре видеокабеля: от задней стенки каждого экрана вниз к столу и по столу к регистратору
+    bank.updateMatrixWorld(true);
+    [[.24, 1.37], [-.24, 1.37], [.24, 1.03], [-.24, 1.03]].forEach(([bx, by], i) => {
+      const a = bank.localToWorld(new T.Vector3(bx, by, -.125)), d = bank.localToWorld(new T.Vector3(bx * .5, .9, -.2)), e = back(new T.Vector3(-.1 + i * .05, .05, .135));
+      wire([[a.x, a.y, a.z], [d.x, by * .5 + .5, d.z], [d.x, .83, d.z], [4.2 + .02 * i, .812, .2 - .015 * i], [3.98 + .012 * i, .812, .02 - .01 * i], [e.x - .03, .83, e.z + .05], [e.x, e.y, e.z]]); });
+    // питание: из регистратора за край стола, вниз вдоль стенки, по полу к удлинителю под столом
+    const pw = back(new T.Vector3(.13, .05, .135));
+    wire([[pw.x, pw.y, pw.z], [pw.x - .05, .83, pw.z + .04], [3.79, .8, -.1], [3.75, .5, -.06], [3.73, .06, 0], [3.95, .012, .08], [4.3, .012, .05]], .007);
+    const strip = new T.Group(); strip.position.set(4.42, 0, .02); strip.rotation.y = .3; S.add(strip);
+    box(.26, .035, .055, mat(0xd9d6cc, null, { rough: .6 }), 0, .018, 0, strip); for (let i = 0; i < 4; i++) box(.03, .004, .03, mat(0x1a1a1a), -.09 + i * .06, .037, 0, strip);
+    box(.012, .006, .02, mat(0xff4020, null, { basic: true, glow: 1.5 }), .115, .038, 0, strip);   // клавиша с подсветкой
+    wire([[4.55, .02, .03], [4.7, .012, .12], [4.9, .012, .3], [5.0, .012, .38]], .007);   // шнур удлинителя — к розетке у стойки
+  }
   // лампа
   const lampBase = cyl(.08, .1, .03, 8, mat(0x1f3a2a), S); lampBase.position.set(6.15, .81, -.15);
   box(.02, .38, .02, mat(0x1f3a2a), 6.15, 1.0, -.15, S);
