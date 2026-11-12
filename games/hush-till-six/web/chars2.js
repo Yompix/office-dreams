@@ -757,6 +757,11 @@ function kneel(C, tt) {
 // запястье без «фантика»: у скелета нет костей скручивания, и весь поворот кисти вокруг предплечья (в мокапе до 75°) сидел в одном суставе —
 // кожа у запястья закручивалась. Половину скручивания берёт на себя предплечье (как лучевая кость у человека); кисть в мире остаётся как была
 const _wa = new T.Vector3(), _wp = new T.Vector3(), _wt = new T.Quaternion(), _wi = new T.Quaternion(), _w0 = new T.Quaternion();
+// кисть в покое продолжает предплечье: в записанных с актёра стойке и шаге запястье бывало выломано вбок, ладонью наружу — рука «манерно» висела
+// (владелец, 12 ноя, пролог: «он нормальный пацан»). Большую часть излома убираем — кисть висит прямо, пальцы вниз
+function wristCalm(C, sides, k = .7) {
+  for (const sd of sides) { const H = C.bone['hand_' + sd], r = C.rest['hand_' + sd]; if (H && r) H.quaternion.slerp(r, k); }
+}
 function wristEase(C, f = .5) {
   for (const sd of ['l', 'r']) { const H = C.bone['hand_' + sd], Lo = C.bone['lowerarm_' + sd]; if (!H || !Lo) continue;
     const m = C['_we' + sd] || (C['_we' + sd] = { h: new T.Quaternion(), l: new T.Quaternion(), on: false });
@@ -883,7 +888,7 @@ function hookHand(C, sd) {
 }
 // пальцы веером: в открытых позах (ладонь плашмя, тянется, «когти», мягкая кисть) пальцы лежали вплотную и на крупном плане кисть читалась
 // варежкой или комком (владелец, 11 ноя). Указательный, безымянный и мизинец чуть расходятся от среднего — между пальцами появляются просветы
-const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .55, relax: .4, point: .5 };
+const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .3, relax: .25, point: .5 };   // в покое — едва заметно: растопыренные пальцы у опущенной руки выглядели манерно
 function fanHand(C, sd, k) {
   if (!C.bone['middle_01_' + sd] || !C.bone['middle_02_' + sd]) return; C.bone['hand_' + sd].updateWorldMatrix(true, true);
   const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
@@ -1048,6 +1053,7 @@ function handFrame(C, sd, by) {   // оси кисти: X — вдоль пал�
   return new T.Matrix4().makeBasis(X, Y, Z).setPosition(p);
 }
 const _pa = new T.Vector3(), _pb = new T.Vector3(), _qa3 = new T.Quaternion(), _qb3 = new T.Quaternion(), _M3 = new T.Matrix4();
+const _kE = new T.Euler();
 function holdProp(C, sd, spec, dt) {
   const [name, gname] = Array.isArray(spec) ? spec : [spec, spec];
   const pr = prop3(name), g = GRIP3[gname] || GRIP3[name] || ['palm', [0, 0, 0], [0, 0, 0]], scene = C.root.parent; if (!scene) return;
@@ -1061,9 +1067,20 @@ function holdProp(C, sd, spec, dt) {
   pr.from.decompose(_pa, _qa3, _hv); canon.decompose(_pb, _qb3, _hv);
   _M3.compose(_pa.lerp(_pb, e), _qa3.slerp(_qb3, e), _hs);
   F.multiply(_M3).decompose(pr.obj.position, pr.obj.quaternion, _hv);
-  if (g[3]) {   // висит по отвесу: связка ключей качается, но вниз
+  if (g[3]) {   // висит по отвесу и качается как маятник: рука дёрнулась — связка отстаёт, перелетает и успокаивается; ключи на кольце расходятся и
+    // звякают вразнобой. Раньше связка стояла в руке неподвижно, «деревянная» (владелец, 12 ноя, пролог: сменщик показывает рукой)
     const down = new T.Quaternion().setFromUnitVectors(new T.Vector3(0, -1, 0).applyQuaternion(pr.obj.quaternion), new T.Vector3(0, -1, 0));
-    pr.obj.quaternion.premultiply(down.slerp(new T.Quaternion(), .15));
+    pr.obj.quaternion.premultiply(down);
+    const d = clamp(dt || 0, 0, .05), p = pr.obj.position, now = (pr.tt = (pr.tt || 0) + d);   // время — кадра игры (на паузе связка замирает)
+    if (!pr.pp || p.distanceTo(pr.pp) > .4) { pr.pp = p.clone(); pr.pv = new T.Vector3(); pr.sw = new T.Vector2(); pr.sv = new T.Vector2(); }
+    if (d > 0) { const vx = (p.x - pr.pp.x) / d, vz = (p.z - pr.pp.z) / d, ax = clamp((vx - pr.pv.x) / d, -40, 40), az = clamp((vz - pr.pv.z) / d, -40, 40);
+      pr.pv.set(vx, 0, vz); pr.pp.copy(p);
+      pr.sv.x += (-105 * pr.sw.x - 2.4 * pr.sv.x - ax * 5.5 - vx * 3) * d; pr.sv.y += (-105 * pr.sw.y - 2.4 * pr.sv.y - az * 5.5 - vz * 3) * d;   // длина подвеса ~9 см: качание ~1,6 раза в секунду
+      pr.sw.x = clamp(pr.sw.x + pr.sv.x * d, -1.2, 1.2); pr.sw.y = clamp(pr.sw.y + pr.sv.y * d, -1.2, 1.2); }
+    const idle = .035 * Math.sin(now * 2.3) + .02 * Math.sin(now * 3.7 + 1);   // в неподвижной руке связка всё равно чуть дышит
+    pr.obj.quaternion.premultiply(_qa3.setFromEuler(_kE.set(-pr.sw.y, 0, pr.sw.x + idle)));
+    pr.obj.children.forEach((c, i) => { if (!i) return; const u = c.userData; if (u.rz == null) u.rz = c.rotation.z;
+      c.rotation.z = u.rz + (pr.sw.x + idle) * (.35 + .12 * i) * (i % 2 ? 1 : -.7) + pr.sv.x * .012 * Math.sin(now * 23 + i * 2.1); });
   }
   pr.obj.visible = true; pr.seen = true;
 }
@@ -1232,6 +1249,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (P.toes) footFloor(C);   // носки не под полом (падает: смесь клипов опускала стопы на 4–5 см под пол)
   if (P.after) P.after(C, tt);
   if (P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], dt);
+  if (!C.o.monster && !P.still && list.every(c => SOFTC.has(c[0]) || /^Rk_/.test(c[0]))) { const fr = ['l', 'r'].filter(sd => !(P.arm && P.arm[sd]) && !(P.hold && P.hold[sd]) && !(P.fing && P.fing[sd])); if (fr.length) wristCalm(C, fr); }
   if (!C.o.monster) wristEase(C);
   if (P.wear) for (const name in P.wear) wearProp(C, name, P.wear[name]);
 }
@@ -1411,6 +1429,7 @@ function updateSkinned(C, t, dt) {
   if (P !== 'lay') breathe(C, tt, dT);
   if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) hookHand(C, sd); }   // Жилец: пальцы крючьями, когтями вперёд (клип сжимал их в кулак)
   if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }
+  if (!C.o.monster && (P === 'stand' || P === 'talk' || P === 'walk' || P === 'back' || P === 'sit')) wristCalm(C, ['l', 'r']);
   if (!C.o.monster) wristEase(C);   // кисти мягкие: клип Quaternius сжимал их в кулак
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
