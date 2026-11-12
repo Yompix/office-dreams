@@ -1634,6 +1634,10 @@ const SKIN_PORES = `
     vec2 dh = vec2(dFdx(hp), dFdy(hp)) * 1.5e-4 * smoothstep(1.5, .45, mpp);
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
+  // тени в складках: где поверхность резко меняет направление (между пальцами, у крыльев носа, в уголках губ, у век) — кожа темнее и чуть краснее.
+  // Без этого сжатая кисть и лицо вблизи были ровным комком одного цвета (владелец, 11 ноя: «руки», «лицо Итана»). Вдали (мелко в кадре) — гаснет
+  { float mpp2 = length(fwidth(vB)) * 1000., cav = clamp(length(fwidth(vNormal)) * 1.9 - .1, 0., 1.) * smoothstep(3.2, .9, mpp2);
+    diffuseColor.rgb *= mix(vec3(1.), vec3(.5, .4, .38), cav); }
 `;
 // саван Жильца (поза покоя модели tenant, рост 2,43 м: шея ~2.04, плечи 1.92, грудь ~1.75–1.88, бёдра 1.24, колени .66): силуэт — грудь плоская, ткань свободнее книзу,
 // внутренние стороны бёдер сведены — подол, а не штанины; руки и голени голые
