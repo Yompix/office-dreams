@@ -48,7 +48,7 @@ for e in SP['ev']:
     flt.append('[%d:a]%s[a%d]' % (n, ','.join(c), n))
     lab.append('[a%d]' % n)
     n += 1
-flt.append('%samix=inputs=%d:normalize=0:dropout_transition=0,atrim=0:%.3f,afade=t=out:st=%.3f:d=.8,alimiter=limit=0.9[out]' % (''.join(lab), len(lab), D, D - .8))
+flt.append('%samix=inputs=%d:normalize=0:dropout_transition=0,atrim=0:%.3f,afade=t=out:st=%.3f:d=0.8,alimiter=limit=0.9[out]' % (''.join(lab), len(lab), D, D - .8))
 if lang:
     out = mp4[:-4] + '_' + lang + '.m4a'
     cmd = ['ffmpeg', '-loglevel', 'error', '-y'] + ins + ['-filter_complex', ';'.join(flt), '-map', '[out]', '-c:a', 'aac', '-b:a', '192k', out]
