@@ -3095,8 +3095,15 @@ let VHS = .7;
 function init() {
   if (scenesReady) return true;
   try {
-    canvas = document.createElement('canvas'); canvas.width = V.RW; canvas.height = V.RH;
-    window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+    // видеокарта может отказать именно «мощному» режиму (ноутбук на встроенной AMD, 12 ноя) — пробуем три варианта; причину отказа браузер сообщает событием, её видно на экране и в отчёте
+    let R0 = null;
+    for (const pp of ['high-performance', 'default', 'low-power']) {
+      canvas = document.createElement('canvas'); canvas.width = V.RW; canvas.height = V.RH;
+      canvas.addEventListener('webglcontextcreationerror', e => { window.__glErr = String(e.statusMessage || '').slice(0, 160); });
+      try { R0 = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: pp, preserveDrawingBuffer: false }); break; }
+      catch (e) { window.__glErr = window.__glErr || String(e && e.message || e).slice(0, 160); }
+    }
+    if (!R0) return false; window.__glErr = ''; window.__W3core.R = R0;
   } catch (e) { return false; }
   const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(V.RW, V.RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
   R.debug.onShaderError = (gl, prog, vs, fs) => {   // материал не собрался (видеокарте не хватило ресурсов?) — какой и почему: в консоль и в отчёт проверки

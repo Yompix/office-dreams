@@ -1593,12 +1593,18 @@ function heldShot(id, o, T, key) {
   g.drawImage(heldC, 0, 0);
 }
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
+// подсказка — отдельной плашкой внизу экрана (раньше строка рисовалась в кадре и лезла под название и пункты меню), с причиной от браузера и тем, что делать
+function glNote() { if ($('glNote')) return; const d = document.createElement('div'); d.id = 'glNote';
+  d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 14px;background:rgba(20,0,2,.92);border-top:1px solid #a01822;color:#ece8dc;font:500 13px/1.4 Inter,Arial,sans-serif;text-align:center';
+  const why = window.__glErr ? ' (' + String(window.__glErr).replace(/[<>&]/g, '') + ')' : '';
+  d.innerHTML = '<b>' + tr('Нужен браузер с WebGL') + '</b>' + why + '<br>' + (LNG === 'ru' || LNG === 'uk' ? 'Видеокарта не дала игре картинку. Закрой браузер полностью (все окна) и открой снова. Не помогло — в Chrome: Настройки → Система → включи «Использовать аппаратное ускорение» и перезапусти.' : 'The graphics card gave the game no picture. Close the browser completely (all windows) and open it again. If that does not help, in Chrome: Settings → System → turn on “Use graphics acceleration” and relaunch.');
+  document.body.appendChild(d); }
 let leaving = false, worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false, lastShotT = 0, overBg = null;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы; lastShotT — время последнего кадра (экран смерти держит его застывшим)
 function shot(id, o, cx = g) {
   if (LAND && o.cx != null && !o._sx) { o.cx = scrX(o.cx); o._sx = 1; }   // точки наезда заданы для 9:16 — в 16:9 то же направление
   if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow(), settle: settleQ }))) { lastDrawn = id; lastShotT = o.t || 0; settleQ = false; return true; }
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried || leaving) return false;   // пока мир грузится — просто чёрный
-  g.fillStyle = '#777'; g.font = '700 ' + Math.round(H * .03) + 'px Inter, Arial'; g.textAlign = 'center'; g.fillText(tr('Нужен браузер с WebGL'), W / 2, H * .62); g.textAlign = 'left';   // ниже названия игры (раньше строка просвечивала сквозь логотип)
+  glNote();
   return false;
 }
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
