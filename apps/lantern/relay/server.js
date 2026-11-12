@@ -46,6 +46,7 @@ const { Downloads } = require('./download');
 const { Reports } = require('./reports');
 const fs = require('fs');
 const legal = require('./legal');
+const joinPage = require('./join_page');
 let downloads = new Downloads('');
 let reports = new Reports('');
 // 1.6: секрет комнат — токен возврата = HMAC(код|номер). После перезапуска relay (выкладка на Railway) хозяин
@@ -414,6 +415,7 @@ function onHttp(req, res, url) {
   if (downloads.http(req, res, url, publicBase)) return;
   if (reports.http(req, res, url, String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || (req.socket && req.socket.remoteAddress))) return;
   if (legal.http(req, res, url, publicBase)) return;
+  if (joinPage.http(req, res, url, publicBase, (c) => (/^\d{8}$/.test(c) ? roomNums.get(c) : rooms.get(c)), social)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
     let joiners = 0;

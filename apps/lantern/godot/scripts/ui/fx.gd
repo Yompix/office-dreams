@@ -43,12 +43,18 @@ class Ripple extends Control:
 static func ripple(c: Control, at: Vector2) -> void:
 	if not on() or c.size.x < 8:
 		return
-	c.clip_contents = true
+	# обрезаем саму волну, а не элемент: у стекла и главной кнопки тень и свечение выходят за края
+	var clip := Control.new()
+	clip.clip_contents = true
+	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.add_child(clip)
 	var rp := Ripple.new()
 	rp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rp.set_anchors_preset(Control.PRESET_FULL_RECT)
 	rp.center = at
-	c.add_child(rp)
+	clip.add_child(rp)
+	rp.tree_exited.connect(clip.queue_free)
 	var maxr := Vector2(maxf(at.x, c.size.x - at.x), maxf(at.y, c.size.y - at.y)).length()
 	var tw := rp.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_method(func(v): rp.r = v; rp.queue_redraw(), 6.0, maxr, 0.28)
@@ -201,3 +207,37 @@ static func skeleton(h := 64.0, r := 14.0) -> Control:
 	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	s.set_process(on())
 	return s
+
+
+## Блик, пробегающий по главной кнопке, когда она появляется (один раз).
+static func sheen(b: Control) -> void:
+	b.ready.connect(func():
+		if not on():
+			return
+		var clip := Control.new()
+		clip.clip_contents = true
+		clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		clip.set_anchors_preset(Control.PRESET_FULL_RECT)
+		b.add_child(clip)
+		var t := TextureRect.new()
+		t.texture = UI.ui_tex("sheen")
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_SCALE
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		t.modulate.a = 0.0
+		clip.add_child(t)
+		var tw := t.create_tween()
+		tw.tween_interval(0.35)
+		tw.tween_callback(func():
+			var w := maxf(b.size.x, 40.0)
+			t.size = Vector2(w * 0.7, b.size.y)
+			t.position = Vector2(-w * 0.7, 0)
+			t.modulate.a = 1.0)
+		tw.tween_property(t, "position:x", maxf(b.size.x, 40.0) * 1.2 + 200.0, 0.75).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_callback(clip.queue_free), CONNECT_ONE_SHOT)
+
+
+## Лёгкая вибрация (Android): переключение вкладок, успех.
+static func haptic(ms := 10) -> void:
+	if OS.get_name() == "Android" and on():
+		Input.vibrate_handheld(ms)

@@ -51,8 +51,8 @@ func _ready() -> void:
 		if on:
 			var ck := UI.icon("check", 20, UI.ON_ACCENT)
 			ck.stroke = 3.0
-			ck.set_anchors_preset(Control.PRESET_CENTER)
 			ck.position = Vector2(10, 10)
+			ck.size = Vector2(20, 20)
 			b.add_child(ck)
 		b.pressed.connect(func(): Cfg.set_accent(key))
 		FX.press(b, 0.88)
@@ -102,7 +102,7 @@ func _ready() -> void:
 	_relay.add_theme_font_override("font", UI.font_mono)
 	_relay.add_theme_font_size_override("font_size", 13)
 	gr.add_child(_relay)
-	var rr := UI.hbox(8)
+	var rr := UI.flow(8)
 	rr.add_child(UI.button("Сохранить", "secondary", _save_relay))
 	rr.add_child(UI.button("Проверить связь", "ghost", _check_relay, "wifi"))
 	gr.add_child(rr)

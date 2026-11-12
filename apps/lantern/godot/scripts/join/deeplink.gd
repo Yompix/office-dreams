@@ -21,7 +21,7 @@ static func from_launch() -> String:
 		var data: Variant = intent.call("getDataString")
 		return String(data) if data != null else ""
 	for a in OS.get_cmdline_args() + OS.get_cmdline_user_args():
-		if String(a).begins_with("lantern://"):
+		if String(a).begins_with("lantern://") or Invite.web_code(String(a)) != "":
 			return String(a)
 	return ""
 
@@ -29,6 +29,10 @@ static func from_launch() -> String:
 ## → {kind:"join", code, edition, name, relay} | {kind:"friend", tag} | {kind:""}
 static func parse(url: String) -> Dictionary:
 	var u := url.strip_edges()
+	# 1.7: https://…/lantern/j/<код> — та же ссылка, открытая приложением напрямую
+	var wc := Invite.web_code(u)
+	if wc != "":
+		return {"kind": "join", "code": wc, "edition": "", "name": "", "relay": ""}
 	if u.begins_with(Invite.SCHEME):
 		var r := Invite.parse(u)
 		if r.get("ok", false):

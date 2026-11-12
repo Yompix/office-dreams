@@ -1,13 +1,12 @@
 # Процедурная графика LANTERN: иконка (гладкий фонарь со своим силуэтом) и графика для Google Play.
 # Никаких блоков, пиксельных текстур и других элементов, похожих на Minecraft (см. docs/LEGAL.md).
-# python3 tools/make_art.py [assets/img] [папка для Play (feature graphic 1024x500, иконка 512)]
+# python3 tools/make_art.py [assets/img]      (графика для Google Play — tools/make_store.py)
 import math, sys, os
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 OUT = sys.argv[1] if len(sys.argv) > 1 else "assets/img"
 PLAY = sys.argv[2] if len(sys.argv) > 2 else ""
-os.makedirs(OUT, exist_ok=True)
 SS = 4
-BG = (18, 19, 28)
+BG = (13, 15, 34)      # 1.7: ночное индиго (как фон приложения)
 METAL = (52, 46, 44)
 METAL_HI = (86, 76, 70)
 
@@ -85,34 +84,17 @@ def down(img, size):
     return img.resize(size, Image.LANCZOS)
 
 
-big = icon(512 * SS)
-down(big, (512, 512)).save(os.path.join(OUT, "icon_512.png"))
-small = down(big, (256, 256))
-small.save(os.path.join(OUT, "icon.png"))
-small.save(os.path.join(OUT, "..", "..", "icon.png"))
-small.save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-# Android adaptive: передний план без фона (фонарь в безопасной зоне 66%), фон — сплошной
-down(icon(432 * SS, 0.72, bg=False), (432, 432)).save(os.path.join(OUT, "android_fg.png"))
-Image.new("RGBA", (432, 432), BG + (255,)).save(os.path.join(OUT, "android_bg.png"))
+if __name__ == "__main__":
+    os.makedirs(OUT, exist_ok=True)
+    big = icon(512 * SS)
+    down(big, (512, 512)).save(os.path.join(OUT, "icon_512.png"))
+    small = down(big, (256, 256))
+    small.save(os.path.join(OUT, "icon.png"))
+    small.save(os.path.join(OUT, "..", "..", "icon.png"))
+    small.save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+    # Android adaptive: передний план без фона (фонарь в безопасной зоне 66%), фон — сплошной
+    down(icon(432 * SS, 0.72, bg=False), (432, 432)).save(os.path.join(OUT, "android_fg.png"))
+    Image.new("RGBA", (432, 432), BG + (255,)).save(os.path.join(OUT, "android_bg.png"))
 
-if PLAY:
-    os.makedirs(PLAY, exist_ok=True)
-    # Play: иконка 512x512 без прозрачности по краям (Play сам скругляет)
-    full = Image.new("RGBA", (512 * SS, 512 * SS), BG + (255,))
-    full = Image.alpha_composite(full, radial(full.size, 256 * SS, 280 * SS, 236 * SS, (255, 150, 40), 170))
-    lantern(full, 256 * SS, 266 * SS, 338 * SS)
-    down(full.convert("RGB"), (512, 512)).save(os.path.join(PLAY, "icon_512.png"))
-    # Feature graphic 1024x500: фонарь слева, название и строка справа (без слова Minecraft и чужих логотипов)
-    W, H = 1024 * 2, 500 * 2
-    f = Image.new("RGBA", (W, H), BG + (255,))
-    f = Image.alpha_composite(f, radial((W, H), W * .24, H * .55, H * .75, (255, 140, 30), 150))
-    lantern(f, W * .24, H * .53, H * .72)
-    d = ImageDraw.Draw(f)
-    fonts = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "fonts")
-    big_f = ImageFont.truetype(os.path.join(fonts, "Montserrat-ExtraBold.ttf"), 176)
-    sub_f = ImageFont.truetype(os.path.join(fonts, "Montserrat-Bold.ttf"), 60)
-    d.text((W * .44, H * .26), "LANTERN", font=big_f, fill=(242, 243, 246))
-    d.text((W * .445, H * .56), "Играйте с друзьями", font=sub_f, fill=(255, 182, 72))
-    d.text((W * .445, H * .67), "по коду комнаты", font=sub_f, fill=(164, 170, 184))
-    down(f.convert("RGB"), (1024, 500)).save(os.path.join(PLAY, "feature_1024x500.png"))
-print("ok")
+    # графика для Google Play (иконка 512, feature graphic, скриншоты с подписями) — tools/make_store.py
+    print("ok")

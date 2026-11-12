@@ -36,6 +36,8 @@ var _nav_bar: Control
 var _kb_gap: Control
 var _kb_h := 0.0
 var _has_actions := false
+var _deco: Control                 # живой фон (backdrop.gd)
+var _orb: Orb                      # «Создать» в нижнем меню
 
 ## На телефоне эти экраны прокручиваются целиком (у остальных — свои списки с прокруткой).
 const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create"]
@@ -90,8 +92,69 @@ func _ready() -> void:
 		t.run(self)
 	elif not open_deeplink(DeepLink.from_launch()):
 		go("home")
+		_splash()
 	if Cfg.autotest_args.has("startup"):
 		_measure_startup()
+
+
+## Заставка (≤1,2 с, касание пропускает): фонарь загорается, свет расходится, проявляется название.
+func _splash(force := false) -> void:
+	if not FX.on() or (Cfg.autotest_args.has("nosplash") and not force):
+		return
+	var ov := ColorRect.new()
+	ov.name = "Splash"
+	ov.color = Color("05060c")
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	ov.z_index = 50
+	add_child(ov)
+	var glow := TextureRect.new()
+	glow.texture = UI.ui_tex("dot")
+	glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	glow.modulate = Color(UI.accent(), 0.0)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(glow)
+	var li := LanternIcon.new().setup(1, {"flame": "flame_amber"}, 120)
+	li.animate = false
+	li.modulate = Color(0.35, 0.35, 0.45, 0.0)
+	ov.add_child(li)
+	var name_l := UI.label("LANTERN", 30, Color("ffe3b8"), UI.font_caps)
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_l.modulate.a = 0.0
+	ov.add_child(name_l)
+	var place := func():
+		var c := ov.size / 2 - Vector2(0, 30)
+		li.position = c - Vector2(60, 60)
+		li.size = Vector2(120, 120)
+		var r := maxf(ov.size.x, ov.size.y) * 0.9
+		glow.position = c - Vector2(r, r)
+		glow.size = Vector2(r, r) * 2
+		glow.pivot_offset = Vector2(r, r)
+		name_l.position = Vector2(0, c.y + 84)
+		name_l.size = Vector2(ov.size.x, 40)
+	place.call()
+	ov.resized.connect(place)
+	glow.scale = Vector2(0.12, 0.12)
+	var done := [false]
+	var finish := func():
+		if done[0] or not is_instance_valid(ov):
+			return
+		done[0] = true
+		var out := ov.create_tween()
+		out.tween_property(ov, "modulate:a", 0.0, 0.22)
+		out.tween_callback(ov.queue_free)
+	ov.gui_input.connect(func(e):
+		if (e is InputEventMouseButton or e is InputEventScreenTouch) and e.pressed:
+			finish.call())
+	var tw := ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(li, "modulate", Color(0.35, 0.35, 0.45, 1.0), 0.18)                      # тёмный фонарь
+	tw.tween_callback(func(): li.level = 9; li.queue_redraw()).set_delay(0.22)                  # загорелся
+	tw.tween_property(li, "modulate", Color.WHITE, 0.25).set_delay(0.22)
+	tw.tween_property(glow, "modulate:a", 0.55, 0.3).set_delay(0.22)                            # свет расходится
+	tw.tween_property(glow, "scale", Vector2.ONE, 0.75).set_delay(0.22)
+	tw.tween_property(name_l, "modulate:a", 1.0, 0.3).set_delay(0.5)                            # название
+	tw.chain().tween_interval(0.12)
+	tw.chain().tween_callback(finish)
 
 
 ## --startup=1: время до первого кадра и средний кадр на главной (для отчёта о скорости), затем выход
@@ -110,6 +173,27 @@ func _measure_startup() -> void:
 		last = now
 		n += 1
 	print("[startup] first frame %d ms; avg frame %.1f ms, worst %.1f ms (%s)" % [first, (Time.get_ticks_usec() - t0) / 1000.0 / n, worst, RenderingServer.get_current_rendering_method()])
+	# 1.7: цена живого фона — тот же экран с анимацией, с замершим фоном и совсем без фона
+	var res := {}
+	for mode in ["живой фон", "фон замер", "без фона"]:
+		_deco.visible = mode != "без фона"
+		_deco.set_process(mode == "живой фон")
+		_deco.set_process_input(false)
+		for i in 5:
+			await RenderingServer.frame_post_draw
+		var a0 := Time.get_ticks_usec()
+		var k := 0
+		while k < 90:
+			if mode == "живой фон":
+				_deco.wake()
+			else:
+				queue_redraw()     # что-то меняется на экране — кадр рисуется целиком
+			_bar_title.queue_redraw()
+			await RenderingServer.frame_post_draw
+			k += 1
+		res[mode] = (Time.get_ticks_usec() - a0) / 1000.0 / k
+	print("[startup] frame: %s; draw calls %d, объектов в кадре %d" % [", ".join(res.keys().map(func(m): return "%s %.2f мс" % [m, res[m]])),
+		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_OBJECTS_IN_FRAME)])
 	get_tree().quit(0)
 
 
@@ -226,14 +310,12 @@ func open_deeplink(url: String) -> bool:
 func _build() -> void:
 	_compact = UI.compact()
 	_safe = _safe_insets() if _compact else Vector2.ZERO
-	var bg := ColorRect.new()
-	bg.color = UI.BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
 	var deco := preload("res://scripts/ui/backdrop.gd").new()
 	deco.set_anchors_preset(Control.PRESET_FULL_RECT)
+	deco.scroll_src = func() -> float:
+		return float((_screen_root as ScrollContainer).scroll_vertical) if is_instance_valid(_screen_root) and _screen_root is ScrollContainer else 0.0
 	add_child(deco)
+	_deco = deco
 	_content = MarginContainer.new()
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -243,7 +325,7 @@ func _build() -> void:
 	else:
 		_build_desktop()
 	_toast = PanelContainer.new()
-	_toast.add_theme_stylebox_override("panel", UI._hpad(UI.elevated(Color("2a303c"), UI.R_M), 16, 12))
+	_toast.add_theme_stylebox_override("panel", UI._hpad(UI.solid(UI.R_L), 18, 13))
 	var tl := UI.label("", 14, UI.TEXT, UI.font_bold)
 	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_toast.add_child(tl)
@@ -265,6 +347,8 @@ func _build_phone() -> void:
 	bar.add_theme_constant_override("margin_left", 4)
 	bar.add_theme_constant_override("margin_right", 8)
 	bar.custom_minimum_size.y = 60
+	bar.add_theme_constant_override("margin_left", 6)
+	bar.add_theme_constant_override("margin_right", 10)
 	root.add_child(bar)
 	var row := UI.hbox(4)
 	bar.add_child(row)
@@ -278,14 +362,15 @@ func _build_phone() -> void:
 	var li := LanternIcon.new().setup(6, {"flame": "flame_amber"}, 30)
 	li.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_bar_brand.add_child(li)
-	var bt := UI.label("LANTERN", 20, UI.TEXT, UI.font_black)
+	var bt := UI.label("LANTERN", 17, Color("ffe3b8"), UI.font_caps)
+	bt.add_theme_font_override("font", UI.font_caps)
 	bt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_bar_brand.add_child(bt)
 	row.add_child(_bar_brand)
 	var tv := UI.vbox(-2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_bar_title = UI.label("", 20, UI.TEXT, UI.font_black)
+	_bar_title = UI.label("", 21, UI.TEXT, UI.font_title)
 	_bar_title.clip_text = true
 	_bar_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	tv.add_child(_bar_title)
@@ -314,20 +399,37 @@ func _build_phone() -> void:
 	root.add_child(_kb_gap)
 
 
-## Нижнее меню: Главная · Друзья · [Играть] · Магазин · Ещё. Активный раздел — подложка-«таблетка», она плавно переезжает.
+## Нижнее меню 1.7: парящая стеклянная «таблетка» (не прижата к краям), активный раздел — светящаяся подложка,
+## которая плавно переезжает; в центре — «Создать»: шар-фонарь с дышащим ореолом. Смена вкладки — лёгкая вибрация.
 func _bottom_nav() -> Control:
+	var wrap := MarginContainer.new()
+	wrap.add_theme_constant_override("margin_left", 12)
+	wrap.add_theme_constant_override("margin_right", 12)
+	wrap.add_theme_constant_override("margin_top", 2)
+	wrap.add_theme_constant_override("margin_bottom", 10 + int(_safe.y))
 	var p := PanelContainer.new()
-	var st := UI.box(UI.PANEL, 0, 0)
-	st.border_width_top = 1
-	st.border_color = Color(1, 1, 1, 0.05)
-	st.content_margin_top = 6
-	st.content_margin_bottom = 8 + int(_safe.y)
+	var st := UI.glass(3, UI.R_2XL, 0)
+	st.content_margin_left = 6
+	st.content_margin_right = 6
+	st.content_margin_top = 4
+	st.content_margin_bottom = 4
 	p.add_theme_stylebox_override("panel", st)
+	wrap.add_child(p)
+	# плотная подложка под стеклом: список под меню не просвечивает сквозь подписи
+	var under := Panel.new()
+	under.add_theme_stylebox_override("panel", UI.box(Color(0.045, 0.05, 0.11, 0.86), UI.R_2XL - 1))
+	under.show_behind_parent = true
+	under.set_anchors_preset(Control.PRESET_FULL_RECT)
+	under.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(under)
 	var holder := Control.new()
-	holder.custom_minimum_size.y = 60
+	holder.custom_minimum_size.y = 58
 	p.add_child(holder)
 	_nav_pill = Panel.new()
-	_nav_pill.add_theme_stylebox_override("panel", UI.box(Color(UI.accent(), 0.16), 99))
+	var pst := UI.box(Color(UI.accent(), 0.20), 99, 0, Color(UI.accent(), 0.55), 1)
+	pst.shadow_color = Color(UI.accent(), 0.28)
+	pst.shadow_size = 12
+	_nav_pill.add_theme_stylebox_override("panel", pst)
 	_nav_pill.size = Vector2(60, 32)
 	_nav_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_nav_pill.visible = false
@@ -340,11 +442,11 @@ func _bottom_nav() -> Control:
 		b.flat = true
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2(56, 60)
+		b.custom_minimum_size = Vector2(56, 58)
 		b.tooltip_text = item[2]
 		for s in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			b.add_theme_stylebox_override(s, StyleBoxEmpty.new())
-		var v := UI.vbox(4)
+		var v := UI.vbox(3)
 		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.set_anchors_preset(Control.PRESET_FULL_RECT)
 		v.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -353,23 +455,23 @@ func _bottom_nav() -> Control:
 		ic_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var ic: UIcon
 		if item[0] == "play":
-			# центральная кнопка «Играть» — круг акцента
-			var circ := PanelContainer.new()
-			circ.add_theme_stylebox_override("panel", UI.elevated(UI.accent(), 99))
-			circ.custom_minimum_size = Vector2(44, 32)
-			circ.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			ic = UIcon.make("plus", 22, UI.ON_ACCENT)
-			ic.stroke = 2.6
-			ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			circ.add_child(ic)
-			ic_holder.add_child(circ)
+			# центральная кнопка «Создать» — светящийся шар-фонарь, чуть выступает над панелью
+			ic = UIcon.make("plus", 2, Color(0, 0, 0, 0))
+			ic_holder.add_child(ic)
+			_orb = Orb.new()
+			b.add_child(_orb)
+			_orb.anchor_left = 0.5
+			_orb.anchor_right = 0.5
+			_orb.offset_left = -33
+			_orb.offset_right = 33
+			_orb.offset_top = -22
+			_orb.offset_bottom = 44
 			b.set_meta("fixed", true)
 		else:
 			ic = UIcon.make(item[1], 24, UI.MUTED)
 			ic_holder.add_child(ic)
 		v.add_child(ic_holder)
-		var lb := UI.label(item[2], 12, UI.MUTED, UI.font_bold)
+		var lb := UI.label(item[2], 11, UI.MUTED, UI.font_bold)
 		lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(lb)
 		b.add_child(v)
@@ -378,12 +480,12 @@ func _bottom_nav() -> Control:
 		b.set_meta("ic_holder", ic_holder)
 		match item[0]:
 			"more": b.pressed.connect(_more_menu.bind(b))
-			"play": b.pressed.connect(func(): go("create"))
-			_: b.pressed.connect(func(): go(item[0]))
+			"play": b.pressed.connect(func(): FX.haptic(14); go("create"))
+			_: b.pressed.connect(func(): FX.haptic(10); go(item[0]))
 		FX.press(b, 0.92)
 		row.add_child(b)
 		_nav[item[0]] = b
-	return p
+	return wrap
 
 
 func _build_desktop() -> void:
@@ -391,13 +493,15 @@ func _build_desktop() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 	# --- боковая панель
+	var side_wrap := MarginContainer.new()
+	side_wrap.add_theme_constant_override("margin_left", 14)
+	side_wrap.add_theme_constant_override("margin_top", 14)
+	side_wrap.add_theme_constant_override("margin_bottom", 14)
+	side_wrap.custom_minimum_size.x = 256
+	root.add_child(side_wrap)
 	var side := PanelContainer.new()
-	var sst := UI.box(UI.PANEL, 0, 0)
-	sst.border_width_right = 1
-	sst.border_color = Color(1, 1, 1, 0.05)
-	side.add_theme_stylebox_override("panel", sst)
-	side.custom_minimum_size.x = 256
-	root.add_child(side)
+	side.add_theme_stylebox_override("panel", UI.glass(2, UI.R_2XL, 0))    # боковая панель — стеклянный «рельс»
+	side_wrap.add_child(side)
 	var sm := MarginContainer.new()
 	for s in ["left", "right"]:
 		sm.add_theme_constant_override("margin_" + s, 14)
@@ -414,8 +518,8 @@ func _build_desktop() -> void:
 	brand.add_child(LanternIcon.new().setup(6, {"flame": "flame_amber"}, 40))
 	var bv := UI.vbox(-4)
 	bv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bv.add_child(UI.label("LANTERN", 21, UI.TEXT, UI.font_black))
-	bv.add_child(UI.label("by Yompix", 12, UI.AMBER, UI.font_bold))
+	bv.add_child(UI.label("LANTERN", 19, Color("ffe3b8"), UI.font_caps))
+	bv.add_child(UI.label("by Yompix", 12, UI.DIM, UI.font_bold))
 	brand.add_child(bv)
 	sv.add_child(bm)
 	var groups := [
@@ -461,9 +565,9 @@ func _build_desktop() -> void:
 	_me_btn.custom_minimum_size.y = 64
 	_me_btn.focus_mode = Control.FOCUS_NONE
 	_me_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_me_btn.add_theme_stylebox_override("normal", UI.box(UI.CARD, UI.R_M))
-	_me_btn.add_theme_stylebox_override("hover", UI.box(UI.CARD_HI, UI.R_M))
-	_me_btn.add_theme_stylebox_override("pressed", UI.box(UI.CARD_HI, UI.R_M))
+	_me_btn.add_theme_stylebox_override("normal", UI.box(UI.CARD, UI.R_L, 0, UI.LINE, 1))
+	_me_btn.add_theme_stylebox_override("hover", UI.box(UI.CARD_HI, UI.R_L, 0, UI.LINE, 1))
+	_me_btn.add_theme_stylebox_override("pressed", UI.box(UI.CARD_HI, UI.R_L, 0, UI.LINE, 1))
 	_me_btn.pressed.connect(func(): go("profile"))
 	sv.add_child(_me_btn)
 	# --- основная часть: заголовок + содержимое по центру
@@ -471,7 +575,7 @@ func _build_desktop() -> void:
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_child(main)
 	var head := MarginContainer.new()
-	head.custom_minimum_size.y = 76
+	head.custom_minimum_size.y = 104
 	main.add_child(head)
 	var row := UI.hbox(8)
 	head.add_child(row)
@@ -481,7 +585,7 @@ func _build_desktop() -> void:
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_bar_title = UI.label("", 26, UI.TEXT, UI.font_black)
+	_bar_title = UI.label("", 34, UI.TEXT, UI.font_title)
 	_bar_title.clip_text = true
 	_bar_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	tv.add_child(_bar_title)
@@ -497,6 +601,7 @@ func _build_desktop() -> void:
 	row.add_child(_sparks)
 	_bar_brand = Control.new()
 	_content.add_theme_constant_override("margin_bottom", 24)
+	_content.add_theme_constant_override("margin_top", 10)
 	main.add_child(_content)
 	# ширина контента: не шире 1100 (формы — 760), по центру
 	resized.connect(_center_content)   # от ширины окна, а не колонки — иначе широкий экран раскачивает раскладку
@@ -517,7 +622,7 @@ func _center_content() -> void:
 	var head: MarginContainer = get_meta("head")
 	for s in ["left", "right"]:
 		head.add_theme_constant_override("margin_" + s, m)
-	head.add_theme_constant_override("margin_top", 18)
+	head.add_theme_constant_override("margin_top", 22)
 
 
 func _avatar_button(px: int) -> Button:
@@ -551,14 +656,17 @@ func play_option(kind: String, big := false) -> Control:
 	var col := UI.accent() if host else UI.BEDROCK
 	var mobile := Cfg.mobile()
 	var p := PanelContainer.new()
-	var st := UI.box(Color(col, 0.12), UI.R_XL if big else UI.R_L, 0, Color(col, 0.35), 1)
+	var st := UI.glass(2, UI.R_XL, 0, col)
 	UI._hpad(st, 24 if big and not _compact else 18, 26 if big and not _compact else (18 if big else 16))
 	p.add_theme_stylebox_override("panel", st)
 	var row := UI.hbox(16)
 	p.add_child(row)
 	var tile := PanelContainer.new()
 	tile.custom_minimum_size = Vector2(56, 56) if big else Vector2(48, 48)
-	tile.add_theme_stylebox_override("panel", UI.box(col, UI.R_L))
+	var tst := UI.box(col, UI.R_L)
+	tst.shadow_color = Color(col, 0.4)
+	tst.shadow_size = 12
+	tile.add_theme_stylebox_override("panel", tst)
 	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ic := UIcon.make("plus" if host else "play", 28 if big else 24, UI.ON_ACCENT)
 	ic.stroke = 2.6
@@ -589,6 +697,35 @@ func play_option(kind: String, big := false) -> Control:
 	return p
 
 
+## «Продолжить» на главной: снова в последнюю игру одним нажатием. Заходили — заходим по тому же коду
+## (LANTERN сам откроет Minecraft); создавали — запускаем ту же игру снова.
+func continue_last() -> void:
+	var g: Variant = Cfg.get_value("app", "last_game", {})
+	var d: Dictionary = g if g is Dictionary else {}
+	AppLog.add("app", "«Продолжить»: %s %s" % [d.get("kind", "?"), d.get("code", "")])
+	if d.get("kind", "") == "join" and String(d.get("code", "")) != "":
+		go("join", true, {"input": String(d.code), "edition": "both", "mode": String(d.get("mode", "other"))})
+		return
+	if own.active or server.state in ["installing", "starting", "running", "stopping"]:
+		go("host")
+		return
+	var last_ed: String = Cfg.get_value("host", "last_edition", "")
+	var saved: Dictionary = Cfg.get_value("host", last_ed, {}) if last_ed != "" else {}
+	if d.get("host_kind", "") == "server" and not Cfg.mobile() and saved.get("eula", false):
+		server.host(last_ed, saved)
+		own.stop()
+		go("host", false, {"fresh": true})
+	else:
+		go("setup", true, {"own": true, "auto": true, "launch": true})
+
+
+## Запомнить игру, которую создали, — для «Продолжить».
+func remember_hosted() -> void:
+	var code := String(relay_host.stats().get("code", ""))
+	Cfg.set_value("app", "last_game", {"kind": "host", "host_kind": "own" if own.active else "server", "code": code,
+		"name": room.world_name(), "edition": room.edition(), "mode": Cfg.game().mode, "num": "", "time": Time.get_unix_time_from_system()})
+
+
 ## Одна кнопка «Играть с друзьями»: мир уже открыт — экран с кодом; нет — ищем мир в Minecraft
 ## и открываем комнату сами, как только он появится (на ПК там же — «Отдельный сервер»).
 func quick_host() -> void:
@@ -602,16 +739,18 @@ func _num_row(n: String, t: String, sub: String) -> Control:
 	var row := UI.hbox(14)
 	var num := PanelContainer.new()
 	num.custom_minimum_size = Vector2(36, 36)
-	num.add_theme_stylebox_override("panel", UI.box(Color(UI.accent(), 0.16), 99))
+	num.add_theme_stylebox_override("panel", UI.box(Color(UI.accent(), 0.16), 99, 0, Color(UI.accent(), 0.45), 1))
 	num.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	var nl := UI.label(n, 16, UI.accent(), UI.font_black)
+	var nl := UI.label(n, 16, UI.accent().lightened(0.3), UI.font_black)
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	nl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	num.add_child(nl)
 	row.add_child(num)
 	var v := UI.vbox(2)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.add_child(UI.label(t, 16, UI.TEXT, UI.font_bold))
+	var tl := UI.para(t, 16, UI.TEXT)
+	tl.add_theme_font_override("font", UI.font_bold)
+	v.add_child(tl)
 	v.add_child(UI.para(sub, 14, UI.MUTED))
 	row.add_child(v)
 	return row
@@ -827,17 +966,19 @@ func _refresh_me() -> void:
 		c.queue_free()
 	var lvl: int = int(Social.eco.get("lantern", {}).get("level", Social.me.get("lantern", {}).get("level", 1)))
 	var eq: Variant = Social.eco.get("equip", Social.me.get("equip", ""))
+	var my_nick := String(Social.me.get("nick", "")) if Social.me is Dictionary else ""
 	if _compact:
-		var li := LanternIcon.new().setup(lvl, eq, 34)
-		li.position = Vector2(7, 7)
-		_me_btn.add_child(li)
+		var av := Avatar.make(my_nick if my_nick != "" else "•", 38, "", lvl if Social.online() else 0, eq)
+		av.position = Vector2(5, 5)
+		av.size = Vector2(38, 38)
+		_me_btn.add_child(av)
 	else:
 		var row := UI.hbox(10)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.set_anchors_preset(Control.PRESET_FULL_RECT)
 		row.offset_left = 10
 		row.offset_right = -10
-		row.add_child(LanternIcon.new().setup(lvl, eq, 40))
+		row.add_child(Avatar.make(my_nick if my_nick != "" else "•", 42, "", lvl if Social.online() else 0, eq))
 		var v := UI.vbox(-2)
 		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -903,11 +1044,12 @@ func _on_notice(d: Dictionary) -> void:
 ## Приглашение от друга — карточка сверху.
 func invite_popup(d: Dictionary) -> void:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.elevated(Color("262b37"), UI.R_L, 16))
+	p.add_theme_stylebox_override("panel", UI.solid(UI.R_XL, 16))
+	UI.halo(p, UI.accent(), UI.R_XL, 0.7, true)
 	var v := UI.vbox(12)
 	p.add_child(v)
 	var top := UI.hbox(12)
-	top.add_child(LanternIcon.new().setup(int(d.from.get("lantern", {}).get("level", 3)) if d.from is Dictionary else 3, null, 40))
+	top.add_child(Avatar.of(d.from, 44))
 	var tl := UI.para("%s зовёт вас в мир «%s»" % [d.from.nick, d.get("world", "")], 15, UI.TEXT)
 	tl.add_theme_font_override("font", UI.font_bold)
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1014,6 +1156,10 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 	current = name
 	_arg = arg
 	_back_cb = Callable()
+	if is_instance_valid(_deco):
+		_deco.wake()
+	if is_instance_valid(_orb):
+		_orb.wake()
 	_select_nav(name)
 	# верхняя панель по умолчанию
 	if is_instance_valid(_bar_title):
@@ -1112,11 +1258,15 @@ func _select_nav(name: String) -> void:
 		if b.has_meta("fixed"):
 			lb.add_theme_color_override("font_color", UI.TEXT if on else UI.MUTED)
 			continue
-		ic.set_color(UI.accent().lightened(0.2) if on else UI.MUTED)
-		lb.add_theme_color_override("font_color", UI.TEXT if on else UI.MUTED)
+		ic.set_color(UI.accent().lightened(0.3) if on else UI.MUTED)
+		lb.add_theme_color_override("font_color", UI.accent().lightened(0.45) if on else UI.MUTED)
 		if not _compact:
 			for s in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
-				b.add_theme_stylebox_override(s, UI.box(Color(UI.accent(), 0.14) if on else Color(1, 1, 1, 0.05 if s in ["hover", "pressed"] else 0.0), UI.R_M))
+				var nst := UI.box(Color(UI.accent(), 0.18) if on else Color(1, 1, 1, 0.06 if s in ["hover", "pressed"] else 0.0), UI.R_BTN, 0, Color(UI.accent(), 0.5 if on else 0.0), 1 if on else 0)
+				if on:
+					nst.shadow_color = Color(UI.accent(), 0.2)
+					nst.shadow_size = 10
+				b.add_theme_stylebox_override(s, nst)
 	if _compact and is_instance_valid(_nav_pill):
 		var b: Button = _nav.get(key)
 		if b == null or b.has_meta("fixed"):
@@ -1180,6 +1330,7 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_APPLICATION_RESUMED and _content and Cfg.autotest == "":
 		# Android: ссылка lantern:// пришла, когда приложение уже было открыто (onNewIntent → setIntent)
 		own.on_resume()
+		room.on_resume()
 		open_deeplink(DeepLink.from_launch())
 	elif what == NOTIFICATION_APPLICATION_PAUSED and own:
 		own.on_pause()
@@ -1200,7 +1351,7 @@ func _quit() -> void:
 	relay_host.stop()
 	if server.is_alive():
 		var ov := ColorRect.new()
-		ov.color = Color(UI.BG, 0.92)
+		ov.color = Color(UI.BG, 0.94)
 		ov.set_anchors_preset(Control.PRESET_FULL_RECT)
 		var cc := CenterContainer.new()
 		cc.set_anchors_preset(Control.PRESET_FULL_RECT)

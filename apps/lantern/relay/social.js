@@ -91,6 +91,20 @@ function lanternLevel(minutes) {
 }
 
 // ---------------------------------------------------------------- социальная часть
+// 1.7: один поиск — по названию, номеру комнаты (целиком или началу), коду и режиму («пвп», «выживание», «creative»)
+const MODE_WORDS = { survival: ['survival', 'выживание', 'выжив'], creative: ['creative', 'творчество', 'креатив', 'твор'], minigame: ['minigame', 'мини-игра', 'мини игра', 'миниигра', 'мини'],
+  pvp: ['pvp', 'пвп'], roleplay: ['roleplay', 'ролевая', 'рп', 'rp', 'роле'], other: ['other', 'другое'] };
+function roomMatches(r, q) {
+  const s = String(q || '').trim().toLowerCase();
+  if (!s) return true;
+  if (r.meta && r.meta.title.toLowerCase().includes(s)) return true;
+  const digits = s.replace(/[\s№#-]/g, '');
+  if (/^\d{3,8}$/.test(digits) && String(r.num || '').startsWith(digits)) return true;
+  if (String(r.code || '').toLowerCase() === s.replace(/[\s-]/g, '')) return true;
+  const words = MODE_WORDS[r.mode || 'other'] || [];
+  return s.length >= 2 && words.some((w) => w === s || (s.length >= 3 && w.startsWith(s)));
+}
+
 class Social {
   constructor(opts = {}) {
     this.store = new Store(opts.dbPath || process.env.DB_PATH || ':memory:');
@@ -423,7 +437,7 @@ class Social {
       if (!r.meta || !r.host) continue;
       if (f.edition && f.edition !== 'any' && !(r.edition === f.edition || r.edition === 'both')) continue;
       if (f.tag && !r.meta.tags.includes(f.tag)) continue;
-      if (f.q && !(r.meta.title.toLowerCase().includes(String(f.q).toLowerCase()) || String(r.num || '') === String(f.q).trim())) continue;
+      if (f.q && !roomMatches(r, f.q)) continue;
       if (f.mode && f.mode !== 'any' && (r.mode || 'other') !== f.mode) continue;
       if (f.version && f.version !== 'any' && !String(r.meta.version).startsWith(String(f.version))) continue;
       const owner = r.ownerId ? this.pub(this.user(r.ownerId)) : null;
@@ -459,4 +473,4 @@ class Social {
   }
 }
 
-module.exports = { Social, cleanText, validNick, isBad, lanternLevel, ROOM_TAGS, LANTERN_HOURS, hashToken };
+module.exports = { roomMatches, Social, cleanText, validNick, isBad, lanternLevel, ROOM_TAGS, LANTERN_HOURS, hashToken };

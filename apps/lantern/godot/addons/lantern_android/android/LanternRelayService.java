@@ -10,6 +10,8 @@ package com.godot.game;
 //   takeActions() -> json-массив         — что игрок нажал в окошке/уведомлении: {a:"kick"|"ban", peer} {a:"public", on} {a:"close"}
 //   event(text, alert)                   — «Алекс зашёл в ваш мир» / «Мир не виден друзьям»
 //   canDrawOverlays() / requestOverlay() — разрешение «Поверх других приложений»
+//   maker() / overlayState() / openVendorSettings() — 1.7: производитель (Xiaomi и др.), что вышло с кнопкой (для журнала),
+//                                          экран настроек «другие разрешения / автозапуск / батарея» этого производителя
 // update/takeActions/event вызываются и из потока моста (основной цикл Godot в фоне стоит) — всё рисуем через Handler.
 
 import android.app.Application;
@@ -56,8 +58,10 @@ public class LanternRelayService extends Service {
 	private static final int ID = 4471;
 	private static final int ID_EV = 4472;
 	private static final String A_CLOSE = "lantern.CLOSE";
-	private static final int GREEN = 0xFF5CCB7A, RED = 0xFFFF6B6B, YELLOW = 0xFFFFC857, BG = 0xF5161920, TEXT = 0xFFF2F3F6, MUTED = 0xFFA4AAB8,
-		ACCENT = 0xFFFFB648, ON_ACCENT = 0xFF1A1206, BTN = 0xFF252A35, DANGER = 0xFF5A2626;
+	// 1.7 «ночной лагерь»: тёмное стекло цвета индиго, янтарный акцент (как в приложении — scripts/ui/ui.gd)
+	private static final int GREEN = 0xFF5FD38A, RED = 0xFFFF6B6B, YELLOW = 0xFFFFC857, BG = 0xF2101326, BG2 = 0xF21A1D38, TEXT = 0xFFF4F2EE, MUTED = 0xFFB3B4C8,
+		ACCENT = 0xFFFFB648, ACCENT2 = 0xFFFF8A3D, ON_ACCENT = 0xFF1A1206, BTN = 0x26FFFFFF, DANGER = 0x40FF6B6B, LINE = 0x33FFFFFF;
+	private static volatile String bubbleState = "не показывалась";
 
 	private static final Handler ui = new Handler(Looper.getMainLooper());
 	private static final Object lock = new Object();
@@ -192,6 +196,56 @@ public class LanternRelayService extends Service {
 		}
 	}
 
+	public static String maker() {
+		return (Build.MANUFACTURER + " " + Build.BRAND + " " + Build.MODEL + " · Android " + Build.VERSION.RELEASE).trim();
+	}
+
+	// Для журнала «Сообщить о проблеме»: добавлена ли кнопка поверх игры и почему нет.
+	public static String overlayState() {
+		Context c = app();
+		String bat = "?";
+		try {
+			if (c != null && Build.VERSION.SDK_INT >= 23) {
+				PowerManager pm = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+				bat = pm.isIgnoringBatteryOptimizations(c.getPackageName()) ? "без ограничений" : "с ограничениями";
+			}
+		} catch (Exception ignored) {}
+		return "кнопка: " + bubbleState + "; служба: " + (self != null ? "работает" : "нет") + (joinOnly ? " (вход к другу)" : "") + "; батарея: " + bat;
+	}
+
+	private static boolean tryStart(Context c, Intent i) {
+		try {
+			i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			if (i.resolveActivity(c.getPackageManager()) == null) return false;
+			c.startActivity(i);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// Экран настроек производителя. Разрешений не запрашиваем (ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS в Google Play
+	// ограничен) — только открываем нужный экран; не нашёлся — «О приложении».
+	public static String openVendorSettings() {
+		Context c = app();
+		if (c == null) return "нет контекста";
+		String pkg = c.getPackageName();
+		String m = (Build.MANUFACTURER + " " + Build.BRAND).toLowerCase();
+		if (m.contains("xiaomi") || m.contains("redmi") || m.contains("poco")) {
+			Intent i = new Intent("miui.intent.action.APP_PERM_EDITOR");
+			i.putExtra("extra_pkgname", pkg);
+			if (tryStart(c, i)) return "MIUI: другие разрешения";
+			i = new Intent("miui.intent.action.APP_PERM_EDITOR");
+			i.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
+			i.putExtra("extra_pkgname", pkg);
+			if (tryStart(c, i)) return "MIUI: редактор разрешений";
+		}
+		Intent d = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + pkg));
+		if (tryStart(c, d)) return "о приложении";
+		if (Build.VERSION.SDK_INT >= 23 && tryStart(c, new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))) return "список оптимизации батареи";
+		return "не открылось";
+	}
+
 	private static void act(JSONObject a) {
 		synchronized (lock) { actions.put(a); }
 	}
@@ -302,12 +356,13 @@ public class LanternRelayService extends Service {
 	}
 
 	private void showBubble() {
-		if (joinOnly || bubble != null || !canDrawOverlays()) return;
+		if (joinOnly || bubble != null) return;
+		if (!canDrawOverlays()) { bubbleState = "нет разрешения «поверх других приложений»"; return; }
 		try {
 			wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 			bubble = new TextView(this);
 			bubble.setGravity(Gravity.CENTER);
-			bubble.setTextColor(Color.WHITE);
+			bubble.setTextColor(ACCENT);
 			bubble.setTypeface(Typeface.DEFAULT_BOLD);
 			bubble.setTextSize(15);
 			bubble.setElevation(dp(6));
@@ -340,8 +395,10 @@ public class LanternRelayService extends Service {
 				}
 			});
 			wm.addView(bubble, bubbleLp);
+			bubbleState = "добавлена (TYPE " + overlayType() + ")";
 		} catch (Exception e) {
 			Log.w("LANTERN", "bubble failed", e);
+			bubbleState = "ошибка: " + e.getClass().getSimpleName() + " " + e.getMessage();
 			bubble = null;
 		}
 	}
@@ -354,6 +411,7 @@ public class LanternRelayService extends Service {
 		panel = null;
 		bubble = null;
 		panelOpen = false;
+		bubbleState = "убрана (комната закрыта)";
 	}
 
 	private void togglePanel() {
@@ -368,9 +426,9 @@ public class LanternRelayService extends Service {
 		panel = new LinearLayout(this);
 		panel.setOrientation(LinearLayout.VERTICAL);
 		panel.setPadding(dp(16), dp(16), dp(16), dp(16));
-		GradientDrawable bg = new GradientDrawable();
-		bg.setColor(BG);
-		bg.setCornerRadii(new float[] {dp(20), dp(20), 0, 0, 0, 0, dp(20), dp(20)});
+		GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {BG2, BG});
+		bg.setCornerRadii(new float[] {dp(28), dp(28), 0, 0, 0, 0, dp(28), dp(28)});
+		bg.setStroke(dp(1), LINE);
 		ScrollView frame = new ScrollView(this);
 		frame.setBackground(bg);
 		frame.setElevation(dp(12));
@@ -412,10 +470,11 @@ public class LanternRelayService extends Service {
 		b.setTextColor(color == ACCENT ? ON_ACCENT : TEXT);
 		b.setMinHeight(0);
 		b.setMinimumHeight(0);
-		b.setPadding(dp(10), dp(6), dp(10), dp(6));
-		GradientDrawable d = new GradientDrawable();
-		d.setColor(color);
-		d.setCornerRadius(dp(10));
+		b.setPadding(dp(14), dp(9), dp(14), dp(9));
+		GradientDrawable d = color == ACCENT ? new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[] {ACCENT, ACCENT2}) : new GradientDrawable();
+		if (color != ACCENT) { d.setColor(color); d.setStroke(dp(1), color == DANGER ? 0x55FF6B6B : LINE); }
+		d.setCornerRadius(dp(14));
+		b.setStateListAnimator(null);
 		b.setBackground(d);
 		b.setOnClickListener(on);
 		return b;
@@ -445,10 +504,11 @@ public class LanternRelayService extends Service {
 		if (bubble != null) {
 			GradientDrawable d = new GradientDrawable();
 			d.setShape(GradientDrawable.OVAL);
-			d.setColor(ok ? GREEN : RED);
-			d.setStroke(dp(3), 0xCCFFFFFF);
+			d.setColor(ok ? 0xF2101326 : 0xF2401A1A);
+			d.setStroke(dp(3), ok ? ACCENT : RED);
 			bubble.setBackground(d);
 			bubble.setText(ok ? (n > 0 ? String.valueOf(n) : "✓") : "!");
+			bubble.setTextColor(ok ? ACCENT : 0xFFFFFFFF);
 		}
 		if (!panelOpen || panel == null) return;
 		String key = s.toString() + confirmClose;
@@ -525,6 +585,9 @@ public class LanternRelayService extends Service {
 		who.addView(btn("Все в LANTERN", pub ? ACCENT : BTN, v -> pushAction("public", true)), wrap(6));
 		who.addView(btn("Только по коду", pub ? BTN : ACCENT, v -> pushAction("public", false)), wrap(6));
 		panel.addView(who);
+		// --- защита мира: мир из самого Minecraft снаружи не настроить (трафик зашифрован) — одна строка без «мёртвых» кнопок
+		panel.addView(text("Защита мира", 13, MUTED, true), wrap(18));
+		panel.addView(text("Без PvP, без взрывов, огонь, вещи после смерти — эти правила включаются в настройках самого мира в Minecraft.", 13, MUTED, false), wrap(4));
 		LinearLayout bottom = new LinearLayout(this);
 		bottom.addView(btn("Открыть LANTERN", BTN, v -> {
 			PendingIntent pi = openIntent(this);

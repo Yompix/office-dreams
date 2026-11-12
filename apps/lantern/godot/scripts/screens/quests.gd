@@ -36,7 +36,7 @@ func _ready() -> void:
 
 static func _demo_banner() -> Control:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(UI.YELLOW, 0.10), UI.R_M), 14, 10))
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(UI.YELLOW, 0.10), UI.R_L, 0, Color(UI.YELLOW, 0.3), 1), 14, 10))
 	var r := UI.hbox(10)
 	p.add_child(r)
 	var ic := UI.icon("info", 18, UI.YELLOW)
@@ -87,7 +87,7 @@ func _quests() -> void:
 	var q: Dictionary = Social.quests
 	# серия
 	var sp := PanelContainer.new()
-	var sst := UI.box(Color("221b10"), UI.R_L, 0, Color(UI.AMBER, 0.3), 1)
+	var sst := UI.glass(2, UI.R_XL, 0, UI.AMBER)
 	UI._hpad(sst, 16, 14)
 	sp.add_theme_stylebox_override("panel", sst)
 	var sr := UI.hbox(14)
@@ -182,7 +182,7 @@ static func _hm(ms: int) -> String:
 
 func _quest_row(it: Dictionary) -> Control:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.CARD, UI.R_L), 16, 14))
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(1, UI.R_XL, 0), 16, 14))
 	var row := UI.hbox(14)
 	p.add_child(row)
 	var v := UI.vbox(8)
@@ -196,7 +196,10 @@ func _quest_row(it: Dictionary) -> Control:
 	bar.max_value = float(it.target)
 	_grow(bar, float(it.progress))
 	v.add_child(bar)
-	v.add_child(UI.label("%d / %d  ·  +%d искр  ·  +%d света" % [int(it.progress), int(it.target), int(it.sparks), int(it.xp)], 12, UI.MUTED))
+	var pl := UI.label("%d / %d  ·  +%d искр  ·  +%d света" % [int(it.progress), int(it.target), int(it.sparks), int(it.xp)], 12, UI.MUTED)
+	pl.clip_text = true
+	pl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	v.add_child(pl)
 	row.add_child(v)
 	var done: bool = int(it.progress) >= int(it.target)
 	var b: Button
@@ -205,7 +208,7 @@ func _quest_row(it: Dictionary) -> Control:
 		b.tooltip_text = "Получено"
 		b.disabled = true
 	else:
-		b = UI.button("Забрать" if done else "В пути", "primary" if done else "secondary", func(): Social.request("quest_claim", {"id": it.id, "period": it.period}))
+		b = UI.button("Забрать" if done else "В пути", "tonal" if done else "secondary", func(): Social.request("quest_claim", {"id": it.id, "period": it.period}))
 		b.disabled = not done
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.custom_minimum_size.x = 48 if it.claimed else 104
@@ -222,7 +225,7 @@ func _season() -> void:
 		_body.add_child(FX.skeleton(300))
 		return
 	var head := PanelContainer.new()
-	head.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color("221b10"), UI.R_XL, 0, Color(UI.AMBER, 0.35), 1), 18, 18))
+	head.add_theme_stylebox_override("panel", UI._hpad(UI.glass(2, UI.R_XL, 0, UI.AMBER), 18, 18))
 	var hv := UI.vbox(8)
 	head.add_child(hv)
 	hv.add_child(UI.caption("Сезон", UI.AMBER))
@@ -319,7 +322,7 @@ func _reward_cell(s: Dictionary, tier: int, track: String, reward: Variant, clai
 		v.add_child(UI.pill("✓ есть", UI.JAVA))
 		(v.get_child(v.get_child_count() - 1) as Control).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	elif open and (not prem or s.premium):
-		var b := UI.button("Забрать", "primary", func(): Social.request("season_claim", {"tier": tier, "track": track}))
+		var b := UI.button("Забрать", "tonal", func(): Social.request("season_claim", {"tier": tier, "track": track}))
 		b.custom_minimum_size = Vector2(0, 32)
 		b.add_theme_font_size_override("font_size", 13)
 		v.add_child(b)
@@ -341,7 +344,7 @@ func _achievements() -> void:
 	var cur: String = a.get("title", "")
 	for it in a.get("list", []):
 		var p := PanelContainer.new()
-		p.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(UI.AMBER, 0.08) if it.done else UI.CARD, UI.R_L, 0, Color(UI.AMBER, 0.3) if it.done else Color(1, 1, 1, 0.04), 1), 16, 14))
+		p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(2 if it.done else 1, UI.R_XL, 0, UI.AMBER if it.done else Color(0, 0, 0, 0)), 16, 14))
 		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var row := UI.hbox(14)
 		p.add_child(row)

@@ -35,7 +35,7 @@ func _render() -> void:
 	var me: Dictionary = Social.me
 	# --- карточка героя
 	var hero := PanelContainer.new()
-	hero.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color("1d1912"), UI.R_XL, 0, Color(UI.AMBER, 0.22), 1), 20, 24))
+	hero.add_theme_stylebox_override("panel", UI._hpad(UI.glass(2, UI.R_XL, 0, UI.AMBER), 20, 24))
 	hero.custom_minimum_size.x = 0 if UI.compact() else 360
 	hero.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var lv := UI.vbox(8)
@@ -77,7 +77,7 @@ func _render() -> void:
 	stats.add_theme_constant_override("v_separation", 10)
 	for s in [["Уровень фонаря", int(e.get("lantern", {}).get("level", 1)), "lantern"], ["Искры", int(e.get("sparks", 0)), "spark"], ["Дней подряд", int(e.get("streak", 0)), "fire"], ["Друзей", Social.friends.size(), "friends"]]:
 		var p := PanelContainer.new()
-		p.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.CARD, UI.R_L), 14, 12))
+		p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(1, UI.R_XL, 0), 14, 12))
 		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := UI.vbox(2)
 		p.add_child(v)

@@ -29,7 +29,7 @@ func _ready() -> void:
 	_code_in.max_length = 12
 	_code_in.add_theme_font_override("font", UI.font_bold)
 	gr.add_child(_code_in)
-	gr.add_child(UI.button("Скачать", "primary", func(): fetch_shared(_code_in.text), "download"))
+	gr.add_child(UI.button("Скачать", "tonal", func(): fetch_shared(_code_in.text), "download"))
 	gv.add_child(gr)
 	gv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или получить его от друга.", 12, UI.DIM))
 	v.add_child(gp)

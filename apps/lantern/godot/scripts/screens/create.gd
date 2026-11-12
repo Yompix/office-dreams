@@ -24,6 +24,8 @@ func _ready() -> void:
 	var g := Cfg.game()
 	_mode = g.mode
 	_cap = clampi(g.cap, 2, 20)
+	if Cfg.mobile():
+		_cap = 10     # мир с телефона: как в самом Minecraft — до 10 игроков
 	_pw_on = g.password != ""
 	_public = g.public
 	var live: bool = app.own.active or app.server.state in ["starting", "running"]
@@ -66,20 +68,24 @@ func _ready() -> void:
 	_modes = UI.flow(8)
 	adv.add_child(UI.field("Режим игры", _modes))
 	_render_modes()
-	var cr := UI.hbox(12)
-	var minus := UI.button("−", "secondary", func(): _set_cap(_cap - 1))
-	minus.custom_minimum_size = Vector2(48, 48)
-	minus.add_theme_font_size_override("font_size", 22)
-	cr.add_child(minus)
-	_cap_lbl = UI.label("", 20, UI.TEXT, UI.font_black)
-	_cap_lbl.custom_minimum_size.x = 48
-	_cap_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cr.add_child(_cap_lbl)
-	var plus := UI.button("+", "secondary", func(): _set_cap(_cap + 1))
-	plus.custom_minimum_size = Vector2(48, 48)
-	plus.add_theme_font_size_override("font_size", 22)
-	cr.add_child(plus)
-	adv.add_child(UI.field("Мест (вместе с вами)", cr))
+	if Cfg.mobile():
+		# мир с телефона: до 10 игроков — столько пускает сам Minecraft
+		adv.add_child(UI.field("Мест", UI.para("До 10 игроков.", 15, UI.TEXT)))
+	else:
+		var cr := UI.hbox(12)
+		var minus := UI.button("−", "secondary", func(): _set_cap(_cap - 1))
+		minus.custom_minimum_size = Vector2(48, 48)
+		minus.add_theme_font_size_override("font_size", 22)
+		cr.add_child(minus)
+		_cap_lbl = UI.label("", 20, UI.TEXT, UI.font_black)
+		_cap_lbl.custom_minimum_size.x = 48
+		_cap_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cr.add_child(_cap_lbl)
+		var plus := UI.button("+", "secondary", func(): _set_cap(_cap + 1))
+		plus.custom_minimum_size = Vector2(48, 48)
+		plus.add_theme_font_size_override("font_size", 22)
+		cr.add_child(plus)
+		adv.add_child(UI.field("Мест (вместе с вами)", cr))
 	_set_cap(_cap)
 	var pw := UI.switch_row("Пароль", "Зайдут только те, кому вы его сказали", _pw_on, func(b): _pw_on = b; _pw.visible = b)
 	adv.add_child(pw.row)
@@ -121,7 +127,8 @@ func _render_modes() -> void:
 
 func _set_cap(n: int) -> void:
 	_cap = clampi(n, 2, 20)
-	_cap_lbl.text = str(_cap)
+	if is_instance_valid(_cap_lbl):
+		_cap_lbl.text = str(_cap)
 
 
 func _save() -> bool:
@@ -155,7 +162,7 @@ func _create() -> void:
 		app.own.stop()
 		app.go("host", false, {"fresh": true})
 	else:
-		app.go("setup", true, {"own": true, "auto": true})
+		app.go("setup", true, {"own": true, "auto": true, "launch": true})
 
 
 

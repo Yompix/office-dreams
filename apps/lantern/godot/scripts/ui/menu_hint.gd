@@ -7,7 +7,7 @@ extends RefCounted
 
 static func make(kind: String) -> Control:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.box(UI.FIELD, UI.R_M, 12, UI.LINE, 1))
+	p.add_theme_stylebox_override("panel", UI.box(UI.FIELD, UI.R_L, 12, UI.LINE, 1))
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v := UI.vbox(6)
@@ -42,7 +42,7 @@ static func _title(t: String) -> Label:
 static func _row(t: String, hi: bool, icon := "") -> PanelContainer:
 	var b := PanelContainer.new()
 	var a := UI.accent()
-	b.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(a, 0.12) if hi else UI.CARD, UI.R_S, 0, a if hi else Color(0, 0, 0, 0), 2 if hi else 0), 12, 8))
+	b.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(a, 0.14) if hi else UI.CARD, 10, 0, a if hi else Color(0, 0, 0, 0), 2 if hi else 0), 12, 8))
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var r := UI.hbox(8)
 	b.add_child(r)
@@ -50,6 +50,8 @@ static func _row(t: String, hi: bool, icon := "") -> PanelContainer:
 		r.add_child(UI.icon(icon, 16, a if hi else UI.MUTED))
 	var l := UI.label(t, 13, UI.TEXT if hi else UI.MUTED, UI.font_bold if hi else UI.font_regular)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART     # длинное название переносится, а не распирает экран
+	l.custom_minimum_size.x = 90
 	r.add_child(l)
 	if hi:
 		r.add_child(_arrow(a))

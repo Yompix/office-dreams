@@ -78,9 +78,9 @@ func _draw() -> void:
 	var flick := 0.92 + 0.08 * sin(_t * 7.3 + seed_hue * 10) * sin(_t * 3.1)
 	var bright := (0.35 + level * 0.07) * flick
 	# свечение
-	for i in 10:
-		var r := s * (0.25 + i * 0.03 + level * 0.012)
-		draw_circle(c, r, Color(fc, bright * 0.05))
+	# свечение — одна мягкая текстура (без «колец»)
+	var gr := s * (0.52 + level * 0.014)
+	draw_texture_rect(UI.ui_tex("dot"), Rect2(c - Vector2(gr, gr), Vector2(gr, gr) * 2.0), false, Color(fc, minf(1.0, bright * 0.62)))
 	var w := s * 0.40
 	var h := s * 0.44
 	match shape:

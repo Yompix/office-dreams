@@ -5,14 +5,14 @@ config_version=5
 
 config/name="LANTERN"
 config/description="LANTERN — игра с друзьями по коду комнаты (для Minecraft: Java и Bedrock). Неофициальное приложение. by Yompix"
-config/version="1.6.0"
+config/version="1.7.0"
 run/main_scene="res://main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="LANTERN"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/low_processor_mode=true
 run/flush_stdout_on_print=true
-boot_splash/bg_color=Color(0.0627, 0.0745, 0.1, 1)
+boot_splash/bg_color=Color(0.0314, 0.0392, 0.0784, 1)
 boot_splash/show_image=false
 config/icon="res://icon.png"
 config/windows_native_icon="res://icon.ico"
@@ -46,7 +46,7 @@ common/snap_controls_to_pixels=true
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
-environment/defaults/default_clear_color=Color(0.0627, 0.0745, 0.1, 1)
+environment/defaults/default_clear_color=Color(0.0314, 0.0392, 0.0784, 1)
 
 [debug]
 

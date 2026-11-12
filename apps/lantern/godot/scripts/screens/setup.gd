@@ -177,6 +177,7 @@ func _show_own(on: bool) -> void:
 		_own_page = preload("res://scripts/screens/own_page.gd").new()
 		_own_page.set("app", app)
 		_own_page.set("auto", arg is Dictionary and arg.get("auto", false))
+		_own_page.set("launch", arg is Dictionary and arg.get("launch", false))
 		_own_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		add_child(_own_page)
 		FX.enter(_own_page, Vector2(48, 0), 0.0, 0.3)
