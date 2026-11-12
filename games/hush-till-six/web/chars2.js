@@ -1355,6 +1355,7 @@ function updateSkinned(C, t, dt) {
   const dT = cut ? 0 : Math.max(0, t - C.lastT);   // сколько прошло на самом деле (на паузе — 0; больше 0,5 с — это уже склейка)
   C.cut = false; C.lastT = t; C.cutNow = cut;
   if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; C.flk = null; C.twist = null; }
+  if (cut) { C.talkT = -1; C.hearT = -1; C.cigQ = 0; }   // новый кадр: «говорит»/«слушает» не тянутся из прошлого (время кадра начинается с нуля — старая отметка держала позу говорящего до 9 с: Фрэнк на общем плане не затягивался, замер 12 ноя)
   // реакция по реплике (beat.react в story.js): тело (кивок, «нет», руки скрещены) и/или лицо — 'no+worry', 'sad'
   { const rp = typeof C.react === 'string' ? C.react.split('+') : []; C.reactBody = rp.find(x => REACT[x]) || null; C.reactFace = rp.find(x => !REACT[x] && C.faceSets[x]) || null; }
   C.fsNow = C.faceSets[C.reactFace || C.faceSet] || {};
