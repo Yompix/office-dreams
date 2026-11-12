@@ -62,7 +62,15 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
 .qa-list #qlL button { display: grid; grid-template-columns: calc(12 * var(--u)) 1fr; gap: 0 calc(2 * var(--u)); width: 100%; text-align: left; background: rgba(255,255,255,.04); border: 0; border-bottom: 1px solid rgba(255,255,255,.08); color: #ddd; padding: calc(1.8 * var(--u)) calc(1.4 * var(--u)); font: 600 calc(2.9 * var(--u))/1.3 Inter, Arial, sans-serif; }
 .qa-list #qlL button b { color: #ff5a5a; font-family: "Courier New", monospace; grid-row: span 2; }
 .qa-list #qlL button i { font-style: normal; color: #fff; font-weight: 800; }
-.qa-list #qlL button span { opacity: .6; font-size: calc(2.6 * var(--u)); }`;
+.qa-list #qlL button span { opacity: .6; font-size: calc(2.6 * var(--u)); }
+.qa-list #qlL button span em { font-style: normal; opacity: .55; margin-left: calc(1.4 * var(--u)); font-family: "Courier New", monospace; font-size: .85em; }
+.qa-how { font: 500 calc(3 * var(--u))/1.4 Inter, Arial, sans-serif; color: #cfc9c0; text-align: left; margin: 0 0 calc(2.4 * var(--u)); } .qa-how b { color: #ff6b74; }
+.qa-hint { font: 500 calc(2.7 * var(--u))/1.35 Inter, Arial, sans-serif; color: #9a948c; text-align: left; margin: calc(1.6 * var(--u)) 0; min-height: 2.7em; }
+.qa-tabs { display: flex; flex-wrap: wrap; gap: calc(1 * var(--u)); width: 100%; }
+.qa-tabs button { flex: 1 1 auto; padding: calc(2 * var(--u)) calc(2.2 * var(--u)); background: rgba(40,8,12,.8); border: 0; box-shadow: inset 0 0 0 1px rgba(255,90,100,.3); color: #ddd; font: 700 calc(3.2 * var(--u)) NSUI, Inter, Arial, sans-serif; letter-spacing: .04em; cursor: pointer; }
+.qa-tabs button small { margin-left: calc(1 * var(--u)); opacity: .6; font-weight: 600; } .qa-tabs button.on { background: linear-gradient(180deg, #c41622, #5c080e); color: #fff; box-shadow: none; }
+.qa-row { display: flex; gap: calc(.8 * var(--u)); align-items: stretch; } .qa-row > button:first-child { flex: 1; }
+.qa-list #qlL button.qa-fin { display: block; width: auto; grid-template-columns: none; padding: 0 calc(2.6 * var(--u)); background: rgba(196,22,34,.25); color: #ffb3b8; font: 700 calc(2.8 * var(--u)) Inter, Arial, sans-serif; border-bottom: 1px solid rgba(255,255,255,.08); }`;
   document.head.appendChild(css);
 
   // полоска в игре
@@ -238,19 +246,51 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
       const base = id.replace(/_(srv|hide|b)$/, '').replace(/^over_k5b$/, 'over_k5'), first = !(base in dn); if (first) dn[base] = ++n;
       top.push({ id, tm: first ? 'С' + dn[base] : '↳', line: ((sc.then && sc.then.over) || id) + (where ? ' · ' + where : ''), g: 'Смерти — ' + n }); }
     const DG = 'Смерти — ' + n; top.forEach(x => { if (x.g.startsWith('Смерти')) x.g = DG; });
-    const all = [...top, ...rows.filter(x => x.g === 'Сюжет' || x.g === 'Часы смены')], groups = [...new Set(all.map(x => x.g))];
-    const ui = $('ui');
-    ui.innerHTML = `<div class="screen sub qa-list"><h1>СЦЕНЫ</h1><input id="qlQ" placeholder="поиск: id или слова" autocomplete="off"><div id="qlL"></div><button class="btn ghost" id="qlB">Назад</button></div>`;
-    const L = $('qlL'), draw = q => { L.innerHTML = groups.map(g => { const r = all.filter(x => x.g === g && (!q || (x.id + ' ' + x.line).toLowerCase().includes(q))); return r.length ? `<h3>${g}</h3>` + r.map(x => `<button data-id="${x.id}"><b>${esc(x.tm)}</b><i>${esc(x.id)}</i><span>${esc(x.line)}</span></button>`).join('') : ''; }).join('') || '<p>Ничего не нашлось</p>'; };
+    // ---- список по вкладкам (12 ноя, владелец: «ничего не ясно, что и как»): концовки, смерти, странности, сюжет, часы смены ----
+    const AN = { light10: 'Свет горит на 10-м', light7: 'Свет горит на 7-м', door10: 'Дверь приоткрыта на 10-м', door7: 'Дверь приоткрыта на 7-м', door01: 'Вход открыт', cat: 'Кошка у входа', streetOff: 'Погас фонарь на улице',
+      wet: 'Мокрые следы в холле', hallDark: 'В холле погас свет', lift: 'Лифт приехал сам', lift13: 'Лифт показывает 13', clockSpin: 'Часы идут назад', palmMove: 'Пальма переставлена', stDark: 'Темно на лестнице', chair10: 'Стул посреди 10-го',
+      bucket7: 'Ведро опрокинуто на 7-м', mOff: 'В подвале погас свет', sdoor: 'Дверь серверной открыта', snd01: 'Звук у входа', whisp02: 'Шёпот в холле', snd03: 'Скрежет у лифтов', snd04: 'Босые шаги на лестнице', snd07: 'Кто-то напевает на 7-м',
+      snd10: 'Телефон звонит на 10-м', snd_m2: 'Стук в подвале', knock3x: 'Три удара в подвале (знак Фрэнка)', lilyDoor: '«Лили» у входа — не открывать', handprint: 'Отпечаток ладони на стекле входа', selfStare: '«Ты» стоишь в холле и смотришь в камеру',
+      liftBoth: 'Оба лифта открыты', lily04: '«Лили» на лестнице, спиной', frank10: 'Фрэнк в конце 10-го', gusTwin: 'Гас на 10-м, пока моет 7-й', mopAlone: 'Швабра стоит сама', crawl_m2: 'В подвале кто-то лежит', snd02: 'Мобильный звонит в холле',
+      breath07: 'Дыхание на 7-м', tick10: 'Звук растянутой кожи на 10-м', slam04: 'Хлопают двери на лестнице', lily01: 'Лили у входа', frank02: 'Фрэнк в холле', guard04: 'Сменщик на лестнице', gus7: 'Гас на 7-м', palm: 'Пальма (норма)',
+      st04: 'Помехи на лестнице', st10: 'Помехи на 10-м', st_m2: 'Помехи в подвале', st02: 'Помехи в холле', st03: 'Помехи у лифтов', st07: 'Помехи на 7-м', st01: 'Помехи у входа' };
+    const CAMN = { '01': 'вход', '02': 'холл', '03': 'лифты', '04': 'лестница', '07': 'этаж 7', '10': 'этаж 10', m2: 'подвал', '13': 'камера 13' };
+    const ans = Object.entries((S.shift && S.shift.an) || {}).map(([id, d]) => ({ an: id, tm: d.cam === 'm2' ? '−2' : d.cam, title: AN[id] || id, line: 'камера: ' + (CAMN[d.cam] || d.cam) + (d.snd ? ' · только звук' : '') + (d.die ? ' · ловушка' : ''), id }));
+    const nice = x => { const sc = S.scenes[x.id], th = (sc && sc.then) || {}; return th.title || th.over || (x.id.startsWith('sh_') ? 'Смена, час ' + x.id.slice(3) : x.line || x.id); };
+    const TABS = [
+      ['end', 'Концовки', top.filter(x => x.g.startsWith('Концовки')).map(x => ({ ...x, title: (S.scenes[x.id].then || {}).title || x.id, line: (S.scenes[x.id].then || {}).sub || '' })), 'Сцена перед концовкой играется целиком, в конце — экран концовки.'],
+      ['die', 'Смерти', top.filter(x => x.g.startsWith('Смерти')).map(x => ({ ...x, title: ((S.scenes[x.id] || {}).then || {}).over || x.id, line: x.line.includes(' · ') ? x.line.split(' · ').slice(1).join(' · ') : (x.tm === '↳' ? 'другой вариант той же смерти' : ''), fin: 1 })), 'Строка — вся сцена смерти с подводкой. Кнопка «финал» — сразу последний кадр: скример и убийство.'],
+      ['an', 'Странности', ans, 'Запускает час смены, включает странность и переключает на её камеру. Время стоит — можно рассмотреть. Выход — меню ☰.'],
+      ['story', 'Сюжет', rows.filter(x => x.g === 'Сюжет').map(x => ({ ...x, title: x.line || x.id, line: '' })), 'Все сюжетные сцены по порядку ночи. Слева — время в игре.'],
+      ['shift', 'Часы смены', rows.filter(x => x.g === 'Часы смены').map(x => ({ ...x, title: nice(x), line: 'камеры, пульт, журнал' })), 'Игровые часы за пультом: камеры, странности, запись в журнал.']];
+    const ui = $('ui'); let cur = LSget('qaTab') || 'end';
+    ui.innerHTML = `<div class="screen sub qa-list"><h1>ПРОВЕРКА</h1>
+      <p class="qa-how">Нажми строку — сцена запустится. В игре: <b>⏮ ⏭</b> — предыдущий и следующий кадр, <b>🐞</b> — отметить ошибку (делает снимок и код места), <b>☰</b> — выйти в меню.</p>
+      <div class="qa-tabs">${TABS.map(([k, n, r]) => `<button data-t="${k}">${n}<small>${r.length}</small></button>`).join('')}</div>
+      <p class="qa-hint" id="qlH"></p><input id="qlQ" placeholder="поиск по названию" autocomplete="off"><div id="qlL"></div><button class="btn ghost" id="qlB">Назад</button></div>`;
+    const L = $('qlL'), draw = q => { const T1 = TABS.find(t => t[0] === cur) || TABS[0]; $('qlH').textContent = T1[3];
+      ui.querySelectorAll('.qa-tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === T1[0]));
+      const r = T1[2].filter(x => !q || (x.id + ' ' + x.title + ' ' + x.line).toLowerCase().includes(q));
+      L.innerHTML = r.map(x => `<div class="qa-row"><button data-id="${x.id}"${x.an ? ` data-an="${x.an}"` : ''}><b>${esc(x.tm || '')}</b><i>${esc(x.title)}</i><span>${esc(x.line || '')}<em>${esc(x.id)}</em></span></button>${x.fin ? `<button class="qa-fin" data-fin="${x.id}">финал</button>` : ''}</div>`).join('') || '<p>Ничего не нашлось</p>'; };
     draw('');
+    ui.querySelector('.qa-tabs').onclick = e => { const b = e.target.closest('button[data-t]'); if (!b) return; e.stopPropagation(); cur = b.dataset.t; LSset('qaTab', cur); $('qlQ').value = ''; draw(''); };
     $('qlQ').oninput = e => draw(e.target.value.trim().toLowerCase());
     $('qlQ').onkeydown = e => e.stopPropagation();
-    L.onclick = e => { const b = e.target.closest('button[data-id]'); if (b) { e.stopPropagation(); N.begin(b.dataset.id); } };
+    L.onclick = e => { const f = e.target.closest('button[data-fin]'), b = e.target.closest('button[data-id]'); e.stopPropagation();
+      if (f) { const n = (S.scenes[f.dataset.fin].beats || []).length; N.begin(f.dataset.fin); setTimeout(() => N.startScene(f.dataset.fin, Math.max(0, n - 1)), 400); return; }
+      if (!b) return; if (b.dataset.an) return showAn(b.dataset.an, AN[b.dataset.an] || b.dataset.an); N.begin(b.dataset.id); };
     $('qlB').onclick = e => { e.stopPropagation(); N.back(); };
   }
+  function LSget(k) { try { return localStorage.getItem('ns1_' + k); } catch (e) { return null; } }
+  function LSset(k, v) { try { localStorage.setItem('ns1_' + k, v); } catch (e) {} }
+  // странность на камере: час смены S3, время стоит, включена только она
+  function showAn(id, name) { const def = window.STORY.shift.an[id]; if (!def) return; LSset('tutDone', '1'); N.begin('sh_S3'); let n = 0;
+    const h = setInterval(() => { if (++n > 100) return clearInterval(h); if (N.mode !== 'shift' || !N.shf) return; clearInterval(h);
+      N.shSpeed(0); const f = N.shf; f.act.length = 0; f.ev.forEach(e => (e.done = true)); f.act.push({ id, def, m: f.M });
+      N.shiftCam(def.cam === '02' ? '01' : '02'); N.shiftCam(def.cam); toast('Странность: ' + name + ' · камера ' + (def.cam === 'm2' ? '−2' : def.cam) + ' · время стоит', 5000); }, 150); }
   function menuHook() {
     const nav = document.querySelector('#ui .mlist'); if (!nav || nav.querySelector('.qa-m')) return;
-    const a = document.createElement('button'); a.className = 'qa-m'; a.textContent = '🐞 Сцены (проверка)'; a.onclick = e => { e.stopPropagation(); list(); }; nav.appendChild(a);
+    const a = document.createElement('button'); a.className = 'qa-m'; a.textContent = '🐞 Проверка: концовки, смерти, сцены'; a.onclick = e => { e.stopPropagation(); list(); }; nav.appendChild(a);
     if (bugs.length) { const s = document.createElement('button'); s.className = 'qa-m'; s.textContent = `Отправить ошибки (${bugs.length})`; s.onclick = e => { e.stopPropagation(); prepare(null, false); }; nav.appendChild(s); }
   }
   { const k = $('keys'); if (k) { const d = document.createElement('div'); d.innerHTML = '<kbd>B</kbd>баг (проверка)'; k.appendChild(d); } }   // на ПК: B (или И) — отметить ошибку

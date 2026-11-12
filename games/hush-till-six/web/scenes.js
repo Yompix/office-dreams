@@ -149,7 +149,7 @@ function buildLobby() {
       g.computeVertexNormals(); return g; };
     for (let i = 0; i < 15; i++) { const top = i < 6, a = i * 2.39996 + (top ? .4 : 0), len = top ? .62 + (i % 3) * .07 : .86 + (i % 4) * .08;
       const m = new T.Mesh(frond(len, top ? .26 : .34, top ? .55 + (i % 2) * .2 : 1.05 + (i % 3) * .16, ((i * 7) % 5 - 2) * .12), lf);
-      m.position.y = 1.84 + (top ? .05 : 0); m.rotation.set(top ? -.75 : -.28 - (i % 3) * .08, a, 0, 'YXZ'); m.castShadow = true; pg.add(m); }
+      m.position.y = 1.84 + (top ? .05 : 0); m.rotation.set(top ? -.75 : -.28 - (i % 3) * .08, a, 0, 'YXZ'); m.userData.noShadow = true; pg.add(m); }   // листья не бросают тень: фестончатые пятна на полу и тротуаре игроки принимали за странность (владелец, 12 ноя)
     const sh = ctex(128, 256, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = '#000'; x.filter = 'blur(3px)';
       x.beginPath(); x.ellipse(w / 2, h * .2, w * .17, h * .1, 0, 0, 7); x.fill();   // «голова» — крона
       x.beginPath(); x.moveTo(w * .36, h * .27); x.quadraticCurveTo(w * .5, h * .32, w * .64, h * .27); x.lineTo(w * .7, h * .62); x.lineTo(w * .56, h * .98); x.lineTo(w * .44, h * .98); x.lineTo(w * .3, h * .62); x.closePath(); x.fill(); });
@@ -2928,7 +2928,7 @@ function cineLoc(R, o) {
     if (!g.boundingSphere) g.computeBoundingSphere();
     const solid = !mt.isMeshBasicMaterial && !mt.transparent && !mt.isShaderMaterial;
     m.receiveShadow = solid;
-    m.castShadow = solid && mt.side !== T.BackSide && g.boundingSphere.radius * Math.max(m.scale.x, m.scale.y, m.scale.z) < 2.4;
+    m.castShadow = solid && !m.userData.noShadow && mt.side !== T.BackSide && g.boundingSphere.radius * Math.max(m.scale.x, m.scale.y, m.scale.z) < 2.4;
   });
   o.casters = []; o.beams = [];
   S.traverse(l => { if (!l.isPointLight) return;
