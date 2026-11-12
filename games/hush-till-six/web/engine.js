@@ -90,7 +90,9 @@ async function load(onp) {
   const world = Promise.all([models, within(Promise.resolve(window.NS_FONTS).catch(() => null), 15000, 'шрифты')]).then(async () => {
     LD.w = 'сборка'; LD.times.push(['модели и шрифты', Math.round(performance.now() - LD.t0)]); ldInfo(); await yieldT();
     try {
-      if (window.World && World.init()) {
+      let wOk = !!(window.World && World.init());
+      for (let i = 0; !wOk && window.World && i < 3; i++) { LD.w = 'видеокарта, попытка ' + (i + 2); ldInfo(); await yieldT(900); wOk = !!World.init(); }   // WebGL не дали с первого раза (сразу после перезагрузки) — ждём и пробуем ещё
+      if (wOk) {
         World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7;
         // прогрев первых мест: на ТВ — по одному с паузой (экран живой, видно, какое место собирается), прошлый раз зависло на прогреве — без него
         if (window.nsTV) { if (!/^прогрев/.test(LD.prev || '')) { LD.w = 'прогрев'; ldInfo(); await yieldT(); World.warm(true, 1); } }   // ТВ: до меню — только титул (пролог прогревается в фоне, пока игрок в меню): на приставке это больше половины загрузки
@@ -1411,7 +1413,8 @@ function reloadKeep(from) {
     else if (sceneId && S.scenes[sceneId] && !sceneId.startsWith('over_')) Object.assign(st, { scene: sceneId, bi: mode === 'play' ? Math.max(0, bi) : true });
   }
   try { sessionStorage.setItem('ns1_resume', JSON.stringify(st)); } catch {}
-  uiSnd(); setTimeout(() => location.reload(), 120);
+  uiSnd(); leaving = true; try { if (window.World && World.release) World.release(); } catch (e) {}   // видеокарта отпускает старый мир до загрузки нового (на AMD новая страница иначе оставалась без WebGL)
+  setTimeout(() => location.reload(), 160);
 }
 let RESUME = null;
 try { RESUME = JSON.parse(sessionStorage.getItem('ns1_resume') || 'null'); sessionStorage.removeItem('ns1_resume'); if (RESUME && Date.now() - RESUME.at > 300000) RESUME = null; } catch { RESUME = null; }
@@ -1436,14 +1439,18 @@ function fitHd(host) {   // заголовок экрана настроек —
 }
 // видеокарта (world.js, GPU) — мелко внизу настроек: по ней графика выбрана при первом запуске; пригодится, если игрок пришлёт снимок экрана с ошибкой
 const gpuName = () => { const g = window.__W3core && window.__W3core.GPU; return FINE && g && g.name ? '<br>GPU: ' + g.name.replace(/[<>&"]/g, '') : ''; };
+// язык, графика и разрешение собираются при загрузке страницы. Раньше каждое нажатие сразу перезагружало игру (владелец, 12 ноя: «бесит ждать каждый раз»).
+// Теперь выбор только запоминается, а загрузка одна — при выходе из настроек, и только если что-то из этих трёх и правда поменяли
+const RES0 = +LS.get('res', 0) || 0; let pendGfx = null, pendLang = null;
+const setsPend = () => { const W = window.World || {}; return (pendGfx && pendGfx !== (W.cine ? 'cine' : 'retro')) || (pendLang && pendLang !== LNG) || (W.cine && (+LS.get('res', 0) || 0) !== RES0); };
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const resNow = () => +LS.get('res', 0) || 0, resList = () => [0, .5, .75, 1].concat(window.World && World.ultra ? [1.5, 2] : []);   // «Разрешение»: авто или доля; 150–200 % — суперсэмплинг «Ультра»
-  const gfxNow = () => { const W = window.World || {}; return W.cine ? 'cine' : 'retro'; };
+  const gfxNow = () => { const W = window.World || {}; return pendGfx || (W.cine ? 'cine' : 'retro'); };
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
-    ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
+    ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[pendLang || LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
     <button class="set" id="sGfx"><span>${tr('Графика')}</span><b class="gfx">${['retro', 'cine'].map(g => `<i data-g="${g}" class="${g === gfxNow() ? 'on' : ''}">${tr({ retro: 'РЕТРО', cine: 'КИНО', ultra: 'УЛЬТРА' }[g])}</i>`).join('')}</b></button>
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
@@ -1454,8 +1461,8 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
     ${DESK && DESK.isFull ? row('sFull', 'Во весь экран', DESK.isFull() ? 'ВКЛ' : 'ВЫКЛ') + row('sBg', 'Звук в фоне', DESK.bgSound() ? 'ВКЛ' : 'ВЫКЛ') : ''}</div>
-    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}${gpuName()}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
-  const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
+    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}${gpuName()}</small>${setsPend() ? `<small class="pend">${tr('Язык, графика и разрешение применятся, когда выйдешь из настроек.')}</small>` : ''}<button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+  const back = () => { if (setsPend()) return reloadKeep(from); pendGfx = pendLang = null; uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
   $('mBack').onclick = $('sX').onclick = back; fitHd(host);
   const re = () => { uiSnd(); settings(from); };
   $('sMute').onclick = () => { setMute(!LS.get('mute', false)); uiSnd(); $('sMute').classList.toggle('muted', LS.get('mute', false)); };
@@ -1465,9 +1472,9 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sLang').onclick = () => { uiSnd(); langPick(from); };
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
-  if ($('sRes')) $('sRes').onclick = e => { const r = e && e.target && e.target.dataset ? e.target.dataset.r : null, L = resList(), cur = resNow(), nx = r != null ? +r : L[(L.indexOf(cur) + 1) % L.length]; if (nx === cur) return; LS.set('res', nx); reloadKeep(from); };
+  if ($('sRes')) $('sRes').onclick = e => { const r = e && e.target && e.target.dataset ? e.target.dataset.r : null, L = resList(), cur = resNow(), nx = r != null ? +r : L[(L.indexOf(cur) + 1) % L.length]; if (nx === cur) return; LS.set('res', nx); re(); };
   $('sGfx').onclick = e => { const W = window.World || {}, pick = e && e.target && e.target.dataset ? e.target.dataset.g : null; if (pick && pick === gfxNow()) return;   // выбор виден сразу: тап по слову — этот вид; Enter/кнопка пульта — следующий по кругу
-    LS.set('gfx', pick || (W.cine ? 'retro' : 'cine')); LS.set('gfxAuto', 2); try { localStorage.removeItem('ns1_hq'); } catch (e) {} reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
+    pendGfx = pick || (gfxNow() === 'cine' ? 'retro' : 'cine'); LS.set('gfx', pendGfx); LS.set('gfxAuto', 2); try { localStorage.removeItem('ns1_hq'); } catch (e) {} re(); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
@@ -1476,11 +1483,11 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
 function langPick(from) {   // выбор языка списком; выбранный — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   const host = from === 'pause' ? pzEl : uiEl, N = window.NS_LANG_NAMES || {};
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('Язык').toLocaleUpperCase(LNG)}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets langs">
-    ${(window.NS_LANGS || ['ru', 'en']).map(l => `<button class="set" data-l="${l}"><span>${N[l] || l.toUpperCase()}</span><b>${l === LNG ? ICON.ok : ''}</b></button>`).join('')}</div><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+    ${(window.NS_LANGS || ['ru', 'en']).map(l => `<button class="set" data-l="${l}"><span>${N[l] || l.toUpperCase()}</span><b>${l === (pendLang || LNG) ? ICON.ok : ''}</b></button>`).join('')}</div><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   $('mBack').onclick = $('sX').onclick = () => { uiSnd('back'); settings(from); }; fitHd(host);
-  host.querySelectorAll('[data-l]').forEach(b => { b.onclick = () => { if (b.dataset.l === LNG) { uiSnd('back'); settings(from); } else { LS.set('lang', b.dataset.l);
+  host.querySelectorAll('[data-l]').forEach(b => { b.onclick = () => { { pendLang = b.dataset.l; LS.set('lang', b.dataset.l);
     try { const u = new URL(location.href); if (u.searchParams.has('lang')) { u.searchParams.set('lang', b.dataset.l); history.replaceState(history.state, '', u); } } catch {}   // пришёл по ссылке с ?lang= — она главнее выбора: без замены страница перезагружалась на прежнем языке
-    reloadKeep(from); } }; });
+    uiSnd(); settings(from); } }; });
 }
 // проба громкости после ползунка. В паузе основной звук стоит (AC.suspend), поэтому проба идёт через свой маленький контекст с теми же множителями
 let probeAC = null; const probeBuf = {};
@@ -1586,12 +1593,12 @@ function heldShot(id, o, T, key) {
   g.drawImage(heldC, 0, 0);
 }
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
-let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false, lastShotT = 0, overBg = null;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы; lastShotT — время последнего кадра (экран смерти держит его застывшим)
+let leaving = false, worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false, lastShotT = 0, overBg = null;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы; lastShotT — время последнего кадра (экран смерти держит его застывшим)
 function shot(id, o, cx = g) {
   if (LAND && o.cx != null && !o._sx) { o.cx = scrX(o.cx); o._sx = 1; }   // точки наезда заданы для 9:16 — в 16:9 то же направление
   if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow(), settle: settleQ }))) { lastDrawn = id; lastShotT = o.t || 0; settleQ = false; return true; }
-  cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried) return false;   // пока мир грузится — просто чёрный
-  g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText(tr('Нужен браузер с WebGL'), W / 2, H * .3); g.textAlign = 'left';
+  cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried || leaving) return false;   // пока мир грузится — просто чёрный
+  g.fillStyle = '#777'; g.font = '700 ' + Math.round(H * .03) + 'px Inter, Arial'; g.textAlign = 'center'; g.fillText(tr('Нужен браузер с WebGL'), W / 2, H * .62); g.textAlign = 'left';   // ниже названия игры (раньше строка просвечивала сквозь логотип)
   return false;
 }
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;

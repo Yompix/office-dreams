@@ -3320,7 +3320,9 @@ function gfxCheck(src) {
     if (++gfxChk.bad >= 2) { gfxChk.done = true; if (ULTRA) localStorage.setItem('ns1_hq', '0'); else { localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); } location.reload(); }
   } catch (e) { gfxChk.done = true; }
 }
+let released = false;   // мир отпущен перед перезагрузкой страницы — больше не рисуем (иначе three.js спотыкается о потерянный контекст)
 function draw(g, W, H, id, o) {
+  if (released) return false;
   if (!init()) return false;
   const R = window.__W3core.R;
   const t = o.t || 0, T0 = o.T || 0, dt = Math.min(.05, Math.max(0, T0 - lastT)) || .016; lastT = T0;
@@ -3680,6 +3682,7 @@ function solidWhy(k) {
 }
 // для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
 function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
-window.World = { dbgShot: (id, base, d) => { SH[id] = Object.assign({}, SH[base], d); },   /* отладочный ракурс того же кадра (tools/anim/phone_view.js) */
+window.World = { release: () => { const R = window.__W3core.R; released = true; if (!R) return; try { R.forceContextLoss(); } catch (e) {} try { R.dispose(); } catch (e) {} },
+  dbgShot: (id, base, d) => { SH[id] = Object.assign({}, SH[base], d); },   /* отладочный ракурс того же кадра (tools/anim/phone_view.js) */
   draw, init, warm, warmMore, get warmLeft() { return warmQ ? warmQ.length : -1; }, get warmBusy() { return !!warmBusy; }, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, goreTL: id => { const g = goreShot(id); return (g && g.tl) || null; }, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();
