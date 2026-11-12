@@ -28,7 +28,7 @@ const JARS = [
   [CENTRAL + 'com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar'], [CENTRAL + 'com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar'],
   [CENTRAL + 'org/bitbucket/b_c/jose4j/0.9.5/jose4j-0.9.5.jar'], [CENTRAL + 'org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar']];
 // что из папки игры не нужно в приложении: картинки для соцсетей и страницы, режим проверки владельца и его снимки экрана, манифест веб-приложения
-const SKIP = /^(og\.(jpg|webp)|cover\.webp|manifest\.json|privacy\.html|qa\.js|lib\/html2canvas\.min\.js|apple-touch-icon\.png|icon-maskable-.*\.png|favicon.*)$/;
+const SKIP = /^(og\.(jpg|webp)|cover\.webp|manifest\.json|privacy\.html|terms\.html|qa\.js|lib\/html2canvas\.min\.js|apple-touch-icon\.png|icon-maskable-.*\.png|favicon.*)$/;
 
 const run = (cmd, a, o = {}) => { try { return execFileSync(cmd, a, Object.assign({ stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28 }, o)).toString(); }
   catch (e) { const t = String(e.stderr || '') + String(e.stdout || ''); throw new Error(path.basename(cmd) + ' ' + a.slice(0, 4).join(' ') + ' → ' + t.replace(/Picked up JAVA_TOOL_OPTIONS[^\n]*\n/, '').slice(-2500)); } };
