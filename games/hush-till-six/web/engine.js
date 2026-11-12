@@ -1461,7 +1461,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
     ${DESK && DESK.isFull ? row('sFull', 'Во весь экран', DESK.isFull() ? 'ВКЛ' : 'ВЫКЛ') + row('sBg', 'Звук в фоне', DESK.bgSound() ? 'ВКЛ' : 'ВЫКЛ') : ''}</div>
-    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}${gpuName()}</small>${setsPend() ? `<small class="pend">${tr('Язык, графика и разрешение применятся, когда выйдешь из настроек.')}</small>` : ''}<button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}${gpuName()}</small>${setsPend() ? `<small class="pend">${tr('Язык, графика и разрешение применятся, когда выйдешь из настроек.')}</small>` : ''}<button class="btn${setsPend() ? ' apply' : ' ghost'}" id="mBack">${tr(setsPend() ? 'Применить' : 'Назад')}</button></div>`;   // есть что применять — кнопка так и называется и горит красным (владелец выбрал язык и не понял, почему он не сменился)
   const back = () => { if (setsPend()) return reloadKeep(from); pendGfx = pendLang = null; uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
   $('mBack').onclick = $('sX').onclick = back; fitHd(host);
   const re = () => { uiSnd(); settings(from); };

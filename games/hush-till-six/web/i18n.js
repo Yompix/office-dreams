@@ -11,6 +11,7 @@ const LANG0 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getIte
   const n = (navigator.language || '').toLowerCase();
   const m = /^(uk|es|pt|de|fr|it|pl|tr|zh|ja|ko)/.exec(n); return /^(ru|be|kk)/.test(n) ? 'ru' : m && LANGS.includes(m[1]) ? m[1] : 'en'; })();   // язык системы; пока у языка нет словаря, READY ниже даст английский
 const EN = {
+  'Применить': 'Apply',
   'Язык, графика и разрешение применятся, когда выйдешь из настроек.': 'Language, graphics and resolution will apply when you leave settings.',
   // сценарий: экранные тексты, выборы, правила, подсказки мини-игр, концовки
   'CAM 04  ХОЛЛ': 'CAM 04  LOBBY', 'CAM 07  ЭТАЖ 7': 'CAM 07  FLOOR 7', 'CAM 01  ВХОД': 'CAM 01  ENTRANCE', 'ВХОД': 'ENTRANCE', 'ХОЛЛ': 'LOBBY', 'ЭТАЖ 7': 'FLOOR 7',
@@ -742,6 +743,7 @@ es: {
   "Разрешение": "Resolución",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "El idioma, los gráficos y la resolución se aplicarán al salir de los ajustes.",
+  "Применить": "Aplicar",
 },
 pt: {
   "CAM 04  ХОЛЛ": "CAM 04  SAGUÃO",
@@ -1278,6 +1280,7 @@ pt: {
   "Разрешение": "Resolução",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Idioma, gráficos e resolução serão aplicados ao sair das configurações.",
+  "Применить": "Aplicar",
 },
 de: {
   "CAM 04  ХОЛЛ": "CAM 04  FOYER",
@@ -1814,6 +1817,7 @@ de: {
   "Разрешение": "Auflösung",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Sprache, Grafik und Auflösung werden beim Verlassen der Einstellungen übernommen.",
+  "Применить": "Übernehmen",
 },
 fr: {
   "CAM 04  ХОЛЛ": "CAM 04  HALL",
@@ -2350,6 +2354,7 @@ fr: {
   "Разрешение": "Résolution",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "La langue, les graphismes et la résolution s’appliqueront en quittant les paramètres.",
+  "Применить": "Appliquer",
 },
 it: {
   "CAM 04  ХОЛЛ": "CAM 04  ATRIO",
@@ -2886,6 +2891,7 @@ it: {
   "Разрешение": "Risoluzione",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Lingua, grafica e risoluzione verranno applicate all’uscita dalle impostazioni.",
+  "Применить": "Applica",
 },
 pl: {
   "CAM 04  ХОЛЛ": "CAM 04  HOL",
@@ -3422,6 +3428,7 @@ pl: {
   "Разрешение": "Rozdzielczość",
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Język, grafika i rozdzielczość zmienią się po wyjściu z ustawień.",
+  "Применить": "Zastosuj",
 },
 tr: {
   "CAM 04  ХОЛЛ": "CAM 04  LOBİ",
@@ -3958,6 +3965,7 @@ tr: {
   "Разрешение": "Çözünürlük",
   "АВТО": "OTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Dil, grafik ve çözünürlük ayarlardan çıkınca uygulanır.",
+  "Применить": "Uygula",
 },
 uk: {
   "CAM 04  ХОЛЛ": "CAM 04  ХОЛ",
@@ -4494,6 +4502,7 @@ uk: {
   "Разрешение": "Роздільність",
   "АВТО": "АВТО",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Мова, графіка й роздільність застосуються, коли вийдеш із налаштувань.",
+  "Применить": "Застосувати",
 },
 zh: {
   "CAM 04  ХОЛЛ": "CAM 04  大厅",
@@ -5030,6 +5039,7 @@ zh: {
   "Разрешение": "分辨率",
   "АВТО": "自动",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "语言、画质和分辨率将在退出设置后生效。",
+  "Применить": "应用",
 },
 ja: {
   "CAM 04  ХОЛЛ": "CAM 04  ロビー",
@@ -5566,6 +5576,7 @@ ja: {
   "Разрешение": "解像度",
   "АВТО": "自動",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "言語・グラフィック・解像度は、設定を閉じると反映されます。",
+  "Применить": "適用",
 },
 ko: {
   "CAM 04  ХОЛЛ": "CAM 04  로비",
@@ -6102,6 +6113,7 @@ ko: {
   "Разрешение": "해상도",
   "АВТО": "자동",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "언어, 그래픽, 해상도는 설정을 나가면 적용됩니다.",
+  "Применить": "적용",
 },
 };
 // ==== /DICT ====
