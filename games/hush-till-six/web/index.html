@@ -560,12 +560,13 @@ body.calm .screen.over h1 { animation: overin 2.4s both; }
     linear-gradient(135deg, #fff 0, #fff calc(1.1 * var(--u)), transparent calc(1.15 * var(--u))) top left / 50% 50% no-repeat,
     linear-gradient(180deg, rgba(196,22,34,.95), rgba(92,8,14,.95)) !important; color: #fff; }
 .sh-act button#shLog::before { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 calc(6 * var(--u)) rgba(255,160,165,.55); animation: overpulse 2.2s ease-in-out infinite; }
-/* главное меню: пункт подчёркивается растущей красной линией, слева въезжает метка */
+/* главное меню: пункт подчёркивается растущей красной линией */
 .title .mlist button { overflow: hidden; }
 .title .mlist button::after { content: ''; position: absolute; left: 50%; bottom: calc(-.25 * var(--u)); width: 100%; height: calc(.4 * var(--u)); margin-left: -50%; background: linear-gradient(90deg, transparent, var(--acc) 30%, var(--acc) 70%, transparent); transform: scaleX(0); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
 .title .mlist button:hover::after, .title .mlist button.pfocus::after { transform: scaleX(1); }
 .title .mlist button::before { border-radius: 0; width: calc(3 * var(--u)); height: calc(.5 * var(--u)); margin-top: calc(-.25 * var(--u)); transform: translateX(calc(-4 * var(--u))); transition: opacity .15s, transform .22s cubic-bezier(.2,.8,.2,1); }
 .title .mlist button:hover::before, .title .mlist button:active::before { transform: none; }
+.title .mlist button::before { display: none; }   /* метка слева залезала на первую букву длинных пунктов («Продолжить», «Начать заново») — убрана, выбранный пункт показывают подчёркивание и свечение (владелец, 12 ноя) */
 .title.open .mlist button { animation: rowin .5s cubic-bezier(.16,.84,.3,1) backwards; }
 .title.open .mlist button:nth-child(2) { animation-delay: .07s; } .title.open .mlist button:nth-child(3) { animation-delay: .14s; } .title.open .mlist button:nth-child(4) { animation-delay: .21s; } .title.open .mlist button:nth-child(n+5) { animation-delay: .28s; }
 /* подсказка «нажми» и окно разговора */
