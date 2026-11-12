@@ -1785,6 +1785,51 @@ function drawing() {   // заставка телефона: детский ри
   x.restore();
   return c;
 }
+// экран звонка (владелец, 12 ноя: «сделай нормальный телефон с анимацией того, как принимаем вызов»): обои, строка состояния, аватар с расходящимися кольцами,
+// две подписанные кнопки с трубками. P.take — секунда, когда Итан отвечает: палец ложится на зелёную, она уезжает в центр, красная гаснет, экран сменяется разговором с таймером
+function callScreen(P, t, x, y, w, h) {
+  const W = 1080, kind = P.kind, cx = W / 2, nm = tr(P.name || 'Лили'), unknown = /^[+\d]/.test(P.name || '') || /не определ/i.test(P.name || '');
+  const take = kind === 'call' && P.take != null ? P.take : null, k = take == null ? 0 : clamp((t - take) / .55, 0, 1), on = kind === 'talk' || kind === 'call2' || k >= 1;   // k — ход ответа
+  const e = k * k * (3 - 2 * k), hs = (px, py, s, rot, col) => { g.save(); g.translate(px, py); g.rotate(rot); g.strokeStyle = col; g.fillStyle = col; g.lineCap = 'round'; g.lineWidth = s * .2;
+    g.beginPath(); g.arc(0, s * .34, s * .58, Math.PI * 1.2, Math.PI * 1.8); g.stroke(); for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(sx * s * .46, s * .06, s * .17, s * .13, sx * .5, 0, 7); g.fill(); } g.restore(); };
+  g.save(); g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, 54) : g.rect(x, y, w, h); g.clip();
+  const bg = g.createLinearGradient(x, y, x + w * .4, y + h); bg.addColorStop(0, on ? '#0d2a24' : '#141a33'); bg.addColorStop(.55, on ? '#0a1c1f' : '#1b1433'); bg.addColorStop(1, '#07080d'); g.fillStyle = bg; g.fillRect(x, y, w, h);
+  const gl = g.createRadialGradient(cx, y + 330, 20, cx, y + 330, 420); gl.addColorStop(0, on ? 'rgba(60,200,150,.20)' : 'rgba(120,130,255,.22)'); gl.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gl; g.fillRect(x, y, w, h);
+  // строка состояния: время, сеть, батарея
+  g.fillStyle = '#e8eaf0'; g.font = '600 26px Inter, Arial'; g.textAlign = 'left'; g.fillText(lastTime || '03:44', x + 44, y + 58);
+  for (let i = 0; i < 4; i++) { g.globalAlpha = i < 3 ? 1 : .35; g.fillRect(x + w - 150 + i * 11, y + 54 - 6 - i * 5, 7, 6 + i * 5); } g.globalAlpha = 1;
+  g.strokeStyle = '#e8eaf0'; g.lineWidth = 2.5; g.strokeRect(x + w - 92, y + 36, 44, 22); g.fillRect(x + w - 46, y + 42, 4, 10); g.fillRect(x + w - 88, y + 40, 26, 14);
+  g.fillStyle = '#05060a'; g.beginPath(); g.arc(cx, y + 48, 13, 0, 7); g.fill();   // глазок камеры
+  // аватар: кольца расходятся, пока звонит
+  const ay = y + (on ? 250 : 300) - 50 * e * (on ? 0 : 1), ar = on ? 78 : 96 - 18 * e;
+  if (!on) for (let i = 0; i < 3; i++) { const ph = (t * .7 + i / 3) % 1; g.strokeStyle = `rgba(150,165,255,${(.42 * (1 - ph) * (1 - e)).toFixed(3)})`; g.lineWidth = 3; g.beginPath(); g.arc(cx, ay, ar + 14 + ph * 110, 0, 7); g.stroke(); }
+  const ag = g.createLinearGradient(cx - ar, ay - ar, cx + ar, ay + ar); ag.addColorStop(0, unknown ? '#4a505c' : '#7a6cf0'); ag.addColorStop(1, unknown ? '#262a33' : '#3a2f8f'); g.fillStyle = ag; g.beginPath(); g.arc(cx, ay, ar, 0, 7); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.92)'; g.textAlign = 'center';
+  if (unknown) { g.beginPath(); g.arc(cx, ay - ar * .18, ar * .3, 0, 7); g.fill(); g.beginPath(); g.ellipse(cx, ay + ar * .62, ar * .52, ar * .4, 0, Math.PI, 0); g.fill(); }   // силуэт: номер не из списка
+  else { g.font = `700 ${Math.round(ar * 1.05)}px Inter, Arial`; g.fillText([...nm][0] || '', cx, ay + ar * .37); }
+  g.fillStyle = '#fff'; g.font = `700 ${unknown ? 46 : 68}px Inter, Arial`; g.fillText(nm, cx, ay + ar + 96);
+  g.font = '500 32px Inter, Arial'; g.fillStyle = on ? '#7fe0b0' : '#a9b0c4';
+  const tt = on ? Math.max(0, Math.floor(kind === 'call' ? t - take - .55 : t) + (kind === 'call' ? 0 : P.t0 ?? 8)) : 0;
+  g.fillText(on ? String(Math.floor(tt / 60)).padStart(2, '0') + ':' + String(tt % 60).padStart(2, '0') : kind === 'out' ? tr('вызов') + '.'.repeat(1 + Math.floor(t * 2) % 3) : tr('мобильный · входящий'), cx, ay + ar + 150);
+  const by = y + h - 210, R = 74;
+  if (on) {   // разговор идёт: три кнопки и «завершить»
+    g.globalAlpha = kind === 'call' ? clamp((t - take - .55) / .3, 0, 1) : 1;
+    [-1, 0, 1].forEach((d, i) => { const px = cx + d * 170, py = by - 190; g.fillStyle = 'rgba(255,255,255,.10)'; g.beginPath(); g.arc(px, py, 52, 0, 7); g.fill(); g.strokeStyle = '#dfe3ee'; g.fillStyle = '#dfe3ee'; g.lineWidth = 5; g.lineCap = 'round';
+      if (i === 0) { g.beginPath(); g.roundRect ? g.roundRect(px - 9, py - 24, 18, 32, 9) : g.rect(px - 9, py - 24, 18, 32); g.fill(); g.beginPath(); g.arc(px, py + 2, 19, .15, Math.PI - .15); g.stroke(); g.beginPath(); g.moveTo(px, py + 21); g.lineTo(px, py + 30); g.stroke(); }   // микрофон
+      else if (i === 1) { for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { g.beginPath(); g.arc(px - 16 + c * 16, py - 16 + r * 16, 4, 0, 7); g.fill(); } }   // клавиши
+      else { g.beginPath(); g.moveTo(px - 20, py - 8); g.lineTo(px - 8, py - 8); g.lineTo(px + 6, py - 20); g.lineTo(px + 6, py + 20); g.lineTo(px - 8, py + 8); g.lineTo(px - 20, py + 8); g.closePath(); g.fill(); g.beginPath(); g.arc(px + 6, py, 16, -.7, .7); g.stroke(); } });   // динамик
+    g.globalAlpha = 1; g.fillStyle = '#e0343a'; g.beginPath(); g.arc(cx, by, R, 0, 7); g.fill(); hs(cx, by - 8, 62, 0, '#fff');
+  } else if (kind === 'out') { g.fillStyle = '#e0343a'; g.beginPath(); g.arc(cx, by, R, 0, 7); g.fill(); hs(cx, by - 8, 62, 0, '#fff'); }
+  else {   // входящий: «Сбросить» слева, «Ответить» справа
+    const lx = x + 150, rx = x + w - 150, gx = rx + (cx - rx) * e, pr = 1 + .05 * Math.sin(t * 7) * (1 - e) + .12 * Math.sin(e * Math.PI);
+    g.globalAlpha = 1 - e; g.fillStyle = '#e0343a'; g.beginPath(); g.arc(lx, by, R, 0, 7); g.fill(); hs(lx, by - 8, 62, 0, '#fff');
+    g.fillStyle = '#c9cede'; g.font = '500 28px Inter, Arial'; g.fillText(tr('Сбросить'), lx, by + R + 48); g.fillText(tr('Ответить'), rx, by + R + 48); g.globalAlpha = 1;
+    for (let i = 0; i < 2; i++) { const ph = (t * .9 + i / 2) % 1; g.strokeStyle = `rgba(60,210,120,${(.5 * (1 - ph) * (1 - e)).toFixed(3)})`; g.lineWidth = 4; g.beginPath(); g.arc(rx, by, R + 8 + ph * 46, 0, 7); g.stroke(); }
+    g.fillStyle = e > .02 ? '#2fd07a' : '#27b866'; g.beginPath(); g.arc(gx, by, R * pr, 0, 7); g.fill(); hs(gx, by + 4, 62, -2.3 + 2.3 * e * .0, '#fff');
+    if (take != null && t > take - .25 && k < 1) { const a = clamp((t - take + .25) / .2, 0, 1) * (1 - e); g.fillStyle = `rgba(255,255,255,${(.35 * a).toFixed(3)})`; g.beginPath(); g.arc(gx, by, R * (1.05 + .5 * e), 0, 7); g.fill(); }   // касание пальцем
+  }
+  g.restore();
+}
 function phoneIn(P, t) {   // экран телефона в координатах вертикального холста 1080×1920
   const W = 1080, kind = P.kind;
   const x = 240, y = 230, w = 600, h = 1060; g.fillStyle = '#111'; rr(x - 20, y - 20, w + 40, h + 40, 70); g.fillStyle = '#0b0d12'; rr(x, y, w, h, 54);
@@ -1803,13 +1848,7 @@ function phoneIn(P, t) {   // экран телефона в координат�
     g.fillStyle = '#2b2f3a'; rr(x + 50, y + 420, w - 120, 190, 36); g.fillStyle = '#fff'; g.font = '600 40px Inter, Arial'; g.textAlign = 'left';
     g.fillText(tr('Не открывай им.'), x + 90, y + 500); if (t > 1.6) g.fillText(tr('Это не я.'), x + 90, y + 560);
     if (t > 2.4) { g.fillStyle = '#2b2f3a'; rr(x + 50, y + 650, w - 220, 120, 36); g.fillStyle = '#f66'; g.fillText(tr('Я тебя вижу'), x + 90, y + 725); }
-  } else {   // call — входящий, out — исходящий (идут гудки), call2/talk — разговор идёт (таймер)
-    const pulse = 1 + .06 * Math.sin(t * 8), nm = tr(P.name || 'Лили'), talk = kind === 'call2' || kind === 'talk';
-    g.font = '700 70px Inter, Arial'; g.fillText(nm, W / 2, y + 330); g.font = '500 36px Inter, Arial'; g.fillStyle = '#9aa';
-    g.fillText(talk ? '00:' + String(Math.floor(t) + (P.t0 ?? 8)).padStart(2, '0') : kind === 'out' ? tr('вызов') + '…'.slice(0, 1) : tr('мобильный · входящий'), W / 2, y + 400);
-    if (kind === 'call') { g.fillStyle = '#2a3'; g.beginPath(); g.arc(x + w - 150, y + h - 200, 70 * pulse, 0, 7); g.fill(); }
-    g.fillStyle = '#d33'; g.beginPath(); g.arc(kind === 'call' ? x + 150 : W / 2, y + h - 200, 70, 0, 7); g.fill();
-  }
+  } else callScreen(P, t, x, y, w, h);
   g.textAlign = 'left';
 }
 // брызги крови на объектив: веер от одной точки (как от удара), а не ровные кружки с палочками (владелец, 11 ноя: «жести добавить»).
@@ -1971,7 +2010,7 @@ function frame(tp) {
         if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) blackT = T - .02; }
         if (beat.fx === 'static' && t > 1.2) { grain(.55); g.fillStyle = `rgba(255,255,255,${(calm() ? .02 : .04) + .04 * Math.sin(t * 40)})`; g.fillRect(0, 0, W, H); }
         // дождь перед объективом — только когда мы сами снаружи (внутри холла капли — на стекле, это рисует 3D)
-        if (beat.fx === 'rain' && place && place.out) { g.strokeStyle = 'rgba(200,215,230,.28)'; g.lineWidth = 2; g.beginPath(); for (const d of drops) { const y = (d.y + T * d.v) % (H + 100) - 100, x = (d.x + y * .12) % W; g.moveTo(x, y); g.lineTo(x + d.l * .12, y + d.l); } g.stroke(); grain(.08); }
+        if (beat.fx === 'rain' && place && place.out) { g.strokeStyle = `rgba(200,215,230,${beat.cover ? .09 : .28})`;   /* cover — герои под навесом: дождь перед объективом еле виден */ g.lineWidth = 2; g.beginPath(); for (const d of drops) { const y = (d.y + T * d.v) % (H + 100) - 100, x = (d.x + y * .12) % W; g.moveTo(x, y); g.lineTo(x + d.l * .12, y + d.l); } g.stroke(); grain(.08); }
         if (beat.fx === 'lamp' && (T * 3.1) % 9 < .25) { g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, 0, W, H); }
         if (beat.fx === 'flicker' && (T % 4) < .5 && !calm()) { g.fillStyle = `rgba(255,255,255,${.04 * Math.abs(Math.sin(T * 31))})`; g.fillRect(0, 0, W, H); }
         if (beat.fx === 'dawn') { g.save(); g.globalCompositeOperation = 'soft-light'; g.fillStyle = 'rgba(255,160,80,.75)'; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'screen'; g.fillStyle = `rgba(70,35,10,${.15 + .15 * p})`; g.fillRect(0, 0, W, H); g.restore(); grain(.06); }

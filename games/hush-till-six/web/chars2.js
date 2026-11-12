@@ -950,7 +950,7 @@ function reachArm(C, sd, a) {
   const k = a.w ?? 1; if (!(k > 0)) return;
   const pole = a.pole || (sd === 'r' ? [-.7, -1, -.35] : [.7, -1, -.35]);
   if (typeof a.at === 'function') C.root.updateWorldMatrix(true, true);
-  const at = typeof a.at === 'function' ? a.at(C) : a.at;   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
+  const at = typeof a.at === 'function' ? a.at(C) : a.at; if (typeof a.fdir === 'function' || typeof a.pdir === 'function') a = Object.assign({}, a, { fdir: typeof a.fdir === 'function' ? a.fdir(C) : a.fdir, pdir: typeof a.pdir === 'function' ? a.pdir(C) : a.pdir });   // направления кисти тоже могут идти от тела этого кадра (ладонь у уха поворачивается вместе с головой)   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
   const want = new T.Vector3(at[0], at[1], at[2]), wrist = want.clone();
   if (a.by && a.by !== 'wrist') { const p = handPt(C, sd, a.by), hw = C.bone['hand_' + sd].getWorldPosition(new T.Vector3()); wrist.add(hw.sub(p)); }
   const arm = ['upperarm_', 'lowerarm_', 'hand_'].map(n => C.bone[n + sd]), q0 = k < 1 && a.by && a.by !== 'wrist' ? arm.map(b => b.quaternion.clone()) : null;   // рука только тянется (вес < 1): кончик пальца считаем от кисти в конечной позе, а не от позы клипа — иначе палец пролетал цель (сквозь стекло)
@@ -985,10 +985,17 @@ function propMesh(name) {
       for (let j = 0; j < 4; j++) box(.004, .005, .002, m, .005, -.03 - j * L * .2, 0, k);   // бородка
     });
     const tag = new T.Group(); tag.position.set(.012, -.018, -.004); tag.rotation.z = .4; g.add(tag); box(.022, .045, .003, red, 0, -.03, 0, tag);
-  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z. Корпус светлый, экран чуть светится — иначе у уха на тёмной куртке его не видно
-    box(.072, .152, .008, mat(0xd6d9dc, null, { roughness: .35, metalness: .6 }), 0, 0, 0, g);
-    const scr = new T.Mesh(new T.PlaneGeometry(.066, .144), mat(0x101820, null, { emissive: 0x2a4a66, basic: false })); scr.position.z = .0042; g.add(scr); g.userData.screen = scr;
-    const cam = box(.016, .016, .003, blk, -.022, .058, -.005, g); cam.castShadow = false;   // глазок камеры на спинке
+  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z. Рамка тёмная, спинка светлая, экран светится — у уха на тёмной куртке его видно
+    // (владелец, 12 ноя: «модель телефона нормальную сделай» — был плоский брусок): скруглённые углы из восьмиугольной призмы, рамка, островок камер с двумя объективами, кнопки сбоку
+    const fr = mat(0x2a2c30, null, { roughness: .3, metalness: .85 }), bk = mat(0xc9ccd2, null, { roughness: .28, metalness: .5 });
+    const body = (w, h, d, r, m, z) => { const sh = new T.Shape(), x = w / 2, y = h / 2; sh.moveTo(-x + r, -y); sh.lineTo(x - r, -y); sh.quadraticCurveTo(x, -y, x, -y + r); sh.lineTo(x, y - r); sh.quadraticCurveTo(x, y, x - r, y); sh.lineTo(-x + r, y); sh.quadraticCurveTo(-x, y, -x, y - r); sh.lineTo(-x, -y + r); sh.quadraticCurveTo(-x, -y, -x + r, -y);
+      const me = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: d, bevelEnabled: false, curveSegments: 4 }), m); me.position.z = z; g.add(me); return me; };
+    body(.072, .152, .0078, .011, fr, -.0039); body(.0695, .1495, .0006, .0098, bk, -.0045);   // рамка и спинка
+    const scr = new T.Mesh(new T.ShapeGeometry((() => { const sh = new T.Shape(), x = .0335, y = .0735, r = .0085; sh.moveTo(-x + r, -y); sh.lineTo(x - r, -y); sh.quadraticCurveTo(x, -y, x, -y + r); sh.lineTo(x, y - r); sh.quadraticCurveTo(x, y, x - r, y); sh.lineTo(-x + r, y); sh.quadraticCurveTo(-x, y, -x, y - r); sh.lineTo(-x, -y + r); sh.quadraticCurveTo(-x, -y, -x + r, -y); return sh; })(), 4), mat(0x101820, null, { emissive: 0x2a4a66, basic: false }));
+    scr.position.z = .0041; g.add(scr); g.userData.screen = scr;
+    box(.03, .03, .0016, mat(0x1c1e22, null, { roughness: .25, metalness: .7 }), -.017, .056, -.0054, g).castShadow = false;   // островок камер
+    for (const [x, y] of [[-.023, .062], [-.011, .05]]) { const l = cyl(.0048, .0048, .0012, 10, mat(0x05070a, null, { roughness: .1, metalness: .9 }), g); l.rotation.x = Math.PI / 2; l.position.set(x, y, -.0066); l.castShadow = false; }
+    box(.0012, .016, .003, fr, .0366, .03, 0, g).castShadow = false; box(.0012, .01, .003, fr, -.0366, .04, 0, g).castShadow = false; box(.0012, .01, .003, fr, -.0366, .025, 0, g).castShadow = false;   // питание и громкость
   } else if (name === 'cig') {    // сигарета: начало — фильтр (в губах/пальцах), горит конец (+X)
     const p = cyl(.0042, .0042, .062, 8, mat(0xeeeae0), g); p.rotation.z = Math.PI / 2; p.position.x = .031 + .022;
     const f = cyl(.0043, .0043, .022, 8, mat(0xc98a42), g); f.rotation.z = Math.PI / 2; f.position.x = .011;
@@ -1579,6 +1586,9 @@ function updateSkinned(C, t, dt) {
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }
+  // рука, привязанная к голове (телефон у уха): ставится ещё раз уже после поворота головы — иначе голова уходила за взглядом, а ладонь оставалась на месте,
+  // и телефон висел в 5–8 см от уха (владелец, 12 ноя: «Итан как-то далеко держит телефон»)
+  if (OBJ && P.arm) for (const sd of ['l', 'r']) if (P.arm[sd] && P.arm[sd].ear) { reachArm(C, sd, P.arm[sd]); if (P.hold && P.hold[sd]) holdProp(C, sd, P.hold[sd], 0); }
   if (C.o.monster) C.headBase = (C.headBase || new T.Quaternion()).copy(C.bone.Head.quaternion);
   }
   // Жилец: голова иногда бьётся в мелкой бешеной тряске (как на засвеченной плёнке) — каждый кадр, мимо покадровой рывковости;

@@ -360,8 +360,9 @@ function buildLobby() {
   const glare = plane(.09, 1.1, new T.MeshBasicMaterial({ color: 0xd0dce6, transparent: true, opacity: .1, depthWrite: false, blending: T.AdditiveBlending }), o.boothPane); glare.rotation.set(0, PI, .5); glare.position.set(.3, 0, .004);
   for (const [w, h, x, y] of [[1.36, .04, 0, .49], [1.36, .04, 0, -.49], [.04, 1.02, .66, 0], [.04, 1.02, -.66, 0]]) box(w, h, .03, mat(0x2a2c2e), x, y, 0, o.boothPane);
   o.boothPane.visible = false;
-  // пропуск Михалыча висит над пультом на шнурке
-  o.badge = new T.Group(); o.badge.position.set(-.1, 1.7, .04); o.badge.rotation.set(.08, .1, .03); bank.add(o.badge);
+  // пропуск Фрэнка висит на шнурке на крючке сбоку корпуса мониторов (раньше шнурок ни за что не держался — пропуск висел в воздухе над экранами: владелец, 12 ноя)
+  box(.075, .012, .012, mat(0x2b2d30, null, { metal: .6, rough: .4 }), .535, 1.563, .02, bank);
+  o.badge = new T.Group(); o.badge.position.set(.562, 1.363, .02); o.badge.rotation.set(.05, .08, .025); bank.add(o.badge);
   box(.004, .2, .004, mat(0x2a4a8a), 0, .1, 0, o.badge);
   o.badgeCard = plane(.11, .082, mat(0xffffff, TX.badge, { decal: 1 }), o.badge); o.badgeCard.position.y = -.03; box(.115, .087, .003, mat(0x9aa0a6), 0, -.03, -.003, o.badge);
   // камеры наблюдения (коробочки на стенах)
@@ -415,7 +416,11 @@ function buildLobby() {
   o.sky = new T.Mesh(new T.SphereGeometry(80, 12, 8), new T.MeshBasicMaterial({ map: TX.sky, side: T.BackSide, fog: false })); S.add(o.sky);
   // дождь
   const N = 700, pos = new Float32Array(N * 6); o.drops = [];
-  for (let i = 0; i < N; i++) o.drops.push([lerp(-14, 14, rnd()), rnd() * 12, lerp(6.25, 24, rnd()), 6 + rnd() * 5]);
+  // под навесом (|x| < 2,5, z < 8,4) дождя нет: капли оттуда переставлены на его кромку — получается завеса с края козырька.
+  // Раньше дождь шёл сквозь навес, и в концовке «Рассвет» Фрэнк курил под дождём (владелец, 12 ноя)
+  for (let i = 0; i < N; i++) { const d = [lerp(-14, 14, rnd()), rnd() * 12, lerp(6.25, 24, rnd()), 6 + rnd() * 5];
+    if (Math.abs(d[0]) < 2.55 && d[2] < 8.45) { if (rnd() < .5) d[2] = 8.45 + rnd() * .12; else { d[0] = (d[0] < 0 ? -1 : 1) * (2.55 + rnd() * .1); } d.push(1); }   // d[4] — капля с кромки: падает только ниже навеса
+    o.drops.push(d); }
   const rg = new T.BufferGeometry(); rg.setAttribute('position', new T.BufferAttribute(pos, 3));
   o.rain = new T.LineSegments(rg, new T.LineBasicMaterial({ color: 0x9fb4c8, transparent: true, opacity: .38 })); o.rain.frustumCulled = false; S.add(o.rain);
   // молния: вспышка неба
@@ -444,7 +449,7 @@ function buildLobby() {
   };
   o.tick = (t, dt) => {
     const p = o.rain.geometry.attributes.position.array;
-    for (let i = 0; i < o.drops.length; i++) { const d = o.drops[i]; d[1] -= d[3] * dt; if (d[1] < 0) d[1] += 12; p[i * 6] = d[0]; p[i * 6 + 1] = d[1]; p[i * 6 + 2] = d[2]; p[i * 6 + 3] = d[0] + .03; p[i * 6 + 4] = d[1] - .35; p[i * 6 + 5] = d[2]; }
+    for (let i = 0; i < o.drops.length; i++) { const d = o.drops[i]; d[1] -= d[3] * dt; if (d[1] < 0) d[1] += d[4] ? 3.3 : 12; p[i * 6] = d[0]; p[i * 6 + 1] = d[1]; p[i * 6 + 2] = d[2]; p[i * 6 + 3] = d[0] + .03; p[i * 6 + 4] = d[1] - .35; p[i * 6 + 5] = d[2]; }
     o.rain.geometry.attributes.position.needsUpdate = true;
     // ненадёжная лампа холла (у левой колонны)
     const fl = o.flickOn ? unreliable(t, 1) : 0; o.tubeOK = fl; o.flick.material.color.setHex(fl ? 0xe8f0e0 : 0x30322e); o.l2.intensity = .9 * fl;
@@ -1347,8 +1352,12 @@ SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], 
 // fb05: журнал перевязан бечёвкой, на обложке «До трёх. Весь.»
 SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
 // 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
+// ладонь у уха — от самой головы этого кадра: бок, верх и «вперёд» головы (C.headFwd), а не от корпуса. sd: 'l' | 'r'
+function earArm(sd, pole) { const s = sd === 'l' ? 1 : -1, fr = C => { const hb = C.bone.Head, h = hb.getWorldPosition(new T.Vector3()), f = C.headFwd.clone().applyQuaternion(hb.getWorldQuaternion(new T.Quaternion())).normalize(),
+    side = new T.Vector3(0, 1, 0).cross(f).normalize(), up = f.clone().cross(side).normalize(); return { h, f, side, up }; }, mix = (F, a, b, c) => F.side.clone().multiplyScalar(a * s).addScaledVector(F.up, b).addScaledVector(F.f, c);
+  return { ear: 1, by: 'palm', w: 1, pole, at: C => { const F = fr(C); return F.h.add(mix(F, .097, -.078, .024)).toArray(); }, fdir: C => mix(fr(C), 0, .75, -.66).toArray(), pdir: C => mix(fr(C), -1, 0, 0).toArray() }; }
 function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха, запястье у скулы перед ухом, пальцы назад вокруг телефона, локоть вниз-вперёд (замер tools/anim/phone_probe.js: локоть на 4 см ниже плеча; было на 19 см выше)
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.1, 1.14, -.225]), by: 'palm', fdir: R.v(0, .75, -.66), pdir: R.v(-1, 0, 0), w: 1, pole: [.45, -1, .35] } },   /* локоть вниз, чуть в сторону и вперёд (pole — направление в осях тела; раньше сюда попадала точка мира, и локоть задирался вверх-назад: владелец, 12 ноя) */   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: earArm('l', [.45, -1, .35]) },   /* локоть вниз, чуть в сторону и вперёд (pole — направление в осях тела; раньше сюда попадала точка мира, и локоть задирался вверх-назад: владелец, 12 ноя) */   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
     fing: { l: ['phone', 1] }, hold: { l: ['phone', 'phone_ear'] }, look: R.p(.6, 1.05, 2) }; }
 SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
@@ -1595,11 +1604,16 @@ SH.h_guard_back = { loc: 'lobby', pos: [5.6, 1.0, -.95], look: [5.6, 1.4, 2.5], 
 // «ВНУТРИ»: отражение Итана. Раньше он с первого кадра по-доброму улыбался — выходило смешно (владелец, 11 ноя). Теперь: стоит неживо, не дышит
 // и не моргает, смотрит в себя; улыбка ползёт медленно и становится шире человеческой, глаза в ней не участвуют (как у «Лили» у стекла),
 // голова медленно клонится набок, камера всё это время подползает к лицу
+// «Внутри»: отражение в стекле будки. Первые секунды — Итан как Итан, только слишком неподвижный. Потом свет на миг гаснет — и в стекле уже не он:
+// серая кожа, чёрные глаза без белков, тёмные глазницы, улыбка шире лица, которая продолжает расти, голова рывками ложится набок, камера наезжает.
+// (владелец, 12 ноя: «сделать страшнее лицо, как у Лили, но ещё пострашнее» — раньше это был обычный Итан с широкой улыбкой, выглядело смешно)
 SH.h_reflect = { loc: 'lobby', pos: [5.12, 1.62, 1.02], look: [5.12, 1.6, -.2], fov: 30, mirror: true, noRim: 1, set: (o, t, sh) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false;
-  const C = A.temych, k = seg(t, 1.4, 6), k2 = seg(t, 4.2, 8.5);
-  C.faceSets.h_in = { dead: Math.min(1, .45 + k), smile: 1.38 * k, wide: 1 + .32 * k2, browUp: .5 * k2 }; C.faceSet = 'h_in'; C.tiltNow = .32 * k2;
-  sh.fov = 30 - 9 * seg(t, .5, 9); o.amb.intensity = .8 - .45 * k2;
-  return [['temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', 1.3, 1]], still: 1, legs: 'feet' }, 'cam']]; } };
+  const T0 = 2.5, thing = t >= T0 + .09, k = seg(t, T0, T0 + 3.5), k2 = seg(t, T0 + 1.5, T0 + 6), C = thing ? A.ethanThing : A.temych;
+  if (thing) { C.faceSets.h_in = { smile: 1.05 + .6 * k2, mouth: 0, wide: 1.25 + .35 * k2, browUp: .2 + .6 * k2 }; C.faceSet = 'h_in'; C.tiltNow = .12 + .38 * k2; }   // улыбка, а не крик: рот почти сомкнут, растёт в ширину (текст: «улыбался шире, чем умею»)
+  else { C.faceSets.h_in = { dead: .7, smile: .25 * seg(t, 1.2, T0) }; C.faceSet = 'h_in'; C.tiltNow = 0; }
+  sh.fov = 30 - 4 * seg(t, .3, T0) - 6 * seg(t, T0, T0 + 6.5); o.amb.intensity = .8 - .5 * k2;
+  if (t > T0 - .02 && t < T0 + .17 || (t > T0 + .3 && t < T0 + .36)) for (const n of ['amb', 'hemi', 'l1', 'l3', 'l4', 'street', 'canopy', 'boothLight']) if (o[n]) o[n].intensity = 0;   // свет моргнул — и в стекле другой
+  return [[thing ? 'ethanThing' : 'temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', 1.3, 1]], still: 1, legs: 'feet' }, 'cam']]; } };
 // ---- А2: бег по служебному коридору — лампы гаснут у него за спиной; под дождём; звонок ----
 SH.x_run = { loc: 'corridor', pos: [0, 1.5, -2.5], look: [0, 1.35, -14], fov: 56, set: (o, t, sh) => { const z = -20.5 + t * 3.2; sh.pos[2] = z + 4.2 + Math.sin(t * 9) * .02; sh.look[2] = z;   // старт глубже (было −14): к концу реплики Итан вбегал в торцевую стену на 11 см (детектор, 11 ноя)
   lampSet(o, i => -1.8 - i * 3.6 > z - 3.0 - t * .2); o.amb.intensity = .3;   // гаснут те, что уже позади него
@@ -2217,8 +2231,13 @@ SH.c13_gus = { loc: 'corridor', pos: C13G, look: [-.62, .38, -12.0], fov: 52, cc
 SH.c13_gus_up = { loc: 'corridor', pos: C13G, look: [-.66, .8, -12.3], fov: 52, cctv: 1, face: { monster: 'grin' }, set: (o, t) => gusEat(o, t, true) };
 // ---- улица ----
 // x03: выбежал через аварийный выход — бежит под дождём вдоль фасада
-SH.x_out = { loc: 'lobby', pos: [5.2, 1.25, 12.8], look: [-2.2, 1.15, 9.3], fov: 50, set: (o, t) => { const x = -8 + t * 3.1;
-  return [['temych', x, 0, 9.4 + Math.sin(t * 1.1) * .1, PI / 2, { clips: [['Sprint_Loop', t * 1.25, 1]], look: [x + 6, 1.5, 9.6] }, null]]; } };
+// x03 «Я вывалился под дождь»: раньше Итан бежал вдоль фасада уже снаружи, и было непонятно, откуда он взялся (владелец, 12 ноя: «как он с улицы убегал, если был в помещении?»).
+// Теперь камера стоит на улице напротив входа: створки распахиваются изнутри, Итан вылетает из холла под дождь, пробегает мимо камеры — она поворачивается ему вслед; двери медленно закрываются сами
+SH.x_out = { loc: 'lobby', pos: [3.1, 1.2, 10.6], look: [0, 1.25, 6.3], fov: 52, set: (o, t, sh) => {
+  const open = 1.7 * seg(t, .5, .74) - .12 * seg(t, .74, .95) - 1.3 * seg(t, 1.6, 4.6); leafAng(o, 0, Math.max(0, open)); leafAng(o, 1, Math.max(0, open * .93));
+  const z = 3.4 + 4.4 * Math.max(0, t - .1), out = Math.max(0, z - 6.2), x = out * .26, ry = Math.atan2(out > 0 ? .26 : 0, 1);
+  const f = seg(z, 7.5, 10.5), lx = lerp(0, x, f), lz = lerp(6.3, z + 1.2, f); sh.look[0] = lx; sh.look[1] = lerp(1.25, 1.15, f); sh.look[2] = lz;   // камера ведёт его, когда он уже снаружи
+  return [['temych', x, 0, z, ry, { clips: [['Sprint_Loop', t * 1.25, 1]], look: [x + 1.5, 1.5, z + 6] }, null]]; } };
 // x04: «Горизонт» тёмный; над крышей, где этажей уже нет, светится окно
 function lobbyOff(o) { o.l1.intensity = .15; o.l3.intensity = .1; o.l4.intensity = .1; o.lamp.intensity = 0; o.lampBulb.visible = false; o.boothLight.intensity = .05; o.amb.intensity = .12; o.canopy.intensity = .35; }
 SH.x_building = { loc: 'lobby', pos: [2.6, 1.5, 21.5], look: [-1.0, 22.5, 6], fov: 66, set: (o, t) => { o.fac.material = o.facDark; o.ghostWin.visible = true; o.ghostWin.scale.setScalar(1.5); lobbyOff(o);
@@ -2228,14 +2247,16 @@ SH.x_building = { loc: 'lobby', pos: [2.6, 1.5, 21.5], look: [-1.0, 22.5, 6], fo
 SH.x_rain = { loc: 'lobby', pos: [2.35, 1.6, 17.6], look: [.9, 1.6, 15.0], fov: 44, set: (o, t) => { o.fac.material = o.facDark; o.ghostWin.visible = true; lobbyOff(o); o.sky.material.map = TX.skyCity;
   const ry = 1.0, R = locR(1.15, 15.6, ry);   // лицом почти к камере, телефон у правого уха: ладонь к щеке, пальцы вперёд, локоть вниз (клип клал руку поперёк лица)
   return [['temych', 1.15, 0, 15.6, ry, { clips: [['Idle_TalkingPhone_Loop', t + 1, 1]], legs: 'feet', look: R.p(-.3, 1.62, 3),
-    arm: { r: { at: R.p(-.1, 1.46, -.036), by: 'palm', fdir: R.v(0, .75, -.66), pdir: R.v(1, 0, 0), w: 1, pole: [-.45, -1, .35] } }, fing: { r: ['phone', 1] }, hold: { r: ['phone', 'phone_ear'] } }, null]]; } };
+    arm: { r: earArm('r', [-.45, -1, .35]) }, fing: { r: ['phone', 1] }, hold: { r: ['phone', 'phone_ear'] } }, null]]; } };
 // Б1, рассвет: вдвоём под козырьком. Фрэнк (левая нога в картоне) висит на Итане: левая рука через его плечи, кисть на дальнем плече;
 // Итан правой держит его сзади за пояс. Оси Итана: x — влево, z — вперёд (корпус в стойке Idle сидит на 11 см позади точки ног)
 const XE = [-.1, 7.45], XER = -.1, XRE = () => locR(XE[0], XE[1], XER), XF = XRE().p(-.45, 0, -.04), XFR = .12;
 // рука Фрэнка через плечи Итана (RE — оси Итана, y — высота пола) и рука Итана сзади у Фрэнка на поясе (RF — оси Фрэнка)
 // рука Фрэнка через плечи Итана: ладонь обхватывает дальнее плечо спереди-сверху, пальцы вниз по плечу, локоть лежит на ближнем плече —
 // раньше кисть торчала обрубком за шеей Итана (владелец, 12 ноя, кадр «Я покачал головой»)
-const armOver = (RE, y = 0) => { const at = RE.p(.205, 1.47, .055); at[1] += y; return { at, by: 'palm', fdir: RE.v(.35, -.85, .4), pdir: RE.v(-.25, -.45, -.85), pole: [0, .15, -1], w: 1 }; };
+// Фрэнк опирается на Итана: левая ладонь лежит сверху на его ближнем (правом) плече, пальцы спереди через плечо, локоть вниз.
+// Раньше рука тянулась через всю спину к дальнему плечу: не доставала, шла прямой палкой, а кисть свисала спереди у груди Итана, как третья рука (владелец, 12 ноя)
+const armOver = (RE, y = 0) => { const at = RE.p(-.175, 1.475, -.015); at[1] += y; return { at, by: 'palm', fdir: RE.v(.12, -.42, .9), pdir: RE.v(0, -1, -.12), pole: [.25, -.9, -.35], w: 1 }; };
 const armWaist = (RF, y = 0) => { const at = RF.p(.02, .99, -.25); at[1] += y; return { at, by: 'palm', fdir: RF.v(-1, -.15, .1), pdir: RF.v(0, 0, 1), pole: [-.4, -.6, -1], w: 1 }; };
 function frankOut(t, extra = {}) {
   const R = XRE();
@@ -2408,13 +2429,21 @@ function maskTo(m, x0, x1, y0, y1) { m.visible = x1 > x0 + .5;   // прямоу
   const u0 = x0 / 384, u1 = x1 / 384, v0 = 1 - y1 / 256, v1 = 1 - y0 / 256, g = m.geometry, p = g.attributes.position, uv = g.attributes.uv;
   const X = u => (u - .5) * .42, Y = v => (v - .5) * .28;
   [[u0, v1], [u1, v1], [u0, v0], [u1, v0]].forEach(([u, v], i) => { p.setXYZ(i, X(u), Y(v), .0008); uv.setXY(i, u, v); }); p.needsUpdate = uv.needsUpdate = true; g.computeBoundingSphere(); }
-SH.jr_write = { loc: 'lobby', pos: [5.62, 1.22, -.45], look: [5.25, .8, -.34], fov: 38, set: (o, t) => {
-  o.note.material = mat(0xffffff, TX.note2, { decal: 1 }); const mk = noteMask(o), lines = [[.5, 2.6, 228], [2.9, 5.0, 245]]; let tipPx = null;
+// «Ты не спустился», последняя сцена. Раньше — один сверхкрупный план: кулак с карандашом во весь экран над закрытым перевязанным журналом, хотя текст говорит
+// «открыл журнал на последней странице и дописал строчку» (владелец, 12 ноя: «выглядит, как будто школьник сделал»). Теперь два плана в одном кадре:
+// до 5,3 с — средний, от лампы: Итан пишет в раскрытом журнале (кисть мелкая, как и должна быть); дальше — страница сверху: обе строчки дописаны, карандаш лежит рядом, рук в кадре нет
+SH.jr_write = { loc: 'lobby', pos: [6.05, 1.24, .12], look: [5.3, .93, -.5], fov: 40, set: (o, t, sh) => {
+  o.book.visible = false; o.note.visible = o.noteCv.visible = true;   // журнал раскрыт всегда (на этой ветке его не развязывали — кадр показывал перевязанную книгу)
+  o.note.material = mat(0xffffff, TX.note2, { decal: 1 }); const mk = noteMask(o), lines = [[.5, 2.6, 228], [2.9, 5.0, 245]]; let tipPx = null; const close = t > 5.3;
   lines.forEach(([a, b, bl], i) => { const k = clamp((t - a) / (b - a), 0, 1), x = 200 + 172 * k; maskTo(mk[i], x, 374, bl - 13, bl + 5); if (t >= a - .3 && t <= b + .2) tipPx = [x + Math.sin(t * 27) * 1.5, bl - 4 + Math.sin(t * 33) * 3]; });
   const tip = tipPx ? logPt(tipPx[0], tipPx[1], .001) : logPt(374, 250, .02), dir = nrm([-.32, .88, -.36]), pin = [tip[0] + dir[0] * .085, tip[1] + dir[1] * .085, tip[2] + dir[2] * .085];
-  const P = eRead(t, null, 1); P.arm.r = { at: pin, by: 'pinch', fdir: [.1, -.6, 1], pdir: [-.5, -.5, .2], w: 1 }; P.fing.r = ['write', 1]; P.look = tip;
-  P.after = () => window.__W3chars.propAim('pen', o.S, tip, dir);
-  return [['temych', SEAT[0], 0, SEAT[1], 0, P, null]]; } };
+  const pg = logPt(286, 236, 0), k = seg(t, 5.3, 9.5);
+  if (close) { sh.pos[0] = pg[0] + .01; sh.pos[1] = 1.2 - .06 * k; sh.pos[2] = pg[2] - .17; sh.look[0] = pg[0]; sh.look[1] = .8; sh.look[2] = pg[2] + .01; sh.fov = 30; }
+  else { sh.pos[0] = 6.05 - .06 * seg(t, 0, 5.3); sh.pos[1] = 1.24; sh.pos[2] = .12; sh.look[0] = 5.3; sh.look[1] = .93; sh.look[2] = -.5; sh.fov = 40; }
+  const P = eRead(t, null, 1);
+  if (!close) { P.arm.r = { at: pin, by: 'pinch', fdir: [.1, -.6, 1], pdir: [-.5, -.5, .2], w: 1 }; P.fing.r = ['write', 1]; P.look = tip; P.after = () => window.__W3chars.propAim('pen', o.S, tip, dir); }
+  else { const a = logPt(330, 262, .004), d = nrm([-.9, 0, .25]); window.__W3chars.propAim('pen', o.S, a, d); }   // карандаш положен под строчкой
+  return close ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, P, null]]; } };
 // ---- 01:00, второй обход: Итан поднимается на седьмой; Гас даёт ему яблоко (из руки в руку, по-настоящему) ----
 const R2G = [-.15, -9.62], R2E = [-.12, -8.84], R2H = [-.12, 1.07, -9.23], R2C = () => locR(R2E[0], R2E[1], PI).p(-.15, 1.12, .17);   // R2C — яблоко у груди Итана
 function gApple(t, offer, rel) {   // Гас: яблоко на ладони → протягивает → отдаёт, рука вниз

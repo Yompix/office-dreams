@@ -67,7 +67,7 @@ window.STORY = {
     dg_call: {
       music: 'drone', time: '22:00',
       beats: [
-        { img: null, phone: { kind: 'call', name: '+1 (914) 207-3318' }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
+        { img: null, phone: { kind: 'call', name: '+1 (914) 207-3318', take: 2.9 }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['dg02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Дневной охранник', topics: [
@@ -254,7 +254,7 @@ window.STORY = {
       beats: [
         { img: 'x_out', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x03'], sfx: [['door', 0], ['rain_burst', .1]], pad: .4 },
         { img: 'x_building', fx: 'rain', cams: [[.5, .45, 1.0, 1.12]], say: ['x04'], pad: .6 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
+        { img: null, phone: { kind: 'call', name: 'Лили', take: 1.65 }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x06'], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .45, 1.1, 1.16]], say: ['x07'], pad: .4 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 24 }, say: ['x08'], heart: true, pad: 1.4 }
@@ -350,13 +350,13 @@ window.STORY = {
       beats: [
         { img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['d20', 'd21'], pad: .4, react: { 'ФРЭНК': ['yes+calm', 3.6, 99] } },   // «всё, до ночи оно спит» — кивает
         { img: 'st_up', fx: 'cctv', label: 'CAM 04  ЛЕСТНИЦА', cams: [[.5, .5, 1.0, 1.06]], say: ['d22'], pad: .4 },
-        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['d23'], sfx: [['tram', .8, { gain: .4 }]], pad: .4 },
-        { img: 'x_two', fx: 'rain', cams: [[.52, .45, 1.2, 1.25]], say: ['d24'], pad: .3, react: { 'ФРЭНК': ['worry', 0, 99] } },
-        { img: 'x_no', fx: 'rain', cams: [[.5, .45, 1.0, 1.06]], say: ['d25'], pad: .3, react: { 'ИТАН': ['no+grim', .3, 9] } },   // «Я покачал головой» — головой, лицо тяжёлое
-        { img: 'x_two', fx: 'rain', cams: [[.5, .45, 1.25, 1.3]], say: ['d26'], pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },
-        { img: 'x_smoke', fx: 'rain', cams: [[.5, .45, 1.0, 1.06]], say: ['d27'], sfx: [['lighter', .3]], pad: 1.2 },
-        { img: 'x_smoke', fx: 'rain', cams: [[.5, .42, 1.1, 1.16]], say: ['d28', 'd29'], props: { cig: 1 }, pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },   // уже курит: говорит — сигарета внизу, затяжка только в паузе
-        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], props: { cig: 1 }, pad: .6 },
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .5, 1.0, 1.06]], say: ['d23'], sfx: [['tram', .8, { gain: .4 }]], pad: .4 },
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.52, .45, 1.2, 1.25]], say: ['d24'], pad: .3, react: { 'ФРЭНК': ['worry', 0, 99] } },
+        { img: 'x_no', fx: 'rain', cover: 1, cams: [[.5, .45, 1.0, 1.06]], say: ['d25'], pad: .3, react: { 'ИТАН': ['no+grim', .3, 9] } },   // «Я покачал головой» — головой, лицо тяжёлое
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .45, 1.25, 1.3]], say: ['d26'], pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },
+        { img: 'x_smoke', fx: 'rain', cover: 1, cams: [[.5, .45, 1.0, 1.06]], say: ['d27'], sfx: [['lighter', .3]], pad: 1.2 },
+        { img: 'x_smoke', fx: 'rain', cover: 1, cams: [[.5, .42, 1.1, 1.16]], say: ['d28', 'd29'], props: { cig: 1 }, pad: .4, react: { 'ФРЭНК': ['sad', 0, 99] } },   // уже курит: говорит — сигарета внизу, затяжка только в паузе
+        { img: 'x_two', fx: 'rain', cover: 1, cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], props: { cig: 1 }, pad: .6 },
         { img: 'hall_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ', hud: { date: '05.11.2026', at: '03:00' }, cams: [[.5, .5, 1.0, 1.04], [.36, .46, 2.2, 2.6]], say: ['d31'], pad: 1.6 }   // «теперь каждую ночь в три»: запись другой ночи
       ],
       then: { ending: 'dawn', title: 'РАССВЕТ', sub: 'Ты ни разу не ответил. Пока.' }
@@ -551,7 +551,7 @@ window.STORY = {
     ly_call: {
       music: 'drone', time: '01:15',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['ly01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4 },
+        { img: null, phone: { kind: 'call', name: 'Лили', take: 1.6 }, say: ['ly01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4 },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['ly02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Лили', topics: [
