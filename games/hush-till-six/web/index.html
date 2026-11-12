@@ -97,6 +97,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #act .spot i { width: calc(9 * var(--u)); height: calc(9 * var(--u)); border-radius: 50%; border: calc(.6 * var(--u)) solid var(--acc); box-shadow: 0 0 calc(3 * var(--u)) rgba(var(--accRGB),.7), inset 0 0 calc(2 * var(--u)) rgba(var(--accRGB),.5); animation: spot 1.6s ease-in-out infinite; }
 #act .spot span { max-width: calc(46 * var(--u)); text-align: center; background: rgba(0,0,0,.55); padding: calc(1 * var(--u)) calc(2 * var(--u)); border-radius: calc(1.5 * var(--u)); }
 #act .spot:active i { transform: scale(.85); }
+#act .spot.seen i { animation: none; opacity: .5; border-color: #9a948a; box-shadow: none; } #act .spot.seen span { opacity: .7; }
 #act .spot.up { flex-direction: column-reverse; transform: translate(-50%, calc(-100% + 4.5 * var(--u))); }   /* подпись над точкой: снизу соседняя */
 @keyframes spot { 0%, 100% { transform: scale(.82); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
 /* мышь: точка под курсором отвечает сразу — кольцо замирает крупным и ярким, подпись светлеет (на телефоне — только :active) */
@@ -621,7 +622,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
 <script src="chars2.js?v=44"></script>
 <script src="scenes.js?v=67"></script>
 <script src="story.js?v=29"></script>
-<script src="engine.js?v=70"></script>
+<script src="engine.js?v=71"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

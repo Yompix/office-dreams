@@ -738,7 +738,8 @@ let tapG = null; document.addEventListener('pointerdown', () => { const G = tapG
 const freshTap = el => { const G = tapG = { arm: performance.now() + 700, ok: false }; el.classList.add('lock');   // пока «замок» — кнопки приглушены
   (function w() { if (tapG !== G) return; if (performance.now() >= G.arm) return el.classList.remove('lock'); setTimeout(w, 60); })();
   return e => !(e && e.isTrusted && e.detail > 0) || G.ok; };
-const actItems = th => (th.spots || th.topics || []).map((s, i) => ({ s, i })).filter(({ s }) => flagOk(s.if) && !(s.once !== false && flags['v:' + s.go]));
+// осмотренная точка обхода не пропадает: остаётся приглушённой с галочкой, её можно посмотреть ещё раз (нажал случайно, пролистал — владелец, 12 ноя). Темы разговора — как раньше, по одному разу
+const actItems = th => (th.spots || th.topics || []).map((s, i) => ({ s, i, seen: !!(s.once !== false && flags['v:' + s.go]) })).filter(({ s, seen }) => flagOk(s.if) && (th.spots ? true : !seen));
 function backTo(id) { const sc = S.scenes[id]; if (!sc) return menu(); sceneId = id; scene = sc; LS.set('save', id); LS.set('saveT', lastTime); runThen(sc.then); }
 function showAct(th, kind) {
   mode = kind; const my = gen, items = actItems(th), lv = th.leave || th.bye;
@@ -751,7 +752,7 @@ function showAct(th, kind) {
       ${lv && leaveOk ? `<button class="bye" data-i="bye"><b>${items.length + 1}</b>${tr(lv.t)}</button>` : ''}</div>`;
   } else {
     actEl.innerHTML = `<div class="ex-hint">${tr(th.hint || 'Осмотрись. Нажми на то, что хочешь проверить.')}</div>
-      ${items.map(({ s, i }) => `<button class="spot" data-i="${i}"><i></i><span>${tr(s.t)}</span></button>`).join('')}
+      ${items.map(({ s, i, seen }) => `<button class="spot${seen ? ' seen' : ''}" data-i="${i}"><i></i><span>${tr(s.t)}${seen ? ' ✓' : ''}</span></button>`).join('')}
       ${lv && leaveOk ? `<button class="btn ghost ex-leave" data-i="bye">${tr(lv.t)}</button>` : ''}`;
   }
   actEl.classList.remove('hide');
@@ -759,7 +760,7 @@ function showAct(th, kind) {
   actEl.querySelectorAll('button').forEach(b => b.onclick = e => { e.stopPropagation(); if (!okA(e)) return; const i = b.dataset.i;
     if (i === 'bye') return go(lv.go, lv.set);
     const s = (th.spots || th.topics)[+i]; setFlags('v:' + s.go); go(s.go, s.set); });
-  if (kind === 'explore' && !items.length && lv) return go(lv.go, lv.set);   // всё осмотрено — дальше сам
+  if (kind === 'explore' && !items.some(it => !it.seen) && lv && !leaveOk) return go(lv.go, lv.set);   // всё осмотрено, а кнопки выхода нет — дальше сам (с кнопкой — ждём: можно пересмотреть)
 }
 // точки обхода стоят на предметах кадра: мировая точка → место на экране (каждый кадр, камера дышит)
 function actSpots() {
