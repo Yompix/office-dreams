@@ -2242,12 +2242,14 @@ SH.x_smoke = { loc: 'lobby', pos: [.55, 1.62, 9.0], look: [-.55, 1.55, 7.6], fov
   const F = frankOut(t, { look: [.55, 1.62, 9.0] });
   if (lit) { frankCig(F, A.mihalych, cigTalk(A.mihalych, cigDrag(t, 2.5))); F.hold = { r: 'cig' };
     return [['mihalych', XF[0], 0, XF[2], XFR, F, null], ['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null]]; }
-  const C = A.mihalych, [m, f] = mouthOf(C), tip = [m.x + f.x * .085, m.y + f.y * .085 - .01, m.z + f.z * .085];
+  const C = A.mihalych, [m, f] = mouthOf(C), cdn = nrm([f.x * .62 - f.z * .72, -.24, f.z * .62 + f.x * .72]), tip = [m.x - f.z * .013 + cdn[0] * .08, m.y - .005 + cdn[1] * .08, m.z + f.x * .013 + cdn[2] * .08];   // кончик сигареты в уголке рта — туда подносит зажигалку
   if (rise > 0) { frankCig(F, C, took ? Math.max(1 - seg(t, 2.8, 3.4), puff) : 1, rise); F.hold = { r: took ? 'cig' : null }; }
   else { F.arm.r = { at: [tip[0], tip[1] - .03, tip[2]], by: 'tip', fdir: [f.x, .9, f.z], pdir: [f.z, 0, -f.x], w: up }; F.fing.r = ['grip', up]; F.hold = { r: up > .3 ? 'lighter' : null }; }
   F.after = () => { const lt = window.__W3chars.prop3('lighter').obj.userData.flame; if (lt) lt.visible = flame; };
   // сигарета в губах ставится после взгляда и поворота головы (post) — раньше ставилась до них и при повороте головы висела в воздухе у щеки
-  F.post = () => { if (!took) { C.root.updateWorldMatrix(true, true); const [m2, f2] = mouthOf(C); propX('cig', o.S, [m2.x + f2.x * .005, m2.y - .006, m2.z + f2.z * .005], [f2.x, -.12, f2.z]); } };
+  // сигарета в уголке рта, под углом вбок и чуть вниз: торчащая прямо вперёд, на камеру, спереди читалась белой палочкой, висящей с губы (владелец играл и видел, 12 ноя)
+  F.post = () => { if (!took) { C.root.updateWorldMatrix(true, true); const [m2, f2] = mouthOf(C), sx = -f2.z, sz = f2.x;
+    propX('cig', o.S, [m2.x + f2.x * .004 + sx * .013, m2.y - .005, m2.z + f2.z * .004 + sz * .013], [f2.x * .62 + sx * .72, -.24, f2.z * .62 + sz * .72]); } };
   return [['mihalych', XF[0], 0, XF[2], XFR, F, null], ['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null]]; } };
 function propX(name, scene, pos, dir) { const pr = window.__W3chars.prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
   pr.obj.quaternion.setFromUnitVectors(new T.Vector3(1, 0, 0), new T.Vector3(...dir).normalize()); pr.obj.visible = true; pr.C = null; }
