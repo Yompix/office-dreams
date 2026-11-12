@@ -1279,7 +1279,11 @@ function shiftCall(c) {   // внутренний телефон будки: с�
   const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my && btn && btn.isConnected) shiftPop(null); return; }   // не дождались — закрываем только сам звонок, не пульт поверх него
     if (paused) return void setTimeout(ring, 400);   // пауза (☰ или свернул вкладку): звонок ждёт, а не «дозванивается» молча и не пропадает
     rings++;
-    if (c.radio) play('static', { gain: .5, cut: .9 }); else play('ring', { gain: .8 }); buzz(80); setTimeout(ring, 2200); };
+    if (c.radio) play('static', { gain: .5, cut: .9 });
+    else {   // звонок-аномалия звучит «не так»: ниже и с каждым гудком ещё ниже, два расстроенных слоя дают биение, под ним треск, эхо пустого холла — игрок слышит, что это не обычный телефон и не сбой (владелец, 12 ноя)
+      const r = Math.max(.74, .93 - .03 * (rings - 1));
+      play('ring', { gain: .7, rate: r, rev: .45 }); play('ring', { gain: .32, rate: r * .965, lp: 2400, rev: .6, when: .03 }); play('static', { gain: .1 + .02 * rings, cut: 1.6, lp: 3200 }); }
+    buzz(80); setTimeout(ring, 2200); };
   shiftPop(`<h3>${tr(c.title || 'Звонит внутренний телефон')}</h3><p>${tr(c.sub || 'В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr(c.take || 'Снять трубку')}</button><button id="cNo">${tr(c.no || 'Не брать')}</button></div>`);
   btn = $('cTake'); ring();
   $('cNo').onclick = e => { e.stopPropagation(); c.taken = 'no'; shiftPop(null); play('click'); if (c.noSay) sayV(c.noSay); };   // сбросил — что он подумал (noSay)

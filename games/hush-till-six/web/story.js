@@ -379,8 +379,8 @@ window.STORY = {
     call540: {
       music: 'tension', time: '05:40',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .2 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring_mob', 0]], heart: true, pad: .3 }
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring_mob', 0, { rate: .95, rev: .3 }], ['buzz', 0]], pad: .2 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring_mob', 0, { rate: .88, rev: .5 }], ['ring_mob', .04, { rate: .85, gain: .35, lp: 2400 }]], heart: true, pad: .3 }   // «Лили» в 05:40 — не Лили: звонок поплыл
       ],
       then: { choice: 'Звонит «Лили».', timeout: 8, def: 1, opts: [{ t: 'Ответить', go: 'over_k9' }, { t: 'Сбросить', go: 'morning' }] }
     },
@@ -761,7 +761,7 @@ window.STORY = {
       snd03: { cam: '03', kind: 'Звук', snd: ['metal_groan', { gain: .5, lp: 1500 }, 8], win: 18 },
       snd04: { cam: '04', kind: 'Звук', snd: ['steps_barefoot', { gain: .55, cut: 2.4, lp: 1600 }, 6], win: 18 },
       snd07: { cam: '07', kind: 'Звук', snd: ['cleaner_hum', { gain: .4, lp: 1800 }, 6], win: 20, need: 'nogus' },
-      snd10: { cam: '10', kind: 'Звук', snd: ['ring', { gain: .35, lp: 1700 }, 3.6], win: 18 },
+      snd10: { cam: '10', kind: 'Звук', snd: ['ring', { gain: .35, lp: 1700, rate: .86, rev: .5 }, 3.6], win: 18 },
       snd_m2: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .6, lp: 1600 }, 5], win: 18 },
       knock3x: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .7, lp: 1700 }, 6, 3], win: 20, say: 'n28' },   // три удара, как просил Фрэнк
       lilyDoor: { cam: '01', kind: 'Кто-то', props: { lilyDoor: 1 }, win: 26, say: 'n29', trap: 'door', die: 'over_door' },   // открыть вход, пока она там, — смерть
