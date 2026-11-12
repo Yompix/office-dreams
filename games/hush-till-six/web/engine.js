@@ -732,6 +732,12 @@ function runThen(th) {
 /* ---------- обход и разговор: точки на кадре (explore) и темы (talk) — каждая ведёт в свою короткую сцену,
    та кончается then: { back: 'сцена' } и возвращает сюда. Осмотренное помнится флагом v:сцена (и после перезагрузки) ---------- */
 let act = null;
+// защита от «пролёта» на сенсоре: палец, которым листали реплику, не должен сам нажать кнопку, выросшую под ним (click прилетает на новый элемент),
+// и быстрый второй тап подряд — тоже. Кнопка срабатывает только от нажатия, начатого после «замка»: .7 с с показа, и каждый тап во время замка продлевает его на .6 с (кто листает очередью — не выберет, пока не остановится). Клавиши и пульт (detail 0) — сразу
+let tapG = null; document.addEventListener('pointerdown', () => { const G = tapG; if (!G) return; const n = performance.now(); if (n < G.arm) { G.arm = n + 600; G.ok = false; } else G.ok = true; }, true);
+const freshTap = el => { const G = tapG = { arm: performance.now() + 700, ok: false }; el.classList.add('lock');   // пока «замок» — кнопки приглушены
+  (function w() { if (tapG !== G) return; if (performance.now() >= G.arm) return el.classList.remove('lock'); setTimeout(w, 60); })();
+  return e => !(e && e.isTrusted && e.detail > 0) || G.ok; };
 const actItems = th => (th.spots || th.topics || []).map((s, i) => ({ s, i })).filter(({ s }) => flagOk(s.if) && !(s.once !== false && flags['v:' + s.go]));
 function backTo(id) { const sc = S.scenes[id]; if (!sc) return menu(); sceneId = id; scene = sc; LS.set('save', id); LS.set('saveT', lastTime); runThen(sc.then); }
 function showAct(th, kind) {
@@ -749,7 +755,8 @@ function showAct(th, kind) {
       ${lv && leaveOk ? `<button class="btn ghost ex-leave" data-i="bye">${tr(lv.t)}</button>` : ''}`;
   }
   actEl.classList.remove('hide');
-  actEl.querySelectorAll('button').forEach(b => b.onclick = e => { e.stopPropagation(); const i = b.dataset.i;
+  const okA = freshTap(actEl);
+  actEl.querySelectorAll('button').forEach(b => b.onclick = e => { e.stopPropagation(); if (!okA(e)) return; const i = b.dataset.i;
     if (i === 'bye') return go(lv.go, lv.set);
     const s = (th.spots || th.topics)[+i]; setFlags('v:' + s.go); go(s.go, s.set); });
   if (kind === 'explore' && !items.length && lv) return go(lv.go, lv.set);   // всё осмотрено — дальше сам
@@ -781,7 +788,8 @@ function showChoice(th) {
   let done = false, t0 = now(), lastTick = -1; const my = gen;
   const pick = i => { if (done || my !== gen) return; done = true; play('click'); choiceEl.classList.add('hide'); const o = th.opts[i];
     setFlags(o.set); if (!/^over_/.test(o.go)) runPick(sceneId, th.choice, o.t, i); startScene(o.go); };
-  choiceEl.querySelectorAll('button').forEach(b => b.onclick = () => pick(+b.dataset.i));
+  const okC = freshTap(choiceEl);
+  choiceEl.querySelectorAll('button').forEach(b => b.onclick = e => { if (okC(e)) pick(+b.dataset.i); });
   if (th.timeout) {
     const bar = choiceEl.querySelector('#timer i');
     (function loop() {

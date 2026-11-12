@@ -1321,8 +1321,8 @@ SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], 
 SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
 // 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
 function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха, запястье у скулы перед ухом, пальцы назад вокруг телефона, локоть вниз-вперёд (замер tools/anim/phone_probe.js: локоть на 4 см ниже плеча; было на 19 см выше)
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.105, 1.222, -.225]), by: 'palm', fdir: R.v(0, .3, -.95), pdir: R.v(-1, 0, 0), w: 1, pole: [.45, -1, .25] } },   /* локоть вниз, чуть в сторону и вперёд (pole — направление в осях тела; раньше сюда попадала точка мира, и локоть задирался вверх-назад: владелец, 12 ноя) */   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
-    fing: { l: ['phone', 1] }, hold: { l: 'phone' }, look: R.p(.6, 1.05, 2) }; }
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.1, 1.14, -.225]), by: 'palm', fdir: R.v(0, .75, -.66), pdir: R.v(-1, 0, 0), w: 1, pole: [.45, -1, .35] } },   /* локоть вниз, чуть в сторону и вперёд (pole — направление в осях тела; раньше сюда попадала точка мира, и локоть задирался вверх-назад: владелец, 12 ноя) */   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
+    fing: { l: ['phone', 1] }, hold: { l: ['phone', 'phone_ear'] }, look: R.p(.6, 1.05, 2) }; }
 SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
 // ---- Гас моет пол: тряпка ходит восьмёркой перед ним, корпус поворачивается за шваброй, руки на черенке (правая сверху), вес с ноги на ногу ----
@@ -2201,7 +2201,7 @@ SH.x_building = { loc: 'lobby', pos: [2.6, 1.5, 21.5], look: [-1.0, 22.5, 6], fo
 SH.x_rain = { loc: 'lobby', pos: [2.35, 1.6, 17.6], look: [.9, 1.6, 15.0], fov: 44, set: (o, t) => { o.fac.material = o.facDark; o.ghostWin.visible = true; lobbyOff(o); o.sky.material.map = TX.skyCity;
   const ry = 1.0, R = locR(1.15, 15.6, ry);   // лицом почти к камере, телефон у правого уха: ладонь к щеке, пальцы вперёд, локоть вниз (клип клал руку поперёк лица)
   return [['temych', 1.15, 0, 15.6, ry, { clips: [['Idle_TalkingPhone_Loop', t + 1, 1]], legs: 'feet', look: R.p(-.3, 1.62, 3),
-    arm: { r: { at: R.p(-.105, 1.542, -.036), by: 'palm', fdir: R.v(0, .3, -.95), pdir: R.v(1, 0, 0), w: 1, pole: [-.45, -1, .25] } }, fing: { r: ['phone', 1] }, hold: { r: 'phone' } }, null]]; } };
+    arm: { r: { at: R.p(-.1, 1.46, -.036), by: 'palm', fdir: R.v(0, .75, -.66), pdir: R.v(1, 0, 0), w: 1, pole: [-.45, -1, .35] } }, fing: { r: ['phone', 1] }, hold: { r: ['phone', 'phone_ear'] } }, null]]; } };
 // Б1, рассвет: вдвоём под козырьком. Фрэнк (левая нога в картоне) висит на Итане: левая рука через его плечи, кисть на дальнем плече;
 // Итан правой держит его сзади за пояс. Оси Итана: x — влево, z — вперёд (корпус в стойке Idle сидит на 11 см позади точки ног)
 const XE = [-.1, 7.45], XER = -.1, XRE = () => locR(XE[0], XE[1], XER), XF = XRE().p(-.45, 0, -.04), XFR = .12;
@@ -3680,5 +3680,6 @@ function solidWhy(k) {
 }
 // для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
 function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
-window.World = { draw, init, warm, warmMore, get warmLeft() { return warmQ ? warmQ.length : -1; }, get warmBusy() { return !!warmBusy; }, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, goreTL: id => { const g = goreShot(id); return (g && g.tl) || null; }, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { dbgShot: (id, base, d) => { SH[id] = Object.assign({}, SH[base], d); },   /* отладочный ракурс того же кадра (tools/anim/phone_view.js) */
+  draw, init, warm, warmMore, get warmLeft() { return warmQ ? warmQ.length : -1; }, get warmBusy() { return !!warmBusy; }, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, goreTL: id => { const g = goreShot(id); return (g && g.tl) || null; }, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();
