@@ -713,7 +713,7 @@ function buildCorridor() {
   };
   // уборщик: ведро с отжимом, табличка «мокрый пол», мокрое пятно, швабра на полу, кровавый след в проём
   o.bucket = makeBucket(); S.add(o.bucket);
-  o.mopProp = makeMop(); S.add(o.mopProp);
+  o.wd = wd; o.mopProp = makeMop(); S.add(o.mopProp);
   // офисное кресло: на 10-м ночью оказывается посреди коридора (странность смены)
   o.chair10 = new T.Group(); S.add(o.chair10); o.chair10.visible = false;
   { const cm = mat(0x5a5d64, null, { rough: .7 }), mm = mat(0x3a3c40, null, { metal: .6, rough: .4 }), wm = mat(0x0c0c0c);
@@ -1049,8 +1049,8 @@ function eatGore(o, t) { o.bursts = [.9, 3.3, 5.7, 8.1].filter(b => t > b - .1 &
 function eatLight(o, t) { setLamps(o, 0); o.flickOn = false; const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 2.8 * on; l.li.distance = 8; if (o.flM && o.flM.roughness != null) o.flM.roughness = .62; o.amb.intensity = .42; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.25, 1, 1); o.gutsOn = true; o.splat.visible = true; o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2;
   o.cleanSet(AFTER); }
 // седьмой этаж после уборщика: швабра на полу, ведро опрокинуто, вода, кровавый след волоком к приоткрытой 707
-const CLEAN = { bucket: [.6, -10.35, .3], sign: [-.85, -7.6, .5], wet: [-.1, -9.9], door7: .72 }, MOPLEAN = [.43, -10.08, .25, 0];
-const AFTER = { mop: [.43, -10.08, .25, 1], bucket: [.6, -10.35, .3, 1], spill: [.82, -10.3], sign: [-.85, -7.6, .5], smear: [.0, -9.6, -1.05, -11.7], door7: .85, splat: 1, blood: 1 };
+const CLEAN = { bucket: [.6, -10.35, .3], sign: [-.85, -6.55, .5], wet: [-.1, -9.9], door7: .72 }, MOPLEAN = [.43, -10.08, .25, 0];
+const AFTER = { mop: [.43, -10.08, .25, 1], bucket: [.6, -10.35, .3, 1], spill: [.82, -10.3], sign: [-.85, -6.55, .5], smear: [.0, -9.6, -1.05, -11.7], door7: .85, splat: 1, blood: 1 };
 function stopLamps(o, t) { o.flickOn = false; lampSet(o, i => i < 3 || (i === 3 ? (t < .9 || (t < 2.4 ? stut(t, 1) : Math.sin(t * 13) > .7)) : (t < .9 || (t < 2.1 && stut(t, i * 3))))); }
 // лампы коридора по одной: fn(i) → горит ли i-я (0 — у лифта, 6 — у 713)
 function lampSet(o, fn) { o.lamps.forEach((l, i) => { const on = fn(i) ? 1 : 0; l.on = on; l.base = on * 2.4; l.li.intensity = on * 2.4; l.tube.material.color.setHex(on ? 0xe8f0e8 : 0x1c1e1c); }); }
@@ -1405,6 +1405,12 @@ const MOPWALL = [-1.05, MOP_Y, -10.05], MOPWALL_D = nrm([-.147, .989, .031]), MO
 // стоит со шваброй (руки не моют): черенок в правой руке сбоку, у бедра (кисть до плеча ~0,5 м — достаёт), колодка на полу сбоку от правой стопы, вдоль неё;
 // черенок отвесный, верх — чуть вперёд, в 27 см от плеча (раньше верх клонился к телу: локоть, плечо, а у двери и голова были на черенке)
 const GUS_SIDE = R => { const head = R.p(-.33, MOP_Y, .14), top = R.p(-.33, 1.02, .21); return { head, top, u: nrm([top[0] - head[0], top[1] - head[1], top[2] - head[2]]) }; };   // колодка вдоль стопы (yaw + 90°)
+function mopClear(o, h) {   // колодка (0,36 × 0,1) остаётся в коридоре и не входит в ведро и табличку
+  if (o.wd) h[0] = clamp(h[0], -o.wd / 2 + .22, o.wd / 2 - .22);
+  for (const [ob, r] of [[o.bucket, .4], [o.sign, .42]]) if (ob && ob.visible) { const dx = h[0] - ob.position.x, dz = h[2] - ob.position.z, d = Math.hypot(dx, dz); if (d < r) { const q = d > .01 ? r / d : 0; h[0] = ob.position.x + (q ? dx * q : 0); h[2] = ob.position.z + (q ? dz * q : r); } }
+  if (o.wd) { h[0] = clamp(h[0], -o.wd / 2 + .22, o.wd / 2 - .22);   // прижало к стене рядом с предметом — уходит вдоль стены
+    for (const [ob, r] of [[o.bucket, .4], [o.sign, .42]]) if (ob && ob.visible) { const dx = h[0] - ob.position.x, dz = h[2] - ob.position.z; if (Math.hypot(dx, dz) < r) h[2] = ob.position.z + (dz < 0 ? -1 : 1) * Math.sqrt(r * r - dx * dx); } }
+  return h; }
 function mopGusMocap(o, x, z, ry, t, k) {
   const R = locR(x, z, ry), W3 = window.__W3chars, w = 1 - k, side = R.v(1, 0, 0), SD = GUS_SIDE(R);
   const P = { clips: [['Cmu_Mop_Loop', t, Math.max(k, .001)], ['Idle_Loop', t + 2, w]], fing: { r: ['grip', 1], l: ['grip', k > .5 ? 1 : k * 2] }, look: R.p(0, 0, 1.2), arm: {},   // arm {} — держит черенок: грудь за головой не доворачивается
@@ -1414,8 +1420,10 @@ function mopGusMocap(o, x, z, ry, t, k) {
       const dm = [hx / n * Math.cos(sl), -Math.sin(sl), hz / n * Math.cos(sl)], M = [(L.x + Rh.x) / 2, (L.y + Rh.y) / 2, (L.z + Rh.z) / 2], dM = (M[1] - MOP_Y) / Math.sin(sl);
       // черенок: k = 1 — линия мытья (через середину между кистями мокапа), k = 0 — стоит в правой руке сбоку; между ними — дугой снаружи
       const bow = Math.sin(PI * k) * .1, bo = R.v(-bow, 0, bow * .6);
-      const head = lin(SD.head, [M[0] + dm[0] * dM, MOP_Y, M[2] + dm[2] * dM], k); head[0] += bo[0]; head[2] += bo[2];
-      const up = nrm(lin(SD.u, dm.map(v => -v), k)), dn = up.map(v => -v);
+      // колодка — не дальше, чем хватает черенка (0,9 м по полу от кистей), не в стене коридора и не в ведре/табличке: упирается и скользит вдоль (12 ноя: уходила за стену до 70 см)
+      const hr = Math.min(dM * Math.cos(sl), .9), HM = mopClear(o, [M[0] + hx / n * hr, MOP_Y, M[2] + hz / n * hr]), um = nrm([M[0] - HM[0], M[1] - HM[1], M[2] - HM[2]]);
+      const head = mopClear(o, (h => { h[0] += bo[0]; h[2] += bo[2]; return h; })(lin(SD.head, HM, k)));
+      const up = nrm(lin(SD.u, um, k)), dn = up.map(v => -v);
       const on = q => { const s = (q[0] - head[0]) * up[0] + (q[1] - head[1]) * up[1] + (q[2] - head[2]) * up[2]; return [head[0] + up[0] * s, head[1] + up[1] * s, head[2] + up[2] * s]; };
       const pr = nrm(crs(up, crs(side, up))), pl = pr.map(v => -v);
       if (k > .001) W3.reachArm(C, 'l', { at: on([L.x, L.y, L.z]), by: 'palm', fdir: crs(up, pl), pdir: pl, pole: R.v(1, -.4, -.4), w: k });   // левая — на черенок, пока моет
