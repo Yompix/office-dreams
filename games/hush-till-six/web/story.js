@@ -746,7 +746,7 @@ window.STORY = {
       streetOff: { cam: '01', kind: 'Свет', props: { streetOff: 1 }, win: 22 },
       wet: { cam: '02', kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
       hallDark: { cam: '02', kind: 'Свет', props: { hallDark: 1 }, win: 20 },
-      lift: { cam: '03', kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
+      lift: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
       lift13: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 20 },
       clockSpin: { cam: '03', kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
       palmMove: { cam: '03', kind: 'Другое', props: { palmMove: 1 }, win: 25 },
@@ -768,7 +768,7 @@ window.STORY = {
       // новые (11 ноя, владелец: «больше аномалий»)
       handprint: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { handprint: 1 }, win: 22 },                // на стекле входа изнутри — отпечаток ладони
       selfStare: { cam: '02', kind: 'Кто-то', props: { selfStare: 1 }, win: 14 },                             // «ты» на камере холла стоишь у стойки и смотришь в объектив
-      liftBoth: { cam: '03', kind: 'Лифт', props: { lift: '1', liftOpen: 1, liftBoth: 1 }, win: 16, sfx: ['ding', { gain: .5, lp: 1400 }] },   // оба лифта открыты, во втором темно
+      liftBoth: { cam: '03', also: ['02'], kind: 'Лифт', props: { lift: '1', liftOpen: 1, liftBoth: 1 }, win: 16, sfx: ['ding', { gain: .5, lp: 1400 }] },   // оба лифта открыты, во втором темно
       lily04: { cam: '04', kind: 'Кто-то', props: { lily04: 1 }, win: 14 },                                   // «Лили» на площадке лестницы, спиной
       frank10: { cam: '10', kind: 'Кто-то', props: { frank10: 1 }, win: 14 },                                 // в конце тёмного коридора десятого
       gusTwin: { cam: '10', kind: 'Кто-то', props: { gusTwin: 1 }, win: 16, need: 'gus' },                    // Гас моет седьмой — и он же стоит на десятом

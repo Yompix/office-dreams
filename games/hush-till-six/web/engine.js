@@ -1179,7 +1179,7 @@ function shiftLog() {
   const c = shf.cam;
   shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid log">${LOG_BTN.map((g, i) => `<button data-i="${i}" data-k="${g.join(' ')}">${logName(g.join('|'))}</button>`).join('')}</div>`);
   $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const G = LOG_BTN[+b.dataset.i], k = G.join('|');
-    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).some(x => G.includes(x))), my = shf.my;
+    const hit = shf.act.find(a => (a.def.cam === c || (a.def.also || []).includes(c)) && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).some(x => G.includes(x))), my = shf.my;
     shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); run.rec++; play('pen', { gain: .5, cut: 1.3 });
     shiftPop(`<h3>${tr('Записываю…')}</h3><p>${camLabel(c)} · ${minStr(shf.M)} — ${logName(k)}</p>`, true);
     setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return; shiftPop(null);

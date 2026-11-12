@@ -62,18 +62,20 @@ function buildLobby() {
   const ceil = plane(16, 12, mat(0xffffff, TX.ceil), S); ceil.rotation.x = PI / 2; ceil.position.y = 4.2;
   const wallM = mat(0xffffff, TX.wall), panelM = mat(0xffffff, TX.panel, { decal: 1 });
   // задняя стена — с проёмом под первый лифт: за открытыми дверями видна кабина, а не стена холла (UV как у целой плоскости)
-  const holed = (w, h, m, x0, x1, y1) => { const sh = new T.Shape(); sh.moveTo(-w / 2, -h / 2); sh.lineTo(w / 2, -h / 2); sh.lineTo(w / 2, h / 2); sh.lineTo(-w / 2, h / 2); sh.closePath();
-    const hl = new T.Path(); hl.moveTo(x0, -h / 2); hl.lineTo(x1, -h / 2); hl.lineTo(x1, Math.min(h / 2, y1 - h / 2)); hl.lineTo(x0, Math.min(h / 2, y1 - h / 2)); hl.closePath(); sh.holes.push(hl);
+  const holed = (w, h, m, holes, y1) => { const sh = new T.Shape(); sh.moveTo(-w / 2, -h / 2); sh.lineTo(w / 2, -h / 2); sh.lineTo(w / 2, h / 2); sh.lineTo(-w / 2, h / 2); sh.closePath();
+    const yt = Math.min(h / 2, y1 - h / 2);
+    for (const [x0, x1] of holes) { const hl = new T.Path(); hl.moveTo(x0, -h / 2); hl.lineTo(x1, -h / 2); hl.lineTo(x1, yt); hl.lineTo(x0, yt); hl.closePath(); sh.holes.push(hl); }
     const gm = new T.ShapeGeometry(sh), uv = gm.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) + w / 2) / w, (uv.getY(i) + h / 2) / h);
-    const me = new T.Mesh(gm, m); S.add(me);
-    const yt = Math.min(h / 2, y1 - h / 2); me.userData.solid = [[(x0 - w / 2) / 2, 0, -.15, x0 + w / 2, h, .3, 'стена', 1], [(x1 + w / 2) / 2, 0, -.15, w / 2 - x1, h, .3, 'стена', 1]];   // твёрдая — кроме проёма
-    if (h / 2 - yt > .01) me.userData.solid.push([(x0 + x1) / 2, (yt + h / 2) / 2, -.15, x1 - x0, h / 2 - yt, .3, 'стена', 1]);
+    const me = new T.Mesh(gm, m); S.add(me); me.userData.solid = [];   // твёрдая — кроме проёмов
+    let x = -w / 2; for (const [x0, x1] of holes.concat([[w / 2, w / 2]])) { if (x0 - x > .01) me.userData.solid.push([(x + x0) / 2, 0, -.15, x0 - x, h, .3, 'стена', 1]); x = x1; }
+    if (h / 2 - yt > .01) for (const [x0, x1] of holes) me.userData.solid.push([(x0 + x1) / 2, (yt + h / 2) / 2, -.15, x1 - x0, h / 2 - yt, .3, 'стена', 1]);
     return me; };
-  const back = holed(16, 4.2, wallM, -2.84, -1.56, 2.3); back.position.set(0, 2.1, -6);
+  const LH = [[-2.84, -1.56], [-.04, 1.24]];   // проёмы обоих лифтов (второй раньше открывался в стену холла — владелец, 12 ноя)
+  const back = holed(16, 4.2, wallM, LH, 2.3); back.position.set(0, 2.1, -6);
   const left = plane(12, 4.2, wallM, S); left.rotation.y = PI / 2; left.position.set(-8, 2.1, 0);
   const right = plane(12, 4.2, wallM, S); right.rotation.y = -PI / 2; right.position.set(8, 2.1, 0);
   for (const [w, x, z, ry] of [[12, -7.99, 0, PI / 2], [12, 7.99, 0, -PI / 2]]) { const p = plane(w, 1.1, panelM, S); p.position.set(x, .55, z); p.rotation.y = ry; }
-  holed(16, 1.1, panelM, -2.84, -1.56, 1.1).position.set(0, .55, -5.99);   // панели задней стены — тоже с проёмом
+  holed(16, 1.1, panelM, LH, 1.1).position.set(0, .55, -5.99);   // панели задней стены — тоже с проёмом
   // потолочные светильники (часть не горит)
   o.ceilLights = [];
   for (let i = -2; i <= 2; i++) for (let j = -1; j <= 1; j++) {
@@ -125,6 +127,13 @@ function buildLobby() {
   o.cabInd.position.set(0, 2.25, .78); o.cabInd.rotation.y = PI;
   o.cabLight = new T.PointLight(0xfff0d0, 0, 4.5, 1.2); o.cabLight.position.set(0, 2.1, .1); cab.add(o.cabLight);
   o.cab = cab;
+  // кабина второго лифта: такая же, но свет в ней не горит (странность «оба лифта открыты»: во втором темно)
+  { const c2 = new T.Group(); c2.position.set(.6, 0, -6.85); S.add(c2); const dk = mat(0x6a5e4a, TX.wood);
+    box(1.4, .02, 1.6, cabFloor, 0, .01, 0, c2); box(1.4, .02, 1.6, mat(0x1a1b1c), 0, 2.4, 0, c2); box(1.3, .02, 1.5, mat(0x3a3a3e), 0, .025, 0, c2);
+    box(.04, 2.4, 1.6, dk, -.7, 1.2, 0, c2); box(.04, 2.4, 1.6, dk, .7, 1.2, 0, c2); box(1.4, 2.4, .04, dk, 0, 1.2, -.8, c2);
+    box(1.0, 1.2, .01, mat(0x3a4248, null, { emissive: 0x050607 }), 0, 1.4, -.77, c2);   // зеркало в темноте
+    for (const [x, z, w, d] of [[0, -.75, 1.2, .03], [-.67, 0, .03, 1.4], [.67, 0, .03, 1.4]]) box(w, .035, d, mat(0x70757a, TX.metal), x, .95, z, c2).castShadow = false;
+    box(.9, .06, .3, mat(0x2a2a28), 0, 2.38, 0, c2); o.cab2 = c2; }
   // табличка и плакат
   const sg = plane(2.6, .5, mat(0xffffff, TX.sign, { decal: 1 }), S); sg.position.set(-.8, 3.35, -5.97);
   const ps = plane(.5, .75, mat(0xffffff, TX.poster, { decal: 1 }), S); ps.position.set(2.6, 1.6, -5.97);
@@ -737,7 +746,7 @@ function buildCorridor() {
     o.lamps.push({ tube, li, on: 0 });
   }
   // двери лифта в начале коридора (за спиной камеры) и зелёная табличка
-  const ex = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
+  const ex = plane(.72, .18, mat(0xffffff, TX.stairs, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
   // табличка «СЕРВЕРНАЯ» поверх 713 — этот же коридор играет минус второй этаж
   o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tr('СЕРВЕРНАЯ  −2'), w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
   // под фонарём табличка видна, только когда на неё светят (обычная — светится сама)
@@ -2531,7 +2540,7 @@ SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 7
   if (s.palm) { o.palmShadow.position.x = -3.95 + .9 * s.palm; o.palmShadow.scale.setScalar(1 + .15 * s.palm); }
   o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }   // на камере мокрые следы блестят
   if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }
-  setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; if (s.lift13) setLift(o, o.lifts[1], 0, '13');   // лифты видно и отсюда — то же состояние, что на CAM 03
+  setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; if (s.lift13) setLift(o, o.lifts[1], 0, '13'); if (s.liftBoth) setLift(o, o.lifts[1], 1, '1');   // лифты видно и отсюда — то же состояние, что на CAM 03
   if (s.selfStare && !s.noEthan) return [['temych', 3.4, 0, 1.6, .55, STILL('Idle_Loop', 1.4), [7.45, 3.85, 5.45]]];   // «ты» не сидишь в будке, а стоишь в холле и смотришь в камеру
   const A2 = s.noEthan ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, s.ethR > 0 ? eRadioK(t, s.ethR) : { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];   // отвечает Гасу по рации — рация у рта
   if (s.frank02) A2.push(['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]);   // в глубине холла, лицом к камере
