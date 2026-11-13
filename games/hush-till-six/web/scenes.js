@@ -2436,7 +2436,7 @@ function eKnockDoor(t, hits = [.55, .82, 1.09]) { let away = 1; for (const h of 
   const e = hits[hits.length - 1], lift = seg(t, .1, .45) * (1 - seg(t, e + .26, e + .71)), z = -13.952 + .085 * Math.min(1, away);
   const R = locR(.14, -13.5, PI);   // левая рука с фонарём — у груди, светит в дверь (не у плеча вбок)
   return { clips: [['Idle_Torch_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: [-.08, 1.32, z], by: 'knuck', fdir: [-.1, .15, -1], pdir: [-.8, -.6, 0], w: lift },
-    l: { at: R.p(.16, 1.1, .3), by: 'palm', fdir: R.v(-.35, .05, 1), pdir: R.v(.95, 0, .1), w: 1 } }, fing: { r: ['fist', lift], l: ['grip', 1] }, hold: ETORCH, look: [-.1, 1.3, -14] }; }
+    l: { at: R.p(.13, 1.08, .3), by: 'palm', fdir: R.v(-1, .15, .2), pdir: R.v(.1, 1, -.15), w: 1 } }, fing: { r: ['fist', lift], l: ['grip', 1] }, hold: ETORCH, look: [-.1, 1.3, -14] }; }
 function torchFromHand(o, tgt) {   // свет фонаря — из руки Итана в цель (пятно на двери там, куда смотрит фонарь), а не из точки внутри руки
   const E = A.temych; if (!E || !E.bone || !E.bone.hand_l) return; const hp = E.bone.hand_l.getWorldPosition(new T.Vector3()), tv = new T.Vector3(...tgt), d = tv.clone().sub(hp).normalize();
   o.etorch.intensity = 7; o.etorch.position.copy(hp).addScaledVector(d, .14); o.etorch.target.position.copy(tv); o.etorch.target.updateMatrixWorld(); }
