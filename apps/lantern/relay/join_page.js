@@ -51,7 +51,7 @@ function page(code, inf, base) {
   const dl = base + '/download';
   const pretty = /^\d{8}$/.test(code) ? code : (code.length === 6 ? code.slice(0, 3) + '-' + code.slice(3) : code);
   const app = `lantern://join?code=${encodeURIComponent(code)}`;
-  const intent = `intent://join?code=${encodeURIComponent(code)}#Intent;scheme=lantern;package=${PKG};S.browser_fallback_url=${encodeURIComponent(dl)};end`;
+  const intent = `intent://join?code=${encodeURIComponent(code)}#Intent;scheme=lantern;package=${PKG};S.browser_fallback_url=`;
   const title = inf ? inf.title : 'Игра в LANTERN';
   const ogt = inf ? `Заходи в игру «${inf.title}»` : 'Заходи играть через LANTERN';
   const mode = inf ? MODE_RU[inf.mode] || '' : '';
@@ -91,14 +91,46 @@ ${meta.length ? `<div class="pills">${meta.map((m) => `<span>${esc(m)}</span>`).
 <p class="how"><b>Как это работает:</b> нажмите «Открыть в LANTERN» — приложение само запустит Minecraft и заведёт вас в мир. Нет приложения — сначала скачайте его.</p>
 <p class="d">${DISCLAIMER_RU}<br>${DISCLAIMER_EN}<br>Minecraft — товарный знак Mojang Synergies AB.</p>
 </main><script>
-(function(){var a=document.getElementById('open');if(/Android/i.test(navigator.userAgent)){a.href=${JSON.stringify(intent)};}
+(function(){var a=document.getElementById('open');if(/Android/i.test(navigator.userAgent)){a.href=${JSON.stringify(intent)}+encodeURIComponent(location.origin+${JSON.stringify(dl)})+';end';}
 a.addEventListener('click',function(){setTimeout(function(){if(!document.hidden&&!/Android/i.test(navigator.userAgent))location.href=${JSON.stringify(dl)};},2500);});})();
+</script></body></html>`;
+}
+
+// 1.8.1: QR-код друга — обычная https-ссылка /f/<тег>: её открывает любая камера (lantern:// камеры часто не понимают).
+function friendPage(tag, base) {
+  const dl = base + '/download';
+  const app = `lantern://friend?v=1&tag=${encodeURIComponent(tag)}`;
+  const intent = `intent://friend?v=1&tag=${encodeURIComponent(tag)}#Intent;scheme=lantern;package=${PKG};S.browser_fallback_url=`;
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d1c"><meta name="robots" content="noindex"><title>${esc(tag)} — друг в LANTERN</title>
+<meta property="og:title" content="${esc(tag)} зовёт в друзья"><meta property="og:site_name" content="LANTERN">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;color:#f4f2ee;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;
+background:radial-gradient(90% 60% at 10% 0%,rgba(255,182,72,.22),transparent 60%),linear-gradient(#141737,#07080f 70%)}
+main{width:100%;max-width:440px;padding:max(20px,env(safe-area-inset-top)) 16px 28px}
+.brand{font-weight:800;letter-spacing:.06em;font-size:15px;margin:4px 4px 16px;color:#ffd9a0}
+.card{border-radius:28px;padding:22px 20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+h1{margin:0 0 4px;font-size:28px;line-height:1.1;font-weight:800;overflow-wrap:anywhere}.by{color:#b3b4c8;margin:0 0 18px}
+a.btn{display:flex;align-items:center;justify-content:center;height:58px;border-radius:20px;font-weight:800;font-size:18px;text-decoration:none;color:#1a1206;background:linear-gradient(100deg,#ffcf70,#ffb648 40%,#ff8a3d)}
+a.sec{display:flex;align-items:center;justify-content:center;height:50px;margin-top:10px;border-radius:18px;font-weight:700;text-decoration:none;color:#f4f2ee;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.d{margin:22px 6px 0;color:#7d7f99;font-size:11px;line-height:1.5}</style></head><body><main>
+<div class="brand">LANTERN</div><div class="card"><h1>${esc(tag)}</h1><p class="by">зовёт вас в друзья · wants to be friends</p>
+<a class="btn" id="open" href="${esc(app)}">Добавить в друзья · Add friend</a><a class="sec" href="${esc(dl)}">Скачать LANTERN · Download</a></div>
+<p class="d">${DISCLAIMER_RU}<br>${DISCLAIMER_EN}</p></main><script>
+(function(){var a=document.getElementById('open');if(/Android/i.test(navigator.userAgent)){a.href=${JSON.stringify(intent)}+encodeURIComponent(location.origin+${JSON.stringify(dl)})+';end';}})();
 </script></body></html>`;
 }
 
 /** url — без префикса /lantern; find(code) → комната или undefined. true — запрос обработан. */
 function http(req, res, url, base, find, social) {
   const u = new URL(url, 'http://x');
+  if (u.pathname.startsWith('/f/')) {
+    let tag = '';
+    try { tag = decodeURIComponent(u.pathname.slice(3)).trim(); } catch (e) { tag = ''; }
+    const ok = tag.length >= 1 && tag.length <= 40 && !/[\u0000-\u001f<>"'\\/]/.test(tag) && (req.method === 'GET' || req.method === 'HEAD');
+    res.writeHead(ok ? 200 : 404, { 'content-type': (ok ? 'text/html' : 'text/plain') + '; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' });
+    res.end(req.method === 'HEAD' ? undefined : ok ? friendPage(tag, base) : 'Нет такого игрока');
+    return true;
+  }
   if (!u.pathname.startsWith('/j/')) return false;
   const code = codeFromPath(u.pathname);
   if (!code || (req.method !== 'GET' && req.method !== 'HEAD')) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); res.end('Нет такой игры'); return true; }
@@ -108,4 +140,4 @@ function http(req, res, url, base, find, social) {
   return true;
 }
 
-module.exports = { http, page, info, codeFromPath, esc };
+module.exports = { http, page, friendPage, info, codeFromPath, esc };
