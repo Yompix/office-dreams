@@ -541,7 +541,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (AC) for (const b of scene.beats || []) for (const k of MSEQ[b.music] || []) if (!BUF[k] && rawSnd[k] && !decQ[k]) decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; });   // музыка кадров раскодируется заранее: после «нажми» вступает сразу
   if (scene.music !== undefined) music(scene.music || null, scene.mfade);   // '' — тишина (прежняя музыка уходит; mfade — как медленно)
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
-  if (!id.startsWith('over_')) { LS.set('save', id); LS.set('saveT', lastTime); }   // и время ночи: у сцен осмотра и разговоров своего нет — после «Продолжить» часы шли бы с 02:55
+  if (!id.startsWith('over_') && !watching) { LS.set('save', id); LS.set('saveT', lastTime); }   // и время ночи: у сцен осмотра и разговоров своего нет — после «Продолжить» часы шли бы с 02:55
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
   for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);
   for (let i = bi; i >= 0; i--) if (scene.beats[i] && scene.beats[i].music !== undefined) { music(scene.beats[i].music || null); break; }   // начали с середины — музыка последнего пройденного кадра   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
@@ -1375,9 +1375,14 @@ function achScreen() {
   return `<h1>${tr('ДОСТИЖЕНИЯ')}</h1><small class="achN">${trf('Получено {a} из {b}', { a: n, b: ACHS.length })}</small><div class="achG">${ACHS.map(a => { const g = achGot.has(a[0]), hid = !g && a[7];
     return `<div class="${g ? 'got' : ''}"><img src="ach/${a[0]}.jpg?v=1" alt=""><span><b>${escH(hid ? tr('Скрытое достижение') : achName(a))}</b><i>${escH(hid ? '???' : achDesc(a))}</i></span></div>`; }).join('')}</div>`;
 }
+// сцена, которой кончается концовка (её можно пересмотреть из меню «Концовки»)
+const endScene = k => Object.keys(S.scenes).find(id => ((S.scenes[id] || {}).then || {}).ending === k);
+// просмотр концовки из меню: сохранение игрока не трогаем (ни «Продолжить», ни флаги ночи), после — назад в меню
+let watching = null;
+function watchEnding(k) { const id = endScene(k); if (!id) return; watching = { save: LS.get('save', null), saveT: LS.get('saveT', null) }; begin(id); }
 function gallery() {
   const got = LS.get('endings', []).filter(k => S.endings[k]), ov = oversGot();
-  return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
+  return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => got.includes(k) && endScene(k) ? `<button class="got" data-end="${k}">${n}<small>▶ ${tr('Смотреть')}</small></button>` : `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
     <small>${trf('Концовки: {a} из {b} · Смертей найдено: {c} из {d}', { a: got.length, b: Object.keys(S.endings).length, c: ov.size, d: S.overs.length })}</small>`;
 }
 /* ---------- спонсоры игры (донаты звёздами Telegram через бота) ---------- */
@@ -1416,6 +1421,7 @@ function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4 && a
     : a === 6 ? 'На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.' : 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
   ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
+  if (watching) { LS.set('save', watching.save); LS.set('saveT', watching.saveT); watching = null; }
   gen++; mode = 'menu'; overBg = null; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
@@ -1436,7 +1442,7 @@ function menu() {
   const T0 = uiEl.querySelector('.title'), ok = () => gateDone && now() - gateT > .45;   // тот же тап, что открыл меню, не жмёт кнопку под пальцем
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
   btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
-  btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); });
+  btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); uiEl.querySelectorAll('[data-end]').forEach(b => { b.onclick = e => { e.stopPropagation(); uiSnd(); watchEnding(b.dataset.end); }; }); });
   btn('mAch', () => subScreen(achScreen()));
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
@@ -1610,7 +1616,7 @@ function finale(th) {
 // журнал ночи: страница журнала охраны — время в игре, часы смены, записи, решения, чем кончилось; штамп концовки; к выбору / заново / меню
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
-  mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
+  mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); if (watching) { LS.set('save', watching.save); LS.set('saveT', watching.saveT); watching = null; } else LS.set('save', null); runSave();
   ach('NIGHT_DONE'); ach('END_' + String(th.ending).toUpperCase());   // достижения: плашка в игре + Steam (ПК) / Google Play Игры (Android)
   if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;

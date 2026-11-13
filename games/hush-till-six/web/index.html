@@ -136,6 +136,9 @@ body.land #act .ex-leave { left: auto; right: 3%; bottom: 5%; width: calc(64 * v
 .gal { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2.4 * var(--u)); width: 100%; margin: calc(4 * var(--u)) 0; }
 .gal div { border: calc(.4 * var(--u)) solid rgba(255,255,255,.15); border-radius: calc(2 * var(--u)); padding: calc(3 * var(--u)) calc(2 * var(--u)); font-size: calc(3.6 * var(--u)); font-weight: 700; min-height: calc(15 * var(--u)); display: flex; align-items: center; justify-content: center; }
 .gal div.got { border-color: var(--red); background: rgba(224, 48, 58, .12); }
+.gal button.got { border: calc(.4 * var(--u)) solid var(--red); background: rgba(224, 48, 58, .16); border-radius: calc(2 * var(--u)); padding: calc(3 * var(--u)) calc(2 * var(--u)); font: inherit; font-size: calc(3.6 * var(--u)); font-weight: 700; color: inherit; min-height: calc(15 * var(--u)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(1 * var(--u)); cursor: pointer; }
+.gal button.got small { font-size: calc(2.6 * var(--u)); font-weight: 600; color: rgb(var(--accRGB)); letter-spacing: .08em; }
+.gal button.got:hover, .gal button.got:focus-visible { background: rgba(224, 48, 58, .3); }
 /* достижения: плашка «получено» сверху и экран в меню */
 .achT { position: absolute; left: 50%; top: calc(3 * var(--u)); transform: translate(-50%, -140%); z-index: 60; display: flex; align-items: center; gap: calc(3 * var(--u)); padding: calc(2 * var(--u)) calc(4.5 * var(--u)) calc(2 * var(--u)) calc(2 * var(--u)); background: linear-gradient(90deg, rgba(10,10,12,.96), rgba(28,10,12,.94)); border: calc(.35 * var(--u)) solid rgba(var(--accRGB),.75); border-radius: calc(2.4 * var(--u)); box-shadow: 0 0 calc(6 * var(--u)) rgba(var(--accRGB),.35), 0 calc(2 * var(--u)) calc(6 * var(--u)) rgba(0,0,0,.6); transition: transform .45s cubic-bezier(.2,.9,.25,1.2), opacity .45s; opacity: 0; pointer-events: none; max-width: 92%; }
 .achT.on { transform: translate(-50%, 0); opacity: 1; }
@@ -635,7 +638,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=2"></script><script src="i18n.js?v=25"></script>
+<script src="fonts/cjk/faces.js?v=2"></script><script src="i18n.js?v=26"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
@@ -644,7 +647,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
 <script src="chars2.js?v=47"></script>
 <script src="scenes.js?v=78"></script>
 <script src="story.js?v=34"></script>
-<script src="engine.js?v=83"></script>
+<script src="engine.js?v=84"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
