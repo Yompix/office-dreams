@@ -744,6 +744,7 @@ static func tappable(p: Control, cb: Callable, st: StyleBox = null) -> void:
 			flat.bg_color = Color(base.r, base.g, base.b, minf(1.0, base.a + k)) if base.a < 1.0 else base.lightened(k)
 		elif tex:
 			tex.modulate_color = Color(base.r * (1.0 + k * 3.0), base.g * (1.0 + k * 3.0), base.b * (1.0 + k * 3.0), base.a)
+	p.set_meta("tap", cb)      # автотесты нажимают карточку через это
 	var down := [Vector2.ZERO, 0]
 	if not Cfg.mobile():
 		p.mouse_entered.connect(func(): lit.call(0.05))
@@ -758,6 +759,8 @@ static func tappable(p: Control, cb: Callable, st: StyleBox = null) -> void:
 			else:
 				lit.call(0.0)
 				if e.position.distance_to(down[0]) < 12 and Rect2(Vector2.ZERO, p.size).has_point(e.position) and not scrolled_since(down[1]):
+					FX.hero_mark(p)
+					Sfx.play("tap")
 					cb.call())
 	FX.press(p, 0.98)
 
@@ -822,7 +825,7 @@ static func empty(icon_name: String, text: String, action := "", cb := Callable(
 static func steps(cur: int, total: int, names: Array = [], prev := -1) -> Control:
 	var v := vbox(8)
 	var t := hbox(8)
-	t.add_child(caption("Шаг %d из %d" % [cur, total], accent()))
+	t.add_child(caption(L.t("Шаг %d из %d") % [cur, total], accent()))
 	if cur - 1 < names.size():
 		t.add_child(label(String(names[cur - 1]), T_CAPTION, MUTED, font_bold))
 	v.add_child(t)
@@ -1083,8 +1086,21 @@ static func hover_scale(c: Control, k := 1.02) -> void:
 		c.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE, 0.22))
 
 
+static var copy_count := 0
+static var open_log: Array = []     # что открывали в системе (автотесты: вместо настоящего открытия)
+
+
 static func copy(text: String) -> void:
+	copy_count += 1
 	DisplayServer.clipboard_set(text)
+
+
+## Открыть ссылку или папку в системе. В автотестах ничего не открываем — только записываем.
+static func open(what: String) -> Error:
+	open_log.append(what)
+	if Cfg.autotest != "":
+		return OK
+	return OS.shell_open(what)
 
 
 ## Связь тремя столбиками (как сигнал сети): great — 3, good — 2, poor — 1; неизвестно — тусклые.

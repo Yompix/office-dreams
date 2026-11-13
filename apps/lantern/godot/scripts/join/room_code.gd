@@ -53,14 +53,14 @@ static func parse_address(text: String, edition := "java") -> Dictionary:
 		host = t.get_slice(":", 0)
 		var ps := t.get_slice(":", 1)
 		if not ps.is_valid_int():
-			return {"ok": false, "error": "Порт должен быть числом"}
+			return {"ok": false, "error": L.t("Порт должен быть числом")}
 		port = int(ps)
 	if host.contains(" ") or host.length() < 3 or not host.contains("."):
-		return {"ok": false, "error": "Это не похоже ни на код комнаты, ни на адрес"}
+		return {"ok": false, "error": L.t("Это не похоже ни на код комнаты, ни на адрес")}
 	if port == 0:
 		port = 19132 if edition == "bedrock" else 25565
 	if port < 1 or port > 65535:
-		return {"ok": false, "error": "Порт должен быть от 1 до 65535"}
+		return {"ok": false, "error": L.t("Порт должен быть от 1 до 65535")}
 	return {"ok": true, "host": host, "port": port, "address": "%s:%d" % [host, port]}
 
 

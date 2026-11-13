@@ -18,7 +18,7 @@ const CFG = {
   maxStreams: env('MAX_STREAMS', 64),          // потоков у одного друга
   maxConnPerIp: env('MAX_CONN_PER_IP', 40),
   joinPerMin: env('JOIN_PER_MIN', 30),         // попыток входа по коду с одного IP в минуту
-  roomBytesPerSec: env('ROOM_BYTES_PER_SEC', 4 * 1024 * 1024),
+  roomBytesPerSec: env('ROOM_BYTES_PER_SEC', 8 * 1024 * 1024),   // 1.8: было 4 МБ/с — вход в мир с дальней прорисовкой упирался в лимит
   maxFrame: env('MAX_FRAME', 64 * 1024 + 4),
   idleMs: env('IDLE_MS', 90_000),              // нет ни данных, ни ping — закрываем
   resumeMs: env('RESUME_MS', 5 * 60_000),      // код держится, пока хост переподключается
@@ -125,9 +125,27 @@ function throttle(src, dst, room) {
     if (room.tokens >= 0 && (!dst || dst.readyState !== 1 || dst.bufferedAmount < CFG.highWater / 2)) {
       src._paused = false;
       src._socket.resume();
-    } else setTimeout(check, 25);
+    } else setTimeout(check, 4);
   };
-  setTimeout(check, 25);
+  setTimeout(check, 4);   // 1.8: было 25 мс — поток шёл рывками
+}
+
+// ---- 1.8: «Прямое соединение по Wi-Fi». Адреса устройств через relay НЕ ходят вообще: relay только выдаёт другу
+// и хозяину общий одноразовый ключ и номера портов (если у обоих один внешний IP — вероятно, один роутер).
+// Друг ищет хозяина широковещательной пробой в своей домашней сети; ответить на неё может только хозяин с этим ключом.
+// Игрок из другой сети (даже за тем же NAT оператора) до хозяина пробой не дотянется и ничего о нём не узнает.
+const port = (p) => { const n = Number(p) >>> 0; return n > 0 && n < 65536 ? n : 0; };
+function cleanLan(l) {
+  if (!l || typeof l !== 'object' || process.env.LANTERN_LAN === '0') return null;
+  const o = { tcp: port(l.tcp), udp: port(l.udp), probe: port(l.probe) };
+  return o.probe && (o.tcp || o.udp) ? o : null;
+}
+function lanOffer(j) {
+  const room = j.room, ws = j.ws;
+  if (!j.lanWant || !room.lan || !room.host || !ws._netIp || ws._netIp !== room.host._netIp) return null;
+  const l = { tcp: room.lan.tcp, udp: room.lan.udp, probe: room.lan.probe, k: crypto.randomBytes(16).toString('hex') };
+  send(room.host, { t: 'lan', peer: j.id, k: l.k });
+  return l;
 }
 
 function closeRoom(room, why) {
@@ -203,8 +221,9 @@ function onHost(ws, msg) {
     room.host = ws;
     room.name = name;
     room.meta = Social.roomMeta(msg.public);
+    room.lan = cleanLan(msg.lan);
     applySettings(room, msg.settings);
-    for (const j of room.joiners) send(j.ws, { t: 'host_back' });
+    for (const j of room.joiners) { const l = lanOffer(j); send(j.ws, l ? { t: 'host_back', lan: l } : { t: 'host_back' }); }
     setBans(room, msg.bans);
   } else {
     if (rooms.size >= CFG.maxRooms) return send(ws, { t: 'error', error: 'busy' });
@@ -239,6 +258,7 @@ function newRoom(code, msg, owner, num) {
   room.num = num || makeNum();
   room.token = roomToken(code, room.num);
   room.mode = 'other'; room.cap = 0; room.passHash = ''; room.sizeMb = 0;
+  room.lan = cleanLan(msg.lan);
   applySettings(room, msg.settings);
   rooms.set(code, room);
   if (room.num) roomNums.set(room.num, room);
@@ -301,8 +321,12 @@ function onJoin(ws, msg) {
     social.eco.visit(room.ownerId, j.userId);
     social.eco.checkAchievements(j.userId);
   }
-  send(ws, { t: 'joined', v: PROTO, code: room.code, num: room.num, edition: room.edition, name: room.name, host: !!room.host, peer: j.id });
+  const jo = { t: 'joined', v: PROTO, code: room.code, num: room.num, edition: room.edition, name: room.name, host: !!room.host, peer: j.id };
   send(room.host, peerMsg(j, true));
+  j.lanWant = !!msg.lan;
+  const lan = lanOffer(j);
+  if (lan) jo.lan = lan;
+  send(ws, jo);
 }
 
 function likeRoom(ws) {
@@ -375,6 +399,7 @@ function onText(ws, text) {
     if (msg.t === 'open') return joinerOpen(j, msg);
     if (msg.t === 'close') return joinerClose(j, msg.sid >>> 0);
     if (msg.t === 'ack') { const s = j.streams.get(msg.sid >>> 0); if (s && j.room.host) send(j.room.host, ackMsg(s.hsid, msg)); return; }
+    if (msg.t === 'lan_on') { j.direct = !!msg.on; return send(j.room.host, { t: 'lan', peer: j.id, on: j.direct }); }
   } else if (ws._role === 'host') {
     const room = ws._room;
     if (msg.t === 'close') {
@@ -421,8 +446,10 @@ function onHttp(req, res, url) {
     let joiners = 0;
     for (const r of rooms.values()) joiners += r.joiners.size;
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    // 1.8: регион выкладки (не секрет) и время сервера — приложение показывает пинг до relay, а в отчётах видно, где он стоит
     return res.end(JSON.stringify({ ok: true, app: 'lantern-relay', v: PROTO, rooms: rooms.size, joiners,
-      uptime: Math.round((Date.now() - stats.started) / 1000) }));
+      uptime: Math.round((Date.now() - stats.started) / 1000),
+      region: String(process.env.RAILWAY_REPLICA_REGION || process.env.RAILWAY_REGION || '').slice(0, 40), ts: Date.now() }));
   }
   if (url.startsWith('/rooms')) {
     const u = new URL(url, 'http://x');
@@ -436,6 +463,10 @@ function onHttp(req, res, url) {
 function onConnection(ws, req) {
   const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
   ws._ip = fwd || req.socket.remoteAddress || '?';
+  // для «той же сети» берём адрес, который подставил наш прокси (последний в цепочке), а не то, что прислал клиент
+  const chain = String(req.headers['x-forwarded-for'] || '').split(',').map((x) => x.trim()).filter(Boolean);
+  ws._netIp = String(req.headers['x-real-ip'] || '').trim() || chain[chain.length - 1] || req.socket.remoteAddress || '';
+  if (req.socket && req.socket.setNoDelay) req.socket.setNoDelay(true);
   const n = (ipConns.get(ws._ip) || 0) + 1;
   if (n > CFG.maxConnPerIp) { ws.close(4003, 'too many connections'); return; }
   ipConns.set(ws._ip, n);

@@ -10,6 +10,15 @@ static func on() -> bool:
 	return not bool(Cfg.get_value("app", "reduce_motion", false))
 
 
+## 1.8: «лёгкий режим» — телефон не тянет живой фон (решает замер в main.gd, запоминается для устройства).
+## Фон становится неподвижным, без искр, бликов и волн от нажатий; переходы между экранами остаются.
+static var lite := false
+
+
+static func rich() -> bool:
+	return on() and not lite
+
+
 static func d(t: float) -> float:
 	return t if on() else 0.0
 
@@ -41,7 +50,7 @@ class Ripple extends Control:
 
 
 static func ripple(c: Control, at: Vector2) -> void:
-	if not on() or c.size.x < 8:
+	if not rich() or c.size.x < 8:
 		return
 	# обрезаем саму волну, а не элемент: у стекла и главной кнопки тень и свечение выходят за края
 	var clip := Control.new()
@@ -167,7 +176,7 @@ class Embers extends Control:
 
 
 static func burst(host: Control, at: Vector2, n := 26) -> void:
-	if not on():
+	if not rich():
 		return
 	var e := Embers.new()
 	host.add_child(e)
@@ -212,7 +221,7 @@ static func skeleton(h := 64.0, r := 14.0) -> Control:
 ## Блик, пробегающий по главной кнопке, когда она появляется (один раз).
 static func sheen(b: Control) -> void:
 	b.ready.connect(func():
-		if not on():
+		if not rich():
 			return
 		var clip := Control.new()
 		clip.clip_contents = true
@@ -241,3 +250,66 @@ static func sheen(b: Control) -> void:
 static func haptic(ms := 10) -> void:
 	if OS.get_name() == "Android" and on():
 		Input.vibrate_handheld(ms)
+
+
+# ------------------------------------------------------------------ 1.8: общий элемент — обложка игры
+
+static var hero_from := {}      # {rect, seed, mode, t}: обложка в списке, по которой нажали
+
+
+## Запомнить обложку внутри нажатой карточки (UI.tappable зовёт перед действием).
+static func hero_mark(card: Control) -> void:
+	for c in card.find_children("*", "ColorRect", true, false):
+		if c is Cover and (c as Cover).is_visible_in_tree():
+			hero_from = {"rect": (c as Control).get_global_rect(), "seed": (c as Cover).seed_text, "mode": (c as Cover).mode, "t": Time.get_ticks_msec()}
+			return
+
+
+## Обложка из списка «вырастает» в шапку экрана игры (240 мс). target — обложка-шапка нового экрана.
+static func hero_land(app: Control, target: Cover) -> void:
+	if not on() or hero_from.is_empty() or Time.get_ticks_msec() - int(hero_from.t) > 900:
+		return
+	var from: Rect2 = hero_from.rect
+	hero_from["t"] = 0
+	hero_from["landed"] = true
+	target.modulate.a = 0.0
+	var fly := Cover.make(target.seed_text, target.mode, 23, 0.0)
+	fly.z_index = 40
+	fly.position = from.position - app.global_position
+	fly.size = from.size
+	app.add_child(fly)
+	var go := func():
+		if not is_instance_valid(target) or not is_instance_valid(fly):
+			if is_instance_valid(fly):
+				fly.queue_free()
+			return
+		var to := target.get_global_rect()
+		var tw := fly.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(fly, "position", to.position - app.global_position, 0.24)
+		tw.tween_property(fly, "size", to.size, 0.24)
+		tw.chain().tween_callback(func():
+			if is_instance_valid(target):
+				target.modulate.a = 1.0
+			fly.queue_free())
+	# ждём два кадра: новый экран должен разложиться, чтобы знать, куда лететь
+	fly.create_tween().tween_callback(go).set_delay(0.06)
+
+
+## Назад: шапка «сжимается» обратно в обложку списка (220 мс).
+static func hero_back(app: Control, header: Cover) -> void:
+	if not on() or not hero_from.get("landed", false) or not is_instance_valid(header):
+		hero_from = {}
+		return
+	var from := header.get_global_rect()
+	var to: Rect2 = hero_from.rect
+	hero_from = {}
+	var fly := Cover.make(header.seed_text, header.mode, 23, 0.0)
+	fly.z_index = 40
+	fly.position = from.position - app.global_position
+	fly.size = from.size
+	app.add_child(fly)
+	var tw := fly.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(fly, "position", to.position - app.global_position, 0.22)
+	tw.tween_property(fly, "size", to.size, 0.22)
+	tw.tween_property(fly, "modulate:a", 0.0, 0.1).set_delay(0.16)
+	tw.chain().tween_callback(fly.queue_free)

@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.7.0"
+const APP_VERSION := "1.8.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -34,9 +34,18 @@ var autotest := ""          # --autotest <режим>
 var autotest_args := {}     # --key=value из командной строки
 
 
+var _path := SETTINGS_PATH
+
+
 func _ready() -> void:
-	cfg.load(SETTINGS_PATH)
 	_parse_cmdline()
+	# 1.8: автотест со своей папкой данных хранит там и настройки — прогоны не портят друг другу (и приложению) settings.cfg
+	if autotest != "" and autotest_args.has("data"):
+		DirAccess.make_dir_recursive_absolute(String(autotest_args["data"]))
+		_path = String(autotest_args["data"]).path_join("settings.cfg")
+	cfg.load(_path)
+	# язык: выбранный в настройках, иначе язык системы (нет такого перевода — английский). Автотесты — по-русски (--lang=en меняет).
+	L.apply(String(autotest_args.get("lang", "ru")) if autotest != "" else String(get_value("app", "lang", L.detect())))
 	if autotest_args.has("data"):
 		set_value("app", "data_dir", String(autotest_args["data"]))
 	DirAccess.make_dir_recursive_absolute(data_dir())
@@ -64,7 +73,7 @@ func get_value(section: String, key: String, def: Variant = null) -> Variant:
 
 func set_value(section: String, key: String, v: Variant) -> void:
 	cfg.set_value(section, key, v)
-	cfg.save(SETTINGS_PATH)
+	cfg.save(_path)
 
 
 func default_data_dir() -> String:
@@ -185,7 +194,7 @@ static func mode_name(m: String) -> String:
 	for x in MODES:
 		if x[0] == m:
 			return x[1]
-	return "Другое"
+	return L.t("Другое")
 
 
 ## Показывать ли платные функции (см. PAID)

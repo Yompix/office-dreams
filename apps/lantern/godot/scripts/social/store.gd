@@ -42,7 +42,7 @@ static func buy(product: String) -> void:
 	if not Cfg.paid():
 		return
 	if _billing == null or not prices.has(product):
-		Social.notice.emit({"kind": "info", "text": "Покупки скоро — пока работает ДЕМО-режим (Настройки → Тест покупок и рекламы)"})
+		Social.notice.emit({"kind": "info", "text": L.t("Покупки скоро — пока работает ДЕМО-режим (Настройки → Тест покупок и рекламы)")})
 		return
 	_billing.call("purchase", product)
 

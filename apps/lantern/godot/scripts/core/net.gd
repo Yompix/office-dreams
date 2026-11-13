@@ -52,20 +52,20 @@ static func _is_local(url: String) -> bool:
 static func _err_text(result: int, code: int) -> String:
 	match result:
 		HTTPRequest.RESULT_SUCCESS:
-			return "сервер ответил кодом %d" % code
+			return L.t("сервер ответил кодом %d") % code
 		HTTPRequest.RESULT_CANT_CONNECT, HTTPRequest.RESULT_CONNECTION_ERROR:
-			return "нет соединения с интернетом или сайт недоступен"
+			return L.t("нет соединения с интернетом или сайт недоступен")
 		HTTPRequest.RESULT_CANT_RESOLVE:
-			return "не удалось найти адрес сайта (проверьте интернет)"
+			return L.t("не удалось найти адрес сайта (проверьте интернет)")
 		HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR:
-			return "ошибка защищённого соединения (TLS)"
+			return L.t("ошибка защищённого соединения (TLS)")
 		HTTPRequest.RESULT_TIMEOUT:
-			return "сайт слишком долго не отвечает"
+			return L.t("сайт слишком долго не отвечает")
 		HTTPRequest.RESULT_DOWNLOAD_FILE_CANT_OPEN, HTTPRequest.RESULT_DOWNLOAD_FILE_WRITE_ERROR:
-			return "не удалось записать файл на диск (место? права?)"
+			return L.t("не удалось записать файл на диск (место? права?)")
 		HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED:
-			return "слишком много перенаправлений"
-	return "ошибка сети (%d)" % result
+			return L.t("слишком много перенаправлений")
+	return L.t("ошибка сети (%d)") % result
 
 
 ## Запрос, возвращает {ok, code, text, data(JSON или null), error}
@@ -79,7 +79,7 @@ func request(url: String, method := HTTPClient.METHOD_GET, body := "", headers: 
 	var err := r.request(url, h, method, body)
 	if err != OK:
 		r.queue_free()
-		return {"ok": false, "code": 0, "error": "не удалось начать загрузку (%d)" % err, "data": null, "text": ""}
+		return {"ok": false, "code": 0, "error": L.t("не удалось начать загрузку (%d)") % err, "data": null, "text": ""}
 	var res: Array = await r.request_completed
 	r.queue_free()
 	var result: int = res[0]
@@ -117,7 +117,7 @@ func download(url: String, dest: String, checksum: Dictionary = {}, progress := 
 	var err := r.request(url, h)
 	if err != OK:
 		r.queue_free()
-		return {"ok": false, "error": "не удалось начать загрузку (%d)" % err}
+		return {"ok": false, "error": L.t("не удалось начать загрузку (%d)") % err}
 	while not done[0]:
 		if progress.is_valid():
 			progress.call(r.get_downloaded_bytes(), r.get_body_size())
@@ -141,7 +141,7 @@ func download(url: String, dest: String, checksum: Dictionary = {}, progress := 
 		var got := await file_hash(tmp, algo)
 		if got != want:
 			DirAccess.remove_absolute(tmp)
-			return {"ok": false, "error": "файл повреждён при загрузке (не совпала контрольная сумма %s). Попробуйте ещё раз." % algo.to_upper()}
+			return {"ok": false, "error": L.t("файл повреждён при загрузке (не совпала контрольная сумма %s). Попробуйте ещё раз.") % algo.to_upper()}
 	var rerr := await replace_file(tmp, dest)
 	if rerr != "":
 		return {"ok": false, "error": rerr}
@@ -160,7 +160,7 @@ func replace_file(src: String, dest: String) -> String:
 	if DirAccess.copy_absolute(src, dest) == OK:
 		DirAccess.remove_absolute(src)
 		return ""
-	return "не удалось сохранить %s — файл занят другой программой (антивирус?) или нет прав на папку %s" % [dest.get_file(), dest.get_base_dir()]
+	return L.t("не удалось сохранить %s — файл занят другой программой (антивирус?) или нет прав на папку %s") % [dest.get_file(), dest.get_base_dir()]
 
 
 func file_hash(path: String, algo := "sha256") -> String:
@@ -184,7 +184,7 @@ func file_hash(path: String, algo := "sha256") -> String:
 func put_file(url: String, path: String, headers: PackedStringArray = []) -> Dictionary:
 	var body := FileAccess.get_file_as_bytes(path)
 	if body.is_empty():
-		return {"ok": false, "code": 0, "data": null, "error": "не удалось прочитать " + path.get_file()}
+		return {"ok": false, "code": 0, "data": null, "error": L.t("не удалось прочитать ") + path.get_file()}
 	var r := _make(url)
 	r.timeout = 0
 	var h := PackedStringArray(["User-Agent: " + UA, "Content-Type: application/zip"])
@@ -192,7 +192,7 @@ func put_file(url: String, path: String, headers: PackedStringArray = []) -> Dic
 	var err := r.request_raw(url, h, HTTPClient.METHOD_PUT, body)
 	if err != OK:
 		r.queue_free()
-		return {"ok": false, "code": 0, "data": null, "error": "не удалось начать отправку (%d)" % err}
+		return {"ok": false, "code": 0, "data": null, "error": L.t("не удалось начать отправку (%d)") % err}
 	var res: Array = await r.request_completed
 	r.queue_free()
 	var text: String = (res[3] as PackedByteArray).get_string_from_utf8()

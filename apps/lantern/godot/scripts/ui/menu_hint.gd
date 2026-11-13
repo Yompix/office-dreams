@@ -14,23 +14,23 @@ static func make(kind: String) -> Control:
 	p.add_child(v)
 	match kind:
 		"world":
-			v.add_child(_title("Меню игры · Играть"))
-			v.add_child(_row("Мой мир", true, "play"))
+			v.add_child(_title(L.t("Меню игры · Играть")))
+			v.add_child(_row(L.t("Мой мир"), true, "play"))
 		"settings":
-			v.add_child(_title("Пауза → Настройки"))
-			v.add_child(_row("Мультиплеер", true))
-			v.add_child(_row("Другие разделы…", false))
+			v.add_child(_title(L.t("Пауза → Настройки")))
+			v.add_child(_row(L.t("Мультиплеер"), true))
+			v.add_child(_row(L.t("Другие разделы…"), false))
 		"toggle":
-			v.add_child(_title("Настройки → Мультиплеер"))
-			v.add_child(_toggle("Многопользовательская игра", true))
-			v.add_child(_toggle("Видимость для игроков LAN", true))
+			v.add_child(_title(L.t("Настройки → Мультиплеер")))
+			v.add_child(_toggle(L.t("Многопользовательская игра"), true))
+			v.add_child(_toggle(L.t("Видимость для игроков LAN"), true))
 		"pause":
-			v.add_child(_title("Меню паузы (Esc)"))
-			v.add_child(_row("Вернуться к игре", false))
-			v.add_child(_row("Открыть для сети", true))
+			v.add_child(_title(L.t("Меню паузы (Esc)")))
+			v.add_child(_row(L.t("Вернуться к игре"), false))
+			v.add_child(_row(L.t("Открыть для сети"), true))
 		"lan":
-			v.add_child(_title("Открыть для сети"))
-			v.add_child(_row("Открыть мир для сети", true))
+			v.add_child(_title(L.t("Открыть для сети")))
+			v.add_child(_row(L.t("Открыть мир для сети"), true))
 	return p
 
 

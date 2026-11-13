@@ -267,7 +267,7 @@ static func register(app: Control) -> void:
 	var top1 := UI.hbox(0)
 	top1.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	top1.add_child(UI.spacer())
-	var later := UI.button("Позже", "ghost", func(): ov.queue_free())
+	var later := UI.button(L.t("Позже"), "ghost", func(): ov.queue_free())
 	later.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
 	top1.add_child(later)
 	a1.add_child(top1)
@@ -281,12 +281,12 @@ static func register(app: Control) -> void:
 	var t1 := UI.label("LANTERN", 40, UI.TEXT, UI.font_title)
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(t1)
-	var s1 := UI.para("Нажал — и ты в игре с друзьями. Java и Bedrock, телефон и ПК. Без VPN и настроек.", 16, UI.MUTED)
+	var s1 := UI.para(L.t("Нажал — и ты в игре с друзьями. Java и Bedrock, телефон и ПК. Без VPN и настроек."), 16, UI.MUTED)
 	s1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	p1.add_child(s1)
 	p1.add_child(UI.spacer(false))
 	p1.add_child(dots.call(0))
-	var b1 := UI.button("Начать", "primary", func(): show_page.call(1, 1))
+	var b1 := UI.button(L.t("Начать"), "primary", func(): show_page.call(1, 1))
 	b1.custom_minimum_size.y = 56
 	b1.add_theme_font_size_override("font_size", 17)
 	p1.add_child(b1)
@@ -299,12 +299,12 @@ static func register(app: Control) -> void:
 	var a2: Control = art.call(p2, "lantern-nick-3", "roleplay", 0.27)
 	var top2 := UI.hbox(0)
 	top2.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	top2.add_child(UI.icon_button("back", func(): show_page.call(0, -1), "Назад"))
+	top2.add_child(UI.icon_button("back", func(): show_page.call(0, -1), L.t("Назад")))
 	a2.add_child(top2)
-	p2.add_child(UI.h1("Как вас зовут в игре?"))
-	p2.add_child(UI.para("Ник видят друзья. Пароль не нужен. Вы получите тег вида Ник#4821 — по нему вас добавят в друзья.", 15, UI.MUTED))
+	p2.add_child(UI.h1(L.t("Как вас зовут в игре?")))
+	p2.add_child(UI.para(L.t("Ник видят друзья. Пароль не нужен. Вы получите тег вида Ник#4821 — по нему вас добавят в друзья."), 15, UI.MUTED))
 	p2.add_child(UI.gap(4))
-	var e := UI.line_edit("", "Ник: 3–16 букв, цифр или _")
+	var e := UI.line_edit("", L.t("Ник: 3–16 букв, цифр или _"))
 	e.max_length = 16
 	e.custom_minimum_size.y = 56
 	e.add_theme_font_override("font", UI.font_bold)
@@ -316,13 +316,13 @@ static func register(app: Control) -> void:
 	p2.add_child(err)
 	p2.add_child(UI.spacer(false))
 	p2.add_child(dots.call(1))
-	var ok := UI.button("Готово", "primary")
+	var ok := UI.button(L.t("Готово"), "primary")
 	ok.custom_minimum_size.y = 56
 	ok.add_theme_font_size_override("font_size", 17)
 	ok.pressed.connect(func():
 		err.visible = false
 		state.waiting = true
-		ok.text = "Создаём профиль…"
+		ok.text = L.t("Создаём профиль…")
 		Social.register(e.text))
 	p2.add_child(ok)
 	e.text_submitted.connect(func(_t): ok.pressed.emit())
@@ -330,21 +330,21 @@ static func register(app: Control) -> void:
 	# --- 3. как играть
 	var p3: VBoxContainer = mk_page.call()
 	art.call(p3, "lantern-ready-5", "survival", 0.24)
-	var hi := UI.h1("Готово!")
+	var hi := UI.h1(L.t("Готово!"))
 	p3.add_child(hi)
 	var tagl := UI.para("", 15, UI.MUTED)
 	p3.add_child(tagl)
 	p3.add_child(UI.gap(4))
-	p3.add_child(UI.caption("Как играть вместе"))
+	p3.add_child(UI.caption(L.t("Как играть вместе")))
 	var go_host := func():
 		ov.queue_free()
 		if app.has_method("play_option"):
 			app.go("setup")
-	p3.add_child(_how_card("1", "plus", UI.accent(), "Создайте мир", "Откройте свой мир в Minecraft или запустите сервер на ПК — получите код. Друзья зайдут по нему." if not Cfg.mobile() else "Откройте свой мир в Minecraft — LANTERN даст код, по нему зайдут друзья.", go_host))
-	p3.add_child(_how_card("2", "play", UI.BEDROCK, "Или зайдите к другу", "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft.", func(): ov.queue_free(); app.go("join")))
+	p3.add_child(_how_card("1", "plus", UI.accent(), L.t("Создайте мир"), L.t("Откройте свой мир в Minecraft или запустите сервер на ПК — получите код. Друзья зайдут по нему.") if not Cfg.mobile() else L.t("Откройте свой мир в Minecraft — LANTERN даст код, по нему зайдут друзья."), go_host))
+	p3.add_child(_how_card("2", "play", UI.BEDROCK, L.t("Или зайдите к другу"), L.t("Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft."), func(): ov.queue_free(); app.go("join")))
 	p3.add_child(UI.spacer(false))
 	p3.add_child(dots.call(2))
-	var b3 := UI.button("Осмотрюсь сам", "secondary", func(): ov.queue_free())
+	var b3 := UI.button(L.t("Осмотрюсь сам"), "secondary", func(): ov.queue_free())
 	b3.custom_minimum_size.y = 52
 	p3.add_child(b3)
 
@@ -357,12 +357,12 @@ static func register(app: Control) -> void:
 		if what == "register":
 			err.text = text
 			err.visible = true
-			ok.text = "Готово"
+			ok.text = L.t("Готово")
 			state.waiting = false
 	var on_change := func(what):
 		if what == "me" and Social.online() and state.waiting:
 			state.waiting = false
-			tagl.text = "Ваш тег — %s. Отправьте его друзьям, чтобы они добавили вас." % Social.me.get("tag", "")
+			tagl.text = L.t("Ваш тег — %s. Отправьте его друзьям, чтобы они добавили вас.") % Social.me.get("tag", "")
 			show_page.call(2, 1)
 			FX.burst(ov, Vector2(ov.size.x / 2, ov.size.y * 0.25), 30)
 	Social.failed.connect(on_fail)
@@ -413,7 +413,7 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 	top.add_child(UI.label("▶ Google Play", 15, Color("3c4043"), UI.font_bold))
 	top.add_child(UI.spacer())
 	if Social.demo:
-		top.add_child(UI.pill("ДЕМО", Color("d93025")))
+		top.add_child(UI.pill(L.t("ДЕМО"), Color("d93025")))
 	v.add_child(top)
 	var row := UI.hbox(14)
 	row.add_child(UI.texture("res://assets/img/icon.png", 56, 56))
@@ -439,16 +439,16 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 	line.color = Color("e0e0e0")
 	line.custom_minimum_size.y = 1
 	v.add_child(line)
-	v.add_child(UI.para("Способ оплаты: " + ("тестовая карта (ДЕМО — деньги не списываются)" if Social.demo else "Google Play"), 13, Color("3c4043")))
+	v.add_child(UI.para(L.t("Способ оплаты: ") + (L.t("тестовая карта (ДЕМО — деньги не списываются)") if Social.demo else "Google Play"), 13, Color("3c4043")))
 	if product == "lantern_pro_month":
-		v.add_child(UI.para("Подписку можно отменить в любой момент в Google Play.", 12, Color("5f6368")))
-	var buy := UI.button("Купить", "primary")
+		v.add_child(UI.para(L.t("Подписку можно отменить в любой момент в Google Play."), 12, Color("5f6368")))
+	var buy := UI.button(L.t("Купить"), "primary")
 	for st in [["normal", Color("1a73e8")], ["hover", Color("3b87ee")], ["pressed", Color("1557b0")], ["hover_pressed", Color("1557b0")], ["disabled", Color("8ab4f8")]]:
 		buy.add_theme_stylebox_override(st[0], UI.box(st[1], 99, 12))
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_disabled_color"]:
 		buy.add_theme_color_override(k, Color.WHITE)
 	v.add_child(buy)
-	var cancel := UI.button("Отмена", "ghost", func(): close_sheet(app))
+	var cancel := UI.button(L.t("Отмена"), "ghost", func(): close_sheet(app))
 	cancel.add_theme_color_override("font_color", Color("1a73e8"))
 	v.add_child(cancel)
 	buy.pressed.connect(func():
@@ -457,7 +457,7 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 			close_sheet(app)
 			return
 		buy.disabled = true
-		buy.text = "Обработка…"
+		buy.text = L.t("Обработка…")
 		Social.request("demo_purchase", {"product": product})
 		await app.get_tree().create_timer(0.9).timeout
 		if not is_instance_valid(v):
@@ -475,10 +475,10 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 		ck.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		ring.add_child(ck)
 		okb.add_child(ring)
-		var tl := UI.label("Покупка выполнена", 20, Color("202124"), UI.font_bold)
+		var tl := UI.label(L.t("Покупка выполнена"), 20, Color("202124"), UI.font_bold)
 		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		okb.add_child(tl)
-		var sub := UI.para(info.get("title", "") + " — уже у вас" + ("  (ДЕМО)" if Social.demo else ""), 14, Color("5f6368"))
+		var sub := UI.para(info.get("title", "") + L.t(" — уже у вас") + (L.t("  (ДЕМО)") if Social.demo else ""), 14, Color("5f6368"))
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		okb.add_child(sub)
 		okb.add_child(UI.gap(8))
@@ -505,19 +505,19 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	var v := UI.vbox(14)
 	p.add_child(v)
 	var top := UI.hbox(8)
-	top.add_child(UI.pill("Тестовая реклама", UI.YELLOW))
+	top.add_child(UI.pill(L.t("Тестовая реклама"), UI.YELLOW))
 	top.add_child(UI.spacer())
 	var cnt := UI.label("5", 18, UI.TEXT, UI.font_black)
 	top.add_child(cnt)
 	v.add_child(top)
-	var big := UI.label("Здесь будет реклама", 28, UI.TEXT, UI.font_black)
+	var big := UI.label(L.t("Здесь будет реклама"), 28, UI.TEXT, UI.font_black)
 	big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	big.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	big.custom_minimum_size.x = 120
 	big.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	big.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	v.add_child(big)
-	var sub := UI.para(("Досмотрите до конца — получите +20 искр." if rewarded else "Реклама показывается только после выхода из мира. В Pro её нет.") + " Это ДЕМО: настоящей рекламы и трекинга нет.", 14, UI.MUTED)
+	var sub := UI.para((L.t("Досмотрите до конца — получите +20 искр.") if rewarded else L.t("Реклама показывается только после выхода из мира. В Pro её нет.")) + L.t(" Это ДЕМО: настоящей рекламы и трекинга нет."), 14, UI.MUTED)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
 	var bar := ProgressBar.new()
@@ -525,7 +525,7 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	bar.max_value = 5.0
 	bar.custom_minimum_size.y = 6
 	v.add_child(bar)
-	var close := UI.button("Закрыть", "secondary", func(): ov.queue_free())
+	var close := UI.button(L.t("Закрыть"), "secondary", func(): ov.queue_free())
 	close.disabled = true
 	v.add_child(close)
 	_center(ov, p)
@@ -538,7 +538,7 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 			return
 	cnt.text = "✓"
 	close.disabled = false
-	close.text = "Забрать +20 искр" if rewarded else "Закрыть"
+	close.text = L.t("Забрать +20 искр") if rewarded else L.t("Закрыть")
 	if rewarded:
 		close.remove_theme_stylebox_override("normal")
 		Social.request("ad_reward")

@@ -25,6 +25,7 @@ var nn_id := 0               # наш id NetherNet — чтобы «Мой ми�
 var password := ""           # пароль игры (1.5), если хозяин его задал
 var token := ""              # профиль LANTERN (для заданий и «Фонаря»), можно пусто
 var _want_like := false
+var lan_direct := true       # 1.8: «Прямое соединение по Wi-Fi» (LanDirect)
 
 var _thread: Thread
 var _run := false
@@ -32,7 +33,7 @@ var _mutex := Mutex.new()
 var _stats := {"state": "off", "error": "", "name": "", "edition": "", "java_port": 0, "bedrock_port": 0,
 	"bedrock_error": "", "java_error": "", "pong": false, "motd": "", "streams": 0, "rx": 0, "tx": 0, "host": true,
 	"host_version": "", "host_protocol": 0, "client_protocol": 0, "nethernet": false, "nn_error": "", "nn_clients": 0,
-	"http_joins": 0, "connects": 0, "in_game": false, "resumed": 0}
+	"http_joins": 0, "connects": 0, "in_game": false, "resumed": 0, "direct": false, "direct_used": false, "rtt": 0}
 var _guid := 0
 
 
@@ -93,7 +94,7 @@ func _loop() -> void:
 	AppLog.add("join", "вход по коду: java %s, bedrock %s, relay %s" % [str(want_java), str(want_bedrock), relay_url])
 	if link.open(relay_url) != OK:
 		_st("state", "error")
-		_st("error", "неверный адрес сервера-посредника: " + relay_url)
+		_st("error", L.t("неверный адрес сервера-посредника: ") + relay_url)
 		AppLog.add("join", "неверный адрес relay")
 		return
 	var joined := false
@@ -125,6 +126,11 @@ func _loop() -> void:
 	var link_t0 := Time.get_ticks_msec()
 	var last_rx := link_t0
 	var rng := RandomNumberGenerator.new()
+	var last_busy := 0
+	var n_streams := -1
+	# прямое соединение по Wi-Fi: ключ и порты от relay, адрес хозяина — из ответа на пробу
+	var ld := {"on": lan_direct and String(Cfg.autotest_args.get("lan", "1")) != "0", "k": "", "tcp": 0, "udp": 0, "probe": 0, "addr": "",
+		"nonce": "", "tries": 0, "next": 0, "sock": null, "fail_tcp": 0, "fail_udp": 0, "told": false}
 	while _run:
 		var now := Time.get_ticks_msec()
 		var busy := false
@@ -134,7 +140,7 @@ func _loop() -> void:
 				AppLog.add("join", "связь не вернулась за %d с — выходим" % (RECONNECT_MS / 1000))
 				_st("state", "error")
 				_st("error_code", "lost")
-				_st("error", "Связь с LANTERN пропала и не вернулась. Проверьте интернет и зайдите снова.")
+				_st("error", L.t("Связь с LANTERN пропала и не вернулась. Проверьте интернет и зайдите снова."))
 				break
 			if now >= next_try:
 				link = RelayLink.new()
@@ -143,7 +149,8 @@ func _loop() -> void:
 				link_t0 = now
 				last_rx = now
 			else:
-				OS.delay_usec(5000)
+				_pump_direct(ld, streams, by_client, udp, null, rng, now)
+				OS.delay_usec(1000)
 				continue
 		var evs: Array = link.poll()
 		if joined and now - last_rx > 40000:
@@ -162,6 +169,9 @@ func _loop() -> void:
 			match ev.k:
 				"open":
 					var jm := {"t": "join", "v": RelayLink.PROTO, "code": code, "token": token, "password": password}
+					if ld.on:
+						jm["lan"] = 1
+					ld.told = false
 					if my_peer != "":
 						jm["peer"] = my_peer
 					link.send_json(jm)
@@ -179,7 +189,7 @@ func _loop() -> void:
 					if not ever_joined:
 						_st("state", "error")
 						_st("error_code", "unreachable" if not ev.was_open else "lost")
-						_st("error", "связь с сервером-посредником потеряна" if ev.was_open else "сервер-посредник недоступен — проверьте интернет")
+						_st("error", L.t("связь с сервером-посредником потеряна") if ev.was_open else L.t("сервер-посредник недоступен — проверьте интернет"))
 						_run = false
 						break
 					# была игра — держим соединения игры и переподключаемся
@@ -191,7 +201,7 @@ func _loop() -> void:
 					backoff = min(backoff * 2, 4000)
 					_detach_all(streams, by_client, now)
 					_st("state", "reconnecting")
-					_st("error", "Связь прервалась — восстанавливаем…")
+					_st("error", L.t("Связь прервалась — восстанавливаем…"))
 				"msg":
 					var m: Dictionary = ev.m
 					match String(m.get("t", "")):
@@ -201,6 +211,7 @@ func _loop() -> void:
 							name = m.name
 							host_here = m.get("host", true)
 							my_peer = String(m.get("peer", my_peer))
+							_lan_offer(ld, m.get("lan"), rng, now)
 							_st("name", name)
 							_st("edition", edition)
 							_st("host", host_here)
@@ -218,7 +229,7 @@ func _loop() -> void:
 							if want_java and edition in ["java", "both"]:
 								tcp_server = TCPServer.new()
 								if tcp_server.listen(java_port, "*") != OK and (java_port_alt <= 0 or java_port_alt == java_port or tcp_server.listen(java_port_alt, "*") != OK) and tcp_server.listen(0, "*") != OK:
-									_st("java_error", "не удалось открыть локальный порт")
+									_st("java_error", L.t("не удалось открыть локальный порт"))
 									AppLog.add("join", "не удалось открыть локальный порт Java")
 									tcp_server = null
 								else:
@@ -230,7 +241,7 @@ func _loop() -> void:
 								udp = PacketPeerUDP.new()
 								udp.set_broadcast_enabled(true)
 								if udp.bind(bedrock_port, "*") != OK:
-									_st("bedrock_error", "порт %d занят — закройте открытый по сети мир или сервер Bedrock на этом устройстве" % bedrock_port)
+									_st("bedrock_error", L.t("порт %d занят — закройте открытый по сети мир или сервер Bedrock на этом устройстве") % bedrock_port)
 									AppLog.add("join", "Bedrock: порт %d занят" % bedrock_port)
 									udp = null
 								else:
@@ -257,6 +268,8 @@ func _loop() -> void:
 							_st("error_code", e)
 							_st("error", RelayLink.error_text(e))
 							_run = false
+						"pong":
+							_st("rtt", maxi(1, Time.get_ticks_msec() - int(m.get("ts", now))))
 						"ack":
 							var s: Variant = streams.get(int(m.sid))
 							if s == null or s.kind != "tcp":
@@ -285,7 +298,7 @@ func _loop() -> void:
 								if m.get("lost", false) and _detach(s, now):
 									AppLog.add("join", "поток %d: хозяин потерял связь — ждём" % sid)
 								else:
-									_log_close(sid, s, "хозяин закрыл (%s)" % ("ждал и не дождался" if s.get("wait_resume", false) else "сервер/игра закрыли соединение"))
+									_log_close(sid, s, L.t("хозяин закрыл (%s)") % (L.t("ждал и не дождался") if s.get("wait_resume", false) else L.t("сервер/игра закрыли соединение")))
 									_close_stream(s, by_client)
 									streams.erase(sid)
 						"host_gone":
@@ -299,6 +312,7 @@ func _loop() -> void:
 							host_here = true
 							_st("host", true)
 							AppLog.add("join", "хозяин вернулся")
+							_lan_offer(ld, m.get("lan"), rng, now)
 							if udp:
 								link.send_json({"t": "open", "sid": PING_SID, "kind": "udp"})
 							if want_bedrock and edition in ["bedrock", "both"]:
@@ -338,7 +352,7 @@ func _loop() -> void:
 								nn_disc.set_broadcast_enabled(true)
 								if nn_disc.bind(nn_port, "*") != OK:
 									nn_disc = null
-									_st("nn_error", "порт %d занят — закройте открытый по сети мир Minecraft на этом устройстве" % nn_port)
+									_st("nn_error", L.t("порт %d занят — закройте открытый по сети мир Minecraft на этом устройстве") % nn_port)
 									AppLog.add("join", "NetherNet: порт %d занят" % nn_port)
 								else:
 									_st("nn_error", "")
@@ -391,8 +405,13 @@ func _loop() -> void:
 		if not joined:
 			if not _run:
 				break
-			OS.delay_usec(2000)
+			_pump_direct(ld, streams, by_client, udp, null, rng, now)
+			OS.delay_usec(1000 if ever_joined else 2000)
 			continue
+		busy = _lan_probe(ld, now) or busy
+		if ld.addr != "" and not ld.told and stats().direct_used:
+			ld.told = true
+			link.send_json({"t": "lan_on", "on": true})
 		if _want_like:
 			_want_like = false
 			link.send_json({"t": "like"})
@@ -409,13 +428,20 @@ func _loop() -> void:
 				c.set_no_delay(true)
 				var sid := next_sid
 				next_sid += 1
+				_add("connects", 1)
+				busy = true
+				if ld.addr != "" and int(ld.tcp) > 0 and int(ld.fail_tcp) < 2:
+					# хозяин в этой же сети: игра идёт к его серверу напрямую, relay не участвует
+					var d := StreamPeerTCP.new()
+					d.connect_to_host(String(ld.addr), int(ld.tcp))
+					streams[sid] = {"kind": "dtcp", "tcp": c, "d": d, "last": now, "t0": now, "up": false, "to_d": PackedByteArray(), "to_c": PackedByteArray(), "rb": 0}
+					AppLog.add("join", "Java: игра подключилась (поток %d) — пробуем напрямую по Wi-Fi" % sid)
+					continue
 				var s := {"kind": "tcp", "tcp": c, "last": now, "t0": now, "key": _key(rng)}
 				RelStream.init(s, false)
 				streams[sid] = s
-				_add("connects", 1)
 				AppLog.add("join", "Java: игра подключилась (поток %d)" % sid)
 				link.send_json({"t": "open", "sid": sid, "kind": "tcp", "key": s.key, "rx": 0})
-				busy = true
 		# --- Bedrock: пинги и датаграммы
 		if udp:
 			if host_here and now - last_rping > 2000:
@@ -441,12 +467,31 @@ func _loop() -> void:
 					sid = next_sid
 					next_sid += 1
 					by_client[key] = sid
-					streams[sid] = {"kind": "udp", "ip": cip, "port": cport, "key": key, "rkey": _key(rng), "last": now, "t0": now}
-					link.send_json({"t": "open", "sid": sid, "kind": "udp", "key": streams[sid].rkey})
 					_add("connects", 1)
-					AppLog.add("join", "Bedrock: игра подключается по RakNet (поток %d)" % sid)
+					var du: PacketPeerUDP = null
+					if ld.addr != "" and int(ld.udp) > 0 and int(ld.fail_udp) < 2:
+						du = PacketPeerUDP.new()
+						if du.bind(0, "0.0.0.0") != OK or du.set_dest_address(String(ld.addr), int(ld.udp)) != OK:
+							du = null
+					if du:
+						streams[sid] = {"kind": "dudp", "ip": cip, "port": cport, "key": key, "du": du, "last": now, "t0": now, "got": false, "rb": 0, "held": []}
+						AppLog.add("join", "Bedrock: игра подключается по RakNet (поток %d) — пробуем напрямую по Wi-Fi" % sid)
+					else:
+						streams[sid] = {"kind": "udp", "ip": cip, "port": cport, "key": key, "rkey": _key(rng), "last": now, "t0": now}
+						link.send_json({"t": "open", "sid": sid, "kind": "udp", "key": streams[sid].rkey})
+						AppLog.add("join", "Bedrock: игра подключается по RakNet (поток %d)" % sid)
 				var us: Dictionary = streams[sid]
 				us.last = now
+				if us.kind == "dudp":
+					if (pk[0] & 0x80) and pk.size() > 12:
+						var dcp := client_protocol(pk)
+						if dcp > 0:
+							_st("client_protocol", dcp)
+					us.du.put_packet(pk)
+					if not us.got and us.held.size() < 8:
+						us.held.append(pk)       # если напрямую не ответят — последний пакет уйдёт через relay
+					_add("tx", pk.size())
+					continue
 				if us.get("detached", false):
 					continue
 				if (pk[0] & 0x80) and pk.size() > 12:
@@ -557,11 +602,14 @@ func _loop() -> void:
 				NetherNet.note_local_signal(s.sess, text)
 				AppLog.add("join", "NetherNet: сигнал %s" % p[0])
 				link.send_bin(sid, NetherNet.frame(NetherNet.F_SIGNAL, text.to_utf8_buffer()))
-		# --- TCP → relay, уборка
+		# --- прямые соединения (мимо relay), потом TCP → relay и уборка
+		busy = _pump_direct(ld, streams, by_client, udp, link, rng, now) or busy
 		for sid in streams.keys():
 			var s: Dictionary = streams[sid]
+			if s.kind == "dtcp" or s.kind == "dudp":
+				continue
 			if s.get("detached", false) and now - int(s.det_t) > RelStream.DETACH_MS:
-				_log_close(sid, s, "связь не вернулась")
+				_log_close(sid, s, L.t("связь не вернулась"))
 				_close_stream(s, by_client)
 				streams.erase(sid)
 				continue
@@ -569,19 +617,17 @@ func _loop() -> void:
 				var t: StreamPeerTCP = s.tcp
 				t.poll()
 				if t.get_status() != StreamPeerTCP.STATUS_CONNECTED or not RelStream.flush(s, t):
-					_log_close(sid, s, "игра закрыла соединение" if t.get_status() != StreamPeerTCP.STATUS_CONNECTED else "игра не принимает данные")
+					_log_close(sid, s, L.t("игра закрыла соединение") if t.get_status() != StreamPeerTCP.STATUS_CONNECTED else L.t("игра не принимает данные"))
 					if not s.get("detached", false):
 						link.send_json({"t": "close", "sid": sid})
 					_close_stream(s, by_client)
 					streams.erase(sid)
 					continue
-				var n := t.get_available_bytes()
-				if n > 0 and link.backlog() < BACKLOG_MAX and RelStream.can_read(s):
-					busy = true
-					var r := t.get_partial_data(min(n, 60000))
-					link.send_bin(sid, r[1])
-					RelStream.on_sent(s, r[1])
-					_add("tx", r[1].size())
+				if link.backlog() < BACKLOG_MAX and RelStream.can_read(s):
+					var sent := RelStream.pump_out(link, sid, s, t)
+					if sent > 0:
+						busy = true
+						_add("tx", sent)
 				if not s.get("detached", false):
 					RelStream.maybe_ack(link, sid, s, now)
 			elif s.get("detached", false):
@@ -603,9 +649,14 @@ func _loop() -> void:
 				link.send_json({"t": "close", "sid": sid})
 				_close_stream(s, by_client)
 				streams.erase(sid)
-		_st("streams", streams.size())
-		if not busy:
-			OS.delay_usec(1000)
+		if streams.size() != n_streams:
+			n_streams = streams.size()
+			_st("streams", n_streams)
+		if busy:
+			last_busy = Time.get_ticks_usec()
+			link.flush()
+		else:
+			RelStream.idle_wait(Time.get_ticks_usec(), last_busy, not streams.is_empty())
 	for sid in streams:
 		_close_stream(streams[sid], by_client)
 	if tcp_server:
@@ -616,6 +667,8 @@ func _loop() -> void:
 		lan.close()
 	if nn_disc:
 		nn_disc.close()
+	if ld.sock:
+		ld.sock.close()
 	if http_srv:
 		http_srv.stop()
 	for hc in http_conns:
@@ -647,10 +700,12 @@ func _detach_all(streams: Dictionary, by_client: Dictionary, now: int) -> void:
 	var kept := 0
 	for sid in streams.keys():
 		var s: Dictionary = streams[sid]
+		if s.kind == "dtcp" or s.kind == "dudp":
+			continue             # прямое соединение от relay не зависит — просто продолжает работать
 		if _detach(s, now):
 			kept += 1
 		else:
-			_log_close(sid, s, "связь пропала")
+			_log_close(sid, s, L.t("связь пропала"))
 			_close_stream(s, by_client)
 			streams.erase(sid)
 	if kept > 0:
@@ -661,7 +716,7 @@ func _detach_all(streams: Dictionary, by_client: Dictionary, now: int) -> void:
 func _reopen(link: RelayLink, streams: Dictionary, _bedrock: bool, now: int) -> void:
 	for sid in streams.keys():
 		var s: Dictionary = streams[sid]
-		if not s.get("detached", false):
+		if not s.get("detached", false) or s.kind == "dtcp" or s.kind == "dudp":
 			continue
 		s.detached = false
 		s.last = now
@@ -712,7 +767,16 @@ func _http_reply(s: Dictionary, data: PackedByteArray) -> bool:
 static func _close_stream(s: Dictionary, by_client: Dictionary) -> void:
 	if s.has("http"):
 		s.http.disconnect_from_host()
-	if s.kind == "tcp":
+	if s.kind == "dtcp":
+		if not s.to_c.is_empty() and s.tcp.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+			s.pending = s.to_c
+			RelStream.drain(s, s.tcp)
+		s.tcp.disconnect_from_host()
+		s.d.disconnect_from_host()
+	elif s.kind == "dudp":
+		s.du.close()
+		by_client.erase(s.get("key", ""))
+	elif s.kind == "tcp":
 		# сначала дописать то, что уже пришло (сообщение «вас выгнали» / «старая версия» — иначе игрок увидит «соединение разорвано»)
 		RelStream.drain(s, s.tcp)
 		s.tcp.disconnect_from_host()
@@ -761,3 +825,176 @@ static func _be64(v: int) -> PackedByteArray:
 	for i in 8:
 		b[7 - i] = (v >> (8 * i)) & 255
 	return b
+
+
+# ------------------------------------------------------------------ 1.8: прямое соединение по Wi-Fi (LanDirect)
+
+## relay прислал ключ и порты (хозяин, похоже, в этой же сети) — начинаем искать его пробой.
+func _lan_offer(lan: Dictionary, o: Variant, rng: RandomNumberGenerator, now: int) -> void:
+	if not lan.on or not (o is Dictionary) or String(o.get("k", "")) == "" or int(o.get("probe", 0)) <= 0:
+		return
+	lan.k = String(o.k)
+	lan.tcp = int(o.get("tcp", 0))
+	lan.udp = int(o.get("udp", 0))
+	lan.probe = int(o.probe)
+	lan.nonce = LanDirect.new_nonce(rng)
+	lan.tries = 0
+	lan.next = now
+	if lan.sock == null:
+		var u := PacketPeerUDP.new()
+		u.set_broadcast_enabled(true)
+		if u.bind(0, "0.0.0.0") == OK:
+			lan.sock = u
+	AppLog.add("join", "хозяин, похоже, в этой же сети — ищем его напрямую")
+
+
+## Проба: 4 попытки за секунду, потом раз в минуту (вдруг телефон только что подключился к Wi-Fi). true — нашли.
+func _lan_probe(lan: Dictionary, now: int) -> bool:
+	var u: PacketPeerUDP = lan.sock
+	if u == null or String(lan.k) == "":
+		return false
+	var found := false
+	while u.get_available_packet_count() > 0:
+		var pk := u.get_packet()
+		var ip := u.get_packet_ip()
+		if LanDirect.check(pk, String(lan.k), String(lan.nonce)) and String(lan.addr) != ip:
+			lan.addr = ip
+			lan.fail_tcp = 0
+			lan.fail_udp = 0
+			found = true
+			_st("direct", true)
+			AppLog.add("join", "хозяин найден в домашней сети — новые подключения игры пойдут напрямую")
+	if String(lan.addr) == "" and now >= int(lan.next):
+		lan.tries = int(lan.tries) + 1
+		lan.next = now + (250 if int(lan.tries) < 4 else 60000)
+		var pr := LanDirect.probe(String(lan.k), String(lan.nonce))
+		for t in LanDirect.broadcast_targets():
+			if u.set_dest_address(t, int(lan.probe)) == OK:
+				u.put_packet(pr)
+		if int(lan.tries) == 4:
+			AppLog.add("join", "хозяин в домашней сети не ответил — играем через сервер LANTERN")
+	return found
+
+
+func _direct_used() -> void:
+	if not stats().direct_used:
+		_st("direct_used", true)
+		AppLog.add("join", "прямое соединение по Wi-Fi работает")
+
+
+## Прямые потоки: игра ↔ сервер хозяина без relay. Не получилось соединиться — тихо переводим поток на relay
+## (link == null — связи с relay сейчас нет: тогда поток просто закрываем, игра переподключится).
+func _pump_direct(lan: Dictionary, streams: Dictionary, by_client: Dictionary, udp: PacketPeerUDP, link: RelayLink, rng: RandomNumberGenerator, now: int) -> bool:
+	var busy := false
+	for sid in streams.keys():
+		var s: Dictionary = streams[sid]
+		if s.kind == "dtcp":
+			var c: StreamPeerTCP = s.tcp
+			var d: StreamPeerTCP = s.d
+			c.poll()
+			d.poll()
+			var cs := c.get_status()
+			var ds := d.get_status()
+			if cs != StreamPeerTCP.STATUS_CONNECTED:
+				_close_stream(s, by_client)
+				streams.erase(sid)
+				continue
+			if not s.up:
+				if ds == StreamPeerTCP.STATUS_CONNECTED:
+					s.up = true
+					d.set_no_delay(true)
+					_direct_used()
+				elif ds != StreamPeerTCP.STATUS_CONNECTING or now - int(s.t0) > 800:
+					# порт игры хозяина напрямую недоступен (брандмауэр?) — этот поток пойдёт через relay
+					lan.fail_tcp = int(lan.fail_tcp) + 1
+					d.disconnect_from_host()
+					AppLog.add("join", "поток %d: напрямую не вышло — через сервер LANTERN" % sid)
+					if link == null:
+						c.disconnect_from_host()
+						streams.erase(sid)
+						continue
+					var ns := {"kind": "tcp", "tcp": c, "last": now, "t0": now, "key": _key(rng)}
+					RelStream.init(ns, false)
+					streams[sid] = ns
+					link.send_json({"t": "open", "sid": sid, "kind": "tcp", "key": ns.key, "rx": 0})
+					var held: PackedByteArray = s.to_d
+					var n0 := c.get_available_bytes()
+					if n0 > 0:
+						held.append_array(c.get_partial_data(n0)[1])
+					var i := 0
+					while i < held.size():
+						var part := held.slice(i, i + 60000)
+						link.send_bin(sid, part)
+						RelStream.on_sent(ns, part)
+						i += 60000
+					busy = true
+					continue
+			# игра → хозяин
+			var n := c.get_available_bytes()
+			if n > 0 and s.to_d.size() < (1 << 20):
+				s.to_d.append_array(c.get_partial_data(min(n, RelStream.READ_MAX))[1])
+				busy = true
+			if s.up and not s.to_d.is_empty():
+				var r: Array = d.put_partial_data(s.to_d)
+				if r[0] == OK and int(r[1]) > 0:
+					_add("tx", int(r[1]))
+					s.to_d = s.to_d.slice(int(r[1]))
+			# хозяин → игра
+			if s.up:
+				if ds == StreamPeerTCP.STATUS_CONNECTED:
+					var m := d.get_available_bytes()
+					if m > 0 and s.to_c.size() < (1 << 20):
+						var got: PackedByteArray = d.get_partial_data(min(m, RelStream.READ_MAX))[1]
+						s.to_c.append_array(got)
+						_add("rx", got.size())
+						s.rb = int(s.rb) + got.size()
+						if int(s.rb) > 50000 and not s.get("big", false):
+							s.big = true
+							AppLog.add("join", "Java: игрок в мире (поток %d, напрямую)" % sid)
+							_st("in_game", true)
+						busy = true
+				if not s.to_c.is_empty():
+					var r2: Array = c.put_partial_data(s.to_c)
+					if r2[0] == OK and int(r2[1]) > 0:
+						s.to_c = s.to_c.slice(int(r2[1]))
+				if ds != StreamPeerTCP.STATUS_CONNECTED and d.get_available_bytes() <= 0:
+					AppLog.add("join", "поток %d (Java, напрямую) закрыт сервером; %d с" % [sid, (now - int(s.t0)) / 1000])
+					_close_stream(s, by_client)
+					streams.erase(sid)
+		elif s.kind == "dudp":
+			var du: PacketPeerUDP = s.du
+			while du.get_available_packet_count() > 0:
+				var pk := du.get_packet()
+				if not s.got:
+					s.got = true
+					s.held = []
+					_direct_used()
+				s.last = now
+				s.rb = int(s.rb) + pk.size()
+				_add("rx", pk.size())
+				if int(s.rb) > 100000 and not s.get("big", false):
+					s.big = true
+					AppLog.add("join", "Bedrock: игрок в мире (поток %d, напрямую)" % sid)
+					_st("in_game", true)
+				if udp:
+					udp.set_dest_address(s.ip, s.port)
+					udp.put_packet(pk)
+				busy = true
+			if not s.got and now - int(s.t0) > 1500:
+				# сервер хозяина по UDP напрямую не отвечает — переводим игрока на relay (RakNet сам повторит запрос)
+				lan.fail_udp = int(lan.fail_udp) + 1
+				du.close()
+				AppLog.add("join", "поток %d: Bedrock напрямую не ответил — через сервер LANTERN" % sid)
+				if link == null:
+					by_client.erase(s.key)
+					streams.erase(sid)
+					continue
+				var held: Array = s.held
+				streams[sid] = {"kind": "udp", "ip": s.ip, "port": s.port, "key": s.key, "rkey": _key(rng), "last": now, "t0": now}
+				link.send_json({"t": "open", "sid": sid, "kind": "udp", "key": streams[sid].rkey})
+				if not held.is_empty():
+					link.send_bin(sid, held[held.size() - 1])
+			elif now - int(s.last) > UDP_IDLE_MS:
+				_close_stream(s, by_client)
+				streams.erase(sid)
+	return busy

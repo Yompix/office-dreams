@@ -39,7 +39,7 @@ func _init() -> void:
 	unresizable = true
 	wrap_controls = true
 	initial_position = Window.WINDOW_INITIAL_POSITION_ABSOLUTE
-	title = "LANTERN — мир"
+	title = L.t("LANTERN — мир")
 	visible = true
 
 
@@ -64,7 +64,7 @@ func _ready() -> void:
 	var head := UI.hbox(8)
 	head.mouse_filter = Control.MOUSE_FILTER_STOP
 	head.gui_input.connect(_on_head_input)
-	head.tooltip_text = "Нажмите — открыть, потяните — передвинуть"
+	head.tooltip_text = L.t("Нажмите — открыть, потяните — передвинуть")
 	_dot = Panel.new()
 	_dot.custom_minimum_size = Vector2(12, 12)
 	_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -170,11 +170,11 @@ func _refresh() -> void:
 	var col: Color = UI.JAVA if s.ok else (UI.YELLOW if s.get("wait", false) else UI.RED)
 	_dot.add_theme_stylebox_override("panel", UI.box(col, 99))
 	if _flash_until == 0:
-		_status.text = ("Друзья могут зайти ✓" if s.ok else String(s.text))
-	_count.text = "%d в мире" % peers.size() if peers.size() > 0 else ""
+		_status.text = (L.t("Друзья могут зайти ✓") if s.ok else String(s.text))
+	_count.text = L.t("%d в мире") % peers.size() if peers.size() > 0 else ""
 	if not _expanded:
 		return
-	var key := "%s|%s|%s|%s|%s|%s|%s|%d|%s|%s|%s" % [s.text, s.why, ctl.code(), ctl.is_public(), JSON.stringify(peers), ctl.num(), ctl.quality(), Social.friends.size(), _more_peer, JSON.stringify(ctl.protect_get()), ctl.protect_available()]
+	var key := "%s|%s|%s|%s|%s|%s|%s|%d|%s|%s|%s" % [s.text, s.why, ctl.code(), ctl.is_public(), JSON.stringify(peers), ctl.num(), ctl.quality(), Social.friends.size(), _more_peer, "", ""]
 	if key == _key:
 		return
 	_key = key
@@ -189,14 +189,14 @@ func _refresh() -> void:
 	cr.add_child(UI.icon_button("copy", func():
 		if ctl.share_text() != "":
 			UI.copy(ctl.share_text())
-			_status.text = "Приглашение скопировано", "Копировать приглашение", UI.MUTED))
+			_status.text = L.t("Приглашение скопировано"), L.t("Копировать приглашение"), UI.MUTED))
 	_body.add_child(cr)
 	var q: String = ctl.quality()
-	_body.add_child(UI.label("● " + String(RoomControl.QUALITY_TEXT.get(q, "проверяем связь…")) + ("  · код " + ctl.code() if ctl.num() != "" else ""), 12,
+	_body.add_child(UI.label("● " + String(RoomControl.QUALITY_TEXT.get(q, L.t("проверяем связь…"))) + (L.t("  · код ") + ctl.code() if ctl.num() != "" else ""), 12,
 		{"great": UI.JAVA, "good": UI.YELLOW, "poor": UI.RED}.get(q, UI.DIM), UI.font_bold))
-	_body.add_child(UI.caption("Игроки" + (" · %d" % peers.size() if peers.size() > 0 else "")))
+	_body.add_child(UI.caption(L.t("Игроки") + (" · %d" % peers.size() if peers.size() > 0 else "")))
 	if peers.is_empty():
-		_body.add_child(UI.label("Пока никто не зашёл", 13, UI.DIM))
+		_body.add_child(UI.label(L.t("Пока никто не зашёл"), 13, UI.DIM))
 	for p in peers:
 		var r := UI.hbox(6)
 		var n := UI.label(String(p.name) + (" (%s)" % p.mc if String(p.mc) != "" else ""), 14, UI.TEXT)
@@ -205,38 +205,24 @@ func _refresh() -> void:
 		n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		r.add_child(n)
 		var pid := String(p.peer)
-		r.add_child(_small("Выгнать", "secondary", func(): ctl.kick(pid)))
+		r.add_child(_small(L.t("Выгнать"), "secondary", func(): ctl.kick(pid)))
 		if _more_peer == pid:
-			r.add_child(_small("Забанить", "danger", func(): _more_peer = ""; ctl.ban(pid)))
+			r.add_child(_small(L.t("Забанить"), "danger", func(): _more_peer = ""; ctl.ban(pid)))
 		else:
 			r.add_child(_small("⋯", "ghost", func(): _more_peer = pid; _key = ""; _refresh(); _fit()))
 		_body.add_child(r)
-	# --- защита мира (только сервер LANTERN: правила меняем командами сервера)
-	_body.add_child(UI.caption("Защита мира"))
-	if ctl.protect_available():
-		var pr: Dictionary = ctl.protect_get()
-		var fl := UI.flow(6)
-		for it in RoomControl.PROTECT:
-			var k: String = it[0]
-			var ch := UI.chip(String(it[1]), bool(pr.get(k, false)), func(): ctl.protect_set(k, not bool(ctl.protect_get().get(k, false))))
-			ch.custom_minimum_size.y = 32
-			ch.add_theme_font_size_override("font_size", 12)
-			fl.add_child(ch)
-		_body.add_child(fl)
-	else:
-		_body.add_child(UI.para(RoomControl.PROTECT_OWN_HINT, 12, UI.MUTED))
-	_body.add_child(UI.caption("Кто может зайти"))
-	_body.add_child(UI.segmented([["friends", "По коду"], ["all", "Все в LANTERN"]], "all" if ctl.is_public() else "friends", func(k): ctl.set_public(k == "all")))
+	_body.add_child(UI.caption(L.t("Кто может зайти")))
+	_body.add_child(UI.segmented([["friends", L.t("По коду")], ["all", L.t("Все в LANTERN")]], "all" if ctl.is_public() else "friends", func(k): ctl.set_public(k == "all")))
 	var ir := UI.hbox(6)
-	var sb := _small("Скопировать ссылку", "tonal", func():
+	var sb := _small(L.t("Скопировать ссылку"), "tonal", func():
 		if ctl.share_text() != "":
 			UI.copy(ctl.share_text())
-			_status.text = "Приглашение скопировано")
+			_status.text = L.t("Приглашение скопировано"))
 	sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ir.add_child(sb)
-	ir.add_child(_small("Номер", "secondary", func():
+	ir.add_child(_small(L.t("Номер"), "secondary", func():
 		UI.copy(ctl.num() if ctl.num() != "" else ctl.code())
-		_status.text = "Номер скопирован"))
+		_status.text = L.t("Номер скопирован")))
 	_body.add_child(ir)
 	for f in Social.friends.filter(func(x): return x.get("online", false)).slice(0, 3):
 		var fr := UI.hbox(6)
@@ -244,17 +230,17 @@ func _refresh() -> void:
 		fl2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fr.add_child(fl2)
 		var fid := int(f.id)
-		fr.add_child(_small("Позвать", "secondary", func(): ctl.invite(fid)))
+		fr.add_child(_small(L.t("Позвать"), "secondary", func(): ctl.invite(fid)))
 		_body.add_child(fr)
 	var br := UI.hbox(6)
-	var cb := _small("Закрыть комнату", "danger", func(): ctl.close_room())
+	var cb := _small(L.t("Закрыть комнату"), "danger", func(): ctl.close_room())
 	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	br.add_child(cb)
-	br.add_child(_small("Свернуть", "ghost", func():
+	br.add_child(_small(L.t("Свернуть"), "ghost", func():
 		_pinned = false
 		_set_expanded(false)))
 	_body.add_child(br)
-	_body.add_child(UI.para("В игре нажмите Esc и кликните по окошку. Не видно поверх игры — включите в Minecraft оконный режим (Java: F11).", 11, UI.DIM))
+	_body.add_child(UI.para(L.t("В игре нажмите Esc и кликните по окошку. Не видно поверх игры — включите в Minecraft оконный режим (Java: F11)."), 11, UI.DIM))
 	_fit.call_deferred()
 
 

@@ -39,7 +39,7 @@ func start(exe: String, args: PackedStringArray, cwd := "") -> String:
 			argv.append_array(args)
 	var info := OS.execute_with_pipe(path, argv, true)
 	if info.is_empty():
-		return "не удалось запустить " + exe.get_file()
+		return L.t("не удалось запустить ") + exe.get_file()
 	pid = info["pid"]
 	_stdio = info["stdio"]
 	_stderr = info["stderr"]

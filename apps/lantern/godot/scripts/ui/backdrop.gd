@@ -88,7 +88,7 @@ func wake() -> void:
 
 
 func _process(d: float) -> void:
-	if not FX.on() or not is_visible_in_tree():
+	if not FX.rich() or not is_visible_in_tree():
 		return
 	_idle += d
 	if _idle > IDLE_SEC:

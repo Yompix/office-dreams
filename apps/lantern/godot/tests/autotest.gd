@@ -11,6 +11,9 @@ extends Node
 ##   ownreal  — то же с настоящим BDS вместо «мира в игре» и настоящим клиентом (tests/e2e_client.js bedrock)
 ##   mini     — ПК: окошко поверх игры — настоящее окно системы (tests/mini_window.sh смотрит его через xwininfo/xprop)
 ##   tour     — обход ВСЕХ экранов и сценариев для дизайн-скриншотов (tests/design_shots.sh), нужен relay и social_seed.js
+##   deadbuttons — нажимает КАЖДУЮ видимую кнопку/карточку на каждом экране и проверяет, что что-то произошло
+##              (tests/deadbuttons.sh; список «мёртвых» — в <data>/dead.json)
+##   bridge   — только мосты: хозяин → relay → друг поверх эхо-сервера (tests/latency.sh меряет задержку и скорость)
 ## Код выхода 0 — успех.
 
 var app
@@ -39,6 +42,8 @@ func run(a) -> void:
 		"touch": code = await _touch()
 		"tour": code = await _tour()
 		"mini": code = await _mini()
+		"bridge": code = await _bridge()
+		"deadbuttons": code = await _deadbuttons()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
 		"java", "bedrock": code = await _host(Cfg.autotest)
@@ -110,6 +115,7 @@ func _core_versions() -> int:
 
 
 func _core() -> int:
+	Cfg.set_value("host", "rules", {})      # прошлый прогон в этой же папке данных не влияет
 	var fails := 0
 	var out := Cfg.autotest_args.get("out", "/tmp/lantern-core")
 	DirAccess.make_dir_recursive_absolute(out)
@@ -221,6 +227,7 @@ func _core() -> int:
 		fails += 1
 	fails += _core_16(out)
 	fails += _core_17()
+	fails += _core_18()
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
 
@@ -307,18 +314,11 @@ func _core_17() -> int:
 		[RoomControl.vendor_kind("HUAWEI P30"), "huawei"],
 		[RoomControl.vendor_kind("samsung SM-A515F"), "samsung"],
 		[RoomControl.vendor_kind("Google Pixel 8"), ""],
-		[" | ".join(RoomControl.protect_commands("bedrock", {"pvp": true})), "gamerule pvp false"],
-		[" | ".join(RoomControl.protect_commands("bedrock", {"keep": true, "fire": true})), "gamerule keepinventory true | gamerule dofiretick false"],
-		[" | ".join(RoomControl.protect_commands("java", {"keep": false})), "gamerule keepInventory false | gamerule keep_inventory false"],
-		[" | ".join(RoomControl.protect_commands("java", {"fire": true})), "gamerule doFireTick false | gamerule fire_spread_radius_around_player 0"],
 	]
 	for c in checks:
 		if String(c[0]) != String(c[1]):
 			_log("1.7 FAIL: «%s» вместо «%s»" % [c[0], c[1]])
 			fails += 1
-	if RoomControl.protect_commands("java", {"boom": true}).size() != 4:
-		_log("1.7 FAIL: взрывы — 4 правила (старые и новые имена)")
-		fails += 1
 	# открытие Minecraft в автотесте ничего не запускает, но запоминает ссылку
 	Launcher.open_bedrock(19142, "тест")
 	if Launcher.last_url != "minecraft://connect/?serverUrl=127.0.0.1&serverPort=19142":
@@ -332,15 +332,133 @@ func _core_17() -> int:
 	return fails
 
 
+## 1.8: правила мира (команды Paper старых/новых версий и BDS), скорость игры, прямое соединение по Wi-Fi, множественное число.
+func _core_18() -> int:
+	var fails := 0
+	var J := func(a: PackedStringArray) -> String: return " | ".join(a)
+	var checks := [
+		[J.call(GameRules.commands("java", "pvp", false, {"mc": "26.3"})), "gamerule pvp false"],
+		[J.call(GameRules.commands("java", "keep", true, {"mc": "26.3"})), "gamerule keep_inventory true"],
+		[J.call(GameRules.commands("java", "keep", true, {"mc": "1.20.1"})), "gamerule keepInventory true"],
+		[J.call(GameRules.commands("java", "fire", false, {"mc": "1.21.11"})), "gamerule fire_spread_radius_around_player 0"],
+		[J.call(GameRules.commands("java", "fire", false, {"mc": "1.21.10"})), "gamerule doFireTick false"],
+		[J.call(GameRules.commands("java", "explosions", false, {"mc": "26.3"})), "gamerule tnt_explodes false | gamerule mob_griefing false"],
+		[J.call(GameRules.commands("java", "monsters", false, {"mc": "26.3"})), "gamerule spawn_monsters false"],
+		[J.call(GameRules.commands("java", "monsters", false, {"mc": "1.16.5"})), "gamerule doMobSpawning false"],
+		[J.call(GameRules.commands("java", "daylight", false, {"mc": "26.3"})), "gamerule advance_time false"],
+		[J.call(GameRules.commands("java", "weather", false, {"mc": "1.12.2"})), "gamerule doWeatherCycle false | weather clear"],
+		[J.call(GameRules.commands("java", "difficulty", "hard")), "difficulty hard"],
+		[J.call(GameRules.commands("java", "gamemode", "creative")), "defaultgamemode creative | gamemode creative @a"],
+		[J.call(GameRules.commands("java", "whitelist", true)), "whitelist on"],
+		[J.call(GameRules.commands("java", "wl_add", "Luna_7")), "whitelist add Luna_7"],
+		[J.call(GameRules.commands("bedrock", "wl_add", "Luna 7")), 'allowlist add "Luna 7"'],
+		[J.call(GameRules.commands("bedrock", "whitelist", false)), "allowlist off"],
+		[J.call(GameRules.commands("bedrock", "keep", true)), "gamerule keepinventory true"],
+		[J.call(GameRules.commands("bedrock", "fire", false)), "gamerule dofiretick false"],
+		[J.call(GameRules.commands("bedrock", "cheats", true)), "changesetting allow-cheats true"],
+		[J.call(GameRules.commands("java", "cheats", true, {"players": ["A", "B"]})), "op A | op B"],
+		[J.call(GameRules.commands("java", "cheats", false, {"players": ["A", "B"], "admins": ["B"], "host": "C"})), "deop A"],
+		[J.call(GameRules.commands("java", "admin_add", "Luna_7")), "op Luna_7"],
+		[J.call(GameRules.commands("java", "pardon", "Luna_7")), "pardon Luna_7"],
+		[GameRules.clean_nick("  Lu;na/7 && stop "), "Luna7  stop"],
+		[str(GameRules.from_protect({"pvp": true, "boom": true, "keep": true})), str({"pvp": false, "explosions": false, "keep": true})],
+		[Tuning.effective({"perf": "balance"}, {"threads": 4, "total_mb": 16000, "free_mb": 12000}), "fast"],
+		[Tuning.effective({"perf": "balance"}, {"threads": 8, "total_mb": 16000, "free_mb": 5000}), "fast"],
+		[Tuning.effective({"perf": "balance"}, {"threads": 8, "total_mb": 16000, "free_mb": 9000}), "balance"],
+		[Tuning.effective({"perf": "pretty", "perf_manual": true}, {"threads": 2, "total_mb": 4000, "free_mb": 1000}), "pretty"],
+		[str(Tuning.auto_memory({"threads": 8, "total_mb": 16000, "free_mb": 12000})), "4096"],
+		[str(Tuning.auto_memory({"threads": 4, "total_mb": 8000, "free_mb": 3000})), "1024"],
+		[str(Tuning.auto_memory({"threads": 4, "total_mb": 4000, "free_mb": 3500})), "1536"],
+		[str(Tuning.parse_tps("[00:48:04 INFO]: TPS from last 1m, 5m, 15m: 20.1, 19.9, 20.0")), "20.1"],
+		[str(Tuning.parse_tps("[00:48:04 INFO]: TPS from last 1m, 5m, 15m: *12.5, 19.9, 20.0")), "12.5"],
+		[str(Tuning.parse_tps("[00:48:04 INFO]: Done (21.9s)!")), "-1.0"],
+		[str(Tuning.parse_mspt("[00:48:04 INFO]: ? 2.8/0.8/47.5, 2.8/0.8/47.5, 2.8/0.8/47.5")), "2.8"],
+		[Tuning.yaml_set("a:\n  b:\n    item: 0.5\n    exp: -1.0\nitem: 9\n", ["a", "b", "item"], "4.0"), "a:\n  b:\n    item: 4.0\n    exp: -1.0\nitem: 9\n"],
+		[Tuning.yaml_set("a:\n  x: 1\n", ["a", "nope"], "4"), "a:\n  x: 1\n"],
+		[str(L.plural_index("ru", 1)) + str(L.plural_index("ru", 3)) + str(L.plural_index("ru", 11)) + str(L.plural_index("ru", 21)), "0120"],
+		[str(L.plural_index("pl", 1)) + str(L.plural_index("pl", 22)) + str(L.plural_index("pl", 5)), "012"],
+		[str(L.plural_index("en", 1)) + str(L.plural_index("en", 0)) + str(L.plural_index("fr", 0)) + str(L.plural_index("tr", 5)), "0100"],
+	]
+	for c in checks:
+		if String(c[0]) != String(c[1]):
+			_log("1.8 FAIL: «%s» вместо «%s»" % [c[0], c[1]])
+			fails += 1
+	var fl := Tuning.jvm_flags(21, 4096)
+	if not "-Xmx4096M" in fl or not "-XX:+UseG1GC" in fl or not "-XX:G1HeapRegionSize=8M" in fl or not "-XX:G1HeapRegionSize=16M" in Tuning.jvm_flags(21, 12288):
+		_log("1.8 FAIL: флаги Java " + str(fl))
+		fails += 1
+	for p in Tuning.PRESETS:
+		if Tuning.PRESETS[p].size() != Tuning.PRESETS.fast.size() or int(Tuning.PRESETS[p].sim) > int(Tuning.PRESETS[p].view):
+			_log("1.8 FAIL: набор " + p)
+			fails += 1
+	# прямое соединение: ответ только на пробу с нашим ключом, чужой ответ не принимается
+	var rng := RandomNumberGenerator.new()
+	var nonce := LanDirect.new_nonce(rng)
+	var keys := {}
+	LanDirect.remember(keys, "0123456789abcdef0123456789abcdef", 1)
+	var ans := LanDirect.answer(LanDirect.probe("0123456789abcdef0123456789abcdef", nonce), keys)
+	if ans.is_empty() or not LanDirect.check(ans, "0123456789abcdef0123456789abcdef", nonce) or LanDirect.check(ans, "0123456789abcdef0123456789abcdee", nonce) \
+			or not LanDirect.answer(LanDirect.probe("ffffffffffffffffffffffffffffffff", nonce), keys).is_empty() or not LanDirect.answer("мусор".to_utf8_buffer(), keys).is_empty():
+		_log("1.8 FAIL: проба прямого соединения")
+		fails += 1
+	for i in 80:
+		LanDirect.remember(keys, "%032x" % i, i + 2)
+	if keys.size() != LanDirect.KEYS_MAX or keys.has("0123456789abcdef0123456789abcdef"):
+		_log("1.8 FAIL: ключей прямого соединения %d" % keys.size())
+		fails += 1
+	fails += _core_i18n()
+	_log("1.8 core: FAILS=%d" % fails)
+	return fails
+
+
+## Переводы: в каждом языке есть каждая строка из i18n/lantern.pot (её обновляет tools/i18n_extract.py),
+## перевод не пуст, подстановки (%s, %d) те же, у форм множественного числа «a|b|c» подстановки есть в каждой форме.
+func _core_i18n() -> int:
+	var fails := 0
+	var pot := FileAccess.get_file_as_string("res://i18n/lantern.pot")
+	var keys := []
+	for m in RegEx.create_from_string("(?m)^msgid (\".*\")$").search_all(pot):
+		var k: Variant = JSON.parse_string(m.get_string(1))
+		if k is String and k != "":
+			keys.append(k)
+	var ph := RegEx.create_from_string("%[-+0 ]*\\d*(?:\\.\\d+)?[sdfx]")
+	var count := func(t: String) -> String:
+		var a := []
+		for x in ph.search_all(t):
+			a.append(x.get_string().right(1))
+		a.sort()
+		return "".join(a)
+	var langs := 0
+	for l in L.LANGS:
+		if l[0] == "ru":
+			continue
+		var path := "res://i18n/%s.po" % l[0]
+		if not ResourceLoader.exists(path):
+			continue          # язык ещё не переведён — в списке «Язык» его не будет (L.available)
+		langs += 1
+		var t: Translation = load(path)
+		var bad := 0
+		for k in keys:
+			var v := String(t.get_message(k))
+			if v == "" or count.call(String(k).get_slice("|", 0)) != count.call(v.get_slice("|", 0)):
+				bad += 1
+				if bad <= 5:
+					_log("i18n FAIL [%s]: «%s» → «%s»" % [l[0], String(k).substr(0, 60), v.substr(0, 60)])
+		if bad > 0:
+			fails += 1
+		_log("i18n %s: строк %d, с ошибками %d" % [l[0], keys.size(), bad])
+	if keys.size() < 1000 or langs < 1:
+		_log("i18n FAIL: строк %d, языков %d" % [keys.size(), langs])
+		fails += 1
+	return fails
+
+
 # ------------------------------------------------------------------ скриншоты
 func _screens() -> int:
 	app.go("home", true)
 	await _shot("01_home")
-	app.go("setup", true, {"edition": "java"})
-	await get_tree().create_timer(2.5).timeout
-	await _shot("02_setup_java")
-	app.go("setup", true, {"edition": "bedrock"})
-	await _shot("03_setup_bedrock")
+	app.go("gamesettings", true)
+	await _shot("02_game_settings")
 	app.go("join", true, {"edition": "both"})
 	await _shot("04_join")
 	app.go("settings", true)
@@ -359,7 +477,7 @@ func _press(text: String, in_overlay := false) -> bool:
 	if in_overlay:
 		root = app.get_child(app.get_child_count() - 1)
 	for b in root.find_children("*", "Button", true, false):
-		if b.is_visible_in_tree() and (b as Button).text == text and not (b as Button).disabled:
+		if b.is_visible_in_tree() and ((b as Button).text == text or (b as Button).text == L.t(text)) and not (b as Button).disabled:
 			(b as Button).pressed.emit()
 			return true
 	_log("кнопка не найдена: " + text)
@@ -497,6 +615,31 @@ func _host(ed: String) -> int:
 	var code: String = app.relay_host.stats().code
 	_log("КОД КОМНАТЫ: " + RoomCode.pretty(code))
 	await _shot("10_host_%s" % ed)
+	# 1.8: «Настройки игры» на настоящем сервере — команды действительно применяются (ответы сервера в журнале)
+	if ed == "java":
+		var want := ["Game rule pvp is now set to false", "Game rule keep_inventory is now set to true", "difficulty has been set to Hard",
+			"Added Tester1 to the whitelist", "default game mode is now Creative", "Game rule advance_weather is now set to false", "Made Tester1 a server operator"]
+		if not GameRules.new_names(String(s._installed.get("mc_version", ""))):
+			want = ["keepInventory", "difficulty", "Added Tester1 to the white", "game mode"]
+		app.room.rule_set("pvp", false)
+		app.room.rule_set("keep", true)
+		app.room.rule_set("weather", false)
+		app.room.opt_live("difficulty", "hard")
+		app.room.opt_live("gamemode", "creative")
+		app.room.list_add("wl", "Tester1")
+		app.room.list_add("admins", "Tester1")
+		var seen := func(): return want.all(func(w): return Array(s.history).any(func(l): return String(l).contains(w)))
+		if not await _wait(seen, 15, "сервер подтвердил правила из «Настроек игры»"):
+			for w in want:
+				_log("  %s: %s" % ["да" if Array(s.history).any(func(l): return String(l).contains(w)) else "НЕТ", w])
+			return 1
+		app.room.rule_set("pvp", true)
+		app.room.rule_set("keep", false)
+		app.room.rule_set("weather", true)
+		app.room.opt_live("difficulty", "easy")
+		app.room.list_remove("wl", "Tester1")
+		app.room.list_remove("admins", "Tester1")
+		_log("скорость игры: набор %s, память %d МБ, флаги Java: %s" % [s.perf, s.mem_mb, " ".join(Tuning.jvm_flags(21, s.mem_mb).slice(0, 4))])
 	# --- друг: вход по коду (тот же процесс, другие локальные порты)
 	app.go("join", true, {"input": RoomCode.pretty(code), "edition": "both"})
 	if not await _wait(func(): return app.relay_join.stats().state == "online", 20, "друг вошёл в комнату"):
@@ -524,6 +667,10 @@ func _host(ed: String) -> int:
 	_log("relay host: " + JSON.stringify(app.relay_host.stats()))
 	_log("relay join: " + JSON.stringify(app.relay_join.stats()))
 	_log("игроки на сервере: " + str(s.players))
+	if ed == "java":
+		s._tps_t = -100000       # замер TPS сейчас (обычно раз в минуту)
+		await _wait(func(): return s.tps >= 0.0, 10, "TPS сервера измерен")
+		_log("TPS %.1f, тик %.1f мс, сервер %s" % [s.tps, s.mspt, "успевает" if not s.lagging else "НЕ успевает"])
 	await _shot("12_host_after_%s" % ed)
 	# --- резервная копия и остановка
 	var bk: String = await s.backup()
@@ -787,7 +934,7 @@ func _widest(n: Node, depth: int) -> void:
 # ------------------------------------------------------------------ дизайн-обход: все экраны и сценарии (tests/design_shots.sh)
 func _find_button(root: Node, text: String) -> Button:
 	for b in root.find_children("*", "Button", true, false):
-		if b.is_visible_in_tree() and (b as Button).text == text and not (b as Button).disabled:
+		if b.is_visible_in_tree() and ((b as Button).text == text or (b as Button).text == L.t(text)) and not (b as Button).disabled:
 			return b
 	return null
 
@@ -850,30 +997,29 @@ func _tour() -> int:
 	app.go("create", true)
 	await get_tree().create_timer(0.4).timeout
 	await _shot("12c_create")
+	app.go("gamesettings", true)
+	await get_tree().create_timer(0.6).timeout
+	await _shot("13_game_settings")
+	var gs_sc: ScrollContainer = app._screen._scroll
+	for i in 4:
+		gs_sc.scroll_vertical = int((i + 1) * gs_sc.size.y * 0.85)
+		await get_tree().create_timer(0.3).timeout
+		await _shot("13%s_game_settings" % "bcde"[i])
 	if Cfg.mobile():
-		app.go("setup", true)
-		await _shot("12_host_step1_phone")
-		app._screen._pick_kind("own")
+		app.go("setup", true, {"own": true})
 		await get_tree().create_timer(1.0).timeout
 		await _shot("12b_host_own_phone")
 		app.go("home", true)
 	# --- мастер «Создать мир» (ПК)
 	if not Cfg.mobile() and not Cfg.autotest_args.has("nohost"):
-		app.go("setup", true)
-		await _shot("13_host_step1_kind")
-		var scr = app._screen
-		scr._pick_kind("server")
-		await _shot("13b_host_step1_edition")
-		scr._pick("java")
-		await _shot("14_host_step2_world")
-		scr._goto(3)
-		scr._eula.button_pressed = true
-		await _shot("15_host_step3_launch")
 		# комната без настоящего сервера: открываем её на relay и показываем экран мира
 		var s: ServerHost = app.server
 		s.edition = "java"
-		s.opts = {"world": "Наш мир", "crossplay": true, "internet": true, "gamemode": "survival"}
+		s.opts = Create.server_opts("java")
+		s.opts["world"] = "Наш мир"
 		s.state = "running"
+		s._started = s.restart_state()
+		s.tps = 20.0
 		s.last_status = "Сервер работает. Зовите друзей!"
 		s.players = PackedStringArray(["Алекс", "Маша_Кубик"])
 		app.relay_host.start(Cfg.relay_url(), "both", "Наш мир", 25565, 19132, app.host_extra())
@@ -881,7 +1027,14 @@ func _tour() -> int:
 		app.go("host", true)
 		await _shot("16_host_room")
 		await _scroll_down(1150)
-		await _shot("16b_host_protect")
+		await _shot("16b_host_bottom")
+		app.go("gamesettings", true)
+		await get_tree().create_timer(0.6).timeout
+		await _shot("17_game_settings_live")
+		app._screen._set_opt("online_mode", false)
+		await get_tree().create_timer(0.5).timeout
+		await _shot("17b_game_settings_restart")
+		app._screen._set_opt("online_mode", true)
 		if Cfg.autotest_args.has("hostonly"):
 			await get_tree().create_timer(float(Cfg.autotest_args.get("hostwait", "3"))).timeout
 			_log("host: живы")
@@ -933,9 +1086,6 @@ func _tour() -> int:
 	await _shot("25_join_where_to_find")
 	await _scroll_down()
 	await _shot("26_join_room_chat")
-	js._qr_help()
-	await _shot("27_join_qr_help")
-	await _close_overlays()
 	app.relay_join.stop()
 	# --- друзья и чат
 	app.go("friends", true)
@@ -1136,10 +1286,8 @@ func _ownworld() -> int:
 		fails += 1
 	NetherNet.close_session(ss)
 	# --- 1. «Создать мир» → два способа
-	app.go("setup", true)
-	await _shot("60_own_step1")
+	app.go("setup", true, {"own": true})
 	var scr = app._screen
-	scr._pick_kind("own")
 	await get_tree().create_timer(2.5).timeout
 	if not own.worlds().is_empty():
 		_log("FAIL: мир найден до запуска")
@@ -1342,8 +1490,11 @@ func _ownworld() -> int:
 	await get_tree().create_timer(0.5).timeout
 	await _shot("70b_create_game")
 	if app.current == "create":
-		app._screen._kind = "own"   # 1.6: на ПК по умолчанию сервер для всех; свой мир — в «Ещё настройки»
-		app._screen._create()
+		# 1.8: на ПК «Создать» запускает сервер для всех; свой мир — кнопкой «Открыть друзьям мир из моего Minecraft»
+		if Cfg.mobile():
+			app._screen._create()
+		else:
+			_press("Открыть друзьям мир из моего Minecraft")
 	if not await _wait(func(): return own.active and app.relay_host.stats().code != "", 15, "одна кнопка: комната открылась сама"):
 		fails += 1
 	await get_tree().create_timer(0.8).timeout
@@ -1522,3 +1673,306 @@ func _mini() -> int:
 	app.relay_host.stop()
 	s.state = "idle"
 	return fails
+
+
+# ------------------------------------------------------------------ мосты поверх эхо-сервера (tests/latency.sh)
+func _bridge() -> int:
+	var jt := int(Cfg.autotest_args.get("echo_tcp", "25599"))
+	var ju := int(Cfg.autotest_args.get("echo_udp", "19199"))
+	app.relay_host.probe_world = false
+	app.relay_host.start(Cfg.relay_url(), "both", "bench", jt, ju, {})
+	if not await _wait(func(): return app.relay_host.stats().code != "", 15, "комната открыта"):
+		return 1
+	var code: String = app.relay_host.stats().code
+	app.relay_join.start(Cfg.relay_url(), code, true, true, int(Cfg.autotest_args.get("join_java_port", "25570")), int(Cfg.autotest_args.get("join_bedrock_port", "19142")))
+	if not await _wait(func(): return app.relay_join.stats().state == "online" and int(app.relay_join.stats().java_port) > 0, 15, "друг в комнате"):
+		return 1
+	await get_tree().create_timer(0.5).timeout
+	FileAccess.open(data.path_join("autotest-ready.json"), FileAccess.WRITE).store_string(JSON.stringify({"code": code}))
+	var done := data.path_join("autotest-done.json")
+	await _wait(func(): return FileAccess.file_exists(done), 300, "замер закончен")
+	_log("мост хозяина: " + JSON.stringify(app.relay_host.stats()))
+	_log("мост друга: " + JSON.stringify(app.relay_join.stats()))
+	return 0
+
+
+# ------------------------------------------------------------------ 1.8: «нерабочих кнопок нет» (tests/deadbuttons.sh)
+
+## Всё, что можно нажать: кнопки, переключатели, списки выбора и карточки (UI.tappable).
+func _controls(root: Node) -> Array:
+	var out := []
+	for n in root.find_children("*", "Control", true, false):
+		var c := n as Control
+		if not c.is_visible_in_tree() or c.get_global_rect().size.x < 2:
+			continue
+		if c is BaseButton:
+			if c.get_parent() is ScrollBar or c.get_parent() is SpinBox:
+				continue
+			out.append(c)
+		elif c.has_meta("tap"):
+			out.append(c)
+	return out
+
+
+func _ctl_name(c: Control) -> String:
+	var t := ""
+	if c is Button:
+		t = String((c as Button).text)
+	if t == "":
+		t = String(c.tooltip_text)
+	if t == "" and c.has_meta("title"):
+		t = String((c.get_meta("title") as Label).text)
+	if t == "":
+		for l in c.find_children("*", "Label", true, false):
+			if String((l as Label).text) != "":
+				t = String((l as Label).text)
+				break
+	if t == "":
+		# подпись рядом (строка с переключателем)
+		var par := c.get_parent()
+		if par:
+			for l in par.find_children("*", "Label", true, false):
+				t = String((l as Label).text)
+				break
+	return "%s «%s»" % [c.get_class(), t.substr(0, 40)]
+
+
+func _tree_hash(n: Node, acc: Array) -> void:
+	if n is Control:
+		var c := n as Control
+		if not c.visible:
+			return
+		acc.append(c.get_class())
+		if c is Label:
+			acc.append((c as Label).text)
+		elif c is Button:
+			acc.append((c as Button).text)
+			acc.append((c as Button).button_pressed)
+			acc.append((c as Button).disabled)
+		elif c is LineEdit:
+			acc.append((c as LineEdit).text)
+			acc.append((c as LineEdit).secret)
+		elif c is RichTextLabel:
+			acc.append((c as RichTextLabel).get_parsed_text().length())
+		elif c is ScrollContainer:
+			acc.append((c as ScrollContainer).scroll_vertical)
+			acc.append((c as ScrollContainer).scroll_horizontal)
+		elif c is TextureRect:
+			acc.append((c as TextureRect).texture != null)
+		if c.has_meta("key"):
+			acc.append(str(c.get_meta("key")))
+	for ch in n.get_children():
+		_tree_hash(ch, acc)
+
+
+## «Отпечаток» всего, что кнопка может изменить: экран, листы, тост, буфер обмена, открытия в системе,
+## настройки, команды серверу Minecraft / relay / соцсети, состояние сервера и комнаты, вид экрана, фокус ввода.
+func _fingerprint() -> Dictionary:
+	var acc := []
+	_tree_hash(app, acc)
+	var fo := get_viewport().gui_get_focus_owner()
+	return {"screen": "%s|%s|%d" % [app.current, str(app._arg), app._stack.size()], "nodes": app.get_child_count(),
+		"toast": app.toast_count, "popup": get_tree().root.find_children("*", "PopupMenu", true, false).filter(func(p): return (p as PopupMenu).visible).size() + get_tree().root.find_children("*", "FileDialog", true, false).size(), "copy": UI.copy_count, "open": UI.open_log.size(),
+		"cfg": Cfg.cfg.encode_to_text().hash(), "srv_cmd": app.server.cmd_log.size(), "srv": "%s|%s" % [app.server.state, str(app.server.opts).hash()],
+		"relay": "%d|%s|%s" % [app.relay_host.cmd_total, app.relay_host.stats().state, app.relay_join.stats().state], "social": Social.sent_count,
+		"own": "%s|%s" % [app.own.active, app.own.auto_pending], "ui": str(acc).hash(), "focus": str(fo.get_path()) if fo else "", "launch": Launcher.last_url,
+		"win": get_tree().root.get_child_count(), "locale": TranslationServer.get_locale(), "fx": str(Cfg.get_value("app", "accent", ""))}
+
+
+var _toasts := 0
+var _dead_setup := {}
+
+
+func _dead_changed(a: Dictionary, b: Dictionary) -> String:
+	for k in a:
+		if str(a[k]) != str(b[k]):
+			return String(k)
+	return ""
+
+
+## Поддельная идущая игра на сервере LANTERN (без настоящего Paper): комната на relay открыта, сервер «работает».
+func _fake_server(on: bool) -> void:
+	var s: ServerHost = app.server
+	if on:
+		s.edition = "java"
+		s.opts = Create.server_opts("java")
+		s.opts["world"] = "Наш мир"
+		s.state = "running"
+		s._started = s.restart_state()
+		s.perf = "balance"
+		s.players = PackedStringArray(["Алекс"])
+		if app.relay_host.stats().state == "off":
+			app.relay_host.start(Cfg.relay_url(), "both", "Наш мир", 25565, 19132, app.host_extra())
+			await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
+	else:
+		if app.relay_host.stats().state != "off":
+			app.relay_host.stop()
+		s.state = "idle"
+		s._started = {}
+		s.players = PackedStringArray()
+
+
+func _dead_goto(what: String) -> void:
+	await _close_overlays()
+	for c in app.get_children():
+		if c is Control and (c.name.begins_with("Sheet") or c.name == "RegisterOverlay"):
+			c.queue_free()
+	if app.relay_join.stats().state != "off":
+		app.relay_join.stop()
+	if app.own.active:
+		app.own.stop()
+	var fake := what in ["host", "gamesettings_live", "more_hosting"]
+	if fake != (app.server.state == "running"):
+		await _fake_server(fake)
+	app._stack.clear()
+	match what:
+		"gamesettings_live": app.go("gamesettings", true)
+		"gamesettings_own": app.go("gamesettings", true, {"own": true})
+		"setup_own": app.go("setup", true, {"own": true})
+		"more", "more_hosting":
+			app.go("home", true)
+			app._more_menu()
+		"play_sheet":
+			app.go("home", true)
+			app.play_sheet()
+		"report":
+			app.go("home", true)
+			Report.dialog(app, "test")
+		"friends_chat": app.go("friends", true, {"chat": int(Social.friends[0].id)} if not Social.friends.is_empty() else null)
+		"join_room":
+			var code := ""
+			for fr in Social.friends:
+				var a: Variant = fr.get("activity")
+				if a is Dictionary and a.get("activity", "") == "hosting":
+					code = a.code
+			app.go("join", true, {"input": code, "edition": "both"} if code != "" else null)
+			if code != "":
+				await _wait(func(): return app.relay_join.stats().state == "online", 8, "в комнате друга")
+		_: app.go(what, true)
+	await get_tree().create_timer(0.45).timeout
+
+
+func _dead_root(what: String) -> Node:
+	if what in ["more", "more_hosting", "play_sheet", "report"]:
+		return app.get_child(app.get_child_count() - 1)
+	return app if what == "home" else app._content
+
+
+func _dead_press(c: Control) -> void:
+	if c is OptionButton:
+		var ob := c as OptionButton
+		var j := (ob.selected + 1) % maxi(1, ob.item_count)
+		while ob.is_item_separator(j) or ob.is_item_disabled(j):
+			j = (j + 1) % ob.item_count
+		ob.select(j)
+		ob.item_selected.emit(j)
+	elif c is BaseButton:
+		var b := c as BaseButton
+		if b.toggle_mode:
+			b.button_pressed = not b.button_pressed
+		else:
+			b.pressed.emit()
+	elif c.has_meta("tap"):
+		(c.get_meta("tap") as Callable).call()
+
+
+func _deadbuttons() -> int:
+	if not await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь с relay"):
+		return 1
+	if Social.conn == "need_register":
+		Social.register("Ночной_Лис")
+		await _wait(func(): return Social.online(), 10, "профиль создан")
+	await _close_overlays()
+	var tag_file := data.path_join("autotest-tag.txt")
+	FileAccess.open(tag_file, FileAccess.WRITE).store_string(Social.me.tag)
+	await _wait(func(): return Social.incoming.size() >= 3, 30, "заявки в друзья")
+	for u in Social.incoming.duplicate():
+		Social.request("friend_accept", {"id": u.id})
+	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
+	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	Social.request("eco")
+	await get_tree().create_timer(1.0).timeout
+	var screens := ["home", "more", "play_sheet", "create", "gamesettings", "setup_own", "join", "join_room", "friends", "friends_chat", "campfire", "quests", "shop", "profile", "settings", "report"]
+	if Cfg.mobile():
+		screens.append("gamesettings_own")
+	else:
+		screens.append_array(["backups", "syscheck", "host", "gamesettings_live", "more_hosting"])
+	if Cfg.autotest_args.has("only"):
+		screens = Array(String(Cfg.autotest_args.only).split(","))
+	# не нажимаем то, что по-настоящему необратимо или закрывает приложение (проверено отдельно руками/другими тестами)
+	var skip := ["Удалить профиль навсегда", "Выйти из LANTERN"]
+	var dead := []
+	var disabled := []
+	var total := 0
+	for scr in screens:
+		await _dead_goto(scr)
+		var n := _controls(_dead_root(scr)).size()
+		_log("экран %s: элементов %d" % [scr, n])
+		var names_seen := {}
+		for i in n:
+			await _dead_goto(scr)
+			var list := _controls(_dead_root(scr))
+			if i >= list.size():
+				break
+			var c: Control = list[i]
+			var nm := _ctl_name(c)
+			if c is BaseButton and (c as BaseButton).disabled:
+				disabled.append("%s: %s" % [scr, nm])
+				continue
+			var txt: String = String((c as Button).text) if c is Button else ""
+			if txt in skip:
+				continue
+			# одинаковые строки списков (десятый «Зайти») — достаточно трёх
+			names_seen[nm] = int(names_seen.get(nm, 0)) + 1
+			if int(names_seen[nm]) > 3:
+				continue
+			total += 1
+			var before := _fingerprint()
+			_dead_press(c)
+			var why := ""
+			for step in 6:
+				await get_tree().create_timer(0.12).timeout
+				why = _dead_changed(before, _fingerprint())
+				if why != "":
+					break
+			if why == "":
+				# вторая попытка: выбранная вкладка/цвет (нажатие на уже выбранное ничего не меняет) — сначала нажимаем соседа;
+				# кнопка рядом с пустым полем («Отправить», «Добавить») — сначала вводим текст
+				await _dead_goto(scr)
+				list = _controls(_dead_root(scr))
+				if i < list.size():
+					c = list[i]
+					var sib: Control = null
+					for o in c.get_parent().get_children():
+						if o != c and o is BaseButton and (o as Control).is_visible_in_tree() and not (o as BaseButton).disabled:
+							sib = o
+							break
+					if sib:
+						_dead_press(sib)
+						await get_tree().create_timer(0.3).timeout
+					if is_instance_valid(c) and c.is_inside_tree():
+						for e in _dead_root(scr).find_children("*", "LineEdit", true, false):
+							if (e as LineEdit).is_visible_in_tree() and (e as LineEdit).editable and (e as LineEdit).text == "":
+								(e as LineEdit).text = "LUNA7"
+								(e as LineEdit).text_changed.emit("LUNA7")
+						await get_tree().process_frame
+						before = _fingerprint()
+						_dead_press(c)
+						for step in 6:
+							await get_tree().create_timer(0.12).timeout
+							why = _dead_changed(before, _fingerprint())
+							if why != "":
+								break
+					else:
+						why = "sibling"
+			if why == "":
+				dead.append("%s: %s" % [scr, nm])
+				_log("МЁРТВАЯ КНОПКА [%s] %s" % [scr, nm])
+			elif Cfg.autotest_args.has("verbose"):
+				_log("  ок [%s] %s → %s" % [scr, nm, why])
+	await _fake_server(false)
+	FileAccess.open(data.path_join("dead.json"), FileAccess.WRITE).store_string(JSON.stringify({"total": total, "dead": dead, "disabled": disabled}, "  "))
+	_log("нажато элементов: %d, без эффекта: %d, выключенных: %d" % [total, dead.size(), disabled.size()])
+	for d in disabled:
+		_log("выключена: " + d)
+	return 0 if dead.is_empty() else 1

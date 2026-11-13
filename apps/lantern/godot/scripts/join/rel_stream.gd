@@ -13,6 +13,44 @@ const PENDING_MAX := 32 << 20  # игра на этом устройстве н�
 const DETACH_MS := 60000       # сколько ждать возврата связи, не закрывая соединение игры
 
 
+## 1.8: пауза цикла моста. Сразу после данных не спим совсем (ответ игры приходит через доли миллисекунды),
+## пока идёт игра — короткая пауза, в тишине — длиннее (бережём батарею). Никаких таймеров накопления:
+## всё, что пришло за один опрос, уходит сразу.
+const SPIN_US := 300
+const ACTIVE_US := 2000000
+const READ_MAX := 262144       # сколько читаем из одного соединения игры за один проход (несколько кадров по 60000)
+
+
+static func idle_wait(now_us: int, last_busy_us: int, has_streams: bool) -> void:
+	var dt := now_us - last_busy_us
+	if dt < SPIN_US:
+		return
+	if dt < ACTIVE_US:
+		OS.delay_usec(_active_sleep)
+	else:
+		OS.delay_usec(1000 if has_streams else 4000)
+
+
+static var _active_sleep := 500 if OS.has_feature("mobile") else 250
+
+
+## Прочитать всё, что игра успела прислать (до READ_MAX), и отправить кадрами. Возвращает число байт.
+static func pump_out(link: RelayLink, sid: int, s: Dictionary, t: StreamPeerTCP) -> int:
+	var total := 0
+	while total < READ_MAX:
+		var n := t.get_available_bytes()
+		if n <= 0:
+			break
+		var r := t.get_partial_data(min(n, 60000))
+		var data: PackedByteArray = r[1]
+		if r[0] != OK or data.is_empty():
+			break
+		link.send_bin(sid, data)
+		on_sent(s, data)
+		total += data.size()
+	return total
+
+
 static func init(s: Dictionary, reliable: bool) -> void:
 	s.sent = 0
 	s.acked = 0
@@ -90,7 +128,7 @@ static func flush(s: Dictionary, t: StreamPeerTCP) -> bool:
 
 
 static func info(s: Dictionary) -> String:
-	return "отпр %d (подтв %d), получ %d%s" % [int(s.get("sent", 0)), int(s.get("acked", 0)), int(s.get("recv", 0)), " без возобновления" if s.get("norel", false) else ""]
+	return L.t("отпр %d (подтв %d), получ %d%s") % [int(s.get("sent", 0)), int(s.get("acked", 0)), int(s.get("recv", 0)), L.t(" без возобновления") if s.get("norel", false) else ""]
 
 
 ## Перед закрытием: дописать пришедшее в соединение игры (не дольше ms — зависшая игра не держит мост).

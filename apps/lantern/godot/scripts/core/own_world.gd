@@ -77,7 +77,7 @@ func worlds() -> Array:
 
 ## Java-мир по номеру порта из чата («Локальная игра запущена на порту 12345»), если объявление не дошло.
 func add_manual_java(port: int) -> Dictionary:
-	var w := {"key": "java:%d" % port, "edition": "java", "name": "Мир Java", "host": "127.0.0.1", "port": port,
+	var w := {"key": "java:%d" % port, "edition": "java", "name": L.t("Мир Java"), "host": "127.0.0.1", "port": port,
 		"version": "", "players": -1, "max": 0, "motd": "", "seen": Time.get_ticks_msec(), "manual": true}
 	found[w.key] = w
 	changed.emit()
@@ -94,7 +94,7 @@ func _open_sockets() -> void:
 		_lan = PacketPeerUDP.new()
 		if _lan.bind(LAN_PORT, "0.0.0.0") != OK:
 			_lan = null
-			lan_error = "Порт 4445 занят другой программой — мир Java не найдётся сам. Введите номер порта из чата Minecraft."
+			lan_error = L.t("Порт 4445 занят другой программой — мир Java не найдётся сам. Введите номер порта из чата Minecraft.")
 		else:
 			lan_error = ""
 			var joined := 0
@@ -102,7 +102,7 @@ func _open_sockets() -> void:
 				if _lan.join_multicast_group(LAN_GROUP, i.name) == OK:
 					joined += 1
 			if joined == 0:
-				lan_error = "Не удалось слушать объявления миров Java. Введите номер порта из чата Minecraft."
+				lan_error = L.t("Не удалось слушать объявления миров Java. Введите номер порта из чата Minecraft.")
 
 
 func _close_sockets() -> void:
@@ -254,8 +254,8 @@ func arm_auto() -> void:
 	var cls = JavaClassWrapper.wrap(ANDROID_SERVICE)
 	if cls == null:
 		return
-	cls.start("Ждём ваш мир в Minecraft", "Зайдите в свой мир — комната для друзей откроется сама.")
-	cls.update(JSON.stringify({"code": "······", "ok": false, "why": "Зайдите в свой мир в Minecraft — комната откроется сама.", "world": "", "peers": [], "public": RoomControl.own_public_default(), "share": ""}))
+	cls.start(L.t("Ждём ваш мир в Minecraft"), L.t("Зайдите в свой мир — комната для друзей откроется сама."))
+	cls.update(JSON.stringify({"code": "······", "ok": false, "why": L.t("Зайдите в свой мир в Minecraft — комната откроется сама."), "world": "", "peers": [], "public": RoomControl.own_public_default(), "share": ""}))
 
 
 func disarm_auto() -> void:
@@ -298,7 +298,7 @@ func _bg_loop() -> void:
 				if code != "":
 					var cls = JavaClassWrapper.wrap(ANDROID_SERVICE) if OS.get_name() == "Android" else null
 					if cls != null:
-						cls.event("Комната открыта · код %s — отправьте его друзьям" % RoomCode.pretty(code), false)
+						cls.event(L.t("Комната открыта · код %s — отправьте его друзьям") % RoomCode.pretty(code), false)
 					AppLog.add("own", "фон: комната открыта, код получен")
 					break
 				OS.delay_msec(300)
@@ -338,7 +338,7 @@ func start(w: Dictionary, bg := false) -> void:
 			var cls = JavaClassWrapper.wrap(ANDROID_SERVICE)
 			if cls != null:
 				app.relay_host.android = cls
-				cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь.")
+				cls.start(L.t("Мир «%s» открыт для друзей") % world.get("name", L.t("Мир")), L.t("Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь."))
 		return
 	_keepalive(true)
 	app.room.room_opened()
@@ -407,17 +407,17 @@ func _keepalive(on: bool) -> void:
 		push_warning("LANTERN: нет службы " + ANDROID_SERVICE)
 		return
 	if on:
-		cls.start("Мир «%s» открыт для друзей" % world.get("name", "Мир"), "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь.")
+		cls.start(L.t("Мир «%s» открыт для друзей") % world.get("name", L.t("Мир")), L.t("Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь."))
 	else:
 		cls.stop()
 
 
 ## «Открыть Minecraft» (Bedrock: телефон, Windows). Нет игры — страница в магазине.
 static func open_minecraft() -> bool:
-	if OS.shell_open("minecraft://") == OK:
+	if UI.open("minecraft://") == OK:
 		return true
 	if OS.get_name() == "Android":
-		OS.shell_open("https://play.google.com/store/apps/details?id=com.mojang.minecraftpe")
+		UI.open("https://play.google.com/store/apps/details?id=com.mojang.minecraftpe")
 	return false
 
 
@@ -446,7 +446,7 @@ static func parse_pong(pk: PackedByteArray) -> Dictionary:
 	var name := f[7].strip_edges() if f.size() > 7 else ""
 	if name == "":
 		name = f[1].strip_edges()
-	return {"edition": "bedrock", "name": name if name != "" else "Мир Bedrock", "host_name": f[1].strip_edges(),
+	return {"edition": "bedrock", "name": name if name != "" else L.t("Мир Bedrock"), "host_name": f[1].strip_edges(),
 		"version": f[3], "players": int(f[4]), "max": int(f[5]), "mode": f[8] if f.size() > 8 else "",
 		"port": int(f[10]) if f.size() > 10 and f[10].is_valid_int() else 0, "motd": s, "guid": guid}
 
@@ -461,7 +461,7 @@ static func parse_nethernet(pk: PackedByteArray) -> Dictionary:
 	if name == "":
 		name = String(sd.get("server", "")).strip_edges()
 	return {"edition": "bedrock", "transport": "nethernet", "key": "nethernet:%d" % int(d.sender), "nn_id": int(d.sender),
-		"name": name if name != "" else "Мир Bedrock", "host_name": String(sd.get("server", "")), "version": String(sd.get("version", "")),
+		"name": name if name != "" else L.t("Мир Bedrock"), "host_name": String(sd.get("server", "")), "version": String(sd.get("version", "")),
 		"protocol": int(sd.get("protocol", 0)), "players": int(sd.get("players", -1)), "max": int(sd.get("max", 0)), "port": NetherNet.PORT, "motd": ""}
 
 
@@ -478,7 +478,7 @@ static func parse_announcement(s: String) -> Dictionary:
 	var dash := motd.find(" - ")
 	if dash > 0:
 		name = motd.substr(dash + 3)
-	return {"edition": "java", "name": name.strip_edges() if name.strip_edges() != "" else "Мир Java", "host_name": motd.substr(0, dash) if dash > 0 else "",
+	return {"edition": "java", "name": name.strip_edges() if name.strip_edges() != "" else L.t("Мир Java"), "host_name": motd.substr(0, dash) if dash > 0 else "",
 		"version": "", "players": -1, "max": 0, "port": port, "motd": motd}
 
 

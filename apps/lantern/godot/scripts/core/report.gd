@@ -11,7 +11,7 @@ static func collect(app: Node, kind := "manual", note := "") -> Dictionary:
 	var d := {
 		"app": "%s %s" % [Cfg.APP_NAME, Cfg.APP_VERSION],
 		"os": "%s %s" % [OS.get_name(), OS.get_version()],
-		"device": "%s · %s · %d ядер · Godot %s" % [OS.get_model_name(), OS.get_locale(), OS.get_processor_count(), Engine.get_version_info().string],
+		"device": L.t("%s · %s · %d ядер · Godot %s") % [OS.get_model_name(), OS.get_locale(), OS.get_processor_count(), Engine.get_version_info().string],
 		"kind": kind,
 		"note": note.substr(0, 1000),
 		"nick": String(Social.me.get("nick", "")) if Social.get("me") is Dictionary else "",
@@ -22,7 +22,7 @@ static func collect(app: Node, kind := "manual", note := "") -> Dictionary:
 		var rh: Dictionary = app.relay_host.stats()
 		rh.erase("code")
 		st["relay_host"] = rh
-		st["relay_host_code"] = "есть" if app.relay_host.stats().get("code", "") != "" else "нет"
+		st["relay_host_code"] = L.t("есть") if app.relay_host.stats().get("code", "") != "" else L.t("нет")
 		var rj: Dictionary = app.relay_join.stats()
 		st["relay_join"] = rj
 		if app.server:
@@ -43,7 +43,7 @@ static func collect(app: Node, kind := "manual", note := "") -> Dictionary:
 			"plays_on": Cfg.get_value("app", "play_on", "")}
 	d["state"] = st
 	var prev := AppLog.previous()
-	d["app_log"] = AppLog.scrub(AppLog.text() + ("\n----- прошлый запуск -----\n" + prev if prev != "" else ""))
+	d["app_log"] = AppLog.scrub(AppLog.text() + (L.t("\n----- прошлый запуск -----\n") + prev if prev != "" else ""))
 	d["server_log"] = AppLog.scrub(server_log(app))
 	return d
 
@@ -79,48 +79,48 @@ static func send(app: Node, kind := "manual", note := "") -> Dictionary:
 	if r.ok and r.data is Dictionary and r.data.has("id"):
 		AppLog.add("report", "отчёт №%d отправлен" % int(r.data.id))
 		return {"ok": true, "id": int(r.data.id)}
-	var e := "нет интернета или сайт LANTERN недоступен" if int(r.code) == 0 else ("слишком часто — попробуйте через час" if int(r.code) == 429 else "ошибка %d" % int(r.code))
+	var e := L.t("нет интернета или сайт LANTERN недоступен") if int(r.code) == 0 else (L.t("слишком часто — попробуйте через час") if int(r.code) == 429 else L.t("ошибка %d") % int(r.code))
 	return {"ok": false, "error": e}
 
 
 ## Окно «Сообщить о проблеме». why — что случилось (для автоматического предложения после ошибки).
 static func dialog(app: Control, kind := "manual", why := "") -> void:
-	var v: VBoxContainer = Overlays.sheet(app, "Сообщить о проблеме",
-		why if why != "" else "Мы получим журнал приложения и сервера — без паролей и чужих адресов. Это поможет быстро найти ошибку.")
-	var note := UI.line_edit("", "Что случилось? (можно не писать)")
+	var v: VBoxContainer = Overlays.sheet(app, L.t("Сообщить о проблеме"),
+		why if why != "" else L.t("Мы получим журнал приложения и сервера — без паролей и чужих адресов. Это поможет быстро найти ошибку."))
+	var note := UI.line_edit("", L.t("Что случилось? (можно не писать)"))
 	v.add_child(note)
-	v.add_child(UI.para("Отправится: версия LANTERN, модель устройства, журнал работы и ваш ник. Пароли, ключи и IP других людей вырезаются.", 13, UI.DIM))
+	v.add_child(UI.para(L.t("Отправится: версия LANTERN, модель устройства, журнал работы и ваш ник. Пароли, ключи и IP других людей вырезаются."), 13, UI.DIM))
 	var status := UI.para("", 15, UI.MUTED)
 	status.visible = false
 	v.add_child(status)
-	var btn := UI.button("Отправить отчёт", "primary")
+	var btn := UI.button(L.t("Отправить отчёт"), "primary")
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_child(btn)
 	btn.pressed.connect(func():
 		btn.disabled = true
-		btn.text = "Отправляем…"
+		btn.text = L.t("Отправляем…")
 		var r: Dictionary = await send(app, kind, note.text)
 		if not is_instance_valid(btn):
 			return
 		status.visible = true
 		if r.ok:
-			status.text = "Отчёт №%d отправлен — пришлите этот номер разработчику." % r.id
+			status.text = L.t("Отчёт №%d отправлен — пришлите этот номер разработчику.") % r.id
 			status.add_theme_color_override("font_color", UI.TEXT)
 			btn.disabled = false
-			btn.text = "Скопировать номер"
+			btn.text = L.t("Скопировать номер")
 			for c in btn.pressed.get_connections():
 				btn.pressed.disconnect(c.callable)
 			btn.pressed.connect(func():
-				UI.copy("Отчёт LANTERN №%d" % r.id)
+				UI.copy(L.t("Отчёт LANTERN №%d") % r.id)
 				if app.has_method("toast"):
-					app.toast("Номер скопирован"))
+					app.toast(L.t("Номер скопирован")))
 		else:
-			status.text = "Не отправилось: %s." % r.error
+			status.text = L.t("Не отправилось: %s.") % r.error
 			btn.disabled = false
-			btn.text = "Попробовать ещё раз")
+			btn.text = L.t("Попробовать ещё раз"))
 
 
 ## Маленькая кнопка «Сообщить о проблеме» для экранов.
 static func button(app: Control, kind := "manual", why := "") -> Button:
-	var b := UI.button("Сообщить о проблеме", "ghost", func(): dialog(app, kind, why), "info")
+	var b := UI.button(L.t("Сообщить о проблеме"), "ghost", func(): dialog(app, kind, why), "info")
 	return b

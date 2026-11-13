@@ -140,3 +140,32 @@ LANTERN relays the user's own Minecraft LAN world to the friends they invited, o
 - «Impersonation / IP» → убедитесь, что в названии и иконке нет Minecraft (их нет); в ответе приложите ссылку на docs/LEGAL.md-формулировки: неофициальное, оговорка в описании и в приложении, файлов игры нет.
 - «Foreground service» → дополните видео и текст выше.
 - «Account deletion» → URL `/lantern/delete` и «Настройки → Профиль и данные → Удалить профиль».
+
+## 1.8: тексты для Google Play на других языках
+Готовы два языка интерфейса кроме русского: английский и украинский (остальные — после перевода приложения).
+
+**English (en-US)**
+- Title (≤30): `LANTERN: play with friends`
+- Short (≤80): `Play Minecraft with friends by a short code. Java and Bedrock, phone and PC.`
+- Full:
+  LANTERN lets you play Minecraft with friends without a VPN or router setup. Open your world, send friends a 6-character code — the world shows up right in their game.
+  • Works with Minecraft: Java Edition and Bedrock Edition (phones, Windows, consoles)
+  • On a PC: a server for everyone in one tap — all settings on a single page, in plain language
+  • Friends on the same Wi-Fi connect directly — even faster
+  • Friends list, room chat, daily quests and Sparks for cosmetics
+  You need your own legally purchased copy of Minecraft.
+  NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
+
+**Українська (uk)**
+- Назва (≤30): `LANTERN: гра з друзями за кодом`
+- Короткий опис (≤80): `Грайте в Minecraft із друзями за коротким кодом. Java і Bedrock, телефон і ПК.`
+- Повний опис:
+  LANTERN допомагає грати в Minecraft із друзями без VPN і налаштування роутера. Відкрийте свій світ, надішліть друзям код із 6 символів — світ з'явиться просто в їхній грі.
+  • Працює з Minecraft: Java Edition і Bedrock Edition (телефони, Windows, консолі)
+  • На ПК — сервер для всіх одним натиском; усі налаштування на одній сторінці, простою мовою
+  • Друзі в тій самій Wi-Fi мережі з'єднуються напряму — ще швидше
+  • Друзі, чат кімнати, щоденні завдання та Іскри для косметики
+  Для гри потрібна власна законно придбана копія Minecraft.
+  НЕ Є ОФІЦІЙНИМ ПРОДУКТОМ MINECRAFT. НЕ СХВАЛЕНО MOJANG АБО MICROSOFT І НЕ ПОВ'ЯЗАНО З НИМИ.
+
+Брендовые слова: LANTERN — без перевода; «Искры» — Sparks (en), Іскри (uk); на будущее: Chispas (es), Faíscas (pt-BR), Iskry (pl), Étincelles (fr), Funken (de), Kıvılcımlar (tr), Scintille (it), Percikan (id).

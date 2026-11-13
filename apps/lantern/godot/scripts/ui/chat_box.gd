@@ -45,12 +45,12 @@ func _ready() -> void:
 	for st in QUICK:
 		var b := UI.chip(st, false, func(): _send(st))
 		b.custom_minimum_size.y = 36
-		b.tooltip_text = "Быстрый ответ"
+		b.tooltip_text = L.t("Быстрый ответ")
 		qr.add_child(b)
 	add_child(qs)
 	# поле ввода + круглая кнопка «отправить»
 	var row := UI.hbox(8)
-	_input = UI.line_edit("", "Сообщение…" if mode == "dm" else "Написать всем в комнате…")
+	_input = UI.line_edit("", L.t("Сообщение…") if mode == "dm" else L.t("Написать всем в комнате…"))
 	_input.max_length = 300
 	_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_input.custom_minimum_size.y = 48
@@ -59,7 +59,7 @@ func _ready() -> void:
 		_input.add_theme_stylebox_override(st, sb)
 	_input.text_submitted.connect(func(t): _send(t))
 	row.add_child(_input)
-	var sb := UI.icon_button("send", func(): _send(_input.text), "Отправить", UI.ON_ACCENT, UI.accent())
+	var sb := UI.icon_button("send", func(): _send(_input.text), L.t("Отправить"), UI.ON_ACCENT, UI.accent())
 	sb.custom_minimum_size = Vector2(48, 48)
 	row.add_child(sb)
 	add_child(row)
@@ -81,7 +81,7 @@ func _send(t: String) -> void:
 	if t == "":
 		return
 	if not Social.online():
-		Social.notice.emit({"kind": "info", "text": "Нет связи с сервером LANTERN"})
+		Social.notice.emit({"kind": "info", "text": L.t("Нет связи с сервером LANTERN")})
 		return
 	if mode == "dm":
 		Social.send_dm(peer, t)
@@ -109,14 +109,14 @@ func _render() -> void:
 	_count = msgs.size()
 	for c in _list.get_children():
 		c.queue_free()
-	var rules := UI.label("Будьте вежливы · сообщения хранятся сутки · не пишите личные данные", 11, UI.DIM)
+	var rules := UI.label(L.t("Будьте вежливы · сообщения хранятся сутки · не пишите личные данные"), 11, UI.DIM)
 	rules.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rules.custom_minimum_size.x = 120
 	_list.add_child(rules)
 	_list.add_child(UI.gap(4))
 	if msgs.is_empty():
-		var e := UI.para("Пока тихо. Напишите первым!", 14, UI.MUTED)
+		var e := UI.para(L.t("Пока тихо. Напишите первым!"), 14, UI.MUTED)
 		e.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_list.add_child(UI.gap(24))
 		_list.add_child(e)
@@ -131,7 +131,7 @@ func _render() -> void:
 		row.alignment = BoxContainer.ALIGNMENT_END if mine else BoxContainer.ALIGNMENT_BEGIN
 		var nick: String = m.get("nick", "")
 		if nick == "":
-			nick = "Вы" if mine else Social.friend_by_id(from).get("nick", "Друг")
+			nick = L.t("Вы") if mine else Social.friend_by_id(from).get("nick", L.t("Друг"))
 		var grouped := from == prev_from
 		prev_from = from
 		if not grouped:
@@ -165,21 +165,21 @@ func _render() -> void:
 			var mb := MenuButton.new()
 			mb.icon = UI.icon_tex("dots_v", 16, UI.DIM)
 			mb.flat = true
-			mb.tooltip_text = "Пожаловаться или заблокировать"
+			mb.tooltip_text = L.t("Пожаловаться или заблокировать")
 			mb.custom_minimum_size = Vector2(32, 32)
 			mb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			var pm := mb.get_popup()
-			pm.add_item("Пожаловаться", 0)
-			pm.add_item("Пожаловаться и заблокировать", 1)
-			pm.add_item("Заблокировать", 2)
+			pm.add_item(L.t("Пожаловаться"), 0)
+			pm.add_item(L.t("Пожаловаться и заблокировать"), 1)
+			pm.add_item(L.t("Заблокировать"), 2)
 			var fid := from
 			var mid := int(m.get("id", 0))
 			pm.id_pressed.connect(func(id):
 				if id == 2:
 					Social.request("block", {"id": fid})
-					Social.notice.emit({"kind": "info", "text": "Игрок заблокирован"})
+					Social.notice.emit({"kind": "info", "text": L.t("Игрок заблокирован")})
 				else:
-					Social.request("report", {"id": fid, "msg_id": mid if mode == "dm" else 0, "reason": "чат", "block": id == 1}))
+					Social.request("report", {"id": fid, "msg_id": mid if mode == "dm" else 0, "reason": L.t("чат"), "block": id == 1}))
 			row.add_child(mb)
 		_list.add_child(row)
 	# новое сообщение «всплывает»

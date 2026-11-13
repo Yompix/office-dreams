@@ -12,7 +12,7 @@ func _ready() -> void:
 	Social.changed.connect(func(w):
 		if w == "me" and _nick_wait != "" and is_inside_tree() and Social.me is Dictionary and String(Social.me.get("nick", "")) == _nick_wait:
 			_nick_wait = ""
-			app.toast("Ник изменён", UI.JAVA)
+			app.toast(L.t("Ник изменён"), UI.JAVA)
 		if w in ["me", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
 	Social.failed.connect(func(what, text):
 		if what == "register" and _nick_wait != "" and is_inside_tree():
@@ -32,11 +32,11 @@ func _render() -> void:
 		c.queue_free()
 	if not Social.online():
 		var reg := Social.conn == "need_register"
-		var e := UI.empty("user", "Придумайте ник" if reg else "Профиль появится, когда будет связь", "Придумать ник" if reg else "Повторить", func():
+		var e := UI.empty("user", L.t("Придумайте ник") if reg else L.t("Профиль появится, когда будет связь"), L.t("Придумать ник") if reg else L.t("Повторить"), func():
 			if reg:
 				Overlays.register(app)
 			else:
-				Social.reconnect(), "Пароль не нужен — профиль живёт на этом устройстве." if reg else "Нет связи с сервером LANTERN.")
+				Social.reconnect(), L.t("Пароль не нужен — профиль живёт на этом устройстве.") if reg else L.t("Нет связи с сервером LANTERN."))
 		e.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		add_child(e)
 		return
@@ -64,15 +64,15 @@ func _render() -> void:
 	if String(e.get("title", "")) != "":
 		pills.add_child(UI.pill("«%s»" % e.title, UI.AMBER))
 	if e.get("pro", false) and Cfg.paid():
-		pills.add_child(UI.pill("LANTERN Pro" + (" · ДЕМО" if Social.demo else ""), UI.JAVA))
+		pills.add_child(UI.pill("LANTERN Pro" + (L.t(" · ДЕМО") if Social.demo else ""), UI.JAVA))
 	if pills.get_child_count() > 0:
 		lv.add_child(pills)
 	lv.add_child(UI.gap(6))
 	var row: BoxContainer = UI.vbox(8) if UI.compact() else UI.hbox(8)
-	var cb := UI.button("Скопировать тег", "tonal", func(): UI.copy(me.tag); app.toast("Тег скопирован"), "copy")
+	var cb := UI.button(L.t("Скопировать тег"), "tonal", func(): UI.copy(me.tag); app.toast(L.t("Тег скопирован")), "copy")
 	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(cb)
-	var sb := UI.button("Сменить вид", "secondary", func(): app.go("shop"), "shop")
+	var sb := UI.button(L.t("Сменить вид"), "secondary", func(): app.go("shop"), "shop")
 	sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(sb)
 	lv.add_child(row)
@@ -84,7 +84,7 @@ func _render() -> void:
 	stats.columns = 2 if UI.compact() else 4
 	stats.add_theme_constant_override("h_separation", 10)
 	stats.add_theme_constant_override("v_separation", 10)
-	for s in [["Уровень фонаря", int(e.get("lantern", {}).get("level", 1)), "lantern"], ["Искры", int(e.get("sparks", 0)), "spark"], ["Дней подряд", int(e.get("streak", 0)), "fire"], ["Друзей", Social.friends.size(), "friends"]]:
+	for s in [[L.t("Уровень фонаря"), int(e.get("lantern", {}).get("level", 1)), "lantern"], [L.t("Искры"), int(e.get("sparks", 0)), "spark"], [L.t("Дней подряд"), int(e.get("streak", 0)), "fire"], [L.t("Друзей"), Social.friends.size(), "friends"]]:
 		var p := PanelContainer.new()
 		p.add_theme_stylebox_override("panel", UI._hpad(UI.glass(1, UI.R_XL, 0), 14, 12))
 		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -100,40 +100,40 @@ func _render() -> void:
 		stats.add_child(p)
 	right.add_child(stats)
 	var links := UI.vbox(6)
-	for l in [["quests", "Задания и серия", "Искры каждый день", {}], ["star", "Достижения и титулы", "Носите титул под ником", {"tab": "achievements"}], ["gift", "Сезон «Первые огни»", "Награды за игру", {"tab": "season"}]]:
+	for l in [["quests", L.t("Задания и серия"), L.t("Искры каждый день"), {}], ["star", L.t("Достижения и титулы"), L.t("Носите титул под ником"), {"tab": "achievements"}], ["gift", L.t("Сезон «Первые огни»"), L.t("Награды за игру"), {"tab": "season"}]]:
 		links.add_child(UI.list_row(UI.icon_tile(l[0], UI.accent(), 40, 20), l[1], l[2], UI.icon("chevron", 20, UI.DIM), func(): app.go("quests", true, l[3] if not l[3].is_empty() else null)))
 	right.add_child(links)
 	if not e.get("referrer", false):
 		var rp := UI.panel(18)
 		var rv := UI.vbox(10)
 		rp.add_child(rv)
-		rv.add_child(UI.h3("Вас позвал друг?"))
-		rv.add_child(UI.para("Впишите его тег в первую неделю — когда наиграете вместе час, вы оба получите по 100 искр.", 13, UI.MUTED))
+		rv.add_child(UI.h3(L.t("Вас позвал друг?")))
+		rv.add_child(UI.para(L.t("Впишите его тег в первую неделю — когда наиграете вместе час, вы оба получите по 100 искр."), 13, UI.MUTED))
 		var rr := UI.hbox(8)
-		var re := UI.line_edit("", "Тег друга: Стив#1234")
+		var re := UI.line_edit("", L.t("Тег друга: Стив#1234"))
 		re.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rr.add_child(re)
-		rr.add_child(UI.button("Готово", "secondary", func(): Social.request("referral", {"tag": re.text.strip_edges()})))
+		rr.add_child(UI.button(L.t("Готово"), "secondary", func(): Social.request("referral", {"tag": re.text.strip_edges()})))
 		rv.add_child(rr)
 		right.add_child(rp)
 	var np := UI.panel(18)
 	var nv := UI.vbox(10)
 	np.add_child(nv)
-	nv.add_child(UI.h3("Сменить ник"))
+	nv.add_child(UI.h3(L.t("Сменить ник")))
 	var nr := UI.hbox(8)
-	var ne := UI.line_edit(me.get("nick", ""), "Новый ник")
+	var ne := UI.line_edit(me.get("nick", ""), L.t("Новый ник"))
 	ne.max_length = 16
 	ne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nr.add_child(ne)
-	nr.add_child(UI.button("Сохранить", "secondary", func():
+	nr.add_child(UI.button(L.t("Сохранить"), "secondary", func():
 		if not Social.online():
-			app.toast("Нет связи с сервером — ник не сохранён", UI.YELLOW)
+			app.toast(L.t("Нет связи с сервером — ник не сохранён"), UI.YELLOW)
 			return
 		ne.release_focus()      # иначе экран не перерисуется, пока курсор в поле
 		_nick_wait = ne.text.strip_edges()
 		Social.register(ne.text)))
 	nv.add_child(nr)
-	nv.add_child(UI.para("Профиль хранится на этом устройстве (без пароля). Не удаляйте папку LANTERN — иначе придётся начать заново.", 12, UI.DIM))
+	nv.add_child(UI.para(L.t("Профиль хранится на этом устройстве (без пароля). Не удаляйте папку LANTERN — иначе придётся начать заново."), 12, UI.DIM))
 	right.add_child(np)
 	add_child(right)
 	FX.stagger(right, 0.04)

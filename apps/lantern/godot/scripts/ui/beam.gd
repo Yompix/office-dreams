@@ -2,8 +2,8 @@ extends Control
 ## Экран подключения: луч света бежит от «вас» к «хозяину» — тёплые огоньки летят по дуге между двумя кружками.
 ## Когда вход удался, экран сменяется и вспыхивают искры (FX.burst). Рисуется одной пачкой мягких точек.
 
-var me := "Вы"
-var host := "Друг"
+var me := L.t("Вы")
+var host := L.t("Друг")
 var _t := 0.0
 var _acc := 0.0
 
@@ -50,10 +50,10 @@ func _draw() -> void:
 			draw_texture_rect(dot, Rect2(p - Vector2(rr, rr) * 2.2, Vector2(rr, rr) * 4.4), false, Color(acc, 0.16 * f))
 			draw_texture_rect(dot, Rect2(p - Vector2(rr, rr) * 0.7, Vector2(rr, rr) * 1.4), false, Color(acc.lightened(0.5), 0.9 * f))
 	# два конца: вы и хозяин
-	for e in [[a, me, acc, "Вы"], [b, host, UI.BEDROCK, "Хозяин"]]:
+	for e in [[a, me, acc, L.t("Вы")], [b, host, UI.BEDROCK, L.t("Хозяин")]]:
 		var c: Vector2 = e[0]
 		var col: Color = e[2]
-		var pulse := 0.5 + 0.5 * sin(t * 2.4 + (0.0 if e[3] == "Вы" else 1.6))
+		var pulse := 0.5 + 0.5 * sin(t * 2.4 + (0.0 if e[3] == L.t("Вы") else 1.6))
 		draw_texture_rect(dot, Rect2(c - Vector2(r, r) * (2.0 + 0.3 * pulse), Vector2(r, r) * (4.0 + 0.6 * pulse)), false, Color(col, 0.22 + 0.10 * pulse))
 		draw_circle(c, r, Color(0.07, 0.08, 0.17), true, -1, true)
 		draw_arc(c, r, 0, TAU, 48, col, 2.0, true)

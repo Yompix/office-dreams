@@ -5,6 +5,7 @@ extends VBoxContainer
 ## Java (ПК): мир сам появляется в «Сетевой игре», а адрес всегда один — localhost (добавить один раз).
 
 var app
+var _head_cover: Cover
 var arg := {}
 
 var _input: LineEdit
@@ -78,7 +79,7 @@ func _goto(n: int, animate := true) -> void:
 		_pages[i].visible = i == n - 1
 	if animate and prev != n:
 		FX.enter(_pages[n - 1], Vector2(48 * (1 if n > prev else -1), 0), 0.0, 0.3)
-	app.set_title("Зайти к другу")
+	app.set_title(L.t("Зайти к другу"))
 	app.set_back((func(): _goto(n - 1)) if n == 2 else Callable())
 	if n == 1 and is_inside_tree() and not UI.compact():
 		_input.grab_focus.call_deferred()
@@ -89,8 +90,8 @@ func _goto(n: int, animate := true) -> void:
 
 # ------------------------------------------------------------------ шаг 1: код
 func _page_code(p: VBoxContainer) -> void:
-	p.add_child(UI.hero("Код от друга", 32))
-	p.add_child(UI.para("6 символов или номер комнаты. Ссылку от друга тоже можно вставить сюда.", 15, UI.MUTED))
+	p.add_child(UI.hero(L.t("Код от друга"), 32))
+	p.add_child(UI.para(L.t("6 символов или номер комнаты. Ссылку от друга тоже можно вставить сюда."), 15, UI.MUTED))
 	var holder := Control.new()
 	holder.custom_minimum_size.y = 72
 	p.add_child(holder)
@@ -129,23 +130,24 @@ func _page_code(p: VBoxContainer) -> void:
 	_err.visible = false
 	p.add_child(_err)
 	var tools := UI.hbox(8)
-	var paste := UI.button("Вставить", "secondary", func():
-		_input.text = DisplayServer.clipboard_get().strip_edges()
+	var paste := UI.button(L.t("Вставить"), "secondary", func():
+		var clip := DisplayServer.clipboard_get().strip_edges()
+		if clip == "":
+			app.toast(L.t("Буфер обмена пуст — сначала скопируйте код или ссылку от друга"), UI.YELLOW)
+			return
+		_input.text = clip
 		_render_tiles()
 		if Invite.parse(_input.text, "java").ok:
 			_next_from_code(), "paste")
 	paste.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tools.add_child(paste)
-	var qr := UI.button("Как зайти по QR", "secondary", _qr_help, "qr")
-	qr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tools.add_child(qr)
 	p.add_child(tools)
-	_next1 = UI.button("Зайти", "primary", _next_from_code, "play")
+	_next1 = UI.button(L.t("Зайти"), "primary", _next_from_code, "play")
 	_next1.custom_minimum_size.y = 56
 	p.add_child(_next1)
 	_render_tiles()
 	# недавние миры
-	p.add_child(UI.section("Недавние"))
+	p.add_child(UI.section(L.t("Недавние")))
 	_recent_box = UI.vbox(8)
 	p.add_child(_recent_box)
 	_fill_recent()
@@ -175,7 +177,7 @@ func _render_tiles() -> void:
 			_input.remove_theme_stylebox_override(st)
 		else:
 			_input.add_theme_stylebox_override(st, StyleBoxEmpty.new())
-	_input.placeholder_text = "" if not raw else "Код, ссылка или адрес сервера"
+	_input.placeholder_text = "" if not raw else L.t("Код, ссылка или адрес сервера")
 	if raw:
 		if _next1:
 			_next1.disabled = false
@@ -229,26 +231,18 @@ func _error(t: String) -> void:
 	_err.visible = t != ""
 
 
-func _qr_help() -> void:
-	var v: VBoxContainer = Overlays.sheet(app, "Вход по QR-коду", "QR-код друга — это ссылка на его мир")
-	v.add_child(app._num_row("1", "Откройте камеру телефона", "Обычную камеру или Google Lens"))
-	v.add_child(app._num_row("2", "Наведите на QR друга", "Он на экране «Мой мир» у друга"))
-	v.add_child(app._num_row("3", "Нажмите на ссылку", "LANTERN откроется сам и подключится к миру"))
-	v.add_child(UI.button("Понятно", "primary", func(): Overlays.close_sheet(app)))
-
-
 # ------------------------------------------------------------------ шаг 2: на чём играете
 func _page_plays(p: VBoxContainer) -> void:
-	p.add_child(UI.hero("На чём вы играете?", 30))
-	p.add_child(UI.para("Спросим один раз и запомним. Телефоны и консоли — это Bedrock, LANTERN на телефоне выберет его сам.", 15, UI.MUTED))
+	p.add_child(UI.hero(L.t("На чём вы играете?"), 30))
+	p.add_child(UI.para(L.t("Спросим один раз и запомним. Телефоны и консоли — это Bedrock, LANTERN на телефоне выберет его сам."), 15, UI.MUTED))
 	_plays_box = UI.vbox(10)
 	p.add_child(_plays_box)
 	_render_plays()
-	var go := UI.button("Подключиться", "primary", func(): Cfg.set_value("app", "play_on", _plays); _connect(), "play")
+	var go := UI.button(L.t("Подключиться"), "primary", func(): Cfg.set_value("app", "play_on", _plays); _connect(), "play")
 	go.custom_minimum_size.y = 56
 	go.add_theme_font_size_override("font_size", 17)
 	p.add_child(go)
-	var bk := UI.button("Изменить код", "ghost", func(): _goto(1))
+	var bk := UI.button(L.t("Изменить код"), "ghost", func(): _goto(1))
 	p.add_child(bk)
 
 
@@ -272,7 +266,12 @@ func _process(d: float) -> void:
 	var st: Dictionary = app.relay_join.stats()
 	var key := "%s|%s|%s|%s|%s|%s|%s|%s|%s" % [st.state, st.host, st.pong, st.bedrock_error, st.java_error, st.client_protocol, st.get("nethernet", false), st.get("nn_error", ""), st.get("in_game", false)]
 	if _status_lbl and is_instance_valid(_status_lbl):
-		_traffic_lbl.text = "Передано: ↓ %s  ↑ %s · соединений: %d" % [_kb(st.rx), _kb(st.tx), st.streams]
+		_traffic_lbl.text = L.t("Передано: ↓ %s  ↑ %s · соединений: %d") % [_kb(st.rx), _kb(st.tx), st.streams]
+		# 1.8: пинг до сервера LANTERN и «Прямое соединение по Wi-Fi ✓» (хозяин в этой же сети — игра идёт мимо relay)
+		if st.get("direct_used", false):
+			_traffic_lbl.text = L.t("Прямое соединение по Wi-Fi ✓") + " · " + _traffic_lbl.text
+		elif int(st.get("rtt", 0)) > 0:
+			_traffic_lbl.text = L.t("Связь с сервером LANTERN: %d мс") % int(st.rtt) + " · " + _traffic_lbl.text
 	if key != _shown_state and _shown_state != "":
 		_shown_state = key
 		if st.state == "online" and st.name != "":
@@ -281,7 +280,7 @@ func _process(d: float) -> void:
 
 
 static func _kb(n: int) -> String:
-	return "%.1f МБ" % (n / 1048576.0) if n > 1048576 else "%d КБ" % (n / 1024)
+	return L.t("%.1f МБ") % (n / 1048576.0) if n > 1048576 else L.t("%d КБ") % (n / 1024)
 
 
 func _clear() -> void:
@@ -332,9 +331,9 @@ func _connect() -> void:
 func _show_self(own: bool) -> void:
 	_clear()
 	_shown_state = ""
-	_result.add_child(_hero(_ring("server", UI.accent()), "Это код вашего мира", "Вы хозяин — к себе заходите без кода." if not own else "Вы уже в этом мире.", UI.accent()))
+	_result.add_child(_hero(_ring("server", UI.accent()), L.t("Это код вашего мира"), L.t("Вы хозяин — к себе заходите без кода.") if not own else L.t("Вы уже в этом мире."), UI.accent()))
 	_result.add_child(preload("res://scripts/screens/host.gd").self_join_card(app, own))
-	_result.add_child(UI.button("Открыть «Мой мир»", "secondary", func(): app.go("host"), "server"))
+	_result.add_child(UI.button(L.t("Открыть «Мой мир»"), "secondary", func(): app.go("host"), "server"))
 	FX.stagger(_result, 0.04)
 
 
@@ -395,20 +394,20 @@ func _show_room() -> void:
 			if String(st.get("error_code", "")) in ["need_password", "bad_password"]:
 				# игра с паролем: спросить прямо здесь и зайти снова
 				var locked: bool = st.error_code == "need_password"
-				_result.add_child(_hero(_ring("lock", UI.accent()), "Игра с паролем" if locked else "Неверный пароль", "Спросите пароль у хозяина игры", UI.MUTED))
-				var pw := UI.line_edit("", "Пароль")
+				_result.add_child(_hero(_ring("lock", UI.accent()), L.t("Игра с паролем") if locked else L.t("Неверный пароль"), L.t("Спросите пароль у хозяина игры"), UI.MUTED))
+				var pw := UI.line_edit("", L.t("Пароль"))
 				pw.secret = true
 				pw.max_length = 32
 				_result.add_child(pw)
 				var go := func(): _password = pw.text; _connect()
 				pw.text_submitted.connect(func(_t): go.call())
-				_result.add_child(UI.button("Войти", "primary", go, "play"))
-				_result.add_child(UI.button("Назад", "secondary", func(): app.relay_join.stop(); app.go("home", true)))
+				_result.add_child(UI.button(L.t("Войти"), "primary", go, "play"))
+				_result.add_child(UI.button(L.t("Назад"), "secondary", func(): app.relay_join.stop(); app.go("home", true)))
 				pw.grab_focus.call_deferred()
 				return
-			_result.add_child(_hero(_ring("close", UI.RED), "Не получилось подключиться", _human_error(st), Color("ff9d9d")))
-			_result.add_child(UI.button("Попробовать ещё раз", "primary", _connect, "refresh"))
-			_result.add_child(UI.button("Изменить код", "secondary", func(): app.relay_join.stop(); _goto(1)))
+			_result.add_child(_hero(_ring("close", UI.RED), L.t("Не получилось подключиться"), _human_error(st), Color("ff9d9d")))
+			_result.add_child(UI.button(L.t("Попробовать ещё раз"), "primary", _connect, "refresh"))
+			_result.add_child(UI.button(L.t("Изменить код"), "secondary", func(): app.relay_join.stop(); _goto(1)))
 			if not String(st.get("error_code", "")) in ["not_found", "full", "kicked", "banned_by_host"]:
 				_result.add_child(Report.button(app, "join_error"))
 			return
@@ -418,9 +417,9 @@ func _show_room() -> void:
 			if st.state == "reconnecting":
 				pass
 			else:
-				_result.add_child(_hero(_ring("wifi", UI.MUTED), "Вы отключились", "Можно зайти снова по тому же коду", UI.MUTED))
-				_result.add_child(UI.button("Подключиться снова", "primary", _connect, "refresh"))
-				_result.add_child(UI.button("Другой код", "secondary", func(): _goto(1)))
+				_result.add_child(_hero(_ring("wifi", UI.MUTED), L.t("Вы отключились"), L.t("Можно зайти снова по тому же коду"), UI.MUTED))
+				_result.add_child(UI.button(L.t("Подключиться снова"), "primary", _connect, "refresh"))
+				_result.add_child(UI.button(L.t("Другой код"), "secondary", func(): _goto(1)))
 				return
 	# --- в мире (1.7: обложка игры, статус и ОДНО действие; LANTERN сам открывает Minecraft)
 	var ok: bool = st.host
@@ -445,6 +444,12 @@ func _show_room() -> void:
 	cov.offset_top = 1
 	cov.offset_right = -1
 	head.add_child(cov)
+	_head_cover = cov
+	FX.hero_land(app, cov)
+	app.set_back(func():
+		FX.hero_back(app, _head_cover)
+		app.set_back(Callable())
+		app.back())
 	var hv := UI.vbox(2)
 	hv.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	hv.offset_left = 18
@@ -453,7 +458,7 @@ func _show_room() -> void:
 	hv.offset_bottom = -12
 	hv.alignment = BoxContainer.ALIGNMENT_END
 	hv.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var status_text := "Связь прервалась — восстанавливаем…" if recon else ("Хозяин переподключается…" if not ok else ("Вы в игре" if in_game else "Мост готов"))
+	var status_text := L.t("Связь прервалась — восстанавливаем…") if recon else (L.t("Хозяин переподключается…") if not ok else (L.t("Вы в игре") if in_game else L.t("Мост готов")))
 	# статус — тёмная «таблетка» в углу обложки: читается на любом пейзаже
 	var sp := PanelContainer.new()
 	sp.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(0.03, 0.04, 0.10, 0.62), 99, 0, Color(status_col, 0.5), 1), 10, 4))
@@ -461,7 +466,7 @@ func _show_room() -> void:
 	sp.position = Vector2(14, 14)
 	sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(sp)
-	var nm := UI.label(String(st.name) if String(st.name) != "" else "Мир друга", 26, UI.TEXT, UI.font_title)
+	var nm := UI.label(String(st.name) if String(st.name) != "" else L.t("Мир друга"), 26, UI.TEXT, UI.font_title)
 	nm.clip_text = true
 	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	hv.add_child(nm)
@@ -475,11 +480,11 @@ func _show_room() -> void:
 	bm.add_child(body)
 	tv.add_child(bm)
 	if recon:
-		body.add_child(UI.para("Не выходите из игры: если связь вернётся за полминуты, Minecraft даже не заметит.", 14, UI.MUTED))
+		body.add_child(UI.para(L.t("Не выходите из игры: если связь вернётся за полминуты, Minecraft даже не заметит."), 14, UI.MUTED))
 	elif not ok:
-		body.add_child(UI.para("Сервер друга перезапускается или пропал интернет. Мир вернётся сам — ничего делать не нужно.", 14, UI.MUTED))
+		body.add_child(UI.para(L.t("Сервер друга перезапускается или пропал интернет. Мир вернётся сам — ничего делать не нужно."), 14, UI.MUTED))
 	elif in_game:
-		body.add_child(UI.para("Комната %s. Не закрывайте LANTERN, пока играете." % code, 14, UI.MUTED))
+		body.add_child(UI.para(L.t("Комната %s. Не закрывайте LANTERN, пока играете.") % code, 14, UI.MUTED))
 	# одно главное действие: открыть Minecraft (телефон и Windows-Bedrock — сами, с отсчётом)
 	var auto_bedrock: bool = bed_on and (Cfg.mobile() or _plays == "bedrock")
 	var primary_used := false
@@ -490,24 +495,24 @@ func _show_room() -> void:
 			_launch.t = Launcher.COUNTDOWN
 			_launch.on = true
 		if auto_bedrock and _launch.on:
-			body.add_child(Launcher.countdown(_launch, "Открываем Minecraft…", "Игра запустится и сама зайдёт в мир «%s»" % st.name, func(): _fire_launch(bport, String(st.name)), func(): _launch_done = true; _shown_state = "-"; _show_room()))
+			body.add_child(Launcher.countdown(_launch, L.t("Открываем Minecraft…"), L.t("Игра запустится и сама зайдёт в мир «%s»") % st.name, func(): _fire_launch(bport, String(st.name)), func(): _launch_done = true; _shown_state = "-"; _show_room()))
 			primary_used = true
 		elif bed_on and not (java_on and _plays == "java"):
 			var pc_unknown: bool = java_on and not Cfg.mobile()
-			var hint := "Нажмите — Minecraft откроется и сам зайдёт в мир."
+			var hint := L.t("Нажмите — Minecraft откроется и сам зайдёт в мир.")
 			if _launch_done and Launcher.opened > 0:
-				hint = "Minecraft открыт — заходим в мир «%s»." % st.name
+				hint = L.t("Minecraft открыт — заходим в мир «%s».") % st.name
 			elif pc_unknown:
-				hint = "Minecraft из Microsoft Store (Bedrock) откроется и сам зайдёт в мир. Играете в Java — смотрите ниже."
+				hint = L.t("Minecraft из Microsoft Store (Bedrock) откроется и сам зайдёт в мир. Играете в Java — смотрите ниже.")
 			body.add_child(UI.para(hint, 14, UI.MUTED))
-			body.add_child(UI.button("Открыть Minecraft" + (" (Bedrock)" if pc_unknown else ""), "primary", func(): _fire_launch(bport, String(st.name)), "play"))
+			body.add_child(UI.button(L.t("Открыть Minecraft") + (" (Bedrock)" if pc_unknown else ""), "primary", func(): _fire_launch(bport, String(st.name)), "play"))
 			primary_used = true
 	var acts := UI.hbox(8)
 	if Social.online():
-		var like := UI.button("Нравится", "tonal", func(): app.relay_join.like(); app.toast("Спасибо! Хозяин мира получит ♥", UI.accent()), "heart")
+		var like := UI.button(L.t("Нравится"), "tonal", func(): app.relay_join.like(); app.toast(L.t("Спасибо! Хозяин мира получит ♥"), UI.accent()), "heart")
 		like.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		acts.add_child(like)
-	var dc := _disconnect_btn("Выйти")
+	var dc := _disconnect_btn(L.t("Выйти"))
 	dc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	acts.add_child(dc)
 	body.add_child(acts)
@@ -519,21 +524,21 @@ func _show_room() -> void:
 			_result.add_child(_java_card(String(st.name), int(st.java_port), not primary_used))
 		if bed_on:
 			# ручные шаги — только если игра не открылась сама
-			var mb := UI.button("Не открылось?", "ghost", func(): _manual_open = not _manual_open; _shown_state = "-"; _show_room(), "chevron_down")
+			var mb := UI.button(L.t("Не открылось?"), "ghost", func(): _manual_open = not _manual_open; _shown_state = "-"; _show_room(), "chevron_down")
 			mb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 			_result.add_child(mb)
 			if _manual_open:
 				var b2: int = bport if bport > 0 else 19132
 				var addr := "127.0.0.1:%d" % b2
 				if ed == "both":
-					_result.add_child(_steps_card("Вручную: Minecraft на телефоне, Windows или консоли", UI.BEDROCK, [
-						["Играть → «Серверы»", "В самом низу — «%s». Нажмите «Играть»" % st.name, ""],
-						["Сервера нет в списке?", "«Добавить сервер»: адрес 127.0.0.1, порт %d" % b2, addr],
+					_result.add_child(_steps_card(L.t("Вручную: Minecraft на телефоне, Windows или консоли"), UI.BEDROCK, [
+						[L.t("Играть → «Серверы»"), L.t("В самом низу — «%s». Нажмите «Играть»") % st.name, ""],
+						[L.t("Сервера нет в списке?"), L.t("«Добавить сервер»: адрес 127.0.0.1, порт %d") % b2, addr],
 					], "bedrock_add", "minecraft://?addExternalServer=%s|%s" % [String(st.name).replace("|", " "), addr]))
 				else:
-					_result.add_child(_steps_card("Вручную: Minecraft на телефоне, Windows или консоли", UI.BEDROCK, [
-						["Играть → «Друзья»", "Внизу, в «Играх по сети рядом», — «%s». Нажмите на него" % st.name, ""],
-						["Не видно мира?", "«Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d" % b2, addr],
+					_result.add_child(_steps_card(L.t("Вручную: Minecraft на телефоне, Windows или консоли"), UI.BEDROCK, [
+						[L.t("Играть → «Друзья»"), L.t("Внизу, в «Играх по сети рядом», — «%s». Нажмите на него") % st.name, ""],
+						[L.t("Не видно мира?"), L.t("«Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d") % b2, addr],
 					], ""))
 	if bed_on and String(st.host_version) != "":
 		_result.add_child(_version_hint(st))
@@ -541,28 +546,30 @@ func _show_room() -> void:
 		if String(e) != "":
 			_result.add_child(UI.para(String(e), 14, UI.YELLOW))
 	if not java_on and not bed_on:
-		var need := "Java (лаунчер на ПК)" if ed == "java" else "Bedrock (Minecraft из Microsoft Store, телефон, консоль)"
-		_result.add_child(UI.para("Этот мир для Minecraft %s. Выберите его и подключитесь снова." % need, 15, UI.YELLOW))
-		_result.add_child(UI.button("Выбрать игру", "secondary", func(): _goto(2)))
+		var need := L.t("Java (лаунчер на ПК)") if ed == "java" else L.t("Bedrock (Minecraft из Microsoft Store, телефон, консоль)")
+		_result.add_child(UI.para(L.t("Этот мир для Minecraft %s. Выберите его и подключитесь снова.") % need, 15, UI.YELLOW))
+		_result.add_child(UI.button(L.t("Выбрать игру"), "secondary", func(): _goto(2)))
 	if Social.online():
 		if Social.room_code != app.relay_join.code:
 			Social.enter_room(app.relay_join.code)
-		_result.add_child(UI.section("Чат комнаты"))
+		_result.add_child(UI.section(L.t("Чат комнаты")))
 		var cp := UI.panel(12)
 		var chat := ChatBox.new().setup("room")
 		chat.custom_minimum_size.y = 320 if UI.compact() else 260
 		cp.add_child(chat)
 		_result.add_child(cp)
 	var foot := UI.vbox(2)
-	_status_lbl = UI.label("Игра идёт через LANTERN — не закрывайте его, пока играете.", 12, UI.DIM)
+	_status_lbl = UI.label(L.t("Игра идёт через LANTERN — не закрывайте его, пока играете."), 12, UI.DIM)
 	_status_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_lbl.custom_minimum_size.x = 120
 	foot.add_child(_status_lbl)
 	_traffic_lbl = UI.label("", 12, UI.DIM)
+	_traffic_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_traffic_lbl.custom_minimum_size.x = 120
 	foot.add_child(_traffic_lbl)
 	_result.add_child(foot)
 	if not Cfg.mobile():
-		_result.add_child(UI.button("Играю на другом Minecraft — сменить", "ghost", func(): Cfg.set_value("app", "play_on", ""); app.relay_join.stop(); _goto(2)))
+		_result.add_child(UI.button(L.t("Играю на другом Minecraft — сменить"), "ghost", func(): Cfg.set_value("app", "play_on", ""); app.relay_join.stop(); _goto(2)))
 	var rb := Report.button(app, "join")
 	rb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_result.add_child(rb)
@@ -572,11 +579,11 @@ func _show_room() -> void:
 func _render_connecting(code: String) -> void:
 	_beam = preload("res://scripts/ui/beam.gd").new()
 	_beam.custom_minimum_size.y = 150
-	_beam.me = String(Social.me.get("nick", "Вы")) if Social.me is Dictionary and Social.online() else "Вы"
+	_beam.me = String(Social.me.get("nick", L.t("Вы"))) if Social.me is Dictionary and Social.online() else L.t("Вы")
 	_result.add_child(UI.gap(8))
 	_result.add_child(_beam)
-	_result.add_child(_hero(UI.gap(0), "Заходим в игру…", "Комната %s" % code, UI.MUTED))
-	_result.add_child(_disconnect_btn("Отмена"))
+	_result.add_child(_hero(UI.gap(0), L.t("Заходим в игру…"), L.t("Комната %s") % code, UI.MUTED))
+	_result.add_child(_disconnect_btn(L.t("Отмена")))
 
 
 ## Для дизайн-скриншотов: показать экран подключения / отсчёт «Открываем Minecraft…» независимо от сети.
@@ -610,14 +617,14 @@ static func version_text(st: Dictionary) -> Array:
 	var mine := String(BEDROCK_PROTOCOLS.get(cp, ""))
 	if String(st.get("edition", "")) == "both":
 		if cp > 0 and hp > 0 and cp > hp:
-			return ["bad", "У вас Minecraft %sновее, чем знает сервер друга (до %s). Пусть хозяин перезапустит сервер в LANTERN — Geyser обновится сам." % [mine + " " if mine != "" else "", hv]]
-		return ["ok", "Сервер друга пускает телефоны и консоли с актуальной версией Minecraft (до %s)." % hv]
+			return ["bad", L.t("У вас Minecraft %sновее, чем знает сервер друга (до %s). Пусть хозяин перезапустит сервер в LANTERN — Geyser обновится сам.") % [mine + " " if mine != "" else "", hv]]
+		return ["ok", L.t("Сервер друга пускает телефоны и консоли с актуальной версией Minecraft (до %s).") % hv]
 	if cp > 0 and hp > 0 and cp != hp:
-		var yours := ("у вас " + mine) if mine != "" else "у вас другая версия"
+		var yours := (L.t("у вас ") + mine) if mine != "" else L.t("у вас другая версия")
 		if cp < hp:
-			return ["bad", "У хозяина %s, %s — обновите Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
-		return ["bad", "У хозяина %s, %s — пусть хозяин обновит Minecraft. Играть вместе можно только на одной версии." % [hv, yours]]
-	return ["ok", "Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе)." % hv]
+			return ["bad", L.t("У хозяина %s, %s — обновите Minecraft. Играть вместе можно только на одной версии.") % [hv, yours]]
+		return ["bad", L.t("У хозяина %s, %s — пусть хозяин обновит Minecraft. Играть вместе можно только на одной версии.") % [hv, yours]]
+	return ["ok", L.t("Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе).") % hv]
 
 
 func _version_hint(st: Dictionary) -> Control:
@@ -636,7 +643,7 @@ func _version_hint(st: Dictionary) -> Control:
 
 
 func _disconnect_btn(t: String) -> Button:
-	return UI.button(t, "danger" if t == "Выйти" else "secondary", func():
+	return UI.button(t, "danger" if t == L.t("Выйти") else "secondary", func():
 		app.relay_join.stop()
 		_shown_state = "-"
 		_show_room()
@@ -688,10 +695,10 @@ func _edition_block(title: String, color: Color, steps: Array, manual: String, a
 	mr.add_child(mv)
 	if addr != "":
 		mv.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
-		mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "Копировать", UI.MUTED))
+		mr.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast(L.t("Скопировано: ") + addr), L.t("Копировать"), UI.MUTED))
 	v.add_child(mr)
 	if deeplink != "":
-		v.add_child(UI.button("Открыть в Minecraft", "tonal", func(): OS.shell_open(deeplink), "play"))
+		v.add_child(UI.button(L.t("Открыть в Minecraft"), "tonal", func(): UI.open(deeplink), "play"))
 	return p
 
 
@@ -706,23 +713,23 @@ func _game_button(text: String) -> Control:
 
 func _show_address(r: Dictionary) -> void:
 	_clear()
-	_result.add_child(_hero(_ring("server", UI.accent()), "Сервер %s" % r.address, "", UI.MUTED))
+	_result.add_child(_hero(_ring("server", UI.accent()), L.t("Сервер %s") % r.address, "", UI.MUTED))
 	if r.edition == "bedrock":
-		_result.add_child(UI.para("Нажмите — Minecraft откроется и сразу зайдёт на сервер.", 15, UI.MUTED))
-		_result.add_child(UI.button("Открыть в Minecraft", "primary", func():
+		_result.add_child(UI.para(L.t("Нажмите — Minecraft откроется и сразу зайдёт на сервер."), 15, UI.MUTED))
+		_result.add_child(UI.button(L.t("Открыть в Minecraft"), "primary", func():
 			var url := "minecraft://connect/?serverUrl=%s&serverPort=%d" % [String(r.host), int(r.port)]
 			AppLog.add("launch", "сервер по адресу: " + url)
-			if Cfg.autotest == "" and OS.shell_open(url) != OK:
+			if Cfg.autotest == "" and UI.open(url) != OK:
 				OwnWorld.open_minecraft(), "play"))
 	else:
 		_result.add_child(_edition_block("Java Edition", UI.JAVA, [
-			["Откройте Minecraft → «Сетевая игра»", "", "Добавить сервер"],
-			["Вставьте адрес в поле «Адрес сервера»", "Он уже скопирован", ""],
-			["Выберите сервер в списке", "и нажмите «Подключиться»", ""],
-		], "Адрес", r.address, ""))
+			[L.t("Откройте Minecraft → «Сетевая игра»"), "", L.t("Добавить сервер")],
+			[L.t("Вставьте адрес в поле «Адрес сервера»"), L.t("Он уже скопирован"), ""],
+			[L.t("Выберите сервер в списке"), L.t("и нажмите «Подключиться»"), ""],
+		], L.t("Адрес"), r.address, ""))
 		UI.copy(r.address)
-		app.toast("Адрес скопирован — вставьте его в Minecraft")
-	_result.add_child(UI.button("Другой код", "secondary", func(): _goto(1)))
+		app.toast(L.t("Адрес скопирован — вставьте его в Minecraft"))
+	_result.add_child(UI.button(L.t("Другой код"), "secondary", func(): _goto(1)))
 
 
 func _fill_recent() -> void:
@@ -730,7 +737,7 @@ func _fill_recent() -> void:
 		c.queue_free()
 	var list: Array = Cfg.recent()
 	if list.is_empty():
-		_recent_box.add_child(UI.para("Здесь будут миры, в которые вы заходили.", 14, UI.DIM))
+		_recent_box.add_child(UI.para(L.t("Здесь будут миры, в которые вы заходили."), 14, UI.DIM))
 		return
 	for i in list.size():
 		if i >= 5:
@@ -741,25 +748,25 @@ func _fill_recent() -> void:
 		var code: String = RoomCode.pretty(e.address) if room else e.address
 		var ed: String = {"java": "Java", "bedrock": "Bedrock", "both": "Java + Bedrock"}.get(e.get("edition", ""), "")
 		var trail := UI.hbox(0)
-		var b := UI.button("Зайти", "secondary", func(): _input.text = code; _render_tiles(); _connect())
+		var b := UI.button(L.t("Зайти"), "secondary", func(): _input.text = code; _render_tiles(); _connect())
 		trail.add_child(b)
-		trail.add_child(UI.icon_button("close", func(): Cfg.remove_recent(i); _fill_recent(), "Убрать из списка", UI.DIM))
+		trail.add_child(UI.icon_button("close", func(): Cfg.remove_recent(i); _fill_recent(), L.t("Убрать из списка"), UI.DIM))
 		var col := UI.BEDROCK if e.get("edition", "") == "bedrock" else UI.JAVA
-		_recent_box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 40, 20), nm if nm != "" else code, ("код " + code if room else code) + (" · " + ed if ed != "" else ""), trail, func(): _input.text = code; _render_tiles(); _connect()))
+		_recent_box.add_child(UI.list_row(UI.icon_tile("phone" if e.get("edition", "") == "bedrock" else "java", col, 40, 20), nm if nm != "" else code, (L.t("код ") + code if room else code) + (" · " + ed if ed != "" else ""), trail, func(): _input.text = code; _render_tiles(); _connect()))
 
 
 ## Ошибка входа простыми словами: что случилось + что сделать.
 static func _human_error(st: Dictionary) -> String:
 	match String(st.get("error_code", "")):
 		"unreachable":
-			return "Нет связи с LANTERN. Проверьте интернет (Wi-Fi или мобильные данные) и нажмите «Попробовать ещё раз»."
+			return L.t("Нет связи с LANTERN. Проверьте интернет (Wi-Fi или мобильные данные) и нажмите «Попробовать ещё раз».")
 		"lost":
-			return "Интернет пропал надолго. Когда он вернётся — нажмите «Попробовать ещё раз», мир друга на месте."
+			return L.t("Интернет пропал надолго. Когда он вернётся — нажмите «Попробовать ещё раз», мир друга на месте.")
 	var e := String(st.get("error", ""))
 	if e.begins_with("связь с сервером-посредником"):
-		return "Связь с LANTERN оборвалась. Проверьте интернет и нажмите «Попробовать ещё раз»."
+		return L.t("Связь с LANTERN оборвалась. Проверьте интернет и нажмите «Попробовать ещё раз».")
 	if e.begins_with("сервер-посредник недоступен"):
-		return "Нет связи с LANTERN. Проверьте интернет и нажмите «Попробовать ещё раз»."
+		return L.t("Нет связи с LANTERN. Проверьте интернет и нажмите «Попробовать ещё раз».")
 	return e
 
 
@@ -783,12 +790,12 @@ func _steps_card(title: String, color: Color, steps: Array, open_kind: String, d
 			ar.add_child(UI.gap(36))
 			ar.add_child(al)
 			var addr := String(s[2])
-			ar.add_child(UI.button("Копировать", "tonal", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "copy"))
+			ar.add_child(UI.button(L.t("Копировать"), "tonal", func(): UI.copy(addr); app.toast(L.t("Скопировано: ") + addr), "copy"))
 			v.add_child(ar)
 	if open_kind == "bedrock_add":
-		v.add_child(UI.button("Добавить сервер в Minecraft", "secondary", func():
+		v.add_child(UI.button(L.t("Добавить сервер в Minecraft"), "secondary", func():
 			AppLog.add("join", "кнопка «Добавить сервер в Minecraft»")
-			if Cfg.autotest == "" and OS.shell_open(deeplink) != OK:
+			if Cfg.autotest == "" and UI.open(deeplink) != OK:
 				OwnWorld.open_minecraft(), "plus"))
 	return p
 
@@ -804,7 +811,7 @@ func _fire_launch(bport: int, world_name: String) -> void:
 	_launch.on = false
 	_launch_done = true
 	app._join_keepalive()     # Android: служба с уведомлением — до ухода в Minecraft, чтобы мост не заморозили
-	Launcher.open_bedrock(bport, "вход в мир «%s»" % world_name)
+	Launcher.open_bedrock(bport, L.t("вход в мир «%s»") % world_name)
 	FX.haptic(18)
 	_shown_state = "-"
 	_show_room.call_deferred()
@@ -816,10 +823,10 @@ func _java_card(world_name: String, port: int, lead: bool) -> Control:
 	var p := UI.glass_panel(1, 16, UI.JAVA if lead else Color(0, 0, 0, 0))
 	var v := UI.vbox(12)
 	p.add_child(v)
-	v.add_child(UI.dot_label("Minecraft Java (ПК)", UI.JAVA, 13))
+	v.add_child(UI.dot_label(L.t("Minecraft Java (ПК)"), UI.JAVA, 13))
 	# «картинка»: путь в меню игры — три плашки со стрелками
 	var path := UI.flow(6)
-	var steps := ["Minecraft", "Сетевая игра", world_name]
+	var steps := ["Minecraft", L.t("Сетевая игра"), world_name]
 	for i in steps.size():
 		var chip := PanelContainer.new()
 		var last := i == steps.size() - 1
@@ -833,12 +840,12 @@ func _java_card(world_name: String, port: int, lead: bool) -> Control:
 			ar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			path.add_child(ar)
 	v.add_child(path)
-	v.add_child(UI.para("Мир уже в списке «Сетевая игра» — выберите его и нажмите «Подключиться».", 14, UI.MUTED))
+	v.add_child(UI.para(L.t("Мир уже в списке «Сетевая игра» — выберите его и нажмите «Подключиться»."), 14, UI.MUTED))
 	var ar2 := UI.flow(10)
-	ar2.add_child(UI.button("Скопировать адрес", "tonal", func(): UI.copy(addr); app.toast("Скопировано: " + addr), "copy"))
+	ar2.add_child(UI.button(L.t("Скопировать адрес"), "tonal", func(): UI.copy(addr); app.toast(L.t("Скопировано: ") + addr), "copy"))
 	var al := UI.label(addr, 17, UI.TEXT, UI.font_mono)
 	al.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	ar2.add_child(al)
 	v.add_child(ar2)
-	v.add_child(UI.para("Добавьте сервер %s один раз — дальше он всегда ведёт в игру, к которой вы подключились в LANTERN." % addr, 13, UI.DIM))
+	v.add_child(UI.para(L.t("Добавьте сервер %s один раз — дальше он всегда ведёт в игру, к которой вы подключились в LANTERN.") % addr, 13, UI.DIM))
 	return p

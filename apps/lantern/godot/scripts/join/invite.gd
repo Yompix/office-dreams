@@ -33,15 +33,15 @@ static func web_code(url: String) -> String:
 static func parse(text: String, default_edition := "java") -> Dictionary:
 	var t := text.strip_edges()
 	if t == "":
-		return {"ok": false, "error": "Введите код комнаты"}
+		return {"ok": false, "error": L.t("Введите код комнаты")}
 	if t.begins_with(SCHEME):
 		var q := _query(t)
 		if int(q.get("v", "1")) > VERSION:
-			return {"ok": false, "error": "Приглашение из более новой версии — обновите LANTERN"}
+			return {"ok": false, "error": L.t("Приглашение из более новой версии — обновите LANTERN")}
 		# c — код в приглашении приложения; code — в ссылке со страницы /lantern/j/<код> (1.7)
 		var c := RoomCode.normalize(q.get("c", q.get("code", "")))
 		if c == "":
-			return {"ok": false, "error": "В приглашении нет кода комнаты"}
+			return {"ok": false, "error": L.t("В приглашении нет кода комнаты")}
 		return {"ok": true, "kind": "room", "code": c, "relay": q.get("r", ""), "edition": q.get("e", ""), "name": q.get("n", "")}
 	var code := RoomCode.normalize(t)
 	if code == "":
@@ -51,7 +51,7 @@ static func parse(text: String, default_edition := "java") -> Dictionary:
 	if t.begins_with("minecraft://"):
 		var i := t.find("addExternalServer=")
 		if i < 0:
-			return {"ok": false, "error": "Ссылка Minecraft без адреса сервера"}
+			return {"ok": false, "error": L.t("Ссылка Minecraft без адреса сервера")}
 		var v := t.substr(i + 18).uri_decode()
 		var r := RoomCode.parse_address(v.get_slice("|", 1) if v.contains("|") else v, "bedrock")
 		r["kind"] = "address"

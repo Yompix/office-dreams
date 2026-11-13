@@ -37,7 +37,13 @@ static func make(seed_text: String, mode := "other", radius := 14, shade := 0.0)
 	return c
 
 
-func setup(seed_text: String, mode := "other", radius := 14, shade := 0.0) -> void:
+var seed_text := ""
+var mode := "other"
+
+
+func setup(p_seed: String, p_mode := "other", radius := 14, shade := 0.0) -> void:
+	seed_text = p_seed
+	mode = p_mode
 	if _shader == null:
 		_shader = load("res://assets/shaders/cover.gdshader")
 	var m := ShaderMaterial.new()

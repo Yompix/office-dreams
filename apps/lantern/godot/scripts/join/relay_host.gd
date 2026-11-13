@@ -10,7 +10,7 @@ const BACKLOG_MAX := 2 << 20
 
 var relay_url := ""
 var edition := "java"     # java / bedrock / both
-var world_name := "Мир"
+var world_name := L.t("Мир")
 var java_port := 25565
 var bedrock_port := 19132
 var local_host := "127.0.0.1"   # куда пересылать: свой сервер или мир, открытый в Minecraft
@@ -27,6 +27,7 @@ var _resume := false
 var _graceful := true
 var _peers := {}          # peer -> {peer, user:{id,nick,tag}|null, since} — кто сейчас в комнате (relay 1.4+)
 var _cmds: Array = []     # команды для relay из основного потока (выгнать, список запрета)
+var cmd_total := 0        # сколько команд поставлено в очередь (автотест «нерабочих кнопок»)
 var _peer_events: Array = []  # {peer, on, user} — зашёл/вышел (для уведомлений)
 var _peer_events_a: Array = []
 var bans: Array = []      # id аккаунтов LANTERN, кому хозяин закрыл вход (хранит приложение)
@@ -40,6 +41,9 @@ var public_on := false
 var public_card := {}
 var _ui_actions: Array = []   # что нажали в окошке, пока LANTERN был в фоне: {a:"ban", user} {a:"public", on} {a:"close"}
 var _probe: PacketPeerUDP
+## 1.8: «Прямое соединение по Wi-Fi» (LanDirect): друзья из той же сети играют мимо relay
+var lan_direct := true
+var _lan_on := {}         # peer -> true: друг сообщил, что играет напрямую (для счётчика «друзей в мире»)
 var _world_seen := 0
 var _ok_since := 0
 var _bad_since := 0
@@ -140,6 +144,7 @@ func take_peer_events() -> Array:
 ## Выгнать игрока из комнаты (ban — и больше не пускать).
 func kick(peer: String, ban := false) -> void:
 	_mutex.lock()
+	cmd_total += 1
 	_cmds.append({"t": "kick", "peer": peer, "ban": ban})
 	_mutex.unlock()
 
@@ -148,6 +153,7 @@ func kick(peer: String, ban := false) -> void:
 func send_bans(list: Array) -> void:
 	bans = list.duplicate()
 	_mutex.lock()
+	cmd_total += 1
 	_cmds.append({"t": "bans", "bans": bans})
 	_mutex.unlock()
 
@@ -156,6 +162,7 @@ func send_bans(list: Array) -> void:
 func set_settings(s: Dictionary) -> void:
 	extra["settings"] = s
 	_mutex.lock()
+	cmd_total += 1
 	_cmds.append({"t": "room_meta", "settings": s})
 	_mutex.unlock()
 
@@ -167,6 +174,7 @@ func set_public(on: bool, card := {}) -> void:
 	public_on = on and not public_card.is_empty()
 	_apply_public()
 	_mutex.lock()
+	cmd_total += 1
 	_cmds.append({"t": "room_meta", "public": public_card if public_on else null})
 	_mutex.unlock()
 
@@ -216,6 +224,14 @@ func _loop() -> void:
 	var last_rx := 0
 	var link_t0 := 0
 	var active := false
+	var last_busy := 0
+	var lanp: PacketPeerUDP = null      # порт «пробы» прямого соединения
+	var lan_keys := {}
+	_lan_on.clear()
+	if lan_direct and String(Cfg.autotest_args.get("lan", "1")) != "0" and (local_host == "127.0.0.1" or local_host in IP.get_local_addresses()):
+		lanp = PacketPeerUDP.new()
+		if lanp.bind(0, "0.0.0.0") != OK:
+			lanp = null
 	var nn := {"disc": null, "id": NetherNet.new_id(), "srv": 0, "ip": "", "port": 0, "app": PackedByteArray(), "cids": {}, "req": 0}
 	AppLog.add("host", "мост хозяина: %s, java %d, bedrock %d, relay %s" % [edition, java_port, bedrock_port, relay_url])
 	while _run:
@@ -224,7 +240,7 @@ func _loop() -> void:
 			link = RelayLink.new()
 			if link.open(relay_url) != OK:
 				_st("state", "error")
-				_st("error", "неверный адрес сервера-посредника: " + relay_url)
+				_st("error", L.t("неверный адрес сервера-посредника: ") + relay_url)
 				AppLog.add("host", "не удалось начать соединение с relay")
 				next_try = now + 5000
 			else:
@@ -252,6 +268,8 @@ func _loop() -> void:
 					backoff = 1000
 					var hello := {"t": "host", "v": RelayLink.PROTO, "edition": edition, "name": world_name, "bans": bans}
 					hello.merge(extra)
+					if lanp:
+						hello["lan"] = {"tcp": java_port if edition != "bedrock" else 0, "udp": bedrock_port if edition != "java" else 0, "probe": lanp.get_local_port()}
 					_mutex.lock()
 					_peers.clear()
 					_mutex.unlock()
@@ -278,7 +296,7 @@ func _loop() -> void:
 					AppLog.add("host", "relay: связь закрыта (код %s, %s, была открыта %s, %d с); потоков ждут возврата: %d" % [str(ev.code), String(ev.get("reason", "")), str(ev.was_open), (now - link_t0) / 1000, kept])
 					if _run:
 						_st("state", "reconnecting")
-						_st("error", "Связь с LANTERN прервалась — восстанавливаем, игроки не вылетят, если она вернётся за полминуты." if ev.was_open else "Нет связи с LANTERN — проверьте интернет. Пробуем снова…")
+						_st("error", L.t("Связь с LANTERN прервалась — восстанавливаем, игроки не вылетят, если она вернётся за полминуты.") if ev.was_open else L.t("Нет связи с LANTERN — проверьте интернет. Пробуем снова…"))
 					next_try = Time.get_ticks_msec() + (300 if int(ev.code) == 1012 else backoff)
 					backoff = min(backoff * 2, 8000)
 				"msg":
@@ -338,7 +356,7 @@ func _loop() -> void:
 								if m.get("lost", false) and _detach(s, now):
 									AppLog.add("host", "поток %d: друг потерял связь — ждём его возврата (%s)" % [sid, RelStream.info(s) if s.kind == "tcp" else s.kind])
 								else:
-									_log_close(sid, s, "друг закрыл")
+									_log_close(sid, s, L.t("друг закрыл"))
 									_close_local(s)
 									streams.erase(sid)
 								_update_counts(streams)
@@ -365,12 +383,25 @@ func _loop() -> void:
 									_peer_events.append({"peer": pid, "on": true, "user": u})
 									_peer_events_a.append({"peer": pid, "on": true, "user": u})
 							elif _peers.has(pid):
+								_lan_on.erase(pid)
 								_peer_events.append({"peer": pid, "on": false, "user": _peers[pid].user})
 								_peer_events_a.append({"peer": pid, "on": false, "user": _peers[pid].user})
 								_peers.erase(pid)
 							_mutex.unlock()
+						"lan":
+							if m.has("k"):
+								LanDirect.remember(lan_keys, String(m.k), now)
+							if m.has("on"):
+								var lp := String(m.get("peer", ""))
+								if m.on:
+									if not _lan_on.has(lp):
+										AppLog.add("host", "друг %s играет напрямую по Wi-Fi (мимо relay)" % lp)
+									_lan_on[lp] = true
+								else:
+									_lan_on.erase(lp)
+								_update_counts(streams)
 						"pong":
-							pass
+							_st("rtt", maxi(1, Time.get_ticks_msec() - int(m.get("ts", now))))
 				"bin":
 					busy = true
 					var s: Variant = streams.get(ev.sid)
@@ -403,7 +434,7 @@ func _loop() -> void:
 		for sid in streams.keys():
 			var s: Dictionary = streams[sid]
 			if s.get("detached", false) and now - int(s.det_t) > RelStream.DETACH_MS:
-				_log_close(sid, s, "друг не вернулся за %d с" % (RelStream.DETACH_MS / 1000))
+				_log_close(sid, s, L.t("друг не вернулся за %d с") % (RelStream.DETACH_MS / 1000))
 				_close_local(s)
 				streams.erase(sid)
 				_update_counts(streams)
@@ -414,25 +445,23 @@ func _loop() -> void:
 				var st := t.get_status()
 				if st == StreamPeerTCP.STATUS_CONNECTED:
 					if not RelStream.flush(s, t):
-						_log_close(sid, s, "игра не принимает данные")
+						_log_close(sid, s, L.t("игра не принимает данные"))
 						if connected and not s.get("detached", false):
 							link.send_json({"t": "close", "sid": sid})
 						_close_local(s)
 						streams.erase(sid)
 						_update_counts(streams)
 						continue
-					var n := t.get_available_bytes()
-					if n > 0 and connected and link.backlog() < BACKLOG_MAX and RelStream.can_read(s):
-						busy = true
-						var r := t.get_partial_data(min(n, 60000))
-						link.send_bin(sid, r[1])
-						RelStream.on_sent(s, r[1])
-						_add("tx", r[1].size())
-						s.last = now
+					if connected and link.backlog() < BACKLOG_MAX and RelStream.can_read(s):
+						var sent := RelStream.pump_out(link, sid, s, t)
+						if sent > 0:
+							busy = true
+							_add("tx", sent)
+							s.last = now
 					if connected and not s.get("detached", false):
 						RelStream.maybe_ack(link, sid, s, now)
 				elif st == StreamPeerTCP.STATUS_ERROR or st == StreamPeerTCP.STATUS_NONE:
-					_log_close(sid, s, "сервер закрыл соединение" if st == StreamPeerTCP.STATUS_NONE else "ошибка соединения с сервером (порт %d)" % java_port)
+					_log_close(sid, s, L.t("сервер закрыл соединение") if st == StreamPeerTCP.STATUS_NONE else L.t("ошибка соединения с сервером (порт %d)") % java_port)
 					if connected and not s.get("detached", false):
 						link.send_json({"t": "close", "sid": sid})
 					_close_local(s)
@@ -469,10 +498,21 @@ func _loop() -> void:
 					_update_counts(streams)
 		if nn.disc:
 			busy = _nn_poll(nn, link, streams, now) or busy
-		if not busy:
-			OS.delay_usec(1000)
+		while lanp and lanp.get_available_packet_count() > 0:
+			var ans := LanDirect.answer(lanp.get_packet(), lan_keys)
+			if not ans.is_empty():
+				lanp.set_dest_address(lanp.get_packet_ip(), lanp.get_packet_port())
+				lanp.put_packet(ans)
+		if busy:
+			last_busy = Time.get_ticks_usec()
+			if active:
+				link.flush()
+		else:
+			RelStream.idle_wait(Time.get_ticks_usec(), last_busy, not streams.is_empty())
 	if nn.disc:
 		nn.disc.close()
+	if lanp:
+		lanp.close()
 	if _probe:
 		_probe.close()
 		_probe = null
@@ -560,9 +600,9 @@ func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
 		_bad_since = now
 	var why := ""
 	if not connected or _stats.state != "online":
-		why = "Нет интернета или связи с LANTERN. Откройте LANTERN."
+		why = L.t("Нет интернета или связи с LANTERN. Откройте LANTERN.")
 	elif not alive:
-		why = "Minecraft не отвечает. Вернитесь в мир."
+		why = L.t("Minecraft не отвечает. Вернитесь в мир.")
 	if android == null:
 		_mutex.lock()
 		_peer_events_a.clear()
@@ -575,10 +615,10 @@ func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
 		"world": world_name, "peers": plist, "public": public_on, "share": share_text,
 		"num": String(_stats.get("num", "")), "quality": String(_stats.get("quality", "")), "friends": invite_friends}))
 	for e in take_peer_events_android():
-		android.event("%s %s ваш мир" % [peer_name(e.user), "зашёл в" if e.on else "вышел из"], false)
+		android.event(L.t("%s %s ваш мир") % [peer_name(e.user), L.t("зашёл в") if e.on else L.t("вышел из")], false)
 	if not ok and not _alerted and _ok_since > 0 and now - _bad_since > 8000:
 		_alerted = true
-		android.event("Мир не виден друзьям: вернитесь в мир / откройте LANTERN", true)
+		android.event(L.t("Мир не виден друзьям: вернитесь в мир / откройте LANTERN"), true)
 	var acts: Variant = JSON.parse_string(String(android.takeActions()))
 	if acts is Array:
 		for a in acts:
@@ -615,15 +655,18 @@ func _sync_side(link: RelayLink, connected: bool, now: int) -> void:
 
 
 static func peer_name(u: Variant) -> String:
-	return String(u.nick) if u is Dictionary and u.has("nick") else "Гость"
+	return String(u.nick) if u is Dictionary and u.has("nick") else L.t("Гость")
 
 
 func _update_counts(streams: Dictionary) -> void:
 	var peers := {}
 	for sid in streams:
 		peers[streams[sid].peer] = true
+	for p in _lan_on:
+		peers[p] = true
 	_st("streams", streams.size())
 	_st("peers", peers.size())
+	_st("lan_peers", _lan_on.size())
 
 
 # ------------------------------------------------------------------ NetherNet (новые версии Bedrock)

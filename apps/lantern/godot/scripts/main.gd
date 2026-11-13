@@ -41,7 +41,7 @@ var _orb: Orb                      # «Создать» в нижнем меню
 
 ## На телефоне эти экраны прокручиваются целиком (у остальных — свои списки с прокруткой).
 const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create"]
-const TITLES := {"home": "Игры", "create": "Создать игру", "setup": "Создать мир", "host": "Мой мир", "join": "Зайти к другу",
+const TITLES := {"home": "Игры", "create": "Создать игру", "gamesettings": "Настройки игры", "setup": "Мой мир из Minecraft", "host": "Мой мир", "join": "Зайти к другу",
 	"settings": "Настройки", "friends": "Друзья", "campfire": "Костёр",
 	"quests": "Задания", "shop": "Магазин", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров"}
 ## Корневые разделы телефона (без стрелки «Назад»)
@@ -95,6 +95,35 @@ func _ready() -> void:
 		_splash()
 	if Cfg.autotest_args.has("startup"):
 		_measure_startup()
+	_auto_perf()
+
+
+## 1.8: авторежим скорости интерфейса. Первые секунды меряем настоящее время кадра; если живой фон обходится
+## слишком дорого (в среднем > 20 мс на кадр) — включаем «лёгкий режим» (FX.lite): неподвижный фон, без искр и бликов.
+## Решение запоминается для этого устройства и версии; «Меньше анимаций» в настройках — ручной выключатель всего.
+func _auto_perf() -> void:
+	var saved: Variant = Cfg.get_value("app", "auto_lite", {})
+	var forced := Cfg.autotest_args.has("perfprobe")
+	if saved is Dictionary and String(saved.get("v", "")) == Cfg.APP_VERSION and not forced:
+		FX.lite = bool(saved.get("lite", false))
+		return
+	if (Cfg.autotest != "" and not forced) or not FX.on() or DisplayServer.get_name() == "headless":
+		return
+	await get_tree().create_timer(1.6).timeout       # заставка и первая раскладка — не в счёт
+	var t0 := Time.get_ticks_usec()
+	var frames := 0
+	while Time.get_ticks_usec() - t0 < 3000000:
+		if is_instance_valid(_deco):
+			_deco.wake()
+		await get_tree().process_frame
+		frames += 1
+	var avg := (Time.get_ticks_usec() - t0) / 1000.0 / maxi(1, frames)
+	var limit := float(Cfg.autotest_args.get("perfprobe", "20")) if forced else 20.0
+	FX.lite = avg > limit
+	Cfg.set_value("app", "auto_lite", {"v": Cfg.APP_VERSION, "lite": FX.lite, "ms": snappedf(avg, 0.1)})
+	AppLog.add("app", "скорость интерфейса: средний кадр %.1f мс за 3 с (%d кадров) → %s" % [avg, frames, "лёгкий режим: неподвижный фон, без искр" if FX.lite else "живой фон"])
+	if forced:
+		print("[autotest] perfprobe: %.1f мс → lite=%s" % [avg, FX.lite])
 
 
 ## Заставка (≤1,2 с, касание пропускает): фонарь загорается, свет расходится, проявляется название.
@@ -175,7 +204,7 @@ func _measure_startup() -> void:
 	print("[startup] first frame %d ms; avg frame %.1f ms, worst %.1f ms (%s)" % [first, (Time.get_ticks_usec() - t0) / 1000.0 / n, worst, RenderingServer.get_current_rendering_method()])
 	# 1.7: цена живого фона — тот же экран с анимацией, с замершим фоном и совсем без фона
 	var res := {}
-	for mode in ["живой фон", "фон замер", "без фона"]:
+	for mode in [L.t("живой фон"), L.t("фон замер"), L.t("без фона")]:
 		_deco.visible = mode != "без фона"
 		_deco.set_process(mode == "живой фон")
 		_deco.set_process_input(false)
@@ -192,7 +221,7 @@ func _measure_startup() -> void:
 			await RenderingServer.frame_post_draw
 			k += 1
 		res[mode] = (Time.get_ticks_usec() - a0) / 1000.0 / k
-	print("[startup] frame: %s; draw calls %d, объектов в кадре %d" % [", ".join(res.keys().map(func(m): return "%s %.2f мс" % [m, res[m]])),
+	print("[startup] frame: %s; draw calls %d, объектов в кадре %d" % [", ".join(res.keys().map(func(m): return L.t("%s %.2f мс") % [m, res[m]])),
 		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_OBJECTS_IN_FRAME)])
 	get_tree().quit(0)
 
@@ -239,8 +268,10 @@ func _on_resize() -> void:
 
 ## Повернули телефон / сузили окно / сменили акцент — пересобираем оболочку и текущий экран.
 func _rebuild() -> void:
+	# 1.8: «Мой мир из Minecraft», управление комнатой и окошко поверх игры — не часть оболочки, их не трогаем
+	# (раньше смена цвета акцента или поворот экрана удаляли их — и комната переставала работать)
 	for c in get_children():
-		if c.name != "Autotest" and c != server:
+		if c.name != "Autotest" and c != server and c != own and c != room and c != room.mini:
 			c.queue_free()
 	_screen = null
 	_screen_root = null
@@ -255,6 +286,8 @@ func _rebuild() -> void:
 func _on_node_added(n: Node) -> void:
 	# Телефон: пальцем листаем откуда угодно — и с кнопок, и с карточек. Кнопки пропускают касание к прокрутке
 	# (PASS); начали листать (дальше «мёртвой зоны») — нажатие отменяется, кнопка не срабатывает.
+	if n is BaseButton:
+		(n as BaseButton).pressed.connect(Sfx.play.bind("tap"))
 	if Cfg.mobile():
 		if n is Control and not (n is ScrollContainer or n is ScrollBar or n is TextEdit or n is RichTextLabel or n is Slider):
 			_touch_pass.call_deferred(n)
@@ -352,7 +385,7 @@ func _build_phone() -> void:
 	root.add_child(bar)
 	var row := UI.hbox(4)
 	bar.add_child(row)
-	_bar_back = UI.icon_button("back", func(): back(), "Назад")
+	_bar_back = UI.icon_button("back", func(): back(), L.t("Назад"))
 	row.add_child(_bar_back)
 	var lead := UI.gap(12)
 	row.add_child(lead)
@@ -384,7 +417,7 @@ func _build_phone() -> void:
 	_sparks = UI.sparks_chip(0, func(): go("shop"))
 	row.add_child(_sparks)
 	# настройки — всегда на виду, а не только в «Ещё» (владелец, 12 ноя: «спрятаны, фиг найдёшь»)
-	row.add_child(UI.icon_button("settings", func(): go("settings"), "Настройки"))
+	row.add_child(UI.icon_button("settings", func(): go("settings"), L.t("Настройки")))
 	_me_btn = _avatar_button(40)
 	row.add_child(_me_btn)
 	# --- содержимое
@@ -439,7 +472,7 @@ func _bottom_nav() -> Control:
 	var row := UI.hbox(0)
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(row)
-	for item in [["home", "globe", "Игры"], ["friends", "friends", "Друзья"], ["play", "plus", "Создать"], ["profile", "user", "Профиль"], ["more", "more", "Ещё"]]:
+	for item in [["home", "globe", L.t("Игры")], ["friends", "friends", L.t("Друзья")], ["play", "plus", L.t("Создать")], ["profile", "user", L.t("Профиль")], ["more", "more", L.t("Ещё")]]:
 		var b := Button.new()
 		b.flat = true
 		b.focus_mode = Control.FOCUS_NONE
@@ -525,9 +558,9 @@ func _build_desktop() -> void:
 	brand.add_child(bv)
 	sv.add_child(bm)
 	var groups := [
-		[["home", "globe", "Игры"], ["create", "plus", "Создать игру"], ["join", "play", "Зайти по коду"]],
-		[["friends", "friends", "Друзья"], ["campfire", "campfire", "Костёр"]],
-		[["quests", "quests", "Задания и сезон"], ["shop", "shop", "Магазин"], ["backups", "cloud", "Копии миров"], ["settings", "settings", "Настройки"]],
+		[["home", "globe", L.t("Игры")], ["create", "plus", L.t("Создать игру")], ["join", "play", L.t("Зайти по коду")]],
+		[["friends", "friends", L.t("Друзья")], ["campfire", "campfire", L.t("Костёр")]],
+		[["quests", "quests", L.t("Задания и сезон")], ["shop", "shop", L.t("Магазин")], ["backups", "cloud", L.t("Копии миров")], ["settings", "settings", L.t("Настройки")]],
 	]
 	for gi in groups.size():
 		if gi > 0:
@@ -581,7 +614,7 @@ func _build_desktop() -> void:
 	main.add_child(head)
 	var row := UI.hbox(8)
 	head.add_child(row)
-	_bar_back = UI.icon_button("back", func(): back(), "Назад")
+	_bar_back = UI.icon_button("back", func(): back(), L.t("Назад"))
 	_bar_back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_bar_back)
 	var tv := UI.vbox(0)
@@ -606,7 +639,8 @@ func _build_desktop() -> void:
 	_content.add_theme_constant_override("margin_top", 10)
 	main.add_child(_content)
 	# ширина контента: не шире 1100 (формы — 760), по центру
-	resized.connect(_center_content)   # от ширины окна, а не колонки — иначе широкий экран раскачивает раскладку
+	if not resized.is_connected(_center_content):
+		resized.connect(_center_content)   # от ширины окна, а не колонки — иначе широкий экран раскачивает раскладку
 	set_meta("head", head)
 	set_meta("main", main)
 
@@ -632,7 +666,7 @@ func _avatar_button(px: int) -> Button:
 	b.flat = true
 	b.focus_mode = Control.FOCUS_NONE
 	b.custom_minimum_size = Vector2(48, 48)
-	b.tooltip_text = "Профиль"
+	b.tooltip_text = L.t("Профиль")
 	for s in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 		b.add_theme_stylebox_override(s, UI.box(Color(1, 1, 1, 0.07 if s in ["hover", "pressed"] else 0.0), 99))
 	b.pressed.connect(func(): go("profile"))
@@ -645,10 +679,10 @@ func _avatar_button(px: int) -> Button:
 
 ## Главный выбор: создать мир или зайти к другу.
 func play_sheet() -> void:
-	var v: VBoxContainer = Overlays.sheet(self, "Во что играем?", "Выберите, что хотите сделать")
+	var v: VBoxContainer = Overlays.sheet(self, L.t("Во что играем?"), L.t("Выберите, что хотите сделать"))
 	v.add_child(play_option("host"))
 	v.add_child(play_option("join"))
-	var rr := UI.list_row(UI.icon_tile("globe", UI.BEDROCK, 40, 20), "Игры", "Зайти в открытую игру", UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go("home"), Color(0, 0, 0, 0))
+	var rr := UI.list_row(UI.icon_tile("globe", UI.BEDROCK, 40, 20), L.t("Игры"), L.t("Зайти в открытую игру"), UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go("home"), Color(0, 0, 0, 0))
 	v.add_child(rr)
 
 
@@ -680,10 +714,10 @@ func play_option(kind: String, big := false) -> Control:
 	var v := UI.vbox(3)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	v.add_child(UI.label("Играть с друзьями" if host else "Зайти к другу", 20 if big else 18, UI.TEXT, UI.font_black))
-	var desc := "Откройте мир в Minecraft — код для друзей появится сразу" if host else "Введите код, который прислал друг"
+	v.add_child(UI.label(L.t("Играть с друзьями") if host else L.t("Зайти к другу"), 20 if big else 18, UI.TEXT, UI.font_black))
+	var desc := L.t("Откройте мир в Minecraft — код для друзей появится сразу") if host else L.t("Введите код, который прислал друг")
 	if host and not mobile:
-		desc = "Ваш мир из Minecraft или отдельный сервер — друзья зайдут по коду"
+		desc = L.t("Ваш мир из Minecraft или отдельный сервер — друзья зайдут по коду")
 	v.add_child(UI.para(desc, 14, UI.MUTED))
 	row.add_child(v)
 	var ch := UI.icon("chevron", 22, col.lightened(0.2))
@@ -759,19 +793,19 @@ func _num_row(n: String, t: String, sub: String) -> Control:
 
 
 func _more_menu(_b: Button = null) -> void:
-	var v: VBoxContainer = Overlays.sheet(self, "Ещё")
-	var items := [["join", "play", "Зайти по коду", "Код или номер комнаты от друга"], ["shop", "shop", "Магазин", "Пламя и рамки за искры"], ["campfire", "campfire", "Костёр", "Друзья в сети — у огня"], ["quests", "quests", "Задания и сезон", "Искры за игру с друзьями"],
-		["backups", "cloud", "Копии миров", "Резервные копии и облако"], ["settings", "settings", "Настройки", "Цвет, анимации, сервер"]]
+	var v: VBoxContainer = Overlays.sheet(self, L.t("Ещё"))
+	var items := [["join", "play", L.t("Зайти по коду"), L.t("Код или номер комнаты от друга")], ["shop", "shop", L.t("Магазин"), L.t("Пламя и рамки за искры")], ["campfire", "campfire", L.t("Костёр"), L.t("Друзья в сети — у огня")], ["quests", "quests", L.t("Задания и сезон"), L.t("Искры за игру с друзьями")],
+		["backups", "cloud", L.t("Копии миров"), L.t("Резервные копии и облако")], ["settings", "settings", L.t("Настройки"), L.t("Цвет, анимации, сервер")]]
 	if Cfg.mobile():      # копии мира делает только сервер на ПК — на телефоне экран пустой
 		items = items.filter(func(i): return i[0] != "backups")
 	if own.active or server.state in ["installing", "starting", "running", "stopping", "error"]:
-		items.push_front(["host", "server", "Мой мир", "Код комнаты и игроки"])
+		items.push_front(["host", "server", L.t("Мой мир"), L.t("Код комнаты и игроки")])
 	var list := UI.vbox(2)
 	for it in items:
 		var r := UI.list_row(UI.icon_tile(it[1], UI.accent(), 40, 20), it[2], it[3], UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); go(it[0]), Color(0, 0, 0, 0))
 		r.custom_minimum_size.y = 60
 		list.add_child(r)
-	var rr := UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), "Сообщить о проблеме", "Отправить журнал разработчику — получите номер отчёта", UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); Report.dialog(self), Color(0, 0, 0, 0))
+	var rr := UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), L.t("Сообщить о проблеме"), L.t("Отправить журнал разработчику — получите номер отчёта"), UI.icon("chevron", 20, UI.DIM), func(): Overlays.close_sheet(self); Report.dialog(self), Color(0, 0, 0, 0))
 	rr.custom_minimum_size.y = 60
 	list.add_child(rr)
 	v.add_child(list)
@@ -792,7 +826,7 @@ func _on_server_state(s: String) -> void:
 			relay_host.probe_world = false
 			relay_host.public_card = room.public_card()
 			relay_host.public_on = server.opts.get("public", false)
-			relay_host.start(Cfg.relay_url(), ed, server.opts.get("world", "Мир"), server.java_port(), server.bedrock_port(), host_extra())
+			relay_host.start(Cfg.relay_url(), ed, server.opts.get("world", L.t("Мир")), server.java_port(), server.bedrock_port(), host_extra())
 			room.room_opened()
 	elif s == "error" and not own.active:
 		relay_host.stop()
@@ -807,7 +841,7 @@ func host_extra(own_opts := {}) -> Dictionary:
 	if Social.eco.get("pro", false) and String(Social.eco.get("vanity", "")) != "":
 		d["vanity"] = true
 	if own_opts.is_empty() and server.opts.get("public", false):
-		d["public"] = {"title": server.opts.get("public_title", server.opts.get("world", "Мир")), "tags": server.opts.get("tags", []),
+		d["public"] = {"title": server.opts.get("public_title", server.opts.get("world", L.t("Мир"))), "tags": server.opts.get("tags", []),
 			"version": server.opts.get("mc_version", "") if server.edition == "java" else "", "slots": server.opts.get("max_players", 10)}
 	elif not own_opts.is_empty() and relay_host.public_on and not relay_host.public_card.is_empty():
 		d["public"] = relay_host.public_card
@@ -825,13 +859,13 @@ func host_extra(own_opts := {}) -> Dictionary:
 ## Что видят друзья: «хостит Java 1.21», «играет в мир X».
 func update_presence() -> void:
 	if own and own.active:
-		Social.set_presence("hosting", String(own.world.get("name", "Мир")), String(own.world.get("edition", "bedrock")), String(own.world.get("version", "")), relay_host.stats().get("code", ""))
+		Social.set_presence("hosting", String(own.world.get("name", L.t("Мир"))), String(own.world.get("edition", "bedrock")), String(own.world.get("version", "")), relay_host.stats().get("code", ""))
 	elif server.state in ["running", "starting"]:
 		var ed := server.edition
 		if ed == "java" and server.opts.get("crossplay", false):
 			ed = "both"
 		var v: String = server._install_info().get("mc_version", "") if server.edition == "java" else ""
-		Social.set_presence("hosting", server.opts.get("world", "Мир"), ed, v, relay_host.stats().get("code", ""))
+		Social.set_presence("hosting", server.opts.get("world", L.t("Мир")), ed, v, relay_host.stats().get("code", ""))
 	elif relay_join.stats().state == "online":
 		var st: Dictionary = relay_join.stats()
 		Social.set_presence("playing", st.name, st.edition, "", relay_join.code)
@@ -868,6 +902,8 @@ func _process(d: float) -> void:
 		_presence_tick = 0
 		var key := "%s|%s|%s" % [server.state, relay_host.stats().get("code", ""), relay_join.stats().state]
 		if key != _last_presence:
+			if relay_join.stats().state == "online" and not _last_presence.ends_with("|online"):
+				Sfx.play("join")
 			_last_presence = key
 			update_presence()
 		_join_keepalive()
@@ -888,11 +924,11 @@ func _join_keepalive() -> void:
 	var cls = JavaClassWrapper.wrap(OwnWorld.ANDROID_SERVICE)
 	if cls == null:
 		return
-	AppLog.add("app", "служба Android для входа к другу: " + ("вкл" if want else "выкл"))
+	AppLog.add("app", "служба Android для входа к другу: " + (L.t("вкл") if want else L.t("выкл")))
 	if want:
 		if not OS.get_granted_permissions().has("android.permission.POST_NOTIFICATIONS"):
 			OS.request_permission("android.permission.POST_NOTIFICATIONS")
-		cls.startJoin("Вы в мире «%s»" % String(relay_join.stats().get("name", "друга")), "LANTERN держит связь с миром друга, пока вы играете.")
+		cls.startJoin(L.t("Вы в мире «%s»") % String(relay_join.stats().get("name", L.t("друга"))), L.t("LANTERN держит связь с миром друга, пока вы играете."))
 	elif not own.active:
 		cls.stop()
 
@@ -987,11 +1023,11 @@ func _refresh_me() -> void:
 		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.alignment = BoxContainer.ALIGNMENT_CENTER
 		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var nick := UI.label(Social.me.get("nick", "Профиль") if Social.online() else ("Профиль" if Social.conn != "connecting" else "Подключаемся…"), 15, UI.TEXT, UI.font_bold)
+		var nick := UI.label(Social.me.get("nick", L.t("Профиль")) if Social.online() else (L.t("Профиль") if Social.conn != "connecting" else L.t("Подключаемся…")), 15, UI.TEXT, UI.font_bold)
 		nick.clip_text = true
 		nick.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		v.add_child(nick)
-		var sub := "#" + String(Social.me.get("tag", "#")).get_slice("#", 1) if Social.online() else ("не в сети" if Social.conn == "off" else "")
+		var sub := "#" + String(Social.me.get("tag", "#")).get_slice("#", 1) if Social.online() else (L.t("не в сети") if Social.conn == "off" else "")
 		v.add_child(UI.label(sub, 12, UI.MUTED))
 		row.add_child(v)
 		row.add_child(UI.icon("chevron", 18, UI.DIM))
@@ -1032,15 +1068,15 @@ func _update_badges() -> void:
 
 func _on_notice(d: Dictionary) -> void:
 	match d.get("kind", ""):
-		"request": toast("%s хочет дружить — откройте «Друзья»" % d.from.tag)
-		"accepted": toast("%s принял(а) вашу заявку!" % d.from.tag, UI.JAVA)
+		"request": toast(L.t("%s хочет дружить — откройте «Друзья»") % d.from.tag)
+		"accepted": toast(L.t("%s принял(а) вашу заявку!") % d.from.tag, UI.JAVA)
 		"invite": invite_popup(d)
-		"achievement": toast("Достижение «%s» · +%d искр · титул «%s»" % [d.name, d.sparks, d.title], UI.AMBER)
-		"referral": toast("Ваш друг %s наиграл час — вам +%d искр!" % [d.from.nick, d.sparks], UI.AMBER)
-		"purchased": toast("Готово! Покупка получена" + (" (ДЕМО)" if Social.demo else ""), UI.JAVA)
-		"ad_reward": toast("+20 искр за просмотр", UI.AMBER)
+		"achievement": toast(L.t("Достижение «%s» · +%d искр · титул «%s»") % [d.name, d.sparks, d.title], UI.AMBER)
+		"referral": toast(L.t("Ваш друг %s наиграл час — вам +%d искр!") % [d.from.nick, d.sparks], UI.AMBER)
+		"purchased": toast(L.t("Готово! Покупка получена") + (L.t(" (ДЕМО)") if Social.demo else ""), UI.JAVA)
+		"ad_reward": toast(L.t("+20 искр за просмотр"), UI.AMBER)
 		"account_deleted":
-			toast("Профиль удалён с сервера", UI.JAVA)
+			toast(L.t("Профиль удалён с сервера"), UI.JAVA)
 			go("home", true)
 		"info": toast(d.text)
 
@@ -1054,15 +1090,15 @@ func invite_popup(d: Dictionary) -> void:
 	p.add_child(v)
 	var top := UI.hbox(12)
 	top.add_child(Avatar.of(d.from, 44))
-	var tl := UI.para("%s зовёт вас в мир «%s»" % [d.from.nick, d.get("world", "")], 15, UI.TEXT)
+	var tl := UI.para(L.t("%s зовёт вас в мир «%s»") % [d.from.nick, d.get("world", "")], 15, UI.TEXT)
 	tl.add_theme_font_override("font", UI.font_bold)
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(tl)
 	v.add_child(top)
 	var row := UI.hbox(8)
-	var nb := UI.button("Не сейчас", "ghost", func(): p.queue_free())
+	var nb := UI.button(L.t("Не сейчас"), "ghost", func(): p.queue_free())
 	row.add_child(nb)
-	var gb := UI.button("Зайти", "primary", func(): p.queue_free(); go("join", true, {"input": d.code}))
+	var gb := UI.button(L.t("Зайти"), "primary", func(): p.queue_free(); go("join", true, {"input": d.code}))
 	gb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(gb)
 	v.add_child(row)
@@ -1142,7 +1178,9 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 	if name == current and not force and arg == null:
 		return
 	if name == "host" and arg == null and not own.active and not server.state in ["installing", "starting", "running", "stopping", "error"]:
-		name = "setup"
+		name = "create"
+	if name == "setup" and not Cfg.mobile() and not (arg is Dictionary and arg.get("own", false)):
+		name = "create"       # 1.8: мастера «Отдельный сервер» больше нет — сервер создаётся в «Создать игру»
 	# история «Назад»
 	var dir := 1
 	if _going_back:
@@ -1245,12 +1283,12 @@ func _set_tree_ignore(n: Node) -> void:
 func _select_nav(name: String) -> void:
 	var key := name
 	if _compact:
-		if name in ["join", "setup", "host"]:
+		if name in ["join", "setup", "host", "gamesettings"]:
 			key = "play"
 		elif not _nav.has(name):
 			key = "more"
 	else:
-		if name in ["host", "setup"]:
+		if name in ["host", "setup", "gamesettings"]:
 			key = "create"
 		elif name == "syscheck":
 			key = "settings"
@@ -1294,7 +1332,15 @@ func _select_nav(name: String) -> void:
 
 
 ## Короткое сообщение снизу (над нижним меню).
+var toast_count := 0
+
+
 func toast(text: String, color := UI.TEXT) -> void:
+	toast_count += 1
+	if color == UI.RED or color == UI.YELLOW:
+		Sfx.play("error")
+	elif color == UI.JAVA or color == UI.GREEN:
+		Sfx.play("success")
 	if not is_instance_valid(_toast):
 		return
 	var l: Label = _toast.get_child(0)
@@ -1365,7 +1411,7 @@ func _quit() -> void:
 		li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		v.add_child(li)
 		FX.pulse(li)
-		var l := UI.h2("Сохраняем мир и выключаем сервер…")
+		var l := UI.h2(L.t("Сохраняем мир и выключаем сервер…"))
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(l)
 		cc.add_child(v)
