@@ -105,9 +105,9 @@ function pageMain(SP) {
       g.fillStyle = '#050608'; g.fillRect(0, 0, W, H); g.save(); g.globalAlpha = .16; g.filter = 'blur(30px)'; g.drawImage(c, 0, 0, 1280, 720, -700, 300, 2480, 1395); g.restore();
       const a = eo(lt / .5); text('HUSH', W / 2, 700, 230, BONE, { font: 'logo', a, gl: (1 - a) * 30, ls: 10 }); text('TILL SIX', W / 2, 900, fit('TILL SIX', 170, W - 120, 'logo'), RED, { font: 'logo', a: eo((lt - .25) / .5), ls: 10 });
       text(sg.line, W / 2, 1090, 58, BONE, { a: eo((lt - .8) / .5) });
-      const b = eo((lt - 1.3) / .5); g.globalAlpha = b; g.fillStyle = RED; g.fillRect(140, 1250, W - 280, 150); g.globalAlpha = 1; text('PLAY FREE IN YOUR BROWSER', W / 2, 1326, fit('PLAY FREE IN YOUR BROWSER', 54, W - 340), '#fff', { a: b, sh: 0, ls: 2 });
+      const b = eo((lt - 1.3) / .5); g.globalAlpha = b; g.fillStyle = RED; g.fillRect(140, 1250, W - 280, 150); g.globalAlpha = 1; text('FREE PLAYTEST IN YOUR BROWSER', W / 2, 1326, fit('FREE PLAYTEST IN YOUR BROWSER', 54, W - 340), '#fff', { a: b, sh: 0, ls: 2 });
       text('yompix.github.io', W / 2, 1470, 56, GOLD, { a: eo((lt - 1.6) / .5) }); text('News & behind the scenes:  t.me/yompixgames', W / 2, 1570, fit('News & behind the scenes:  t.me/yompixgames', 40, W - 120), BONE, { a: eo((lt - 1.9) / .5) * .9 });
-      text('18+  ·  horror', W / 2, 1760, 32, DIM, { a: eo((lt - 2.2) / .5) }); fx(T, 1.4); if (lt < .3) { g.globalAlpha = .7 * (1 - lt / .3); g.drawImage(noise, 0, 0, 256, 256, 0, 0, W, H); g.globalAlpha = 1; } return;
+      text('Coming to Google Play & Steam', W / 2, 1668, 44, BONE, { a: eo((lt - 2.1) / .5) }); text('18+  ·  horror', W / 2, 1760, 32, DIM, { a: eo((lt - 2.2) / .5) }); fx(T, 1.4); if (lt < .3) { g.globalAlpha = .7 * (1 - lt / .3); g.drawImage(noise, 0, 0, 256, 256, 0, 0, W, H); g.globalAlpha = 1; } return;
     }
     feed(sg, T); panel(sg, T, lt); brand();
     if (sg.kind === 'hook') { lines(sg.title, 250, sg.title[1].length > 10 ? 104 : 150, BONE, lt - .15, { font: 'ui', ls: 4 }); text(sg.cap, W / 2, FY + FH + 110, 52, BONE, { a: eo((lt - .9) / .5) });
