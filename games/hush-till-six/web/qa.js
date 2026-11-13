@@ -83,7 +83,7 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
   $('qaPrev').onclick = () => { const m = N.mode, sc = N.scene; if (!sc || !IN.includes(m)) return;
     if (m === 'play') { const quick = performance.now() - prevT < 1500; prevT = performance.now(); N.startScene(sc, Math.max(0, N.bi - (quick ? 1 : 0))); } else N.startScene(sc); };
   $('qaNext').onclick = () => { if (N.mode === 'play') N.skipBeat(); };
-  $('qaBug').onclick = () => bug();
+  $('qaBug').onclick = () => (N.mode === 'menu' ? list() : bug());   // в меню 🐞 в углу открывает «Проверку» (концовки, смерти, сцены)
   document.addEventListener('keydown', e => { if (open || /^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) return; if (e.key === 'b' || e.key === 'B' || e.key === 'и' || e.key === 'И') bug(); });
   let barT = 0;
   function tick() {
@@ -290,7 +290,7 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
       N.shiftCam(def.cam === '02' ? '01' : '02'); N.shiftCam(def.cam); toast('Странность: ' + name + ' · камера ' + (def.cam === 'm2' ? '−2' : def.cam) + ' · время стоит', 5000); }, 150); }
   function menuHook() {
     const nav = document.querySelector('#ui .mlist'); if (!nav || nav.querySelector('.qa-m')) return;
-    const a = document.createElement('button'); a.className = 'qa-m'; a.textContent = '🐞 Проверка: концовки, смерти, сцены'; a.onclick = e => { e.stopPropagation(); list(); }; nav.appendChild(a);
+    const a = document.createElement('button'); a.className = 'qa-m'; a.textContent = '🐞 Проверка: концовки, смерти, сцены'; a.onclick = e => { e.stopPropagation(); list(); }; nav.prepend(a);   // первой строкой: внизу на телефоне она уходила за край кадра (владелец, 14 ноя)
     if (bugs.length) { const s = document.createElement('button'); s.className = 'qa-m'; s.textContent = `Отправить ошибки (${bugs.length})`; s.onclick = e => { e.stopPropagation(); prepare(null, false); }; nav.appendChild(s); }
   }
   { const k = $('keys'); if (k) { const d = document.createElement('div'); d.innerHTML = '<kbd>B</kbd>баг (проверка)'; k.appendChild(d); } }   // на ПК: B (или И) — отметить ошибку

@@ -2336,5 +2336,5 @@ window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot()
   get held() { return holdN === 0; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 // режим проверки для владельца (qa.js): ?qa=1 — включить (запоминается), ?qa=0 — выключить; в демо itch.io не включается
-{ const q = /[?&]qa=([01])/.exec(location.search); if (q) LS.set('qa', q[1] === '1'); if (LS.get('qa', false) && !DEMO) { const sc = document.createElement('script'); sc.src = 'qa.js?v=4'; document.head.appendChild(sc); } }
+{ const q = /[?&]qa=([01])/.exec(location.search); if (q) LS.set('qa', q[1] === '1'); if (LS.get('qa', false) && !DEMO) { const sc = document.createElement('script'); sc.src = 'qa.js?v=5'; document.head.appendChild(sc); } }
 })();
