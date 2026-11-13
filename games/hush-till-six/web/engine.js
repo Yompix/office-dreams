@@ -53,12 +53,12 @@ const ICON = {
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
 const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'ring_mob', 'tick', 'click', 'door', 'steps',
-  'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
+  'ch_katya', 'ch_whisper', 'mus_p1a', 'mus_p1b', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
 const storySfx = () => { const z = new Set(SFX2);
   for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
   for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
-  ['bolt', 'pen', 'rain_burst', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
+  ['bolt', 'pen', 'rain_burst', 'mus_p2a', 'mus_p2b', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
 const SFX2 = ['hush', 'skin_stretch', 'room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, outG = null, musicG, voiceG, sfxG, uAmb = null, sfxRev = null, sfxLow = null, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
@@ -80,7 +80,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5, theme: 5 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { sv08: 5, n26: 5, theme: 6 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -117,7 +117,7 @@ async function load(onp) {
 // Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
 // Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
 const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
-const VOICE_KEEP = window.nsTV ? 16 : 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
+const VOICE_KEEP = window.nsTV ? 16 : 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|mus_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
 const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
 const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
 const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды
@@ -252,9 +252,22 @@ function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, ra
 function dropPending() { if (!AC) return; for (const o of [...playing]) if (!o.music && !o.voice && o.at > AC.currentTime + .03) { try { o.s.stop(); } catch {} playing.delete(o); } }
 function stopAll(keepMusic = true) { for (const o of [...playing]) if (!(keepMusic && o.music)) { try { o.s.stop(); } catch {} playing.delete(o); } }
 let curMusic = null, curMusicName = '';
-function music(name) {
+// музыка владельца для пролога (13 ноя): вступление играет один раз, за ним без шва — вторая часть по кругу
+const MSEQ = { part1: ['mus_p1a', 'mus_p1b'], part2: ['mus_p2a', 'mus_p2b'] };
+// fade — как медленно уходит прежняя музыка (постоянная времени, с): .6 — обычная смена, 1.5–2 — «медленно затухает»
+function music(name, fade) {
   if (!AC || name === curMusicName) return; curMusicName = name;
-  const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} if (LAZY_RE.test(old.name) && curMusicName !== old.name) delete BUF[old.name]; }, 2500); }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
+  const tc = fade || .6, old = curMusic;
+  if (old) { for (const o of [old, old.next]) if (o) o.gn.gain.setTargetAtTime(0, AC.currentTime, tc);
+    setTimeout(() => { for (const o of [old, old.next]) if (o) { try { o.s.stop(); } catch {} playing.delete(o); if (LAZY_RE.test(o.name) && !(MSEQ[curMusicName] || [curMusicName]).includes(o.name)) delete BUF[o.name]; } }, Math.max(2500, tc * 4500)); }
+  if (MSEQ[name]) { const [a, b] = MSEQ[name]; curMusic = null;
+    const miss = [a, b].filter(k => !BUF[k]);
+    if (miss.length) { if (miss.every(k => rawSnd[k])) Promise.all(miss.map(k => decQ[k] || (decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; })))).then(() => { if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); else curMusicName = null;   // ещё не скачана — попробуем позже
+      return; }
+    const oa = play(a, { bus: 'music', gain: 1 }), ob = oa && play(b, { bus: 'music', loop: true, gain: 1, when: BUF[a].duration });
+    if (!oa) { curMusicName = null; return; }
+    oa.music = true; if (ob) { ob.music = true; oa.next = ob; } curMusic = oa;
+    if (musicSend) musicSend.gain.setTargetAtTime(1, AC.currentTime, .5); return; }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
   if (name && !BUF[name] && rawSnd[name] && !decQ[name]) {   // музыка смены и финалов декодируется, когда понадобилась (иначе ~100 МБ лежали бы в памяти всю игру)
     decQ[name] = decodeOne(name, rawSnd[name]).then(() => { delete decQ[name]; if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); curMusic = null; return; }
   curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не скачана — попробуем позже
@@ -523,11 +536,13 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) setFlags('opened');   // через setFlags — запоминается и после перезагрузки
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) setFlags('mih');
-  if (scene.music) music(scene.music);
+  if (AC) for (const b of scene.beats || []) for (const k of MSEQ[b.music] || []) if (!BUF[k] && rawSnd[k] && !decQ[k]) decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; });   // музыка кадров раскодируется заранее: после «нажми» вступает сразу
+  if (scene.music !== undefined) music(scene.music || null, scene.mfade);   // '' — тишина (прежняя музыка уходит; mfade — как медленно)
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
   if (!id.startsWith('over_')) { LS.set('save', id); LS.set('saveT', lastTime); }   // и время ночи: у сцен осмотра и разговоров своего нет — после «Продолжить» часы шли бы с 02:55
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
-  for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
+  for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);
+  for (let i = bi; i >= 0; i--) if (scene.beats[i] && scene.beats[i].music !== undefined) { music(scene.beats[i].music || null); break; }   // начали с середины — музыка последнего пройденного кадра   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
   const my = gen, ready = voicePrep(id); holdN = -1;
   if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
   beat = null; audioQ = 0; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
@@ -593,10 +608,11 @@ function nextBeat() {
   subl = null;
   if (beat.subl != null && !calm() && sublScene !== sceneId) { const o = typeof beat.subl === 'object' ? beat.subl : { at: +beat.subl || 1 }; subl = { at: o.at ?? 1, img: o.img || 'monster_close', n: 0 }; }
   carry.forEach(e => e.fn());
+  if (beat.music !== undefined && !beat.wait) music(beat.music || null, beat.mfade);   // музыка с этого кадра (у кадра с «нажми» — после нажатия, beginBeat)
   if (beat.wait) { waiting = true; tapEl.innerHTML = ICON.play + escH(beat.wait); tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
   audioQ = 1;   // звук — после первого нарисованного кадра (frame)
 }
-function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); audioQ = 1; }
+function beginBeat() { if (beat.music !== undefined) music(beat.music || null, beat.mfade); waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); audioQ = 1; }
 // реплика ещё не докачалась/не декодировалась (медленная сеть): когда готова — если её время ещё не пришло, ставим на своё время;
 // если чуть опоздали — отсчёт кадра сдвигается на столько же (субтитры и голос идут вместе); сильно — голос с середины, чтобы догнать слова
 const lateQ = [];   // докачанные реплики включаются в начале следующего кадра (frame → lateFlush): там часы свежие, а не между кадрами
@@ -787,7 +803,7 @@ function actSpots() {
   bs.forEach((b, i) => b.classList.toggle('up', !!(best >> i & 1))); sps.forEach(fit);
 }
 function showChoice(th) {
-  mode = 'choice'; music('tension');
+  mode = 'choice'; if (!MSEQ[curMusicName]) music('tension');   // музыка пролога (Part 2) на выборе не прерывается
   const vis = th.opts.map((o, i) => [o, i]).filter(([o]) => flagOk(o.if));   // вариант может зависеть от того, что ты узнал раньше
   choiceEl.innerHTML = `<h2>${th.choice}</h2>` + vis.map(([o, i], n) => `<button data-i="${i}"><b>${n + 1}</b>${o.t}</button>`).join('') + (th.timeout ? '<div id="timer"><i></i></div>' : '');
   choiceEl.classList.remove('hide');
@@ -2245,7 +2261,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
+window.__ns = { back: () => menu(), startScene, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },
