@@ -306,6 +306,10 @@ func _core_17() -> int:
 		[String(Invite.parse("lantern://join?v=1&c=K7M2QX&e=both&n=%D0%9C%D0%B8%D1%80").get("code", "")), "K7M2QX"],
 		[String(DeepLink.parse("lantern://join?code=35821626").get("code", "")), "35821626"],
 		[String(DeepLink.parse("https://office-dreams-production.up.railway.app/lantern/j/K7M2QX").get("kind", "")), "join"],
+		[DeepLink.friend_web_link("Алекс#4821"), "https://office-dreams-production.up.railway.app/lantern/f/%D0%90%D0%BB%D0%B5%D0%BA%D1%81%234821"],
+		[String(DeepLink.parse(DeepLink.friend_web_link("Алекс#4821")).get("tag", "")), "Алекс#4821"],
+		[String(DeepLink.parse("https://office-dreams-production.up.railway.app/lantern/f/Alex%231234?x=1").get("kind", "")), "friend"],
+		[String(DeepLink.parse("https://example.com/lantern/f/bad").get("kind", "")), ""],
 		[Launcher.connect_url(19132), "minecraft://connect/?serverUrl=127.0.0.1&serverPort=19132"],
 		[Launcher.java_address(25565), "localhost"],
 		[Launcher.java_address(25570), "localhost:25570"],
@@ -1010,6 +1014,21 @@ func _tour() -> int:
 		await get_tree().create_timer(1.0).timeout
 		await _shot("12b_host_own_phone")
 		app.go("home", true)
+	if Cfg.mobile() and Cfg.autotest_args.has("weblink"):
+		# 1.8.1: QR комнаты на телефоне (tests/check_qr.py читает его со скриншота)
+		app.relay_host.start(Cfg.relay_url(), "bedrock", "Наш мир", 0, 19132, app.host_extra())
+		await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
+		app.own.world = {"key": "t", "edition": "bedrock", "name": "Наш мир", "host": "127.0.0.1", "port": 19132, "version": "1.21", "players": 1, "max": 5, "transport": "raknet"}
+		app.own.active = true
+		app.go("host", true)
+		await get_tree().create_timer(6.0).timeout      # тост о достижении успеет уйти
+		app._screen._qr_sheet()
+		await _shot("16c_host_qr")
+		await _close_overlays()
+		app.own.active = false
+		app.own.world = {}
+		app.relay_host.stop()
+		app.go("home", true)
 	# --- мастер «Создать мир» (ПК)
 	if not Cfg.mobile() and not Cfg.autotest_args.has("nohost"):
 		# комната без настоящего сервера: открываем её на relay и показываем экран мира
@@ -1026,6 +1045,9 @@ func _tour() -> int:
 		await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
 		app.go("host", true)
 		await _shot("16_host_room")
+		app._screen._qr_sheet()
+		await _shot("16c_host_qr")
+		await _close_overlays()
 		await _scroll_down(1150)
 		await _shot("16b_host_bottom")
 		app.go("gamesettings", true)

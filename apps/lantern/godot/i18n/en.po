@@ -837,11 +837,11 @@ msgstr "Your friend types the code or number in “Join by code” — the world
 msgid "Друг зашёл в ваш мир!"
 msgstr "A friend joined your world!"
 
-msgid "Друг наводит камеру телефона — LANTERN откроется и отправит заявку"
-msgstr "Your friend points their phone camera — LANTERN opens and sends a request"
+msgid "Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — заявка отправится сама"
+msgstr "Your friend points their phone camera and taps “Open in LANTERN” — the request sends itself"
 
-msgid "Друг наводит камеру телефона — LANTERN откроется сам и подключится"
-msgstr "Your friend points their phone camera — LANTERN opens and connects by itself"
+msgid "Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — мир появится у него в Minecraft"
+msgstr "Your friend points their phone camera and taps “Open in LANTERN” — the world shows up in their Minecraft"
 
 msgid "Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир сам появится у него в Minecraft."
 msgstr "Your friend opens LANTERN → “Join a friend” → types the code. The world shows up in their Minecraft."

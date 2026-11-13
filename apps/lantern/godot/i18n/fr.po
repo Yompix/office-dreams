@@ -1,0 +1,3458 @@
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "\n----- прошлый запуск -----\n"
+msgstr "\n----- прошлый запуск -----\n"
+
+msgid "\nНажмите «Запустить» ещё раз. Не помогло — «Сообщить о проблеме» ниже, мы разберёмся."
+msgstr "\nAppuie encore sur « Lancer ». Toujours rien ? Utilise « Signaler un problème » plus bas, on s'en occupe."
+
+msgid "\nНет прав на запись — выберите другую папку в «Настройках»."
+msgstr "\nPas de droit d'écriture — choisis un autre dossier dans les Paramètres."
+
+msgid "  (ДЕМО)"
+msgstr "  (DÉMO)"
+
+msgid "  · код "
+msgstr "  · code "
+
+msgid " («Видимость для игроков LAN» включена)."
+msgstr " (« Visible par les joueurs en LAN » est activé)."
+
+msgid " («Открыть для сети»)."
+msgstr " (« Ouvrir au LAN »)."
+
+msgid " (ДЕМО)"
+msgstr " (DÉMO)"
+
+msgid " (вы)"
+msgstr " (toi)"
+
+msgid " (или Esc)."
+msgstr " (ou Échap)."
+
+msgid " (обновится при следующем запуске)"
+msgstr " (mise à jour au prochain lancement)"
+
+msgid " (ошибка: %s)"
+msgstr " (erreur : %s)"
+
+msgid " + телефоны"
+msgstr " + téléphones"
+
+msgid " · ДЕМО"
+msgstr " · DÉMO"
+
+msgid " · в Minecraft: "
+msgstr " · dans Minecraft : "
+
+msgid " · мир из Minecraft"
+msgstr " · monde de Minecraft"
+
+msgid " Возможно, не хватает памяти — закройте лишние программы."
+msgstr " Mémoire peut-être insuffisante — ferme d'autres programmes."
+
+msgid " Последняя ошибка: "
+msgstr " Dernière erreur : "
+
+msgid " Это ДЕМО: настоящей рекламы и трекинга нет."
+msgstr " C'est une DÉMO : pas de vraie pub ni de suivi."
+
+msgid " без возобновления"
+msgstr " sans reprise"
+
+msgid " и проверьте «Видимость для игроков LAN»."
+msgstr " et vérifie « Visible par les joueurs en LAN »."
+
+msgid " подряд"
+msgstr " d'affilée"
+
+msgid " с такими фильтрами"
+msgstr " avec ces filtres"
+
+msgid " — по коду играть не получится, по адресу в своей сети можно"
+msgstr " — impossible par code, mais par adresse sur ton réseau oui"
+
+msgid " — проверьте интернет или антивирус"
+msgstr " — vérifie ta connexion ou l'antivirus"
+
+msgid " — уже у вас"
+msgstr " — déjà à toi"
+
+msgid "# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n"
+msgstr "# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n"
+
+msgid "%.1f МБ"
+msgstr "%.1f Mo"
+
+msgid "%d / %d  ·  +%d искр  ·  +%d света"
+msgstr "%d / %d  ·  +%d étinc.  ·  +%d lum."
+
+msgid "%d / %d очков света до следующего уровня"
+msgstr "%d / %d points de lumière avant le niveau suivant"
+
+msgid "%d КБ"
+msgstr "%d Ko"
+
+msgid "%d в мире"
+msgstr "%d dans le monde"
+
+msgid "%d ч %02d мин"
+msgstr "%d h %02d min"
+
+msgid "%s %.2f мс"
+msgstr "%s %.2f ms"
+
+msgid "%s %s ваш мир"
+msgstr "%s %s ton monde"
+
+msgid "%s (своя копия LANTERN)"
+msgstr "%s (copie propre à LANTERN)"
+
+msgid "%s · %s · %d ядер · Godot %s"
+msgstr "%s · %s · %d cœurs · Godot %s"
+
+msgid "%s · зерно: %s. Мир уже создан — тип и зерно меняются только у нового мира."
+msgstr "%s · graine : %s. Le monde existe déjà — type et graine ne se règlent que pour un nouveau monde."
+
+msgid "%s ГБ"
+msgstr "%s Go"
+
+msgid "%s добавлен в белый список — пусть зайдёт ещё раз"
+msgstr "%s ajouté à la liste blanche — dis-lui de réessayer"
+
+msgid "%s забанен на этом сервере."
+msgstr "%s est banni de ce serveur."
+
+msgid "%s зовёт вас в мир «%s»"
+msgstr "%s t'invite dans le monde « %s »"
+
+msgid "%s не в белом списке."
+msgstr "%s n'est pas sur la liste blanche."
+
+msgid "%s не прошёл проверку аккаунта Microsoft: на сервер заходят только игроки со своим аккаунтом Minecraft."
+msgstr "%s n'a pas passé la vérification du compte Microsoft : seuls les joueurs avec leur propre compte Minecraft entrent sur ce serveur."
+
+msgid "%s не пускал белый список — LANTERN выключил его. Пусть %s зайдёт ещё раз"
+msgstr "La liste blanche bloquait %s — LANTERN l'a désactivée. Dis à %s de réessayer"
+
+msgid "%s принял(а) вашу заявку!"
+msgstr "%s a accepté ta demande !"
+
+msgid "%s пришёл со старой версией Minecraft. Пусть выберет в лаунчере ту же версию, что у сервера."
+msgstr "%s est venu avec une vieille version de Minecraft. Dis-lui de choisir la version du serveur dans le launcher."
+
+msgid "%s пришёл со старой версией Minecraft. Сервер на версии %s — пусть выберет в лаунчере версию %s."
+msgstr "%s est venu avec une vieille version de Minecraft. Le serveur est en %s — dis-lui de choisir la %s dans le launcher."
+
+msgid "%s разбанен — пусть зайдёт ещё раз"
+msgstr "%s est débanni — dis-lui de réessayer"
+
+msgid "%s хочет дружить — откройте «Друзья»"
+msgstr "%s veut être ton ami — ouvre « Amis »"
+
+msgid "%s; разрешение=%s"
+msgstr "%s; autorisation=%s"
+
+msgid "+%d искр"
+msgstr "+%d étincelles"
+
+msgid "+20 искр за просмотр"
+msgstr "+20 étincelles pour la vidéo"
+
+msgid "+20 искр за ролик"
+msgstr "+20 étincelles par vidéo"
+
+msgid "1200 искр"
+msgstr "1200 étincelles"
+
+msgid "169,99 ₴ · выгоднее на 20%"
+msgstr "169,99 ₴ · économise 20 %"
+
+msgid "3–8 символов: латиница и цифры 2–9. Друзья вводят его вместо случайного кода. Работает, пока активна Pro; один мир за раз."
+msgstr "3 à 8 caractères : lettres latines et chiffres 2–9. Tes amis le tapent à la place d'un code aléatoire. Marche tant que Pro est actif ; un monde à la fois."
+
+msgid "500 искр"
+msgstr "500 étincelles"
+
+msgid "6 символов или номер комнаты. Ссылку от друга тоже можно вставить сюда."
+msgstr "6 caractères ou un numéro de salon. Tu peux aussi coller ici le lien d'un ami."
+
+msgid "99,99 ₴ в месяц · $2.49"
+msgstr "99,99 ₴ par mois · $2.49"
+
+msgid "99,99 ₴/мес"
+msgstr "99,99 ₴/mois"
+
+msgid "Android спросит разрешение «Поверх других приложений» — включите его для LANTERN и вернитесь назад. Без него всё будет в уведомлении."
+msgstr "Android va demander l'autorisation « Superposition aux autres applis » — active-la pour LANTERN et reviens. Sans elle, tout reste dans la notification."
+
+msgid "Bedrock (Minecraft из Microsoft Store, телефон, консоль)"
+msgstr "Bedrock (Minecraft du Microsoft Store, téléphone, console)"
+
+msgid "Bedrock на этом компьютере"
+msgstr "Bedrock sur cet ordinateur"
+
+msgid "Bedrock: ещё не установлен. Последняя версия — "
+msgstr "Bedrock : pas encore installé. Dernière version — "
+
+msgid "Bedrock: не удалось проверить ("
+msgstr "Bedrock : vérification impossible ("
+
+msgid "Bedrock: установлен %s — %s"
+msgstr "Bedrock : installé %s — %s"
+
+msgid "Java (лаунчер на ПК)"
+msgstr "Java (launcher sur PC)"
+
+msgid "Java на Windows не всегда понимает такие пути, поэтому серверы и Java лежат в "
+msgstr "Java sous Windows ne gère pas toujours ces chemins, donc les serveurs et Java sont dans "
+
+msgid "Java на английской Windows может не запуститься из такой папки. Если сервер не стартует — выберите в «Настройках» папку вроде C:\\LANTERN."
+msgstr "Sur un Windows anglais, Java peut refuser de démarrer depuis ce dossier. Si le serveur ne démarre pas, choisis un dossier comme C:\\LANTERN dans les Paramètres."
+
+msgid "Java скачается сама"
+msgstr "Java se télécharge tout seul"
+
+msgid "Java установлена"
+msgstr "Java est installé"
+
+msgid "Java: ещё не установлен. Последняя версия — "
+msgstr "Java : pas encore installé. Dernière version — "
+
+msgid "Java: не слышим объявления миров"
+msgstr "Java : annonces de mondes inaudibles"
+
+msgid "Java: не удалось проверить ("
+msgstr "Java : vérification impossible ("
+
+msgid "Java: установлен Paper %s сборка %d — %s"
+msgstr "Java : installé Paper %s build %d — %s"
+
+msgid "LANTERN Pro — месяц"
+msgstr "LANTERN Pro — un mois"
+
+msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
+msgstr "LANTERN téléchargera quand même la sienne si le monde demande une version plus récente."
+
+msgid "LANTERN держит связь с миром друга, пока вы играете."
+msgstr "LANTERN garde le lien avec le monde de ton ami pendant que tu joues."
+
+msgid "LANTERN ищет мир на этом "
+msgstr "LANTERN cherche un monde sur ce "
+
+msgid "LANTERN обновляется. Попробуйте через минуту."
+msgstr "LANTERN se met à jour. Réessaie dans une minute."
+
+msgid "LANTERN понимает и новый способ открытия мира (NetherNet, 2025+), и старый (RakNet). Друзьям нужна та же версия, что у вас."
+msgstr "LANTERN gère la nouvelle façon d'ouvrir un monde (NetherNet, 2025+) et l'ancienne (RakNet). Tes amis doivent avoir la même version que toi."
+
+msgid "LANTERN — мир"
+msgstr "LANTERN — monde"
+
+msgid "Minecraft (Bedrock) не найден. Откройте игру сами и зайдите в мир — LANTERN его увидит."
+msgstr "Minecraft (Bedrock) introuvable. Ouvre le jeu toi-même et entre dans un monde — LANTERN le verra."
+
+msgid "Minecraft Bedrock на этом компьютере"
+msgstr "Minecraft Bedrock sur cet ordinateur"
+
+msgid "Minecraft Java (ПК)"
+msgstr "Minecraft Java (PC)"
+
+msgid "Minecraft Java на этом компьютере"
+msgstr "Minecraft Java sur cet ordinateur"
+
+msgid "Minecraft из Microsoft Store (Bedrock) откроется и сам зайдёт в мир. Играете в Java — смотрите ниже."
+msgstr "Minecraft du Microsoft Store (Bedrock) va s'ouvrir et rejoindre le monde tout seul. Tu joues sur Java ? Regarde plus bas."
+
+msgid "Minecraft из Microsoft Store на Windows 10/11"
+msgstr "Minecraft du Microsoft Store sur Windows 10/11"
+
+msgid "Minecraft из лаунчера на ПК (Java Edition)"
+msgstr "Minecraft du launcher sur PC (Java Edition)"
+
+msgid "Minecraft не отвечает. Вернитесь в игру и проверьте, что мир открыт"
+msgstr "Minecraft ne répond pas. Retourne dans le jeu et vérifie que le monde est ouvert"
+
+msgid "Minecraft не отвечает. Вернитесь в мир"
+msgstr "Minecraft ne répond pas. Retourne dans le monde"
+
+msgid "Minecraft не отвечает. Вернитесь в мир."
+msgstr "Minecraft ne répond pas. Retourne dans le monde."
+
+msgid "Minecraft открыт"
+msgstr "Minecraft est ouvert"
+
+msgid "Minecraft открыт — заходим в мир «%s»."
+msgstr "Minecraft est ouvert — on rejoint le monde « %s »."
+
+msgid "Minecraft — на экране, LANTERN не закрывайте"
+msgstr "Garde Minecraft à l'écran et ne ferme pas LANTERN"
+
+msgid "Minecraft — товарный знак Mojang Synergies AB. LANTERN не содержит файлов игры: нужна своя копия Minecraft."
+msgstr "Minecraft est une marque de Mojang Synergies AB. LANTERN ne contient aucun fichier du jeu : il te faut ta propre copie de Minecraft."
+
+msgid "Paper %s сборка %s"
+msgstr "Paper %s build %s"
+
+msgid "Pro и искры"
+msgstr "Pro et étincelles"
+
+msgid "QR-код"
+msgstr "QR code"
+
+msgid "QR-код для друга"
+msgstr "QR code pour un ami"
+
+msgid "QR-код комнаты"
+msgstr "QR code du salon"
+
+msgid "[LANTERN] Код для друзей: %s"
+msgstr "[LANTERN] Code pour les amis : %s"
+
+msgid "«Авто» — LANTERN сам подберёт под ваш компьютер."
+msgstr "« Auto » — LANTERN choisit ce qui convient à ton ordinateur."
+
+msgid "«Автозапуск»"
+msgstr "« Démarrage automatique »"
+
+msgid "«Батарея» → LANTERN"
+msgstr "« Batterie » → LANTERN"
+
+msgid "«Для всех» — ПК, телефоны и консоли в одном мире. «Только Bedrock» — официальный сервер для телефонов и консолей."
+msgstr "« Pour tous » — PC, téléphones et consoles dans le même monde. « Bedrock seul » — le serveur officiel pour téléphones et consoles."
+
+msgid "«Добавить сервер»: адрес 127.0.0.1, порт %d"
+msgstr "« Ajouter un serveur » : adresse 127.0.0.1, port %d"
+
+msgid "«Другие разрешения»"
+msgstr "« Autres autorisations »"
+
+msgid "«Запуск приложений» → LANTERN"
+msgstr "« Lancement d'applis » → LANTERN"
+
+msgid "«Играть» → «Друзья» → внизу «LAN-игры» — ваш мир. Нет его там: «Играть» → «Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d"
+msgstr "« Jouer » → « Amis » → en bas, « Parties en LAN » — c'est ton monde. Absent ? « Jouer » → « Serveurs » → « Ajouter un serveur » : adresse 127.0.0.1, port %d"
+
+msgid "«Играть» → «Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d"
+msgstr "« Jouer » → « Serveurs » → « Ajouter un serveur » : adresse 127.0.0.1, port %d"
+
+msgid "«Контроль активности» (батарея)"
+msgstr "« Contrôle d'activité » (batterie)"
+
+msgid "«Плавающие окна»"
+msgstr "« Fenêtres flottantes »"
+
+msgid "«Поверх других приложений»"
+msgstr "« Superposition aux autres applis »"
+
+msgid "«Расход батареи» → LANTERN"
+msgstr "« Utilisation de la batterie » → LANTERN"
+
+msgid "«Резервная копия» на экране мира — или скачайте по коду"
+msgstr "« Sauvegarde » sur l'écran du monde — ou télécharge-la par code"
+
+msgid "«Серверы» → «Добавить сервер»: адрес 127.0.0.1, порт %d"
+msgstr "« Serveurs » → « Ajouter un serveur » : adresse 127.0.0.1, port %d"
+
+msgid "«Сетевая игра» → «Прямое подключение» → адрес:"
+msgstr "« Multijoueur » → « Connexion directe » → adresse :"
+
+msgid "Авто — %s ГБ"
+msgstr "Auto — %s Go"
+
+msgid "Автокопия"
+msgstr "Sauvegarde auto"
+
+msgid "Админ может выгонять игроков и менять правила прямо в игре. Впишите свой ник — станете админом."
+msgstr "Un admin peut expulser des joueurs et changer les règles en jeu. Entre ton pseudo pour devenir admin."
+
+msgid "Адрес"
+msgstr "Adresse"
+
+msgid "Адрес %s скопирован"
+msgstr "Adresse %s copiée"
+
+msgid "Адрес должен начинаться с wss://"
+msgstr "L'adresse doit commencer par wss://"
+
+msgid "Адрес скопирован"
+msgstr "Adresse copiée"
+
+msgid "Адрес скопирован — вставьте его в Minecraft"
+msgstr "Adresse copiée — colle-la dans Minecraft"
+
+msgid "Активна до "
+msgstr "Actif jusqu'au "
+
+msgid "БУМ! ✦"
+msgstr "BOUM ! ✦"
+
+msgid "Баланс"
+msgstr "Équilibré"
+
+msgid "Батарея"
+msgstr "Batterie"
+
+msgid "Без профиля список игр не виден."
+msgstr "Sans profil, la liste des parties est masquée."
+
+msgid "Без рекламы совсем"
+msgstr "Zéro pub"
+
+msgid "Без рекламы, свой код комнаты, облачные копии миров, особая косметика"
+msgstr "Sans pub, ton propre code de salon, sauvegardes de mondes dans le cloud, cosmétiques spéciaux"
+
+msgid "Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает."
+msgstr "Sans glissements ni flashs — pour les téléphones lents et ceux qui ont le mal des transports."
+
+msgid "Без телеметрии. Не требует прав администратора. Пароли не спрашивает."
+msgstr "Sans télémétrie. Pas besoin de droits admin. Ne demande jamais de mot de passe."
+
+msgid "Бесплатно"
+msgstr "Gratuit"
+
+msgid "Больше мест (+5)"
+msgstr "Plus de places (+5)"
+
+msgid "Большие биомы"
+msgstr "Biomes larges"
+
+msgid "Брандмауэр"
+msgstr "Pare-feu"
+
+msgid "Брандмауэр Windows"
+msgstr "Pare-feu Windows"
+
+msgid "Будьте вежливы · сообщения хранятся сутки · не пишите личные данные"
+msgstr "Reste sympa · les messages sont gardés un jour · pas de données perso"
+
+msgid "Буфер обмена пуст — сначала скопируйте код или ссылку от друга"
+msgstr "Presse-papiers vide — copie d'abord le code ou le lien de ton ami"
+
+msgid "Быстро"
+msgstr "Rapide"
+
+msgid "Быстрый ответ"
+msgstr "Réponse rapide"
+
+msgid "В игре нажмите Esc и кликните по окошку. Не видно поверх игры — включите в Minecraft оконный режим (Java: F11)."
+msgstr "En jeu, appuie sur Échap et clique sur la petite fenêtre. Invisible par-dessus le jeu ? Passe Minecraft en mode fenêtré (Java : F11)."
+
+msgid "В игре нажмите Esc — и кликните по окошку LANTERN, чтобы увидеть, кто зашёл."
+msgstr "En jeu, appuie sur Échap et clique sur la fenêtre LANTERN pour voir qui est entré."
+
+msgid "В мир попадут только игроки из вашего списка."
+msgstr "Seuls les joueurs de ta liste pourront entrer dans le monde."
+
+msgid "В мире: %d"
+msgstr "Dans le monde : %d"
+
+msgid "В мире: 0"
+msgstr "Dans le monde : 0"
+
+msgid "В мире: пауза → «Настройки» → «Мультиплеер». Там же должна быть включена «Многопользовательская игра»."
+msgstr "Dans le monde : pause → « Paramètres » → « Multijoueur ». « Partie multijoueur » doit aussi y être activé."
+
+msgid "В облако"
+msgstr "Vers le cloud"
+
+msgid "В открытых такой игры нет — попробуем по коду"
+msgstr "Aucune partie ouverte de ce nom — on essaie comme code"
+
+msgid "В приглашении нет кода комнаты"
+msgstr "L'invitation n'a pas de code de salon"
+
+msgid "В пути"
+msgstr "En route"
+
+msgid "В пути есть русские буквы — серверы и Java всё равно будут в "
+msgstr "Le chemin contient des lettres non latines — les serveurs et Java seront quand même dans "
+
+msgid "В самом низу — «%s». Нажмите «Играть»"
+msgstr "Tout en bas — « %s ». Appuie sur « Jouer »"
+
+msgid "В списке её нет. Зайдут только те, кому вы отправите код или ссылку."
+msgstr "Pas dans la liste. Seuls ceux à qui tu envoies le code ou le lien entrent."
+
+msgid "В той же Wi-Fi сети"
+msgstr "Sur le même Wi-Fi"
+
+msgid "В чате появится «Локальный сервер запущен на порту …»."
+msgstr "Le chat affichera « Partie locale hébergée sur le port … »."
+
+msgid "Важно знать"
+msgstr "Bon à savoir"
+
+msgid "Вас позвал друг?"
+msgstr "Invité par un ami ?"
+
+msgid "Ваш QR-код"
+msgstr "Ton QR code"
+
+msgid "Ваш друг %s наиграл час — вам +%d искр!"
+msgstr "Ton ami %s a joué une heure — +%d étincelles pour toi !"
+
+msgid "Ваш код комнаты: "
+msgstr "Ton code de salon : "
+
+msgid "Ваш мир «%s»"
+msgstr "Ton monde « %s »"
+
+msgid "Ваш мир из Minecraft или отдельный сервер — друзья зайдут по коду"
+msgstr "Ton monde Minecraft ou un serveur à part — tes amis entrent par code"
+
+msgid "Ваш ник в Minecraft"
+msgstr "Ton pseudo Minecraft"
+
+msgid "Ваш тег"
+msgstr "Ton tag"
+
+msgid "Ваш тег — %s. Отправьте его друзьям, чтобы они добавили вас."
+msgstr "Ton tag est %s. Envoie-le à tes amis pour qu'ils t'ajoutent."
+
+msgid "Ваша версия Minecraft: "
+msgstr "Ta version de Minecraft : "
+
+msgid "Ваша игра"
+msgstr "Ta partie"
+
+msgid "Ваша игра — открыть снова"
+msgstr "Ta partie — rouvrir"
+
+msgid "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft."
+msgstr "Entre le code à 6 caractères envoyé par ton ami — le monde apparaîtra direct dans Minecraft."
+
+msgid "Введите код комнаты"
+msgstr "Entre le code du salon"
+
+msgid "Введите код, который прислал друг"
+msgstr "Entre le code envoyé par ton ami"
+
+msgid "Введите ник игрока в Minecraft"
+msgstr "Entre le pseudo Minecraft du joueur"
+
+msgid "Введите номер порта — только цифры из чата Minecraft"
+msgstr "Entre le numéro de port — juste les chiffres du chat Minecraft"
+
+msgid "Вернитесь в LANTERN"
+msgstr "Reviens dans LANTERN"
+
+msgid "Вернитесь в LANTERN, не закрывая Minecraft"
+msgstr "Reviens dans LANTERN sans fermer Minecraft"
+
+msgid "Вернуться к игре"
+msgstr "Retour au jeu"
+
+msgid "Версия"
+msgstr "Version"
+
+msgid "Верхний ряд — бесплатные награды, нижний — премиум."
+msgstr "Rangée du haut — récompenses gratuites, du bas — premium."
+
+msgid "Вещи остаются после смерти"
+msgstr "Garder l'inventaire à la mort"
+
+msgid "Взрывы ломают блоки"
+msgstr "Les explosions cassent les blocs"
+
+msgid "Видимость для игроков LAN"
+msgstr "Visible par les joueurs en LAN"
+
+msgid "Включена «Видимость для игроков LAN»"
+msgstr "« Visible par les joueurs en LAN » activé"
+
+msgid "Включена — каждый входит под своим аккаунтом Minecraft, чужой ник занять нельзя."
+msgstr "Activé — chacun entre avec son propre compte Minecraft, impossible de prendre le pseudo d'un autre."
+
+msgid "Включите «Видимость для игроков LAN»"
+msgstr "Active « Visible par les joueurs en LAN »"
+
+msgid "Включите «Отображать всплывающие окна при работе в фоновом режиме» и «Всплывающие окна»"
+msgstr "Active « Afficher des fenêtres pop-up en arrière-plan » et « Fenêtres pop-up »"
+
+msgid "Включите «Разрешить работу в фоне»"
+msgstr "Active « Autoriser l'activité en arrière-plan »"
+
+msgid "Включите режим «Быстро»: мир будет видно чуть ближе, зато без рывков."
+msgstr "Passe en mode « Rapide » : tu verras un peu moins loin, mais sans saccades."
+
+msgid "Включите — иначе система выгрузит LANTERN, пока вы играете"
+msgstr "Active-le — sinon le système fermera LANTERN pendant que tu joues"
+
+msgid "Вместе с вами."
+msgstr "Toi compris."
+
+msgid "Внешний вид"
+msgstr "Apparence"
+
+msgid "Внизу, в «Играх по сети рядом», — «%s». Нажмите на него"
+msgstr "En bas, dans « Parties en LAN », « %s ». Appuie dessus"
+
+msgid "Во что играем?"
+msgstr "On joue à quoi ?"
+
+msgid "Войти"
+msgstr "Rejoindre"
+
+msgid "Восстановить"
+msgstr "Restaurer"
+
+msgid "Восстановить, отправить в облако или другу"
+msgstr "Restaurer, envoyer vers le cloud ou à un ami"
+
+msgid "Впишите его тег в первую неделю — когда наиграете вместе час, вы оба получите по 100 искр."
+msgstr "Entre son tag pendant ta première semaine — après une heure de jeu ensemble, vous gagnez 100 étincelles chacun."
+
+msgid "Впустить"
+msgstr "Laisser entrer"
+
+msgid "Вручную: Minecraft на телефоне, Windows или консоли"
+msgstr "Manuel : Minecraft sur téléphone, Windows ou console"
+
+msgid "Все блоки сразу, можно летать, никто не погибает."
+msgstr "Tous les blocs d'un coup, on peut voler, personne ne meurt."
+
+msgid "Все в LANTERN"
+msgstr "Tout le monde"
+
+msgid "Все в одном мире: Java от 1.8.9 до новейшей, телефоны, Windows и консоли — с актуальной версией Minecraft. Ничего настраивать не нужно."
+msgstr "Tous dans le même monde : Java de la 1.8.9 à la dernière, téléphones, Windows et consoles — avec la version actuelle de Minecraft. Rien à configurer."
+
+msgid "Все места заняты"
+msgstr "Toutes les places sont prises"
+
+msgid "Все места заняты."
+msgstr "Toutes les places sont prises."
+
+msgid "Все режимы"
+msgstr "Tous les modes"
+
+msgid "Вставить"
+msgstr "Coller"
+
+msgid "Вставьте адрес в поле «Адрес сервера»"
+msgstr "Colle l'adresse dans « Adresse du serveur »"
+
+msgid "Вы"
+msgstr "Toi"
+
+msgid "Вы в игре"
+msgstr "Tu es en jeu"
+
+msgid "Вы в мире «%s»"
+msgstr "Tu es dans le monde « %s »"
+
+msgid "Вы в самом мире, а не в меню"
+msgstr "Tu es dans le monde, pas dans le menu"
+
+msgid "Вы заходили · "
+msgstr "Visité · "
+
+msgid "Вы отключились"
+msgstr "Tu t'es déconnecté"
+
+msgid "Вы создаёте мир в Minecraft на телефоне — зайдут телефоны, Windows (Bedrock) и консоли с той же версией Minecraft. Чтобы зашли и друзья с Java (ПК), создайте игру в LANTERN на компьютере."
+msgstr "Tu crées le monde dans Minecraft sur ton téléphone — téléphones, Windows (Bedrock) et consoles avec la même version de Minecraft peuvent entrer. Pour tes amis sur Java (PC), crée la partie dans LANTERN sur un ordinateur."
+
+msgid "Вы уже в мире — он открыт у вас в Minecraft. Друзья зайдут по коду."
+msgstr "Tu es déjà dans le monde — il est ouvert dans ton Minecraft. Tes amis entrent par code."
+
+msgid "Вы уже в этом мире."
+msgstr "Tu es déjà dans ce monde."
+
+msgid "Вы хозяин — к себе заходите без кода."
+msgstr "Tu es l'hôte — tu entres chez toi sans code."
+
+msgid "Вы — админ мира"
+msgstr "Tu es admin du monde"
+
+msgid "Выберите «Без ограничений» — иначе система остановит LANTERN в фоне"
+msgstr "Choisis « Sans restriction » — sinon le système arrêtera LANTERN en arrière-plan"
+
+msgid "Выберите «Не ограничено»"
+msgstr "Choisis « Non restreint »"
+
+msgid "Выберите «Нет ограничений»"
+msgstr "Choisis « Aucune restriction »"
+
+msgid "Выберите друга слева, чтобы написать ему. Писать можно только друзьям."
+msgstr "Choisis un ami à gauche pour lui écrire. Tu ne peux écrire qu'à tes amis."
+
+msgid "Выберите сервер в списке"
+msgstr "Choisis le serveur dans la liste"
+
+msgid "Выберите, что хотите сделать"
+msgstr "Choisis ce que tu veux faire"
+
+msgid "Выбрать игру"
+msgstr "Choisir une partie"
+
+msgid "Выгнать"
+msgstr "Expulser"
+
+msgid "Выгоднее на 20%"
+msgstr "Économise 20 %"
+
+msgid "Выживание"
+msgstr "Survie"
+
+msgid "Выйти"
+msgstr "Quitter"
+
+msgid "Выключена"
+msgstr "Désactivée"
+
+msgid "Выключена — сервер не проверяет аккаунты, ник может взять кто угодно. Только для тех, кому доверяете."
+msgstr "Désactivée — le serveur ne vérifie pas les comptes, n'importe qui peut prendre n'importe quel pseudo. Seulement pour les gens de confiance."
+
+msgid "Выключите «Автоматическое управление» и оставьте все три переключателя включёнными"
+msgstr "Désactive « Gérer automatiquement » et laisse les trois interrupteurs activés"
+
+msgid "Выключите — время в мире остановится."
+msgstr "Désactive — le temps du monde s'arrêtera."
+
+msgid "Где ты?"
+msgstr "T'es où ?"
+
+msgid "Где хранить миры и серверы"
+msgstr "Où stocker les mondes et serveurs"
+
+msgid "Главное меню и список миров не считаются — зайдите в мир."
+msgstr "Le menu principal et la liste des mondes ne comptent pas — entre dans le monde."
+
+msgid "Го!"
+msgstr "Go !"
+
+msgid "Гость"
+msgstr "Invité"
+
+msgid "Готовим сервер"
+msgstr "Préparation du serveur"
+
+msgid "Готовится…"
+msgstr "Préparation…"
+
+msgid "Готово"
+msgstr "Terminé"
+
+msgid "Готово!"
+msgstr "C'est fait !"
+
+msgid "Готово! Покупка получена"
+msgstr "C'est fait ! Achat reçu"
+
+msgid "ДЕМО"
+msgstr "DÉMO"
+
+msgid "ДЕМО включён"
+msgstr "DÉMO activée"
+
+msgid "ДЕМО выключен: демо-покупки и демо-искры стёрты"
+msgstr "DÉMO désactivée : achats et étincelles de démo effacés"
+
+msgid "ДЕМО-режим"
+msgstr "Mode DÉMO"
+
+msgid "ДЕМО: деньги не списываются, реклама тестовая. Выключить — «Настройки»."
+msgstr "DÉMO : rien n'est débité, les pubs sont des tests. À désactiver dans les Paramètres."
+
+msgid "Да, новый мир"
+msgstr "Oui, nouveau monde"
+
+msgid "Даже пока вы в Minecraft. Не закрывайте игру и LANTERN."
+msgstr "Même pendant que tu es dans Minecraft. Ne ferme ni le jeu ni LANTERN."
+
+msgid "Динамит и монстры разрушают постройки."
+msgstr "La TNT et les monstres détruisent les constructions."
+
+msgid "Для Java-сервера закройте браузер и лишние программы или выберите Bedrock."
+msgstr "Pour un serveur Java, ferme le navigateur et les autres programmes, ou choisis Bedrock."
+
+msgid "Для всех"
+msgstr "Pour tous"
+
+msgid "Для готовых карт: блоки ломать и ставить нельзя."
+msgstr "Pour les maps toutes faites : impossible de casser ou poser des blocs."
+
+msgid "Для игры по коду ничего открывать не нужно. Для друзей в той же сети: TCP 25565 (Java) и UDP 19132 (Bedrock)."
+msgstr "Pour jouer par code, rien à ouvrir. Pour les amis sur le même réseau : TCP 25565 (Java) et UDP 19132 (Bedrock)."
+
+msgid "Для кого сервер"
+msgstr "Pour qui est le serveur"
+
+msgid "Дней подряд"
+msgstr "Jours d'affilée"
+
+msgid "До %d копий по %d МБ в облаке — с LANTERN Pro. Не пропадут, даже если сломается компьютер."
+msgstr "Jusqu'à %d sauvegardes de %d Mo dans le cloud — avec LANTERN Pro. À l'abri même si ton ordinateur lâche."
+
+msgid "До %d копий по %d МБ. Самая старая заменяется новой."
+msgstr "Jusqu'à %d sauvegardes de %d Mo. La plus ancienne est remplacée par la nouvelle."
+
+msgid "До 10 — столько пускает сам Minecraft."
+msgstr "Jusqu'à 10 — c'est la limite de Minecraft."
+
+msgid "Добавить"
+msgstr "Ajouter"
+
+msgid "Добавить сервер"
+msgstr "Ajouter un serveur"
+
+msgid "Добавить сервер в Minecraft"
+msgstr "Ajoute le serveur dans Minecraft"
+
+msgid "Добавьте сервер %s один раз — дальше он всегда ведёт в игру, к которой вы подключились в LANTERN."
+msgstr "Ajoute le serveur %s une fois — ensuite il mène toujours à la partie rejointe dans LANTERN."
+
+msgid "Добываем ресурсы, строим, сражаемся и можем погибнуть."
+msgstr "On récolte, on construit, on se bat — et on peut mourir."
+
+msgid "Дождь, гроза и снег. Выключите — всегда ясно."
+msgstr "Pluie, orage et neige. Désactive — ciel toujours dégagé."
+
+msgid "Досмотрите до конца — получите +20 искр."
+msgstr "Regarde jusqu'au bout pour gagner +20 étincelles."
+
+msgid "Достижение «%s» · +%d искр · титул «%s»"
+msgstr "Succès « %s » · +%d étincelles · titre « %s »"
+
+msgid "Достижения"
+msgstr "Succès"
+
+msgid "Достижения и титулы"
+msgstr "Succès et titres"
+
+msgid "Драки между игроками (PvP)"
+msgstr "Combats entre joueurs (PvP)"
+
+msgid "Друг"
+msgstr "Ami"
+
+msgid "Друг вводит код или номер в «Зайти по коду» — мир сам появится у него в Minecraft."
+msgstr "Ton ami tape le code ou le numéro dans « Rejoindre par code » — le monde apparaît dans son Minecraft."
+
+msgid "Друг зашёл в ваш мир!"
+msgstr "Un ami a rejoint ton monde !"
+
+msgid "Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — заявка отправится сама"
+msgstr "Ton ami vise avec l'appareil photo et appuie sur « Ouvrir dans LANTERN » — la demande part toute seule"
+
+msgid "Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — мир появится у него в Minecraft"
+msgstr "Ton ami vise avec l'appareil photo et appuie sur « Ouvrir dans LANTERN » — le monde apparaît dans son Minecraft"
+
+msgid "Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир сам появится у него в Minecraft."
+msgstr "Ton ami ouvre LANTERN → « Rejoindre un ami » → tape le code. Le monde apparaît dans son Minecraft."
+
+msgid "Другие разделы…"
+msgstr "Autres rubriques…"
+
+msgid "Другое"
+msgstr "Autre"
+
+msgid "Другой код"
+msgstr "Autre code"
+
+msgid "Другой мир"
+msgstr "Autre monde"
+
+msgid "Друзей"
+msgstr "Amis"
+
+msgid "Друзей в мире: %d"
+msgstr "Amis dans le monde : %d"
+
+msgid "Друзей в мире: 0"
+msgstr "Amis dans le monde : 0"
+
+msgid "Друзья"
+msgstr "Amis"
+
+msgid "Друзья · %d"
+msgstr "Amis · %d"
+
+msgid "Друзья в сети — зайти в мир или написать"
+msgstr "Amis en ligne — rejoins leur monde ou écris-leur"
+
+msgid "Друзья в сети — у огня"
+msgstr "Amis en ligne — près du feu"
+
+msgid "Друзья зайдут прямо в мир, который вы открыли в игре. Ничего скачивать не нужно."
+msgstr "Tes amis entrent direct dans le monde que tu as ouvert en jeu. Rien à télécharger."
+
+msgid "Друзья зайдут с любой версии от 1.8. Мир, созданный в новой версии, в старой не откроется."
+msgstr "Tes amis entrent depuis n'importe quelle version à partir de la 1.8. Un monde créé dans une version récente ne s'ouvre pas dans une ancienne."
+
+msgid "Друзья играют"
+msgstr "Tes amis jouent"
+
+msgid "Друзья могут зайти прямо сейчас ✓"
+msgstr "Tes amis peuvent entrer maintenant ✓"
+
+msgid "Друзья могут зайти ✓"
+msgstr "Tes amis peuvent entrer ✓"
+
+msgid "Друзья могут зайти, пока Minecraft открыт. LANTERN держит связь."
+msgstr "Tes amis peuvent entrer tant que Minecraft est ouvert. LANTERN garde le lien."
+
+msgid "Друзья появятся, когда вернётся интернет"
+msgstr "Tes amis apparaîtront au retour d'internet"
+
+msgid "Друзья рядом могут зайти и без кода — по адресу:"
+msgstr "Les amis à côté peuvent entrer sans code — par adresse :"
+
+msgid "Друзья с Bedrock (телефон, планшет, консоль) зайдут в этот же мир."
+msgstr "Les amis sur Bedrock (téléphone, tablette, console) rejoignent ce même monde."
+
+msgid "Друзьям нужна та же версия Minecraft: Java Edition и свой аккаунт Microsoft."
+msgstr "Tes amis doivent avoir la même version de Minecraft : Java Edition et leur propre compte Microsoft."
+
+msgid "Если кнопка пропадает в игре, проверьте два пункта:"
+msgstr "Si le bouton disparaît en jeu, vérifie deux points :"
+
+msgid "Есть"
+msgstr "Oui"
+
+msgid "Ещё"
+msgstr "Plus"
+
+msgid "Ещё админы"
+msgstr "Autres admins"
+
+msgid "Ещё искры"
+msgstr "Plus d'étincelles"
+
+msgid "Жалоба отправлена"
+msgstr "Signalement envoyé"
+
+msgid "Жалоба отправлена. Спасибо!"
+msgstr "Signalement envoyé. Merci !"
+
+msgid "Ждём ваш мир в Minecraft"
+msgstr "On attend ton monde dans Minecraft"
+
+msgid "Журнал сервера и команды"
+msgstr "Journal du serveur et commandes"
+
+msgid "Забаненные"
+msgstr "Bannis"
+
+msgid "Забанить"
+msgstr "Bannir"
+
+msgid "Заблокировать"
+msgstr "Bloquer"
+
+msgid "Забрать"
+msgstr "Récupérer"
+
+msgid "Забрать +20 искр"
+msgstr "Récupérer +20 étincelles"
+
+msgid "Задания"
+msgstr "Quêtes"
+
+msgid "Задания дня · ещё %s"
+msgstr "Quêtes du jour · encore %s"
+
+msgid "Задания и сезон"
+msgstr "Quêtes et saison"
+
+msgid "Задания и серия"
+msgstr "Quêtes et série"
+
+msgid "Задания недели"
+msgstr "Quêtes de la semaine"
+
+msgid "Задания считаются на сервере LANTERN"
+msgstr "Les quêtes sont comptées sur le serveur LANTERN"
+
+msgid "Зайдите в любую одним нажатием — LANTERN сам откроет Minecraft"
+msgstr "Rejoins-en une d'un seul geste — LANTERN ouvre Minecraft pour toi"
+
+msgid "Зайдите в свой мир в Minecraft Java"
+msgstr "Entre dans ton monde sur Minecraft Java"
+
+msgid "Зайдите в свой мир в Minecraft — комната откроется сама."
+msgstr "Entre dans ton monde sur Minecraft — le salon s'ouvre tout seul."
+
+msgid "Зайдите в свой мир — LANTERN сам откроет комнату и пришлёт код уведомлением. В настройках мира должна быть включена «Видимость для игроков LAN»."
+msgstr "Entre dans ton monde — LANTERN ouvre le salon et envoie le code par notification. « Visible par les joueurs en LAN » doit être activé dans les paramètres du monde."
+
+msgid "Зайдите в свой мир — комната для друзей откроется сама."
+msgstr "Entre dans ton monde — le salon pour tes amis s'ouvre tout seul."
+
+msgid "Зайдите в свой мир — комната откроется сама, код придёт уведомлением."
+msgstr "Entre dans ton monde — le salon s'ouvre tout seul et le code arrive par notification."
+
+msgid "Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. Друзья с Java (ПК) в такой мир зайти не смогут — для них нужен «Отдельный сервер» на компьютере."
+msgstr "Les amis Bedrock peuvent entrer : téléphone, tablette, Windows, consoles. Les amis Java (PC) ne peuvent pas rejoindre ce monde — il leur faut un « Serveur à part » sur un ordinateur."
+
+msgid "Зайдут друзья с Bedrock: телефон, планшет, Windows, консоли. С Java — не получится."
+msgstr "Les amis Bedrock peuvent entrer : téléphone, tablette, Windows, consoles. Java, non."
+
+msgid "Зайдут друзья с Java"
+msgstr "Les amis Java peuvent entrer"
+
+msgid "Зайдут друзья с Java той же версии."
+msgstr "Les amis Java de la même version peuvent entrer."
+
+msgid "Зайдут только друзья с Bedrock"
+msgstr "Seuls les amis Bedrock peuvent entrer"
+
+msgid "Зайдут только те, кому вы его сказали."
+msgstr "Seuls ceux à qui tu le donnes entrent."
+
+msgid "Зайти"
+msgstr "Rejoindre"
+
+msgid "Зайти в мир"
+msgstr "Rejoindre le monde"
+
+msgid "Зайти в открытую игру"
+msgstr "Rejoindre une partie ouverte"
+
+msgid "Зайти к другу"
+msgstr "Rejoindre un ami"
+
+msgid "Зайти по коду"
+msgstr "Rejoindre par code"
+
+msgid "Зайти по коду "
+msgstr "Rejoindre par code "
+
+msgid "Закройте другой сервер Minecraft или открытый «по сети» мир, иначе сервер не запустится."
+msgstr "Ferme l'autre serveur Minecraft ou le monde ouvert en LAN, sinon le serveur ne démarrera pas."
+
+msgid "Закройте лишние программы на этом компьютере."
+msgstr "Ferme les autres programmes sur cet ordinateur."
+
+msgid "Закрыть"
+msgstr "Fermer"
+
+msgid "Закрыть комнату"
+msgstr "Fermer le salon"
+
+msgid "Занят вашим запущенным сервером — так и должно быть."
+msgstr "Utilisé par ton serveur en cours — c'est normal."
+
+msgid "Запускаем сервер Bedrock…"
+msgstr "Lancement du serveur Bedrock…"
+
+msgid "Запускаем сервер Java…"
+msgstr "Lancement du serveur Java…"
+
+msgid "Запускается"
+msgstr "Démarrage"
+
+msgid "Запускается…"
+msgstr "Démarrage…"
+
+msgid "Запустить сервер «%s» снова"
+msgstr "Relancer le serveur « %s »"
+
+msgid "Запустить снова"
+msgstr "Relancer"
+
+msgid "Заходи в мой мир «%s» через LANTERN — нажми на ссылку:\n%s\nКод: %s"
+msgstr "Rejoins mon monde « %s » avec LANTERN — appuie sur le lien :\n%s\nCode : %s"
+
+msgid "Заходим"
+msgstr "Connexion"
+
+msgid "Заходим в игру…"
+msgstr "Connexion à la partie…"
+
+msgid "Заходить можно с Java %s – %s (любая версия)"
+msgstr "On peut entrer avec Java %s – %s (toute version)"
+
+msgid "Заходить можно только с Java %s"
+msgstr "On ne peut entrer qu'avec Java %s"
+
+msgid "Заявка отправлена: "
+msgstr "Demande envoyée : "
+
+msgid "Заявка уйдёт, когда появится связь — нажмите «Добавить»"
+msgstr "La demande partira au retour de la connexion — appuie sur « Ajouter »"
+
+msgid "Заявки в друзья · %d"
+msgstr "Demandes d'ami · %d"
+
+msgid "Звуки"
+msgstr "Sons"
+
+msgid "Здесь будет реклама"
+msgstr "Une pub s'affichera ici"
+
+msgid "Здесь будут миры, в которые вы заходили."
+msgstr "Les mondes que tu as visités apparaîtront ici."
+
+msgid "Зерно (seed)"
+msgstr "Graine (seed)"
+
+msgid "Золотая середина — подойдёт почти всем."
+msgstr "Le juste milieu — convient à presque tout le monde."
+
+msgid "Зомби, скелеты и другие враги появляются в мире."
+msgstr "Zombies, squelettes et autres ennemis apparaissent dans le monde."
+
+msgid "И «Многопользовательская игра», если она выключена."
+msgstr "Et « Partie multijoueur », si c'est désactivé."
+
+msgid "Игра"
+msgstr "Partie"
+
+msgid "Игра видна в списке «Игры» у всех — зайти может любой."
+msgstr "La partie est visible dans la liste « Parties » de tous — n'importe qui peut entrer."
+
+msgid "Игра запустится и сама зайдёт в мир «%s»"
+msgstr "Le jeu va se lancer et rejoindre le monde « %s » tout seul"
+
+msgid "Игра идёт через LANTERN — не закрывайте его, пока играете."
+msgstr "La partie passe par LANTERN — ne le ferme pas pendant que tu joues."
+
+msgid "Игра открыта"
+msgstr "Partie ouverte"
+
+msgid "Игра с паролем"
+msgstr "Partie avec mot de passe"
+
+msgid "Играем"
+msgstr "En jeu"
+
+msgid "Играть с друзьями"
+msgstr "Jouer avec des amis"
+
+msgid "Играть → «Друзья»"
+msgstr "Jouer → « Amis »"
+
+msgid "Играть → «Серверы»"
+msgstr "Jouer → « Serveurs »"
+
+msgid "Играю на другом Minecraft — сменить"
+msgstr "Je joue sur un autre Minecraft — changer"
+
+msgid "Игрок"
+msgstr "Joueur"
+
+msgid "Игрок "
+msgstr "Joueur "
+
+msgid "Игрок выгнан из мира"
+msgstr "Joueur expulsé du monde"
+
+msgid "Игрок заблокирован"
+msgstr "Joueur bloqué"
+
+msgid "Игрок снова может зайти"
+msgstr "Le joueur peut de nouveau entrer"
+
+msgid "Игроки"
+msgstr "Joueurs"
+
+msgid "Игроки из LANTERN: %d"
+msgstr "Joueurs de LANTERN : %d"
+
+msgid "Игроки могут ранить друг друга."
+msgstr "Les joueurs peuvent se blesser entre eux."
+
+msgid "Игроки переподключатся примерно через 30 секунд."
+msgstr "Les joueurs se reconnecteront dans 30 secondes environ."
+
+msgid "Игроку закрыт вход в ваш мир"
+msgstr "Le joueur est interdit d'entrée dans ton monde"
+
+msgid "Игры"
+msgstr "Parties"
+
+msgid "Иду!"
+msgstr "J'arrive !"
+
+msgid "Идёт игра"
+msgstr "Partie en cours"
+
+msgid "Изменить код"
+msgstr "Changer le code"
+
+msgid "Изменить…"
+msgstr "Changer…"
+
+msgid "Или зайдите к другу"
+msgstr "Ou rejoins un ami"
+
+msgid "Или создайте новый — подойдёт любой."
+msgstr "Ou crée-en un nouveau — n'importe lequel ira."
+
+msgid "Интернет пропал надолго. Когда он вернётся — нажмите «Попробовать ещё раз», мир друга на месте."
+msgstr "Internet est coupé depuis un moment. À son retour, appuie sur « Réessayer » — le monde de ton ami est toujours là."
+
+msgid "Интернет-комната выключена: зайти смогут только друзья из вашей Wi-Fi сети."
+msgstr "Le salon internet est désactivé : seuls les amis sur ton Wi-Fi peuvent entrer."
+
+msgid "Искры"
+msgstr "Étincelles"
+
+msgid "Искры для магазина косметики"
+msgstr "Des étincelles pour la boutique de cosmétiques"
+
+msgid "Искры за игру с друзьями"
+msgstr "Des étincelles entre amis"
+
+msgid "Искры каждый день"
+msgstr "Des étincelles chaque jour"
+
+msgid "Искры можно и не покупать: задания дня, серия и сезон дают их каждый день. Покупки — только через Google Play, родители могут ограничить их в настройках Play."
+msgstr "Pas besoin d'acheter des étincelles : quêtes du jour, série et saison en donnent chaque jour. Les achats passent uniquement par Google Play ; les parents peuvent les limiter dans les paramètres de Play."
+
+msgid "Ищем Java %d (Eclipse Temurin)…"
+msgstr "Recherche de Java %d (Eclipse Temurin)…"
+
+msgid "Ищем мир ещё раз…"
+msgstr "Nouvelle recherche du monde…"
+
+msgid "Ищем открытый мир на этом "
+msgstr "Recherche d'un monde ouvert sur ce "
+
+msgid "Каждый сможет менять режим, выдавать вещи и телепортироваться."
+msgstr "Chacun pourra changer de mode, donner des objets et se téléporter."
+
+msgid "Как вас зовут в игре?"
+msgstr "C'est quoi ton pseudo en jeu ?"
+
+msgid "Как зайти самому"
+msgstr "Comment entrer toi-même"
+
+msgid "Как играть вместе"
+msgstr "Comment jouer ensemble"
+
+msgid "Как открыть мир для друзей"
+msgstr "Ouvrir un monde à tes amis"
+
+msgid "Кнопка не видна в игре?"
+msgstr "Bouton invisible en jeu ?"
+
+msgid "Кнопка паузы — вверху экрана"
+msgstr "Le bouton pause est en haut de l'écran"
+
+msgid "Кнопка поверх Minecraft"
+msgstr "Bouton par-dessus Minecraft"
+
+msgid "Код"
+msgstr "Code"
+
+msgid "Код "
+msgstr "Code "
+
+msgid "Код %s · друзей: %d"
+msgstr "Code %s · amis : %d"
+
+msgid "Код %s · игроков: %d"
+msgstr "Code %s · joueurs : %d"
+
+msgid "Код %s скопирован — отправьте его друзьям"
+msgstr "Code %s copié — envoie-le à tes amis"
+
+msgid "Код действует сутки. Так можно перенести мир на второй компьютер или получить его от друга."
+msgstr "Le code est valable un jour. Pratique pour passer un monde sur un autre ordinateur ou en recevoir un d'un ami."
+
+msgid "Код для друга"
+msgstr "Code pour un ami"
+
+msgid "Код для друга:"
+msgstr "Code pour un ami :"
+
+msgid "Код для друзей"
+msgstr "Code pour les amis"
+
+msgid "Код друга принят!"
+msgstr "Code de l'ami accepté !"
+
+msgid "Код или номер комнаты от друга"
+msgstr "Code ou numéro d'un ami"
+
+msgid "Код комнаты и игроки"
+msgstr "Code du salon et joueurs"
+
+msgid "Код от друга"
+msgstr "Code d'un ami"
+
+msgid "Код скопирован"
+msgstr "Code copié"
+
+msgid "Код — 6 символов"
+msgstr "Le code fait 6 caractères"
+
+msgid "Код, например 7KQ-M2X"
+msgstr "Code, ex. 7KQ-M2X"
+
+msgid "Код, ссылка или адрес сервера"
+msgstr "Code, lien ou adresse du serveur"
+
+msgid "Команда серверу, например: op ВашНик"
+msgstr "Commande serveur, ex. : op TonPseudo"
+
+msgid "Команды для всех игроков (читы)"
+msgstr "Commandes pour tous les joueurs (triche)"
+
+msgid "Комната %s"
+msgstr "Salon %s"
+
+msgid "Комната %s. Не закрывайте LANTERN, пока играете."
+msgstr "Salon %s. Ne ferme pas LANTERN pendant que tu joues."
+
+msgid "Комната открыта · код %s — отправьте его друзьям"
+msgstr "Salon ouvert · code %s — envoie-le à tes amis"
+
+msgid "Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново."
+msgstr "Aucun salon avec ce code. Vérifie le code ou demande à ton ami de relancer le monde."
+
+msgid "Комната устарела. Попросите друга запустить мир заново."
+msgstr "Le salon a expiré. Demande à ton ami de relancer le monde."
+
+msgid "Компьютер или ноутбук с Minecraft: Java Edition той же версии."
+msgstr "Un ordinateur ou portable avec Minecraft : Java Edition, même version."
+
+msgid "Компьютер не самый мощный — включили режим «Быстро», чтобы игра шла без рывков"
+msgstr "L'ordinateur n'est pas très puissant — mode « Rapide » activé pour jouer sans saccades"
+
+msgid "Консоли"
+msgstr "Consoles"
+
+msgid "Конфиденциальность"
+msgstr "Confidentialité"
+
+msgid "Копии миров"
+msgstr "Sauvegardes de mondes"
+
+msgid "Копии можно хранить на устройстве"
+msgstr "Les sauvegardes peuvent rester sur l'appareil"
+
+msgid "Копий пока нет"
+msgstr "Pas encore de sauvegarde"
+
+msgid "Копировать"
+msgstr "Copier"
+
+msgid "Копировать приглашение"
+msgstr "Copier l'invitation"
+
+msgid "Копия в облаке ✓"
+msgstr "Sauvegarde dans le cloud ✓"
+
+msgid "Копия мира «%s» скачана — нажмите «Восстановить»"
+msgstr "Sauvegarde du monde « %s » téléchargée — appuie sur « Restaurer »"
+
+msgid "Копия сохранена: %s — она в «Копиях миров»"
+msgstr "Sauvegarde enregistrée : %s — dans « Sauvegardes de mondes »"
+
+msgid "Костёр"
+msgstr "Le feu"
+
+msgid "Красиво"
+msgstr "Beau"
+
+msgid "Кроссплей (Geyser): "
+msgstr "Crossplay (Geyser) : "
+
+msgid "Кто админ"
+msgstr "Qui est admin"
+
+msgid "Кто может зайти"
+msgstr "Qui peut entrer"
+
+msgid "Купить"
+msgstr "Acheter"
+
+msgid "Личные сообщения"
+msgstr "Messages privés"
+
+msgid "Любая версия"
+msgstr "Toute version"
+
+msgid "Лёгкая"
+msgstr "Facile"
+
+msgid "Магазин"
+msgstr "Boutique"
+
+msgid "Магазин работает через интернет"
+msgstr "La boutique a besoin d'internet"
+
+msgid "Маленький кружок LANTERN прямо в игре: видно, могут ли друзья зайти, кто зашёл, и можно выгнать игрока, не выходя из Minecraft."
+msgstr "Une petite bulle LANTERN directement en jeu : vois si tes amis peuvent entrer, qui est là, et expulse un joueur sans quitter Minecraft."
+
+msgid "Маленькое окно LANTERN поверх игры: кто зашёл, выгнать, код."
+msgstr "Une petite fenêtre LANTERN par-dessus le jeu : qui est entré, expulser, code."
+
+msgid "Мало памяти"
+msgstr "Mémoire faible"
+
+msgid "Меньше анимаций"
+msgstr "Moins d'animations"
+
+msgid "Меню игры · Играть"
+msgstr "Menu du jeu · Jouer"
+
+msgid "Меню паузы (Esc)"
+msgstr "Menu pause (Échap)"
+
+msgid "Меняются сразу, даже во время игры"
+msgstr "Appliqués tout de suite, même en pleine partie"
+
+msgid "Мест на сервере теперь %d (сервер перезапущен)"
+msgstr "Le serveur a maintenant %d places (serveur redémarré)"
+
+msgid "Мини-игра"
+msgstr "Mini-jeu"
+
+msgid "Мир"
+msgstr "Monde"
+
+msgid "Мир %s"
+msgstr "Monde de %s"
+
+msgid "Мир Bedrock"
+msgstr "Monde Bedrock"
+
+msgid "Мир Java"
+msgstr "Monde Java"
+
+msgid "Мир «%s»"
+msgstr "Monde « %s »"
+
+msgid "Мир «%s» восстановлен — он запустится при следующем «Создать мир» (%s)"
+msgstr "Monde « %s » restauré — il se lancera au prochain « Créer un monde » (%s)"
+
+msgid "Мир «%s» открыт для друзей"
+msgstr "Le monde « %s » est ouvert à tes amis"
+
+msgid "Мир в Minecraft найден (%s), но связь для друзей не открылась: "
+msgstr "Monde trouvé dans Minecraft (%s), mais le lien pour les amis ne s'est pas ouvert : "
+
+msgid "Мир видно ближе, зато без рывков. Для слабых компьютеров и большой компании."
+msgstr "On voit moins loin, mais sans saccades. Pour les ordinateurs lents et les grands groupes."
+
+msgid "Мир видно далеко. Только для мощного компьютера."
+msgstr "On voit très loin. Seulement pour un ordinateur puissant."
+
+msgid "Мир друга"
+msgstr "Monde d'un ami"
+
+msgid "Мир закрыт"
+msgstr "Monde fermé"
+
+msgid "Мир из Minecraft"
+msgstr "Monde de Minecraft"
+
+msgid "Мир из Minecraft · "
+msgstr "Monde de Minecraft · "
+
+msgid "Мир на версии %s — у всех должна быть такая же (телефон, Windows и консоли играют вместе)."
+msgstr "Le monde est en version %s — tout le monde doit avoir la même (téléphone, Windows et consoles jouent ensemble)."
+
+msgid "Мир найдётся сам за пару секунд."
+msgstr "Le monde sera trouvé en quelques secondes."
+
+msgid "Мир найдётся сам за пару секунд. Не нашёлся — введите номер порта из чата:"
+msgstr "Le monde sera trouvé en quelques secondes. Sinon, entre le numéro de port du chat :"
+
+msgid "Мир не виден друзьям"
+msgstr "Tes amis ne voient pas le monde"
+
+msgid "Мир не виден друзьям: вернитесь в мир / откройте LANTERN"
+msgstr "Tes amis ne voient pas le monde : retourne dans le monde / ouvre LANTERN"
+
+msgid "Мир открыт, пока открыт Minecraft"
+msgstr "Le monde est ouvert tant que Minecraft l'est"
+
+msgid "Мир открыт. Отправьте друзьям код — они зайдут прямо к вам в игру."
+msgstr "Le monde est ouvert. Envoie le code à tes amis — ils arriveront direct dans ta partie."
+
+msgid "Мир пока не найден. Проверьте:"
+msgstr "Monde pas encore trouvé. Vérifie :"
+
+msgid "Мир уже в списке «Сетевая игра» — выберите его и нажмите «Подключиться»."
+msgstr "Le monde est déjà dans « Multijoueur » — sélectionne-le et clique sur « Rejoindre le serveur »."
+
+msgid "Мирная"
+msgstr "Paisible"
+
+msgid "Миры и копии"
+msgstr "Mondes et sauvegardes"
+
+msgid "Многопользовательская игра"
+msgstr "Partie multijoueur"
+
+msgid "Можно зайти снова по тому же коду"
+msgstr "Tu peux revenir avec le même code"
+
+msgid "Можно ли создать мир на этом компьютере"
+msgstr "Peut-on créer un monde sur cet ordinateur ?"
+
+msgid "Можно маленьким окном («картинка в картинке») — главное, не закрывать игру."
+msgstr "Une petite fenêtre (« image dans l'image ») convient — l'essentiel est de ne pas fermer le jeu."
+
+msgid "Мой мир"
+msgstr "Mon monde"
+
+msgid "Мой мир из Minecraft"
+msgstr "Mon monde de Minecraft"
+
+msgid "Монстры"
+msgstr "Monstres"
+
+msgid "Мост готов"
+msgstr "Pont prêt"
+
+msgid "Мультиплеер"
+msgstr "Multijoueur"
+
+msgid "Мы получим журнал приложения и сервера — без паролей и чужих адресов. Это поможет быстро найти ошибку."
+msgstr "On recevra le journal de l'appli et du serveur — sans mots de passe ni adresses d'autres personnes. Ça aide à trouver le bug vite."
+
+msgid "НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ ПРОДУКТОМ MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С MOJANG ИЛИ MICROSOFT."
+msgstr "CECI N'EST PAS UN PRODUIT MINECRAFT OFFICIEL. NON APPROUVÉ PAR MOJANG OU MICROSOFT, NI ASSOCIÉ À EUX."
+
+msgid "На Huawei и Honor система закрывает приложения в фоне. Два шага:"
+msgstr "Sur Huawei et Honor, le système ferme les applis en arrière-plan. Deux étapes :"
+
+msgid "На Oppo, Realme, OnePlus и Vivo система закрывает приложения в фоне. Два шага:"
+msgstr "Sur Oppo, Realme, OnePlus et Vivo, le système ferme les applis en arrière-plan. Deux étapes :"
+
+msgid "На Samsung система может «усыпить» LANTERN, пока вы в игре. Один шаг:"
+msgstr "Sur Samsung, le système peut « mettre en veille » LANTERN pendant que tu joues. Une étape :"
+
+msgid "На Xiaomi, Redmi и POCO кнопку поверх игры нужно разрешить отдельно — три переключателя:"
+msgstr "Sur Xiaomi, Redmi et POCO, le bouton par-dessus le jeu doit être autorisé à part — trois interrupteurs :"
+
+msgid "На чём вы играете?"
+msgstr "Tu joues sur quoi ?"
+
+msgid "На этом устройстве"
+msgstr "Sur cet appareil"
+
+msgid "На этом устройстве включён лёгкий режим: фон неподвижный, чтобы приложение не тормозило."
+msgstr "Le mode léger est activé sur cet appareil : le fond est fixe pour que l'appli reste fluide."
+
+msgid "Наборы искр"
+msgstr "Packs d'étincelles"
+
+msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
+msgstr "Supprime définitivement du serveur ton pseudo, tes amis, messages et sauvegardes cloud. Les mondes sur l'appareil restent."
+
+msgid "Награды за игру"
+msgstr "Récompenses de jeu"
+
+msgid "Награды — листайте вбок"
+msgstr "Récompenses — balaie"
+
+msgid "Надето"
+msgstr "Équipé"
+
+msgid "Надеть"
+msgstr "Équiper"
+
+msgid "Нажал — и ты в игре с друзьями. Java и Bedrock, телефон и ПК. Без VPN и настроек."
+msgstr "Un clic et tu joues avec tes amis. Java et Bedrock, téléphone et PC. Sans VPN ni réglages."
+
+msgid "Нажми — и ты в игре  ↑"
+msgstr "Appuie et tu es en jeu  ↑"
+
+msgid "Нажмите Esc → «Открыть для сети»"
+msgstr "Appuie sur Échap → « Ouvrir au LAN »"
+
+msgid "Нажмите «Открыть мир для сети»"
+msgstr "Clique sur « Démarrer le monde en LAN »"
+
+msgid "Нажмите — Minecraft откроется и сам зайдёт в мир."
+msgstr "Appuie — Minecraft s'ouvre et rejoint le monde tout seul."
+
+msgid "Нажмите — Minecraft откроется и сразу зайдёт на сервер."
+msgstr "Appuie — Minecraft s'ouvre et rejoint direct le serveur."
+
+msgid "Нажмите — открыть, потяните — передвинуть"
+msgstr "Appuie pour ouvrir, glisse pour déplacer"
+
+msgid "Нажмите, чтобы открыть"
+msgstr "Appuie pour ouvrir"
+
+msgid "Назад"
+msgstr "Retour"
+
+msgid "Название"
+msgstr "Nom"
+
+msgid "Название игры"
+msgstr "Nom de la partie"
+
+msgid "Название обновлено"
+msgstr "Nom mis à jour"
+
+msgid "Название, номер комнаты или режим"
+msgstr "Nom, numéro de salon ou mode"
+
+msgid "Название, пароль, кто может зайти и список забаненных."
+msgstr "Nom, mot de passe, qui peut entrer et liste des bannis."
+
+msgid "Найдена Java %d на компьютере"
+msgstr "Java %d trouvé sur l'ordinateur"
+
+msgid "Написать всем в комнате…"
+msgstr "Écrire à tout le salon…"
+
+msgid "Например LUNA7"
+msgstr "Par exemple LUNA7"
+
+msgid "Например: Выживание с друзьями"
+msgstr "Par exemple : Survie entre amis"
+
+msgid "Настройки"
+msgstr "Paramètres"
+
+msgid "Настройки игры"
+msgstr "Paramètres de partie"
+
+msgid "Настройки → Мультиплеер"
+msgstr "Paramètres → Multijoueur"
+
+msgid "Начать"
+msgstr "Commencer"
+
+msgid "Начать новый мир"
+msgstr "Commencer un nouveau monde"
+
+msgid "Начать новый мир?"
+msgstr "Commencer un nouveau monde ?"
+
+msgid "Наш мир"
+msgstr "Notre monde"
+
+msgid "Нашли несколько миров — выберите нужный."
+msgstr "Plusieurs mondes trouvés — choisis le bon."
+
+msgid "Нашли! Нажмите «Открыть для друзей»."
+msgstr "Trouvé ! Appuie sur « Ouvrir aux amis »."
+
+msgid "Не видно мира?"
+msgstr "Monde invisible ?"
+
+msgid "Не выходите из игры: если связь вернётся за полминуты, Minecraft даже не заметит."
+msgstr "Reste en jeu : si le lien revient en trente secondes, Minecraft ne remarquera rien."
+
+msgid "Не запущен"
+msgstr "Pas lancé"
+
+msgid "Не знаю"
+msgstr "Je ne sais pas"
+
+msgid "Не отвечает"
+msgstr "Ne répond pas"
+
+msgid "Не открылось?"
+msgstr "Ça ne s'ouvre pas ?"
+
+msgid "Не отправилось: %s."
+msgstr "Non envoyé : %s."
+
+msgid "Не получилось подключиться"
+msgstr "Connexion impossible"
+
+msgid "Не получилось подключиться (%s). Попробуйте ещё раз; не помогло — нажмите «Сообщить о проблеме»."
+msgstr "Connexion impossible (%s). Réessaie ; si ça ne marche pas, appuie sur « Signaler un problème »."
+
+msgid "Не получилось: "
+msgstr "Échec : "
+
+msgid "Не получилось: %s"
+msgstr "Échec : %s"
+
+msgid "Не сейчас"
+msgstr "Pas maintenant"
+
+msgid "Не удалось слушать объявления миров Java. Введите номер порта из чата Minecraft."
+msgstr "Impossible d'écouter les annonces de mondes Java. Entre le numéro de port du chat Minecraft."
+
+msgid "Не хватает искр — выполняйте задания"
+msgstr "Pas assez d'étincelles — fais des quêtes"
+
+msgid "Неверный пароль"
+msgstr "Mot de passe incorrect"
+
+msgid "Неверный пароль."
+msgstr "Mot de passe incorrect."
+
+msgid "Недавние"
+msgstr "Récents"
+
+msgid "Нет интернета или связи с LANTERN. Откройте LANTERN."
+msgstr "Pas d'internet ou de lien avec LANTERN. Ouvre LANTERN."
+
+msgid "Нет подключения к домашней сети"
+msgstr "Pas de connexion à un réseau domestique"
+
+msgid "Нет связи с LANTERN — проверьте интернет. Пробуем снова…"
+msgstr "Pas de lien avec LANTERN — vérifie internet. Nouvel essai…"
+
+msgid "Нет связи с LANTERN. Проверьте интернет (Wi-Fi или мобильные данные) и нажмите «Попробовать ещё раз»."
+msgstr "Pas de lien avec LANTERN. Vérifie internet (Wi-Fi ou données mobiles) et appuie sur « Réessayer »."
+
+msgid "Нет связи с LANTERN. Проверьте интернет и нажмите «Попробовать ещё раз»."
+msgstr "Pas de lien avec LANTERN. Vérifie internet et appuie sur « Réessayer »."
+
+msgid "Нет связи с LANTERN. Проверьте интернет — комната вернётся с тем же кодом."
+msgstr "Pas de lien avec LANTERN. Vérifie internet — le salon reviendra avec le même code."
+
+msgid "Нет связи с сервером LANTERN"
+msgstr "Pas de lien avec le serveur LANTERN"
+
+msgid "Нет связи с сервером LANTERN."
+msgstr "Pas de lien avec le serveur LANTERN."
+
+msgid "Нет связи с сервером — ник не сохранён"
+msgstr "Pas de lien avec le serveur — pseudo non enregistré"
+
+msgid "Ник"
+msgstr "Pseudo"
+
+msgid "Ник видят друзья. Пароль не нужен. Вы получите тег вида Ник#4821 — по нему вас добавят в друзья."
+msgstr "Tes amis voient ton pseudo. Pas de mot de passe. Tu reçois un tag du type Pseudo#4821 — c'est avec lui qu'on t'ajoute."
+
+msgid "Ник друга в Minecraft"
+msgstr "Pseudo Minecraft de ton ami"
+
+msgid "Ник игрока в Minecraft"
+msgstr "Pseudo Minecraft du joueur"
+
+msgid "Ник изменён"
+msgstr "Pseudo modifié"
+
+msgid "Ник убран"
+msgstr "Pseudo retiré"
+
+msgid "Ник, тег, друзья, сообщения, искры и облачные копии будут стёрты с сервера навсегда. Отменить нельзя."
+msgstr "Ton pseudo, ton tag, tes amis, messages, étincelles et sauvegardes cloud seront effacés du serveur pour toujours. Impossible d'annuler."
+
+msgid "Ник: 3–16 букв, цифр или _"
+msgstr "Pseudo : 3 à 16 lettres, chiffres ou _"
+
+msgid "Никого. Забанить игрока можно на экране «Мой мир»."
+msgstr "Personne. Tu peux bannir un joueur sur l'écran « Mon monde »."
+
+msgid "Новейшая — заходят с любой"
+msgstr "La dernière — toutes peuvent entrer"
+
+msgid "Новейшая — заходят с любой версии игры. С телефонами и консолями сервер всегда новейший."
+msgstr "La dernière — toutes les versions du jeu peuvent entrer. Avec téléphones et consoles, le serveur est toujours à jour."
+
+msgid "Новые миры будут в этой папке"
+msgstr "Les nouveaux mondes iront dans ce dossier"
+
+msgid "Новый ник"
+msgstr "Nouveau pseudo"
+
+msgid "Номер"
+msgstr "Numéro"
+
+msgid "Номер в списке «Игры»: № %s%s. "
+msgstr "Numéro dans la liste « Parties » : n° %s%s. "
+
+msgid "Номер скопирован"
+msgstr "Numéro copié"
+
+msgid "Носите титул под ником"
+msgstr "Porte un titre sous ton pseudo"
+
+msgid "Носится"
+msgstr "Porté"
+
+msgid "Носить титул"
+msgstr "Porter le titre"
+
+msgid "Нравится"
+msgstr "J'aime"
+
+msgid "Нужен интернет — подключитесь и повторите"
+msgstr "Internet requis — connecte-toi et réessaie"
+
+msgid "Нужен тег целиком: Ник#1234"
+msgstr "Il faut le tag complet : Pseudo#1234"
+
+msgid "Нужна новая версия LANTERN."
+msgstr "Il faut une version plus récente de LANTERN."
+
+msgid "Нужно 1–3 ГБ: сервер, Java и миры."
+msgstr "Il faut 1 à 3 Go : serveur, Java et mondes."
+
+msgid "Нынешний мир никуда не денется: он останется в папке сервера и в «Копиях миров». Игра начнётся в новом, пустом мире."
+msgstr "Ton monde actuel ne disparaît pas : il reste dans le dossier du serveur et dans « Sauvegardes de mondes ». La partie démarrera dans un monde neuf et vide."
+
+msgid "О программе"
+msgstr "À propos"
+
+msgid "Облако LANTERN"
+msgstr "Cloud LANTERN"
+
+msgid "Облако выключено на этом сервере"
+msgstr "Le cloud est désactivé sur ce serveur"
+
+msgid "Облако появится, когда вернётся интернет"
+msgstr "Le cloud reviendra avec internet"
+
+msgid "Облачные копии миров"
+msgstr "Sauvegardes de mondes dans le cloud"
+
+msgid "Облачные копии — функция LANTERN Pro"
+msgstr "Les sauvegardes cloud sont une option LANTERN Pro"
+
+msgid "Обновить"
+msgstr "Actualiser"
+
+msgid "Обновления серверов"
+msgstr "Mises à jour des serveurs"
+
+msgid "Обновляем…"
+msgstr "Mise à jour…"
+
+msgid "Обработка…"
+msgstr "Traitement…"
+
+msgid "Объём памяти узнать не удалось."
+msgstr "Impossible de connaître la quantité de mémoire."
+
+msgid "Обычная"
+msgstr "Normal"
+
+msgid "Обычный"
+msgstr "Par défaut"
+
+msgid "Обычный — горы, леса и пещеры. Плоский — ровная площадка для строек."
+msgstr "Par défaut — montagnes, forêts et grottes. Superplat — terrain plat pour construire."
+
+msgid "Огонь распространяется"
+msgstr "Le feu se propage"
+
+msgid "Одинаковое зерно — одинаковый мир. Выбирается один раз, при создании."
+msgstr "Même graine, même monde. Choisie une seule fois, à la création."
+
+msgid "Одиночная игра → ваш мир."
+msgstr "Solo → ton monde."
+
+msgid "Окно игры можно свернуть — главное, не закрывать её."
+msgstr "Tu peux réduire le jeu — l'essentiel est de ne pas le fermer."
+
+msgid "Окошко не видно поверх игры? Включите в Minecraft оконный режим без рамки (Java: F11 — выключить полный экран)."
+msgstr "Fenêtre invisible par-dessus le jeu ? Passe Minecraft en fenêtré sans bordure (Java : F11 — quitter le plein écran)."
+
+msgid "Окошко поверх Minecraft"
+msgstr "Fenêtre par-dessus Minecraft"
+
+msgid "Он уже скопирован"
+msgstr "Il est déjà copié"
+
+msgid "Оперативная память: %.1f ГБ, свободно %.1f ГБ. Серверу Java нужно 1,5–4 ГБ, Bedrock — около 1 ГБ."
+msgstr "Mémoire vive : %.1f Go, %.1f Go libres. Un serveur Java demande 1,5 à 4 Go, Bedrock environ 1 Go."
+
+msgid "Освободите место или выберите другой диск в «Настройках»."
+msgstr "Libère de la place ou choisis un autre disque dans les Paramètres."
+
+msgid "Осмотрюсь сам"
+msgstr "Je regarde par moi-même"
+
+msgid "Особая косметика каждый месяц"
+msgstr "Cosmétiques spéciaux chaque mois"
+
+msgid "Оставить как есть"
+msgstr "Laisser tel quel"
+
+msgid "Осталось сегодня: %d из 3 · в Pro рекламы нет"
+msgstr "Restant aujourd'hui : %d sur 3 · pas de pub avec Pro"
+
+msgid "Остальные правила — в настройках мира в самом Minecraft."
+msgstr "Les autres règles sont dans les paramètres du monde, dans Minecraft."
+
+msgid "Останавливается"
+msgstr "Arrêt"
+
+msgid "Останавливается…"
+msgstr "Arrêt…"
+
+msgid "Остановить"
+msgstr "Arrêter"
+
+msgid "Остановлен"
+msgstr "Arrêté"
+
+msgid "Отклонить"
+msgstr "Refuser"
+
+msgid "Откройте Minecraft"
+msgstr "Ouvre Minecraft"
+
+msgid "Откройте Minecraft и зайдите в свой мир"
+msgstr "Ouvre Minecraft et entre dans ton monde"
+
+msgid "Откройте Minecraft → «Сетевая игра»"
+msgstr "Ouvre Minecraft → « Multijoueur »"
+
+msgid "Откройте мир в Minecraft — код для друзей появится сразу"
+msgstr "Ouvre un monde dans Minecraft — le code pour tes amis apparaît aussitôt"
+
+msgid "Откройте свой мир в Minecraft или запустите сервер на ПК — получите код. Друзья зайдут по нему."
+msgstr "Ouvre ton monde dans Minecraft ou lance un serveur sur PC — tu reçois un code. Tes amis entrent avec."
+
+msgid "Откройте свой мир в Minecraft — LANTERN даст код, по нему зайдут друзья."
+msgstr "Ouvre ton monde dans Minecraft — LANTERN te donne un code pour tes amis."
+
+msgid "Откройте свой мир — его увидят все в LANTERN."
+msgstr "Ouvre ton monde — tout le monde le verra dans LANTERN."
+
+msgid "Открываем Minecraft…"
+msgstr "Ouverture de Minecraft…"
+
+msgid "Открываем комнату…"
+msgstr "Ouverture du salon…"
+
+msgid "Открываем мир для друзей…"
+msgstr "Ouverture du monde à tes amis…"
+
+msgid "Открыт"
+msgstr "Ouvert"
+
+msgid "Открытые игры · %d"
+msgstr "Parties ouvertes · %d"
+
+msgid "Открыть"
+msgstr "Ouvrir"
+
+msgid "Открыть Minecraft"
+msgstr "Ouvrir Minecraft"
+
+msgid "Открыть «Мой мир»"
+msgstr "Ouvrir « Mon monde »"
+
+msgid "Открыть в Minecraft"
+msgstr "Ouvrir dans Minecraft"
+
+msgid "Открыть для друзей"
+msgstr "Ouvrir aux amis"
+
+msgid "Открыть для сети"
+msgstr "Ouvrir au LAN"
+
+msgid "Открыть друзьям мир из моего Minecraft"
+msgstr "Ouvrir à mes amis un monde de mon Minecraft"
+
+msgid "Открыть мир для сети"
+msgstr "Démarrer le monde en LAN"
+
+msgid "Открыть настройки"
+msgstr "Ouvrir les paramètres"
+
+msgid "Открыть настройки брандмауэра"
+msgstr "Ouvrir les réglages du pare-feu"
+
+msgid "Открыть папку мира"
+msgstr "Ouvrir le dossier du monde"
+
+msgid "Отмена"
+msgstr "Annuler"
+
+msgid "Отметьте согласие с соглашением Minecraft — без него Mojang не разрешает запускать сервер"
+msgstr "Coche l'accord Minecraft — sans lui, Mojang n'autorise pas à lancer un serveur"
+
+msgid "Отправится: версия LANTERN, модель устройства, журнал работы и ваш ник. Пароли, ключи и IP других людей вырезаются."
+msgstr "Envoyé : version de LANTERN, modèle de l'appareil, journal d'activité et ton pseudo. Mots de passe, clés et IP d'autres personnes sont retirés."
+
+msgid "Отправить"
+msgstr "Envoyer"
+
+msgid "Отправить журнал разработчику — получите номер отчёта"
+msgstr "Envoie le journal au développeur — tu reçois un numéro de rapport"
+
+msgid "Отправить отчёт"
+msgstr "Envoyer le rapport"
+
+msgid "Отправленные заявки"
+msgstr "Demandes envoyées"
+
+msgid "Отправляем копию в облако…"
+msgstr "Envoi de la sauvegarde vers le cloud…"
+
+msgid "Отправляем…"
+msgstr "Envoi…"
+
+msgid "Отправьте его другу — он добавит вас"
+msgstr "Envoie-le à un ami — il t'ajoutera"
+
+msgid "Отправьте свой тег другу или добавьте его по тегу выше."
+msgstr "Envoie ton tag à un ami ou ajoute-le par son tag ci-dessus."
+
+msgid "Отпустите, чтобы обновить"
+msgstr "Relâche pour actualiser"
+
+msgid "Отчёт LANTERN №%d"
+msgstr "Rapport LANTERN n° %d"
+
+msgid "Отчёт №%d отправлен — пришлите этот номер разработчику."
+msgstr "Rapport n° %d envoyé — donne ce numéro au développeur."
+
+msgid "Оформить Pro"
+msgstr "Passer Pro"
+
+msgid "Ошибка"
+msgstr "Erreur"
+
+msgid "Ошибка: "
+msgstr "Erreur : "
+
+msgid "ПК (Java)"
+msgstr "PC (Java)"
+
+msgid "Памяти на компьютере немного — серверу выделено %.1f ГБ"
+msgstr "Peu de mémoire sur l'ordinateur — le serveur reçoit %.1f Go"
+
+msgid "Память для сервера"
+msgstr "Mémoire du serveur"
+
+msgid "Папка"
+msgstr "Dossier"
+
+msgid "Папка данных"
+msgstr "Dossier de données"
+
+msgid "Папка для миров"
+msgstr "Dossier des mondes"
+
+msgid "Папка мира"
+msgstr "Dossier du monde"
+
+msgid "Пароль"
+msgstr "Mot de passe"
+
+msgid "Пароль (до 32 символов)"
+msgstr "Mot de passe (32 caractères max)"
+
+msgid "Пароль не нужен — профиль живёт на этом устройстве."
+msgstr "Pas de mot de passe — le profil vit sur cet appareil."
+
+msgid "Пароль сохранён"
+msgstr "Mot de passe enregistré"
+
+msgid "Пауза → «Настройки» → «Мультиплеер»"
+msgstr "Pause → « Paramètres » → « Multijoueur »"
+
+msgid "Пауза → Настройки"
+msgstr "Pause → Paramètres"
+
+msgid "Первый замер — через минуту после запуска."
+msgstr "Première mesure une minute après le lancement."
+
+msgid "Передано: ↓ %s  ↑ %s · соединений: %d"
+msgstr "Transféré : ↓ %s  ↑ %s · connexions : %d"
+
+msgid "Перезапуск"
+msgstr "Redémarrage"
+
+msgid "Перезапускаем сервер — мир сохранится"
+msgstr "Redémarrage du serveur — le monde sera sauvegardé"
+
+msgid "Перезапустить сейчас"
+msgstr "Redémarrer maintenant"
+
+msgid "Пламя"
+msgstr "Flammes"
+
+msgid "Пламя и рамки за искры"
+msgstr "Flammes et cadres"
+
+msgid "Плоский"
+msgstr "Superplat"
+
+msgid "По коду"
+msgstr "Par code"
+
+msgid "По коду или ссылке"
+msgstr "Par code ou lien"
+
+msgid "По нику и тегу вас найдут друзья"
+msgstr "Tes amis te trouvent par pseudo et tag"
+
+msgid "По умолчанию"
+msgstr "Par défaut"
+
+msgid "Повторить"
+msgstr "Réessayer"
+
+msgid "Погода"
+msgstr "Météo"
+
+msgid "Поддержка автора LANTERN — Yompix"
+msgstr "Soutenir l'auteur de LANTERN — Yompix"
+
+msgid "Подключаемся…"
+msgstr "Connexion…"
+
+msgid "Подключим оба — мир появится в любой версии"
+msgstr "On connecte les deux — le monde apparaît dans les deux éditions"
+
+msgid "Подключитесь к интернету."
+msgstr "Connecte-toi à internet."
+
+msgid "Подключитесь к сети — и всё появится."
+msgstr "Connecte-toi et tout apparaîtra."
+
+msgid "Подключить"
+msgstr "Connecter"
+
+msgid "Подключиться"
+msgstr "Se connecter"
+
+msgid "Подключиться снова"
+msgstr "Se reconnecter"
+
+msgid "Подойдёт любая версия Minecraft"
+msgstr "Toute version de Minecraft convient"
+
+msgid "Подписку можно отменить в любой момент в Google Play."
+msgstr "Tu peux annuler l'abonnement à tout moment dans Google Play."
+
+msgid "Пожаловаться"
+msgstr "Signaler"
+
+msgid "Пожаловаться и заблокировать"
+msgstr "Signaler et bloquer"
+
+msgid "Пожаловаться или заблокировать"
+msgstr "Signaler ou bloquer"
+
+msgid "Пожар может перекинуться на дом и лес."
+msgstr "Le feu peut gagner la maison et la forêt."
+
+msgid "Позвать"
+msgstr "Inviter"
+
+msgid "Позже"
+msgstr "Plus tard"
+
+msgid "Позовите друга — +100 искр"
+msgstr "Invite : +100 étincelles"
+
+msgid "Поиск"
+msgstr "Rechercher"
+
+msgid "Пока игра идёт, LANTERN сам сохраняет копию мира. Хранятся 5 последних."
+msgstr "Pendant la partie, LANTERN sauvegarde le monde tout seul. Les 5 dernières sont gardées."
+
+msgid "Пока никого"
+msgstr "Personne pour l'instant"
+
+msgid "Пока никого. Отправьте друзьям код!"
+msgstr "Personne pour l'instant. Envoie le code à tes amis !"
+
+msgid "Пока никто не зашёл"
+msgstr "Personne n'est encore entré"
+
+msgid "Пока тихо. Напишите первым!"
+msgstr "C'est calme. Écris en premier !"
+
+msgid "Покажем и тогда, когда игра открыта во весь экран."
+msgstr "Affiché même quand le jeu est en plein écran."
+
+msgid "Покупка выполнена"
+msgstr "Achat effectué"
+
+msgid "Покупки и реклама"
+msgstr "Achats et pubs"
+
+msgid "Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд."
+msgstr "Les achats affichent une fenêtre « comme Google Play » mais ne débitent rien ; la pub est un écran de test de 5 secondes."
+
+msgid "Покупки скоро — пока работает ДЕМО-режим (Настройки → Тест покупок и рекламы)"
+msgstr "Achats bientôt — pour l'instant, mode DÉMO (Paramètres → Test des achats et pubs)"
+
+msgid "Получено"
+msgstr "Récupéré"
+
+msgid "Получить копию по коду"
+msgstr "Recevoir une sauvegarde par code"
+
+msgid "Понятно"
+msgstr "Compris"
+
+msgid "Попробовать ещё раз"
+msgstr "Réessayer"
+
+msgid "Попробуйте другое название, номер или режим."
+msgstr "Essaie un autre nom, numéro ou mode."
+
+msgid "Порт %d (%s)"
+msgstr "Port %d (%s)"
+
+msgid "Порт %d был занят — перезапустили сервер на порту %d"
+msgstr "Le port %d était occupé — serveur relancé sur le port %d"
+
+msgid "Порт %d был занят — сервер на порту %d, друзья заходят как обычно"
+msgstr "Le port %d était occupé — le serveur utilise le port %d, tes amis entrent comme d'habitude"
+
+msgid "Порт %d занят (%s)"
+msgstr "Port %d occupé (%s)"
+
+msgid "Порт %d свободен (%s)"
+msgstr "Port %d libre (%s)"
+
+msgid "Порт 4445 занят другой программой — мир Java не найдётся сам. Введите номер порта из чата Minecraft."
+msgstr "Le port 4445 est pris par un autre programme — le monde Java ne sera pas trouvé tout seul. Entre le numéro de port du chat Minecraft."
+
+msgid "Порт должен быть от 1 до 65535"
+msgstr "Le port doit être entre 1 et 65535"
+
+msgid "Порт должен быть числом"
+msgstr "Le port doit être un nombre"
+
+msgid "Порт, например 54321"
+msgstr "Port, ex. 54321"
+
+msgid "После гибели рюкзак не выпадает."
+msgstr "L'inventaire ne tombe pas à la mort."
+
+msgid "Потяните, чтобы обновить"
+msgstr "Tire pour actualiser"
+
+msgid "Правила мира"
+msgstr "Règles du monde"
+
+msgid "Премиум"
+msgstr "Premium"
+
+msgid "Премиум-путь · 149,99 ₴"
+msgstr "Voie premium · 149,99 ₴"
+
+msgid "Премиум-путь сезона: 9 эксклюзивных предметов"
+msgstr "Voie premium de la saison : 9 objets exclusifs"
+
+msgid "При первом запуске мира LANTERN скачает Eclipse Temurin (~50 МБ) в свою папку. Устанавливать ничего не нужно."
+msgstr "Au premier lancement d'un monde, LANTERN télécharge Eclipse Temurin (~50 Mo) dans son dossier. Rien à installer."
+
+msgid "При первом запуске мира Windows может спросить разрешение для «OpenJDK Platform binary» (Java) или «bedrock_server». Друзьям по коду через LANTERN это не нужно — всё идёт через сам LANTERN. «Разрешить» нужно, только если друзья заходят из той же Wi-Fi сети по адресу компьютера. Права администратора LANTERN не просит."
+msgstr "Au premier lancement d'un monde, Windows peut demander une autorisation pour « OpenJDK Platform binary » (Java) ou « bedrock_server ». Les amis qui entrent par code via LANTERN n'en ont pas besoin — tout passe par LANTERN. « Autoriser » n'est utile que si tes amis entrent depuis le même Wi-Fi par l'adresse de l'ordinateur. LANTERN ne demande jamais les droits admin."
+
+msgid "Привет!"
+msgstr "Salut !"
+
+msgid "Привет! ♥"
+msgstr "Salut ! ♥"
+
+msgid "Приглашение из более новой версии — обновите LANTERN"
+msgstr "Invitation d'une version plus récente — mets LANTERN à jour"
+
+msgid "Приглашение отправлено"
+msgstr "Invitation envoyée"
+
+msgid "Приглашение скопировано"
+msgstr "Invitation copiée"
+
+msgid "Приглашение со ссылкой скопировано — вставьте его в чат"
+msgstr "Invitation avec lien copiée — colle-la dans un chat"
+
+msgid "Придумайте ник"
+msgstr "Choisis un pseudo"
+
+msgid "Придумать ник"
+msgstr "Choisir un pseudo"
+
+msgid "Приключение"
+msgstr "Aventure"
+
+msgid "Применится после перезапуска"
+msgstr "Appliqué après redémarrage"
+
+msgid "Принять"
+msgstr "Accepter"
+
+msgid "Проверено %d раз: новый Minecraft (порт 7551) и старый (порт 19132)."
+msgstr "Vérifié %d fois : nouveau Minecraft (port 7551) et ancien (port 19132)."
+
+msgid "Проверим, всё ли готово, чтобы создать мир на этом компьютере. Ничего не меняем и не устанавливаем."
+msgstr "On vérifie que tout est prêt pour créer un monde sur cet ordinateur. Rien n'est modifié ni installé."
+
+msgid "Проверить ещё раз"
+msgstr "Revérifier"
+
+msgid "Проверить обновления"
+msgstr "Vérifier les mises à jour"
+
+msgid "Проверить связь"
+msgstr "Tester la connexion"
+
+msgid "Проверка аккаунтов Minecraft"
+msgstr "Vérification des comptes Minecraft"
+
+msgid "Проверка аккаунтов выключена (мир тот же, сервер перезапущен)"
+msgstr "Vérification des comptes désactivée (même monde, serveur redémarré)"
+
+msgid "Проверка системы"
+msgstr "Vérification du système"
+
+msgid "Проверяем %s…"
+msgstr "Vérification de %s…"
+
+msgid "Проверяем…"
+msgstr "Vérification…"
+
+msgid "Продолжить"
+msgstr "Continuer"
+
+msgid "Пропуск сезона «Первые огни»"
+msgstr "Passe de saison « Premières lueurs »"
+
+msgid "Профиль"
+msgstr "Profil"
+
+msgid "Профиль и данные"
+msgstr "Profil et données"
+
+msgid "Профиль появится, когда будет связь"
+msgstr "Le profil apparaîtra une fois connecté"
+
+msgid "Профиль удалён с сервера"
+msgstr "Profil supprimé du serveur"
+
+msgid "Профиль хранится на этом устройстве (без пароля). Не удаляйте папку LANTERN — иначе придётся начать заново."
+msgstr "Le profil est stocké sur cet appareil (sans mot de passe). Ne supprime pas le dossier LANTERN, sinon il faudra tout recommencer."
+
+msgid "Прочитать EULA"
+msgstr "Lire l'EULA"
+
+msgid "Прямое соединение по Wi-Fi ✓"
+msgstr "Connexion directe en Wi-Fi ✓"
+
+msgid "Пустить снова"
+msgstr "Réautoriser"
+
+msgid "Пусто — случайный мир"
+msgstr "Vide — monde aléatoire"
+
+msgid "Пусть впишет ваш тег %s в профиле и наиграет час"
+msgstr "Dis-lui d'entrer ton tag %s dans son profil et de jouer une heure"
+
+msgid "Путь с русскими буквами"
+msgstr "Chemin avec lettres non latines"
+
+msgid "Путь с русскими буквами — обошли"
+msgstr "Chemin avec lettres non latines — contourné"
+
+msgid "Работает"
+msgstr "En marche"
+
+msgid "Раз в 3 часа"
+msgstr "Toutes les 3 heures"
+
+msgid "Раз в 30 минут"
+msgstr "Toutes les 30 minutes"
+
+msgid "Раз в час"
+msgstr "Toutes les heures"
+
+msgid "Разбанить"
+msgstr "Débannir"
+
+msgid "Разгорается от игры с друзьями и наград за задания."
+msgstr "Grandit en jouant avec des amis et grâce aux récompenses de quêtes."
+
+msgid "Разрешение должно быть включено для LANTERN"
+msgstr "L'autorisation doit être activée pour LANTERN"
+
+msgid "Разрешите LANTERN показывать окна поверх других приложений"
+msgstr "Autorise LANTERN à s'afficher par-dessus les autres applis"
+
+msgid "Разрешите LANTERN работать в фоне"
+msgstr "Autorise LANTERN à tourner en arrière-plan"
+
+msgid "Разрешить"
+msgstr "Autoriser"
+
+msgid "Рамки"
+msgstr "Cadres"
+
+msgid "Распаковываем Java…"
+msgstr "Décompression de Java…"
+
+msgid "Распаковываем сервер…"
+msgstr "Décompression du serveur…"
+
+msgid "Режим"
+msgstr "Mode"
+
+msgid "Режим «Быстро» включится после перезапуска"
+msgstr "Le mode « Rapide » s'activera après redémarrage"
+
+msgid "Режим, сложность, пароль, правила мира — всё на одной странице. Менять можно и после создания."
+msgstr "Mode, difficulté, mot de passe, règles du monde — tout sur une page. Modifiable aussi après la création."
+
+msgid "Режим, сложность, пароль, правила мира, копии — всё на одной странице."
+msgstr "Mode, difficulté, mot de passe, règles du monde, sauvegardes — tout sur une page."
+
+msgid "Резервная копия сейчас"
+msgstr "Sauvegarder maintenant"
+
+msgid "Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду."
+msgstr "La sauvegarde est un zip du dossier du monde. Tu peux la restaurer, l'envoyer vers le cloud (Pro) ou la passer à un ami par code."
+
+msgid "Резервные копии и облако"
+msgstr "Sauvegardes et cloud"
+
+msgid "Резервные копии миров на этом устройстве"
+msgstr "Sauvegardes de mondes sur cet appareil"
+
+msgid "Резервные копии, облако, перенос по коду"
+msgstr "Sauvegardes, cloud, transfert par code"
+
+msgid "Реклама показывается только после выхода из мира. В Pro её нет."
+msgstr "Les pubs ne s'affichent qu'après avoir quitté un monde. Aucune avec Pro."
+
+msgid "Рекорд: %d · пропуск раз в неделю не сжигает серию"
+msgstr "Record : %d · un jour sauté par semaine ne casse pas la série"
+
+msgid "Ролевая"
+msgstr "Roleplay"
+
+msgid "Русский"
+msgstr "Русский"
+
+msgid "С телефонов и консолей тоже"
+msgstr "Depuis téléphones et consoles aussi"
+
+msgid "Сайт Adoptium (Java)"
+msgstr "Site d'Adoptium (Java)"
+
+msgid "Сайт PaperMC (серверы Java)"
+msgstr "Site de PaperMC (serveurs Java)"
+
+msgid "Свернуть"
+msgstr "Réduire"
+
+msgid "Свернуть LANTERN можно, закрывать — нет. Если телефон всё же остановит LANTERN, откройте его снова: комната вернётся с тем же кодом."
+msgstr "Tu peux réduire LANTERN, mais pas le fermer. Si le téléphone l'arrête quand même, rouvre-le : le salon revient avec le même code."
+
+msgid "Свободно на диске: %.1f ГБ"
+msgstr "Espace disque libre : %.1f Go"
+
+msgid "Свободной памяти мало (%.1f ГБ). Закройте браузер и лишние программы, иначе сервер может тормозить."
+msgstr "Peu de mémoire libre (%.1f Go). Ferme le navigateur et les autres programmes, sinon le serveur peut ramer."
+
+msgid "Свой код комнаты"
+msgstr "Code de salon perso"
+
+msgid "Свой код комнаты, например LUNA7"
+msgstr "Code de salon perso, ex. LUNA7"
+
+msgid "Свой код отключён"
+msgstr "Code perso désactivé"
+
+msgid "Связь прервалась — восстанавливаем…"
+msgstr "Connexion coupée — rétablissement…"
+
+msgid "Связь с LANTERN оборвалась. Проверьте интернет и нажмите «Попробовать ещё раз»."
+msgstr "Le lien avec LANTERN est coupé. Vérifie internet et appuie sur « Réessayer »."
+
+msgid "Связь с LANTERN прервалась — восстанавливаем, игроки не вылетят, если она вернётся за полминуты."
+msgstr "Le lien avec LANTERN est coupé — on le rétablit ; les joueurs ne sont pas éjectés s'il revient en trente secondes."
+
+msgid "Связь с LANTERN пропала и не вернулась. Проверьте интернет и зайдите снова."
+msgstr "Le lien avec LANTERN est perdu et n'est pas revenu. Vérifie internet et rejoins à nouveau."
+
+msgid "Связь с сервером LANTERN: %d мс"
+msgstr "Lien avec le serveur LANTERN : %d ms"
+
+msgid "Сделать быстрее"
+msgstr "Accélérer"
+
+msgid "Сделать копию"
+msgstr "Faire une sauvegarde"
+
+msgid "Сезон"
+msgstr "Saison"
+
+msgid "Сезон «Первые огни»"
+msgstr "Saison « Premières lueurs »"
+
+msgid "Сейчас буду"
+msgstr "J'arrive tout de suite"
+
+msgid "Сейчас нет открытых игр"
+msgstr "Aucune partie ouverte pour l'instant"
+
+msgid "Сервер %s"
+msgstr "Serveur %s"
+
+msgid "Сервер LANTERN"
+msgstr "Serveur LANTERN"
+
+msgid "Сервер LANTERN (комнаты по коду)"
+msgstr "Serveur LANTERN (salons par code)"
+
+msgid "Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT."
+msgstr "Le serveur Paper (PaperMC), Geyser et Floodgate (GeyserMC), Java (Eclipse Temurin) et Bedrock Dedicated Server (Mojang) sont téléchargés depuis leurs sites officiels. Polices Montserrat et JetBrains Mono — licence SIL OFL 1.1. Moteur Godot — MIT."
+
+msgid "Сервер друга перезапускается или пропал интернет. Мир вернётся сам — ничего делать не нужно."
+msgstr "Le serveur de ton ami redémarre ou internet a sauté. Le monde reviendra tout seul — rien à faire."
+
+msgid "Сервер друга пускает телефоны и консоли с актуальной версией Minecraft (до %s)."
+msgstr "Le serveur de ton ami accepte téléphones et consoles avec la version actuelle de Minecraft (jusqu'à %s)."
+
+msgid "Сервер не запущен."
+msgstr "Le serveur n'est pas lancé."
+
+msgid "Сервер не успевает — игра может лагать"
+msgstr "Le serveur ne suit pas — ça peut laguer"
+
+msgid "Сервер остановился с ошибкой. Отправьте отчёт — это поможет нам быстро всё починить."
+msgstr "Le serveur s'est arrêté sur une erreur. Envoie un rapport — ça nous aide à réparer vite."
+
+msgid "Сервер остановлен, мир сохранён"
+msgstr "Serveur arrêté, monde sauvegardé"
+
+msgid "Сервер полон — %s не поместился."
+msgstr "Serveur plein — plus de place pour %s."
+
+msgid "Сервер работает"
+msgstr "Serveur en marche"
+
+msgid "Сервер работает. Зовите друзей!"
+msgstr "Serveur en marche. Appelle tes amis !"
+
+msgid "Сервер сможет его занять."
+msgstr "Le serveur pourra l'utiliser."
+
+msgid "Сервер упал — LANTERN перезапустил его"
+msgstr "Le serveur a planté — LANTERN l'a relancé"
+
+msgid "Сервер успевает ✓"
+msgstr "Le serveur suit ✓"
+
+msgid "Сервера нет в списке?"
+msgstr "Serveur absent de la liste ?"
+
+msgid "Серверы LANTERN сейчас перегружены. Попробуйте через пару минут."
+msgstr "Les serveurs LANTERN sont surchargés. Réessaie dans quelques minutes."
+
+msgid "Серверы и Java — в %s (Java на Windows не понимает русские буквы в пути)."
+msgstr "Serveurs et Java sont dans %s (Java sous Windows ne gère pas les lettres non latines dans le chemin)."
+
+msgid "Серверы обновляются сами при каждом запуске мира. Здесь можно посмотреть, что нового."
+msgstr "Les serveurs se mettent à jour tout seuls à chaque lancement de monde. Ici tu vois les nouveautés."
+
+msgid "Серверы, миры, Java и копии. Нужно 1–3 ГБ свободного места."
+msgstr "Serveurs, mondes, Java et sauvegardes. Il faut 1 à 3 Go libres."
+
+msgid "Сетевая игра"
+msgstr "Multijoueur"
+
+msgid "Скачать"
+msgstr "Télécharger"
+
+msgid "Скачиваем "
+msgstr "Téléchargement de "
+
+msgid "Скачиваем %s %s"
+msgstr "Téléchargement de %s %s"
+
+msgid "Скачиваем Bedrock Dedicated Server "
+msgstr "Téléchargement de Bedrock Dedicated Server "
+
+msgid "Скачиваем Java %d (%s)"
+msgstr "Téléchargement de Java %d (%s)"
+
+msgid "Скачиваем копию…"
+msgstr "Téléchargement de la sauvegarde…"
+
+msgid "Скачиваем сервер Paper %s (сборка %d)"
+msgstr "Téléchargement du serveur Paper %s (build %d)"
+
+msgid "Сколько игроков"
+msgstr "Combien de joueurs"
+
+msgid "Скопировано: "
+msgstr "Copié : "
+
+msgid "Скопировать адрес"
+msgstr "Copier l'adresse"
+
+msgid "Скопировать код"
+msgstr "Copier le code"
+
+msgid "Скопировать номер"
+msgstr "Copier le numéro"
+
+msgid "Скопировать приглашение"
+msgstr "Copier l'invitation"
+
+msgid "Скопировать ссылку"
+msgstr "Copier le lien"
+
+msgid "Скопировать тег"
+msgstr "Copier le tag"
+
+msgid "Скоро! Покупки появятся после запуска в Google Play."
+msgstr "Bientôt ! Les achats arriveront après la sortie sur Google Play."
+
+msgid "Скорость игры"
+msgstr "Vitesse de jeu"
+
+msgid "Скорость игры: «%s»"
+msgstr "Vitesse de jeu : « %s »"
+
+msgid "Скорость игры: «%s». Игра идёт без задержек."
+msgstr "Vitesse de jeu : « %s ». La partie tourne sans retard."
+
+msgid "Слишком много попыток. Подождите минуту."
+msgstr "Trop de tentatives. Attends une minute."
+
+msgid "Слишком старая версия Minecraft. Выберите в лаунчере 1.8.9 или новее — и заходите!"
+msgstr "Version de Minecraft trop ancienne. Choisis la 1.8.9 ou plus récente dans le launcher — et rejoins-nous !"
+
+msgid "Сложная"
+msgstr "Difficile"
+
+msgid "Сложность"
+msgstr "Difficulté"
+
+msgid "Смена дня и ночи"
+msgstr "Cycle jour/nuit"
+
+msgid "Сменить вид"
+msgstr "Changer d'apparence"
+
+msgid "Сменить ник"
+msgstr "Changer de pseudo"
+
+msgid "Смотреть рекламу"
+msgstr "Regarder une pub"
+
+msgid "Сначала остановите сервер"
+msgstr "Arrête d'abord le serveur"
+
+msgid "Сначала придумайте ник"
+msgstr "Choisis d'abord un pseudo"
+
+msgid "Создай первую игру"
+msgstr "Crée ta première partie"
+
+msgid "Создайте мир"
+msgstr "Crée un monde"
+
+msgid "Создатель — Yompix"
+msgstr "Créé par Yompix"
+
+msgid "Создать"
+msgstr "Créer"
+
+msgid "Создать игру"
+msgstr "Créer une partie"
+
+msgid "Создать профиль"
+msgstr "Créer un profil"
+
+msgid "Создать сервер LANTERN"
+msgstr "Créer un serveur LANTERN"
+
+msgid "Создаём профиль…"
+msgstr "Création du profil…"
+
+msgid "Сообщение…"
+msgstr "Message…"
+
+msgid "Сообщить о проблеме"
+msgstr "Signaler un problème"
+
+msgid "Сохранено"
+msgstr "Enregistré"
+
+msgid "Сохранит мир в файл. Вернуть его можно в «Копиях миров»."
+msgstr "Enregistre le monde dans un fichier. À restaurer dans « Sauvegardes de mondes »."
+
+msgid "Сохранить"
+msgstr "Enregistrer"
+
+msgid "Сохраняем мир и выключаем сервер…"
+msgstr "Sauvegarde du monde et extinction du serveur…"
+
+msgid "Сохраняем мир и останавливаем сервер…"
+msgstr "Sauvegarde du monde et arrêt du serveur…"
+
+msgid "Сохраняем…"
+msgstr "Enregistrement…"
+
+msgid "Спасибо за лайк!"
+msgstr "Merci pour le like !"
+
+msgid "Спасибо! Хозяин мира получит ♥"
+msgstr "Merci ! L'hôte du monde reçoit un ♥"
+
+msgid "Список игр появится, когда вернётся интернет."
+msgstr "La liste des parties reviendra avec internet."
+
+msgid "Список пуст — добавьте ники друзей."
+msgstr "La liste est vide — ajoute les pseudos de tes amis."
+
+msgid "Способ оплаты: "
+msgstr "Moyen de paiement : "
+
+msgid "Спросим один раз и запомним. Телефоны и консоли — это Bedrock, LANTERN на телефоне выберет его сам."
+msgstr "On demande une fois et on retient. Téléphones et consoles, c'est Bedrock — LANTERN sur téléphone le choisit tout seul."
+
+msgid "Спросите пароль у хозяина игры"
+msgstr "Demande le mot de passe à l'hôte"
+
+msgid "Ссылка Minecraft без адреса сервера"
+msgstr "Lien Minecraft sans adresse de serveur"
+
+msgid "Стикеры"
+msgstr "Stickers"
+
+msgid "Ступень %d из %d · %d очков · ещё %d дн."
+msgstr "Palier %d sur %d · %d points · encore %d j"
+
+msgid "Так было в прошлый раз. Друзьям нужна та же версия игры."
+msgstr "C'était comme ça la dernière fois. Tes amis doivent avoir la même version du jeu."
+
+msgid "Так игру увидят друзья."
+msgstr "C'est ainsi que tes amis verront la partie."
+
+msgid "Такой ник не подходит или занят"
+msgstr "Ce pseudo ne convient pas ou est déjà pris"
+
+msgid "Такой ник уже есть в списке"
+msgstr "Ce pseudo est déjà dans la liste"
+
+msgid "Творчество"
+msgstr "Créatif"
+
+msgid "Тег друга: Алекс#4821"
+msgstr "Tag de ton ami : Alex#4821"
+
+msgid "Тег друга: Стив#1234"
+msgstr "Tag de ton ami : Luna#1234"
+
+msgid "Тег скопирован"
+msgstr "Tag copié"
+
+msgid "Тег скопирован: "
+msgstr "Tag copié : "
+
+msgid "Телефон"
+msgstr "Téléphone"
+
+msgid "Телефон, планшет, Windows, консоли. Друзья с Java в этот мир зайти не смогут."
+msgstr "Téléphone, tablette, Windows, consoles. Les amis Java ne peuvent pas rejoindre ce monde."
+
+msgid "Телефоны"
+msgstr "Téléphones"
+
+msgid "Телефоны и консоли (Bedrock): "
+msgstr "Téléphones et consoles (Bedrock) : "
+
+msgid "Теперь зайти могут все в LANTERN"
+msgstr "Tout le monde dans LANTERN peut maintenant entrer"
+
+msgid "Теперь зайти можно только по коду"
+msgstr "On n'entre plus que par code"
+
+msgid "Тестовая реклама"
+msgstr "Pub de test"
+
+msgid "Тип мира"
+msgstr "Type de monde"
+
+msgid "Тип мира и зерно"
+msgstr "Type de monde et graine"
+
+msgid "Титул «%s» · +%d искр"
+msgstr "Titre « %s » · +%d étincelles"
+
+msgid "Титул обновлён"
+msgstr "Titre mis à jour"
+
+msgid "Тихие звуки нажатий, входа в игру и ошибок."
+msgstr "Sons discrets pour les touches, l'entrée en jeu et les erreurs."
+
+msgid "Только Bedrock"
+msgstr "Bedrock seul"
+
+msgid "Только внешний вид — никаких преимуществ в игре и случайных наград."
+msgstr "Purement visuel — aucun avantage en jeu, aucune récompense aléatoire."
+
+msgid "Только вы."
+msgstr "Juste toi."
+
+msgid "Только свои"
+msgstr "Liste blanche"
+
+msgid "У %s версия Minecraft новее сервера (%s). Пусть выберет в лаунчере версию %s."
+msgstr "%s a un Minecraft plus récent que le serveur (%s). Dis-lui de choisir la version %s dans le launcher."
+
+msgid "У вас Minecraft %sновее, чем знает сервер друга (до %s). Пусть хозяин перезапустит сервер в LANTERN — Geyser обновится сам."
+msgstr "Ton Minecraft %sest plus récent que ce que connaît le serveur de ton ami (jusqu'à %s). Demande à l'hôte de relancer le serveur dans LANTERN — Geyser se met à jour tout seul."
+
+msgid "У игрока версия Minecraft новее сервера. Пусть выберет в лаунчере версию сервера."
+msgstr "Le joueur a un Minecraft plus récent que le serveur. Dis-lui de choisir la version du serveur dans le launcher."
+
+msgid "У костра друзей: %d · нажмите на фонарик"
+msgstr "Amis près du feu : %d · touche une lanterne"
+
+msgid "У хозяина %s, %s — обновите Minecraft. Играть вместе можно только на одной версии."
+msgstr "L'hôte a %s, %s — mets Minecraft à jour. On ne peut jouer ensemble que sur la même version."
+
+msgid "У хозяина %s, %s — пусть хозяин обновит Minecraft. Играть вместе можно только на одной версии."
+msgstr "L'hôte a %s, %s — demande-lui de mettre Minecraft à jour. On ne peut jouer ensemble que sur la même version."
+
+msgid "Убрать"
+msgstr "Retirer"
+
+msgid "Убрать из списка"
+msgstr "Retirer de la liste"
+
+msgid "Убрать свой код"
+msgstr "Retirer le code perso"
+
+msgid "Уведомление, когда друг зашёл"
+msgstr "Notification quand un ami entre"
+
+msgid "Удалить"
+msgstr "Supprimer"
+
+msgid "Удалить из друзей"
+msgstr "Retirer des amis"
+
+msgid "Удалить навсегда"
+msgstr "Supprimer définitivement"
+
+msgid "Удалить профиль"
+msgstr "Supprimer le profil"
+
+msgid "Удалить профиль?"
+msgstr "Supprimer le profil ?"
+
+msgid "Уже сделано"
+msgstr "Déjà fait"
+
+msgid "Узнать о Pro"
+msgstr "Découvrir Pro"
+
+msgid "Узнаём последнюю версию Bedrock Dedicated Server…"
+msgstr "Recherche de la dernière version de Bedrock Dedicated Server…"
+
+msgid "Узнаём последнюю версию Paper…"
+msgstr "Recherche de la dernière version de Paper…"
+
+msgid "Українська"
+msgstr "Українська"
+
+msgid "Уровень фонаря"
+msgstr "Niveau de la lanterne"
+
+msgid "Условия использования"
+msgstr "Conditions d'utilisation"
+
+msgid "Файлы мира на этом компьютере."
+msgstr "Fichiers du monde sur cet ordinateur."
+
+msgid "Фонарь"
+msgstr "Lanterne"
+
+msgid "Фонарь — уровень %d"
+msgstr "Lanterne — niveau %d"
+
+msgid "Хозяин"
+msgstr "Hôte"
+
+msgid "Хозяин закрыл мир."
+msgstr "L'hôte a fermé le monde."
+
+msgid "Хозяин мира закрыл вам вход."
+msgstr "L'hôte du monde t'a fermé l'accès."
+
+msgid "Хозяин переподключается…"
+msgstr "L'hôte se reconnecte…"
+
+msgid "Цвет акцента"
+msgstr "Couleur d'accent"
+
+msgid "Цвет ника"
+msgstr "Couleur du pseudo"
+
+msgid "Цвет, анимации, сервер"
+msgstr "Couleur, animations, serveur"
+
+msgid "Часть настроек применится после перезапуска. Игроки переподключатся примерно через 30 секунд."
+msgstr "Certains réglages s'appliquent après redémarrage. Les joueurs se reconnecteront dans 30 secondes environ."
+
+msgid "Чат комнаты"
+msgstr "Chat du salon"
+
+msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
+msgstr "Plus c'est difficile, plus les monstres sont forts. En « Paisible », il n'y en a aucun."
+
+msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
+msgstr "C'est par lui que tes amis entrent par code : il ne fait que relayer les données du jeu entre vous et ne stocke rien. Ne change l'adresse que si tu as ton propre serveur."
+
+msgid "Что LANTERN исправил сам"
+msgstr "Ce que LANTERN a réparé tout seul"
+
+msgid "Что случилось? (можно не писать)"
+msgstr "Que s'est-il passé ? (facultatif)"
+
+msgid "Что хранится и сколько"
+msgstr "Ce qui est stocké et combien de temps"
+
+msgid "Что-то пошло не так: "
+msgstr "Quelque chose a mal tourné : "
+
+msgid "Чтобы друзья играли без вас — запустите «Отдельный сервер»."
+msgstr "Pour que tes amis jouent sans toi, lance un « Serveur à part »."
+
+msgid "Чтобы кнопка была видна в игре"
+msgstr "Pour que le bouton soit visible en jeu"
+
+msgid "Шаг %d из %d"
+msgstr "Étape %d sur %d"
+
+msgid "Эта игра с паролем."
+msgstr "Cette partie a un mot de passe."
+
+msgid "Это код вашего мира"
+msgstr "C'est le code de ton propre monde"
+
+msgid "Это не копия мира: "
+msgstr "Ce n'est pas une sauvegarde de monde : "
+
+msgid "Это не похоже ни на код комнаты, ни на адрес"
+msgstr "Ça ne ressemble ni à un code de salon ni à une adresse"
+
+msgid "Этот компьютер не самый мощный — LANTERN сам включит «Быстро», чтобы игра не лагала."
+msgstr "Cet ordinateur n'est pas très puissant — LANTERN passera en « Rapide » pour éviter le lag."
+
+msgid "Этот мир для Minecraft %s. Выберите его и подключитесь снова."
+msgstr "Ce monde est pour Minecraft %s. Sélectionne-le et reconnecte-toi."
+
+msgid "Я принимаю Лицензионное соглашение Minecraft (EULA)"
+msgstr "J'accepte le Contrat de licence de Minecraft (EULA)"
+
+msgid "Я принимаю Лицензионное соглашение Minecraft и Политику конфиденциальности"
+msgstr "J'accepte le Contrat de licence de Minecraft et la Politique de confidentialité"
+
+msgid "Язык / Language"
+msgstr "Язык / Language"
+
+msgid "а"
+msgstr "а"
+
+msgid "актуальная версия Minecraft"
+msgstr "la version actuelle de Minecraft"
+
+msgid "архив повреждён или не открылся: "
+msgstr "l'archive est abîmée ou ne s'ouvre pas : "
+
+msgid "архив повреждён: "
+msgstr "l'archive est abîmée : "
+
+msgid "б"
+msgstr "б"
+
+msgid "без фона"
+msgstr "sans fond"
+
+msgid "в"
+msgstr "в"
+
+msgid "в архиве нет мира Minecraft (level.dat)"
+msgstr "l'archive ne contient pas de monde Minecraft (level.dat)"
+
+msgid "в мире %d из %d"
+msgstr "%d sur %d dans le monde"
+
+msgid "в мире — зайти"
+msgstr "dans un monde — rejoindre"
+
+msgid "в своём мире «%s» · %s %s"
+msgstr "dans son monde « %s » · %s %s"
+
+msgid "в сети"
+msgstr "en ligne"
+
+msgid "версия %s не найдена у Paper: %s"
+msgstr "Paper n'a pas la version %s : %s"
+
+msgid "вкл"
+msgstr "oui"
+
+msgid "вход в мир «%s»"
+msgstr "connexion au monde « %s »"
+
+msgid "выкл"
+msgstr "non"
+
+msgid "вышел из"
+msgstr "a quitté"
+
+msgid "г"
+msgstr "г"
+
+msgid "д"
+msgstr "д"
+
+msgid "день"
+msgstr "jour"
+
+msgid "дней"
+msgstr "jours"
+
+msgid "дня"
+msgstr "jours"
+
+msgid "доступен"
+msgstr "disponible"
+
+msgid "доступна "
+msgstr "disponible : "
+
+msgid "друг закрыл"
+msgstr "ton ami l'a fermé"
+
+msgid "друг не вернулся за %d с"
+msgstr "ton ami n'est pas revenu en %d s"
+
+msgid "друга"
+msgstr "d'un ami"
+
+msgid "е"
+msgstr "е"
+
+msgid "есть"
+msgstr "oui"
+
+msgid "ж"
+msgstr "ж"
+
+msgid "ждал и не дождался"
+msgstr "a attendu en vain"
+
+msgid "ждём ответа"
+msgstr "en attente de réponse"
+
+msgid "живой фон"
+msgstr "fond animé"
+
+msgid "з"
+msgstr "з"
+
+msgid "зашёл в"
+msgstr "a rejoint"
+
+msgid "и"
+msgstr "и"
+
+msgid "и нажмите «Подключиться»"
+msgstr "et clique sur « Rejoindre le serveur »"
+
+msgid "игра закрыла соединение"
+msgstr "le jeu a fermé la connexion"
+
+msgid "игра не принимает данные"
+msgstr "le jeu n'accepte pas les données"
+
+msgid "играет"
+msgstr "en jeu"
+
+msgid "играет в мир «%s»"
+msgstr "joue dans le monde « %s »"
+
+msgid "игрок "
+msgstr "le joueur "
+
+msgid "игрока"
+msgstr "Le joueur"
+
+msgid "из-облака-%s.zip"
+msgstr "из-облака-%s.zip"
+
+msgid "й"
+msgstr "й"
+
+msgid "к"
+msgstr "к"
+
+msgid "код "
+msgstr "code "
+
+msgid "код появится после запуска"
+msgstr "le code apparaîtra après le lancement"
+
+msgid "компьютере"
+msgstr "ordinateur"
+
+msgid "копия уже делается"
+msgstr "une sauvegarde est déjà en cours"
+
+msgid "л"
+msgstr "л"
+
+msgid "м"
+msgstr "м"
+
+msgid "мир ещё не создан — запустите сервер хотя бы раз"
+msgstr "le monde n'existe pas encore — lance le serveur au moins une fois"
+
+msgid "н"
+msgstr "н"
+
+msgid "не в сети"
+msgstr "hors ligne"
+
+msgid "не удалось записать "
+msgstr "écriture impossible : "
+
+msgid "не удалось записать файл на диск (место? права?)"
+msgstr "impossible d'écrire le fichier sur le disque (place ? droits ?)"
+
+msgid "не удалось запустить "
+msgstr "lancement impossible : "
+
+msgid "не удалось найти Java %d на adoptium.net: %s"
+msgstr "Java %d introuvable sur adoptium.net : %s"
+
+msgid "не удалось найти адрес сайта (проверьте интернет)"
+msgstr "adresse du site introuvable (vérifie internet)"
+
+msgid "не удалось начать загрузку (%d)"
+msgstr "impossible de démarrer le téléchargement (%d)"
+
+msgid "не удалось начать отправку (%d)"
+msgstr "impossible de démarrer l'envoi (%d)"
+
+msgid "не удалось открыть локальный порт"
+msgstr "impossible d'ouvrir un port local"
+
+msgid "не удалось получить список версий Paper: "
+msgstr "impossible d'obtenir la liste des versions de Paper : "
+
+msgid "не удалось получить ссылку на Bedrock Dedicated Server: "
+msgstr "impossible d'obtenir le lien de Bedrock Dedicated Server : "
+
+msgid "не удалось прочитать "
+msgstr "lecture impossible : "
+
+msgid "не удалось распаковать Java: "
+msgstr "impossible de décompresser Java : "
+
+msgid "не удалось создать "
+msgstr "création impossible : "
+
+msgid "не удалось сохранить %s — файл занят другой программой (антивирус?) или нет прав на папку %s"
+msgstr "impossible d'enregistrer %s — fichier utilisé par un autre programme (antivirus ?) ou pas de droits sur le dossier %s"
+
+msgid "не удалось узнать версию %s: %s"
+msgstr "impossible de connaître la version de %s : %s"
+
+msgid "неверный адрес сервера-посредника: "
+msgstr "adresse du serveur relais incorrecte : "
+
+msgid "недоступен: %s%s"
+msgstr "indisponible : %s%s"
+
+msgid "нет"
+msgstr "non"
+
+msgid "нет интернета или сайт LANTERN недоступен"
+msgstr "pas d'internet ou site LANTERN indisponible"
+
+msgid "нет сборок"
+msgstr "aucun build"
+
+msgid "нет сборок Paper для %s"
+msgstr "aucun build Paper pour %s"
+
+msgid "нет соединения с интернетом или сайт недоступен"
+msgstr "pas de connexion internet ou site indisponible"
+
+msgid "новый Minecraft"
+msgstr "nouveau Minecraft"
+
+msgid "новый Minecraft, NetherNet"
+msgstr "nouveau Minecraft, NetherNet"
+
+msgid "новый игрок"
+msgstr "un nouveau joueur"
+
+msgid "нужно принять лицензионное соглашение Minecraft (EULA)"
+msgstr "il faut accepter le contrat de licence de Minecraft (EULA)"
+
+msgid "нужно принять условия Minecraft (EULA и политику конфиденциальности)"
+msgstr "il faut accepter les conditions de Minecraft (EULA et politique de confidentialité)"
+
+msgid "о"
+msgstr "о"
+
+msgid "открываем комнату…"
+msgstr "ouverture du salon…"
+
+msgid "отлично"
+msgstr "excellent"
+
+msgid "отпр %d (подтв %d), получ %d%s"
+msgstr "отпр %d (подтв %d), получ %d%s"
+
+msgid "ошибка %d"
+msgstr "erreur %d"
+
+msgid "ошибка защищённого соединения (TLS)"
+msgstr "erreur de connexion sécurisée (TLS)"
+
+msgid "ошибка сети (%d)"
+msgstr "erreur réseau (%d)"
+
+msgid "ошибка соединения с сервером (порт %d)"
+msgstr "erreur de connexion au serveur (port %d)"
+
+msgid "п"
+msgstr "п"
+
+msgid "порт %d"
+msgstr "port %d"
+
+msgid "порт %d занят — закройте открытый по сети мир Minecraft на этом устройстве"
+msgstr "le port %d est occupé — ferme le monde Minecraft ouvert en LAN sur cet appareil"
+
+msgid "порт %d занят — закройте открытый по сети мир или сервер Bedrock на этом устройстве"
+msgstr "le port %d est occupé — ferme le monde ouvert en LAN ou le serveur Bedrock sur cet appareil"
+
+msgid "последняя версия "
+msgstr "dernière version "
+
+msgid "проверяем связь…"
+msgstr "test de la connexion…"
+
+msgid "проверяем…"
+msgstr "vérification…"
+
+msgid "профиль"
+msgstr "profil"
+
+msgid "р"
+msgstr "р"
+
+msgid "с"
+msgstr "с"
+
+msgid "сайт слишком долго не отвечает"
+msgstr "le site met trop de temps à répondre"
+
+msgid "связь не вернулась"
+msgstr "le lien n'est pas revenu"
+
+msgid "связь отличная"
+msgstr "connexion excellente"
+
+msgid "связь пропала"
+msgstr "lien perdu"
+
+msgid "связь с сервером-посредником"
+msgstr "lien avec le serveur relais"
+
+msgid "связь с сервером-посредником потеряна"
+msgstr "lien avec le serveur relais perdu"
+
+msgid "связь так себе"
+msgstr "connexion moyenne"
+
+msgid "связь хорошая"
+msgstr "bonne connexion"
+
+msgid "сервер закрыл соединение"
+msgstr "le serveur a fermé la connexion"
+
+msgid "сервер неожиданно остановился (код %d).%s%s Подробности — в журнале."
+msgstr "le serveur s'est arrêté brusquement (code %d).%s%s Détails dans le journal."
+
+msgid "сервер ответил кодом %d"
+msgstr "le serveur a répondu avec le code %d"
+
+msgid "сервер требует принять EULA"
+msgstr "le serveur exige d'accepter l'EULA"
+
+msgid "сервер-посредник недоступен"
+msgstr "serveur relais indisponible"
+
+msgid "сервер-посредник недоступен — проверьте интернет"
+msgstr "serveur relais indisponible — vérifie internet"
+
+msgid "сервер/игра закрыли соединение"
+msgstr "le serveur/jeu a fermé la connexion"
+
+msgid "слишком много перенаправлений"
+msgstr "trop de redirections"
+
+msgid "слишком часто — попробуйте через час"
+msgstr "trop souvent — réessaie dans une heure"
+
+msgid "случайное"
+msgstr "aléatoire"
+
+msgid "создал(а) игру"
+msgstr "a créé une partie"
+
+msgid "создать игру: зайдите в свой мир"
+msgstr "créer une partie : entre dans ton monde"
+
+msgid "ссылка не найдена"
+msgstr "lien introuvable"
+
+msgid "т"
+msgstr "т"
+
+msgid "так себе"
+msgstr "moyen"
+
+msgid "телефоне"
+msgstr "téléphone"
+
+msgid "тестовая карта (ДЕМО — деньги не списываются)"
+msgstr "carte de test (DÉMO — rien n'est débité)"
+
+msgid "у"
+msgstr "у"
+
+msgid "у вас "
+msgstr "tu as "
+
+msgid "у вас другая версия"
+msgstr "tu as une autre version"
+
+msgid "у костра"
+msgstr "près du feu"
+
+msgid "у сборки Paper нет файла сервера"
+msgstr "le build Paper n'a pas de fichier serveur"
+
+msgid "ур. %d"
+msgstr "niv. %d"
+
+msgid "установлен %s, последняя %s"
+msgstr "installé %s, dernier %s"
+
+msgid "ф"
+msgstr "ф"
+
+msgid "файл не открылся — это не zip-копия мира"
+msgstr "le fichier ne s'ouvre pas — ce n'est pas une sauvegarde zip de monde"
+
+msgid "файл повреждён при загрузке (не совпала контрольная сумма %s). Попробуйте ещё раз."
+msgstr "fichier abîmé pendant le téléchargement (somme de contrôle %s incorrecte). Réessaie."
+
+msgid "фон замер"
+msgstr "fond figé"
+
+msgid "х"
+msgstr "х"
+
+msgid "хозяин закрыл (%s)"
+msgstr "l'hôte l'a fermé (%s)"
+
+msgid "хорошо"
+msgstr "bien"
+
+msgid "хочет дружить"
+msgstr "veut être ton ami"
+
+msgid "ц"
+msgstr "ц"
+
+msgid "ч"
+msgstr "ч"
+
+msgid "чат"
+msgstr "chat"
+
+msgid "ш"
+msgstr "ш"
+
+msgid "щ"
+msgstr "щ"
+
+msgid "ъ"
+msgstr "ъ"
+
+msgid "ы"
+msgstr "ы"
+
+msgid "ь"
+msgstr "ь"
+
+msgid "э"
+msgstr "э"
+
+msgid "это не сервер LANTERN"
+msgstr "ce n'est pas un serveur LANTERN"
+
+msgid "это последняя версия"
+msgstr "c'est la dernière version"
+
+msgid "ю"
+msgstr "ю"
+
+msgid "я"
+msgstr "я"
+
+msgid "ё"
+msgstr "ё"
+
+msgid "є"
+msgstr "є"
+
+msgid "і"
+msgstr "і"
+
+msgid "ї"
+msgstr "ї"
+
+msgid "ґ"
+msgstr "ґ"
+
+msgid "≈ сияние"
+msgstr "≈ aurore"
+
+msgid "▲ костёр"
+msgstr "▲ feu de camp"
+
+msgid "▲ палатка"
+msgstr "▲ tente"
+
+msgid "●  в игре сейчас: %d из %d"
+msgstr "●  en jeu maintenant : %d sur %d"
+
+msgid "● друзей в мире: %d"
+msgstr "● amis dans le monde : %d"
+
+msgid "★ Сезон ★"
+msgstr "★ Saison ★"
+
+msgid "✓ Pro активна"
+msgstr "✓ Pro actif"
+
+msgid "✓ Премиум-путь открыт"
+msgstr "✓ Voie premium débloquée"
+
+msgid "✓ Работает. Комнат сейчас: %d"
+msgstr "✓ Ça marche. Salons en ce moment : %d"
+
+msgid "✓ есть"
+msgstr "✓ oui"
+
+msgid "✗ Не отвечает: "
+msgstr "✗ Ne répond pas : "
+
+msgid "❦ осень"
+msgstr "❦ automne"
+

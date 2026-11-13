@@ -823,7 +823,7 @@ func _refresh_relay() -> void:
 	if code != _last_code:
 		_last_code = code
 		if code != "":
-			_qr.texture = ImageTexture.create_from_image(QR.encode(_invite_link(), QR.ECC_M).to_image(6, Color("0b0e14"), Color("eef1f7")))
+			QR.encode(_qr_link(), QR.ECC_M).show_in(_qr, 132)
 		else:
 			_qr.texture = null
 	match r.state:
@@ -848,6 +848,14 @@ func _refresh_relay() -> void:
 
 func _world_name() -> String:
 	return String(app.own.world.get("name", L.t("Мир"))) if _own else String(app.server.opts.get("world", L.t("Мир")))
+
+
+## 1.8.1: в QR — ссылка https://…/lantern/j/<код>: камера телефона открывает страницу с кнопкой «Открыть в LANTERN»
+## (lantern:// камеры и Google Lens не открывают). Свой relay — как раньше, lantern://.
+func _qr_link() -> String:
+	var l := _invite_link()
+	var p := Invite.parse(l)
+	return Invite.web_link(String(p.get("code", "")), String(p.get("edition", "")), String(p.get("name", "")), Cfg.relay_url()) if p.get("ok", false) else l
 
 
 func _invite_link() -> String:
@@ -875,13 +883,10 @@ func _share() -> void:
 
 
 func _qr_sheet() -> void:
-	var v: VBoxContainer = Overlays.sheet(app, L.t("QR-код комнаты"), L.t("Друг наводит камеру телефона — LANTERN откроется сам и подключится"))
+	var v: VBoxContainer = Overlays.sheet(app, L.t("QR-код комнаты"), L.t("Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — мир появится у него в Minecraft"))
 	var t := TextureRect.new()
-	t.texture = _qr.texture
-	t.custom_minimum_size = Vector2(240, 240)
+	QR.encode(_qr_link(), QR.ECC_M).show_in(t, 220)
 	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	v.add_child(t)
 	var cl := UI.label(_shown_code, 30, UI.accent(), UI.font_black)
 	cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

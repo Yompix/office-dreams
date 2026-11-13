@@ -92,14 +92,10 @@ func _ready() -> void:
 
 
 func _qr_sheet(tag: String) -> void:
-	var v: VBoxContainer = Overlays.sheet(app, L.t("Ваш QR-код"), L.t("Друг наводит камеру телефона — LANTERN откроется и отправит заявку"))
-	var q := QR.encode(DeepLink.friend_link(tag), QR.ECC_M)
+	var v: VBoxContainer = Overlays.sheet(app, L.t("Ваш QR-код"), L.t("Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — заявка отправится сама"))
 	var t := TextureRect.new()
-	t.texture = ImageTexture.create_from_image(q.to_image(6, Color("0b0e14"), Color("eef1f7")))
-	t.custom_minimum_size = Vector2(220, 220)
+	QR.encode(DeepLink.friend_web_link(tag), QR.ECC_M).show_in(t, 200)
 	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	v.add_child(t)
 	var l := UI.label(tag, 22, UI.accent(), UI.font_black)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -108,8 +104,8 @@ func _qr_sheet(tag: String) -> void:
 
 func _add() -> void:
 	var t := _tag_in.text.strip_edges()
-	if t.begins_with("lantern://friend"):
-		t = Invite._query(t).get("tag", "")
+	if t.begins_with("lantern://friend") or DeepLink.web_tag(t) != "":
+		t = String(DeepLink.parse(t).get("tag", ""))
 	if not t.contains("#"):
 		app.toast(L.t("Нужен тег целиком: Ник#1234"), UI.YELLOW)
 		return
