@@ -14,14 +14,14 @@ window.STORY = {
   scenes: {
     /* ================= ПРОЛОГ, 21:00 ================= */
     intro: {
-      music: 'drone', time: '21:00',
+      music: '', mfade: 1.8, time: '21:00',   // музыка владельца (13 ноя): тема меню медленно уходит; после «нажми» — Part 1 (A, затем B по кругу) до экрана телефона; с дневным охранником — Part 2 до будки
       beats: [
         { img: 'pro_hall', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.5, .5, 1.0, 1.05]], say: ['p01'], pad: .6,
-          chapter: ['HUSH TILL SIX', 'БЦ «ГОРИЗОНТ» · 21:00'], wait: 'Нажми, чтобы заступить на смену' },
+          chapter: ['HUSH TILL SIX', 'БЦ «ГОРИЗОНТ» · 21:00'], wait: 'Нажми, чтобы заступить на смену', music: 'part1' },
         { img: 'pro_hall', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.47, .5, 1.3, 1.4]], say: ['p02'], pad: .4 },
         { img: 'pro_ext', fx: 'rain', cams: [[.5, .45, 1.0, 1.08]], say: ['p03', 'p04'], sfx: [['steps', 1.0, { gain: .4 }], ['door', 9.6, { gain: .5 }]], pad: .6 },
-        { img: null, phone: { kind: 'lock', time: '21:03', notes: [{ from: 'Лили', text: 'Удачи на первой смене! Не засни там :)', at: 1.4 }] }, say: ['p05'], sfx: [['buzz', 1.4]], pad: .5 },
-        { img: 'pro_enter', cams: [[.5, .5, 1.0, 1.06]], say: ['p06'], pad: .3 },
+        { img: null, phone: { kind: 'lock', time: '21:03', notes: [{ from: 'Лили', text: 'Удачи на первой смене! Не засни там :)', at: 1.4 }] }, say: ['p05'], sfx: [['buzz', 1.4]], pad: .5, music: '', mfade: 1.0 },
+        { img: 'pro_enter', cams: [[.5, .5, 1.0, 1.06]], say: ['p06'], pad: .3, music: 'part2' },
         { img: 'pro_two', cams: [[.5, .5, 1.0, 1.05], [.48, .45, 1.25, 1.3]], say: ['p07', 'p08', 'p09'], pad: .3 },
         { img: 'pro_offer', cams: [[.5, .5, 1.05, 1.12]], pad: 1.4 }
       ],
@@ -29,12 +29,12 @@ window.STORY = {
               opts: [{ t: 'Взять ключи', go: 'keys_take' }, { t: '«Как это — не сдал?»', go: 'keys_ask' }] }
     },
     keys_ask: {
-      music: 'drone', time: '21:04',
+      music: 'part2', time: '21:04',
       beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', ['p12', '^(камеры|cameras|камери|cámaras|câmeras|kameras)$', .6], 2.4] } }],   // «камеры ничего не записали» — качает головой (от слова: в английской озвучке оно на 2,5 с позже)
       then: { goto: 'keys_take' }
     },
     keys_take: {
-      music: 'drone', time: '21:05',
+      music: 'part2', time: '21:05',
       beats: [
         { img: 'pro_take', cams: [[.5, .5, 1.05, 1.1]], sfx: [['keys', .9, { gain: .7 }]], pad: 2.0 },
         { img: 'pro_palm', cams: [[.5, .5, 1.0, 1.06]], say: ['p13'], pad: .3 },
@@ -47,7 +47,7 @@ window.STORY = {
     /* ================= БУДКА ФРЭНКА, 21:06 — осмотр ================= */
     // explore: точки на предметах кадра; каждая — короткая сцена и обратно (then.back). Что нашёл — флаги: дальше откроются вопросы и сцены
     booth: {
-      music: 'drone', time: '21:06',
+      music: 'drone', mfade: 2, time: '21:06',   // Part 2 медленно затухает
       beats: [{ img: 'fb_view', cams: [[.5, .5, 1.0, 1.05]], say: ['fb01'], if: 'asked', pad: .4, chapter: ['21:06', 'БУДКА ФРЭНКА'] },   // «всё, как сказал сменщик» — если спрашивал
         { img: 'fb_view', cams: [[.5, .5, 1.0, 1.05]], say: ['fb00'], if: '!asked', pad: .4, chapter: ['21:06', 'БУДКА ФРЭНКА'] }],
       then: { explore: { img: 'fb_view', cams: [[.5, .54, 1.05, 1.07]], hint: 'Осмотри будку. Нажми на то, что хочешь проверить.',

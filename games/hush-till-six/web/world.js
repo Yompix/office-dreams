@@ -487,8 +487,8 @@ function hiTextures() {
   // настоящие лужи тротуара: один неповторяющийся слой на всю длину (40×5 м) — редкие, неровные, с мелкими затёками по швам рядом
   TX.puddles = ctex(1024, 128, (x, w, h) => { const d = x.createImageData(w, h);
     for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) { const u = px / w, v = py / h, i = (py * w + px) * 4;
-      const n = fbm(u, v, 24, 3, 4, 131) + .1 * fbm(u, v, 90, 12, 2, 132) - .05, e = Math.min(v, 1 - v) * 8, a = sm(.6, .68, n) * clamp(e, 0, 1);
-      d.data[i] = 22; d.data[i + 1] = 26; d.data[i + 2] = 32; d.data[i + 3] = 105 * a; }   // вода тонкая: плитка под ней видна, лужу выдаёт блик фонаря, а не чёрное пятно
+      const n = fbm(u, v, 24, 3, 4, 131) + .1 * fbm(u, v, 90, 12, 2, 132) - .05, e = Math.min(v, 1 - v) * 8, a = clamp((n - .5) / .26, 0, 1) * clamp(e, 0, 1);
+      d.data[i] = 22; d.data[i + 1] = 26; d.data[i + 2] = 32; d.data[i + 3] = 255 * a; }   // альфа — «глубина» ямки в плитке: вода сначала в самых низких местах, потом растекается (порог — scenes.js, по часу ночи); вода тонкая — плитка под ней видна
     x.putImageData(d, 0, 0); }, 1, 1, 'raw');
   TX.puddles.magFilter = T.LinearFilter; TX.puddles.wrapS = TX.puddles.wrapT = T.ClampToEdgeWrapping;
   TX.curb = hiTex(256, 128, 20, 1, (u, v) => { let c = mul([91, 93, 96], .8 + .3 * fbm(u, v, 8, 4, 4, 111)); if (v > .88) c = [51, 51, 51]; return [...c, v > .88 ? .1 : .6]; });

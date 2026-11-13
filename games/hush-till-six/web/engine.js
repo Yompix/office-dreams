@@ -12,6 +12,7 @@ const APP = window.nsAppNative ? { quit: () => { try { window.nsAppNative.quit()
   orient: l => { try { window.nsAppNative.orient(!!l); } catch (e) {} } } : null;   // orient — экран телефона как выбран кадр (16:9 — альбомный, 9:16 — книжный): в браузере это делает lock() в goFull
 const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 const OVERS0 = S.overs.slice(), OVER0 = {};   // названия смертей по-русски — ключи для счётчика «Смертей найдено» (переведённые терялись при смене языка, а в английской две смерти звались одинаково)
+setTimeout(() => { try { const e = LS.get('endings', []) || [], o = LS.get('overs', []) || []; if (e.length) ach('NIGHT_DONE', 1); e.forEach(k => ach('END_' + String(k).toUpperCase(), 1)); o.forEach(n => { const i = OVERS0.indexOf(n); if (i >= 0) ach('DEATH_' + String(i + 1).padStart(2, '0'), 1); }); } catch (e) {} }, 0);   // достижения за то, что открыто раньше (без плашек)
 for (const id in S.scenes) { const th = S.scenes[id].then; if (th && th.over) OVER0[id] = th.over; }
 if (window.trStory) window.trStory(S);
 if (EN) {   // статичные надписи страницы
@@ -53,12 +54,12 @@ const ICON = {
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
 const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'ring_mob', 'tick', 'click', 'door', 'steps',
-  'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
+  'ch_katya', 'ch_whisper', 'mus_p1a', 'mus_p1b', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
 const storySfx = () => { const z = new Set(SFX2);
   for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
   for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
-  ['bolt', 'pen', 'rain_burst', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
+  ['bolt', 'pen', 'rain_burst', 'mus_p2a', 'mus_p2b', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
 const SFX2 = ['hush', 'skin_stretch', 'room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, outG = null, musicG, voiceG, sfxG, uAmb = null, sfxRev = null, sfxLow = null, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
@@ -80,7 +81,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5, theme: 5 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { sv08: 5, n26: 5, theme: 6 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -117,7 +118,7 @@ async function load(onp) {
 // Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
 // Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
 const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
-const VOICE_KEEP = window.nsTV ? 16 : 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
+const VOICE_KEEP = window.nsTV ? 16 : 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|mus_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
 const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
 const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
 const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды
@@ -252,9 +253,22 @@ function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, ra
 function dropPending() { if (!AC) return; for (const o of [...playing]) if (!o.music && !o.voice && o.at > AC.currentTime + .03) { try { o.s.stop(); } catch {} playing.delete(o); } }
 function stopAll(keepMusic = true) { for (const o of [...playing]) if (!(keepMusic && o.music)) { try { o.s.stop(); } catch {} playing.delete(o); } }
 let curMusic = null, curMusicName = '';
-function music(name) {
+// музыка владельца для пролога (13 ноя): вступление играет один раз, за ним без шва — вторая часть по кругу
+const MSEQ = { part1: ['mus_p1a', 'mus_p1b'], part2: ['mus_p2a', 'mus_p2b'] };
+// fade — как медленно уходит прежняя музыка (постоянная времени, с): .6 — обычная смена, 1.5–2 — «медленно затухает»
+function music(name, fade) {
   if (!AC || name === curMusicName) return; curMusicName = name;
-  const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} if (LAZY_RE.test(old.name) && curMusicName !== old.name) delete BUF[old.name]; }, 2500); }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
+  const tc = fade || .6, old = curMusic;
+  if (old) { for (const o of [old, old.next]) if (o) o.gn.gain.setTargetAtTime(0, AC.currentTime, tc);
+    setTimeout(() => { for (const o of [old, old.next]) if (o) { try { o.s.stop(); } catch {} playing.delete(o); if (LAZY_RE.test(o.name) && !(MSEQ[curMusicName] || [curMusicName]).includes(o.name)) delete BUF[o.name]; } }, Math.max(2500, tc * 4500)); }
+  if (MSEQ[name]) { const [a, b] = MSEQ[name]; curMusic = null;
+    const miss = [a, b].filter(k => !BUF[k]);
+    if (miss.length) { if (miss.every(k => rawSnd[k])) Promise.all(miss.map(k => decQ[k] || (decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; })))).then(() => { if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); else curMusicName = null;   // ещё не скачана — попробуем позже
+      return; }
+    const oa = play(a, { bus: 'music', gain: 1 }), ob = oa && play(b, { bus: 'music', loop: true, gain: 1, when: BUF[a].duration });
+    if (!oa) { curMusicName = null; return; }
+    oa.music = true; if (ob) { ob.music = true; oa.next = ob; } curMusic = oa;
+    if (musicSend) musicSend.gain.setTargetAtTime(1, AC.currentTime, .5); return; }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
   if (name && !BUF[name] && rawSnd[name] && !decQ[name]) {   // музыка смены и финалов декодируется, когда понадобилась (иначе ~100 МБ лежали бы в памяти всю игру)
     decQ[name] = decodeOne(name, rawSnd[name]).then(() => { delete decQ[name]; if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); curMusic = null; return; }
   curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не скачана — попробуем позже
@@ -494,10 +508,11 @@ function placeOf(img, fx) {
 }
 // тихие перемены в холле: часы встали на 03:00, куртка Михалыча пропала после открытой двери, фото на пропуске исцарапано
 function propsNow() {
+  const ct = [clockEl && clockEl.textContent, lastTime].find(v => /^\d\d:\d\d$/.test(v || '')) || '21:00', night = Math.max(0, toMin(ct) - toMin('21:00'));   // минут с начала ночи — по ним растут лужи у входа
   const book = flags.jread ? 0 : 1;   // журнал Фрэнка на столе перевязан, пока Итан его не прочитал (02:50)
-  if (mode === 'shift' && shf) return { sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, fphone: flags.fphone ? 1 : 0 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
+  if (mode === 'shift' && shf) return { night, sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, fphone: flags.fphone ? 1 : 0 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
   const tm = toMin(lastTime) < toMin('03:00') ? lastTime : '03:00';   // до трёх часы идут (ночь с 21:00 — строки «21:00» < «03:00» не сравнить: в прологе стояли на трёх), в три встают
-  return Object.assign({ clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book, fphone: flags.fphone ? 1 : 0 }, scene && scene.props, beat && beat.props);   // fphone — телефон Фрэнка на зарядке на столе
+  return Object.assign({ night, clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book, fphone: flags.fphone ? 1 : 0 }, scene && scene.props, beat && beat.props);   // fphone — телефон Фрэнка на зарядке на столе
 }
 function gameClock(withSec = true) {
   const [h, m] = lastTime.split(':').map(Number), s = h * 3600 + m * 60 + secBase + Math.floor(Math.max(0, now() - sceneT0)), p2 = v => String(v).padStart(2, '0');
@@ -523,11 +538,13 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) setFlags('opened');   // через setFlags — запоминается и после перезагрузки
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) setFlags('mih');
-  if (scene.music) music(scene.music);
+  if (AC) for (const b of scene.beats || []) for (const k of MSEQ[b.music] || []) if (!BUF[k] && rawSnd[k] && !decQ[k]) decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; });   // музыка кадров раскодируется заранее: после «нажми» вступает сразу
+  if (scene.music !== undefined) music(scene.music || null, scene.mfade);   // '' — тишина (прежняя музыка уходит; mfade — как медленно)
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
   if (!id.startsWith('over_')) { LS.set('save', id); LS.set('saveT', lastTime); }   // и время ночи: у сцен осмотра и разговоров своего нет — после «Продолжить» часы шли бы с 02:55
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
-  for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
+  for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);
+  for (let i = bi; i >= 0; i--) if (scene.beats[i] && scene.beats[i].music !== undefined) { music(scene.beats[i].music || null); break; }   // начали с середины — музыка последнего пройденного кадра   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
   const my = gen, ready = voicePrep(id); holdN = -1;
   if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
   beat = null; audioQ = 0; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
@@ -593,10 +610,11 @@ function nextBeat() {
   subl = null;
   if (beat.subl != null && !calm() && sublScene !== sceneId) { const o = typeof beat.subl === 'object' ? beat.subl : { at: +beat.subl || 1 }; subl = { at: o.at ?? 1, img: o.img || 'monster_close', n: 0 }; }
   carry.forEach(e => e.fn());
+  if (beat.music !== undefined && !beat.wait) music(beat.music || null, beat.mfade);   // музыка с этого кадра (у кадра с «нажми» — после нажатия, beginBeat)
   if (beat.wait) { waiting = true; tapEl.innerHTML = ICON.play + escH(beat.wait); tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
   audioQ = 1;   // звук — после первого нарисованного кадра (frame)
 }
-function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); audioQ = 1; }
+function beginBeat() { if (beat.music !== undefined) music(beat.music || null, beat.mfade); waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); audioQ = 1; }
 // реплика ещё не докачалась/не декодировалась (медленная сеть): когда готова — если её время ещё не пришло, ставим на своё время;
 // если чуть опоздали — отсчёт кадра сдвигается на столько же (субтитры и голос идут вместе); сильно — голос с середины, чтобы догнать слова
 const lateQ = [];   // докачанные реплики включаются в начале следующего кадра (frame → lateFlush): там часы свежие, а не между кадрами
@@ -787,7 +805,7 @@ function actSpots() {
   bs.forEach((b, i) => b.classList.toggle('up', !!(best >> i & 1))); sps.forEach(fit);
 }
 function showChoice(th) {
-  mode = 'choice'; music('tension');
+  mode = 'choice'; if (!MSEQ[curMusicName]) music('tension');   // музыка пролога (Part 2) на выборе не прерывается
   const vis = th.opts.map((o, i) => [o, i]).filter(([o]) => flagOk(o.if));   // вариант может зависеть от того, что ты узнал раньше
   choiceEl.innerHTML = `<h2>${th.choice}</h2>` + vis.map(([o, i], n) => `<button data-i="${i}"><b>${n + 1}</b>${o.t}</button>`).join('') + (th.timeout ? '<div id="timer"><i></i></div>' : '');
   choiceEl.classList.remove('hide');
@@ -1304,6 +1322,59 @@ function shiftCall(c) {   // внутренний телефон будки: с�
 }
 // найденные смерти: в сохранении — русские названия (старые сохранения — на языке, на котором играли); считаем по номеру в S.overs
 const oversGot = () => { const s = new Set(); for (const k of LS.get('overs', [])) { let i = OVERS0.indexOf(k); if (i < 0) i = S.overs.indexOf(k); if (i >= 0) s.add(i); } return s; };
+/* ---------- достижения (владелец 13 ноя: «красивое достижение, как в Майнкрафте в Плей Маркете») ----------
+   Те же 21, что в Steam (tools/desktop/steam/STEAM.md, те же ID). Хранятся у игрока (LS 'ach'), плашка «Достижение получено» с иконкой
+   (web/ach/<ID>.jpg — кадры игры, tools/desktop/steam/kit.js → tools/android/achievements.py), экран «Достижения» в меню.
+   Наружу: ПК — DESK.ach (Steam), Android — nsAppNative.ach (Google Play Игры, когда в приложение добавлены ID из Play Console). */
+const ACHS = [   // ID, название ru / uk / en, описание ru / uk / en, скрытое до получения
+  ['NIGHT_DONE', 'Конец смены', 'Кінець зміни', 'End of Shift', 'Доживи до утра — до любой концовки.', 'Доживи до ранку — до будь-якої кінцівки.', 'Make it through the night to any ending.', 0],
+  ['END_DAWN', 'Рассвет', 'Світанок', 'Dawn', 'Концовка «Рассвет».', 'Кінцівка «Світанок».', 'Reach the ending “Dawn”.', 1],
+  ['END_SISTER', 'Сестра', 'Сестра', 'Sister', 'Концовка «Сестра».', 'Кінцівка «Сестра».', 'Reach the ending “Sister”.', 1],
+  ['END_INSIDE', 'Внутри', 'Всередині', 'Inside', 'Концовка «Внутри».', 'Кінцівка «Всередині».', 'Reach the ending “Inside”.', 1],
+  ['END_NEWENTRY', 'Новая запись', 'Новий запис', 'New Entry', 'Концовка «Новая запись».', 'Кінцівка «Новий запис».', 'Reach the ending “New Entry”.', 1],
+  ['ALL_ENDINGS', 'Все концовки', 'Усі кінцівки', 'Every Ending', 'Открой все четыре концовки.', 'Відкрий усі чотири кінцівки.', 'Unlock all four endings.', 0],
+  ['DEATH_01', 'Ты посмотрел ему в лицо', 'Ти подивився йому в обличчя', 'You Looked It in the Face', 'Не смотри в тринадцатую камеру.', 'Не дивись у тринадцяту камеру.', "Don't look at camera thirteen.", 1],
+  ['DEATH_02', 'Ты пошёл на свет', 'Ти пішов на світло', 'You Went to the Light', 'Сам к нему не ходи — ни на свет, ни в лифт.', 'Сам до нього не ходи — ні на світло, ні в ліфт.', "Don't go to it yourself — not to the light, not in the elevator.", 1],
+  ['DEATH_03', 'Ты отозвался', 'Ти озвався', 'You Answered the Radio', 'Гас не знал твоего имени. А оно знает.', 'Гас не знав твого імені. А воно знає.', "Gus didn't know your name. It does.", 1],
+  ['DEATH_04', 'Оно обернулось', 'Воно обернулося', 'It Turned Around', 'Тринадцатая включилась сама — выдёргивай шнур, не смотри.', 'Тринадцята ввімкнулася сама — висмикуй шнур, не дивись.', "Thirteen turned on by itself — pull the cord, don't look.", 1],
+  ['DEATH_05', 'Оно услышало', 'Воно почуло', 'It Heard You', 'Оно ищет на звук. Пока шаги рядом — не дыши.', 'Воно шукає на звук. Поки кроки поруч — не дихай.', "It hunts by sound. While the footsteps are near — don't breathe.", 1],
+  ['DEATH_06', 'Темнота догнала', 'Темрява наздогнала', 'The Dark Caught Up', 'Остановишься — догонит.', 'Зупинишся — наздожене.', 'Stop, and it catches you.', 1],
+  ['DEATH_07', 'Ты пошёл на зов', 'Ти пішов на поклик', 'You Followed the Call', 'Оно умеет звать. Стучать — нет.', 'Воно вміє кликати. Стукати — ні.', 'It knows how to call. Not how to knock.', 1],
+  ['DEATH_08', 'Фрэнк ушёл на голос', 'Френк пішов на голос', 'Frank Went to the Voice', 'Держи его, пока голос не стихнет.', 'Тримай його, доки голос не стихне.', 'Hold him until the voice fades.', 1],
+  ['DEATH_09', 'Ты ответил', 'Ти відповів', 'You Answered the Call', 'Свои до утра подождут.', 'Свої до ранку зачекають.', 'Your own can wait till morning.', 1],
+  ['DEATH_10', 'Оно пришло', 'Воно прийшло', 'It Came', 'Три странности за час остались без внимания.', 'Три дивацтва за годину лишилися без уваги.', 'Three anomalies in an hour went unnoticed.', 1],
+  ['DEATH_11', 'Ты засмотрелся', 'Ти задивився', 'You Stared Too Long', 'Там, где помехи, кто-то стоит.', 'Там, де перешкоди, хтось стоїть.', 'Someone is standing where the static is.', 1],
+  ['DEATH_12', 'Ты назвался', 'Ти назвався', 'You Said Your Name', 'Оно знает твоё имя. Ему нужно только, чтобы ты ответил.', 'Воно знає твоє ім’я. Йому треба лише, щоб ти відповів.', 'It knows your name. All it needs is for you to answer.', 1],
+  ['DEATH_13', 'Ты открыл ей', 'Ти відчинив їй', 'You Let Her In', 'Посторонних не впускать.', 'Стороннім вхід заборонено.', 'No unauthorized visitors.', 1],
+  ['DEATH_14', 'Ты взял трубку', 'Ти взяв слухавку', 'You Picked Up', 'Звонили не тебе. Но ответил — ты.', 'Дзвонили не тобі. Але відповів — ти.', "The call wasn't for you. But you're the one who answered.", 1],
+  ['ALL_DEATHS', 'Четырнадцать способов умереть', 'Чотирнадцять способів померти', 'Fourteen Ways to Die', 'Найди все 14 смертей.', 'Знайди всі 14 смертей.', 'Find all 14 deaths.', 0]];
+const ACH_BY = Object.fromEntries(ACHS.map(a => [a[0], a])), achL = LNG === 'ru' ? 0 : LNG === 'uk' ? 1 : 2;
+const achName = a => a[1 + achL], achDesc = a => a[4 + achL];
+let achGot = new Set((LS.get('ach', []) || []).filter(k => ACH_BY[k]));
+function achSync(id) { if (DESK && DESK.ach) DESK.ach(id); if (window.nsAppNative && window.nsAppNative.ach) try { window.nsAppNative.ach(id); } catch (e) {} }
+function ach(id, quiet) {
+  if (!ACH_BY[id]) return; achSync(id); if (achGot.has(id)) return;
+  achGot.add(id); LS.set('ach', [...achGot]); if (!quiet) achToast(ACH_BY[id]);
+  const all = p => ACHS.filter(a => a[0].startsWith(p)).every(a => achGot.has(a[0]));
+  if (id.startsWith('END_') && all('END_')) setTimeout(() => ach('ALL_ENDINGS', quiet), quiet ? 0 : 2600);
+  if (id.startsWith('DEATH_') && all('DEATH_')) setTimeout(() => ach('ALL_DEATHS', quiet), quiet ? 0 : 2600);
+}
+// плашки идут по очереди (концовка + «Конец смены» + «Все концовки»), каждая ~3,6 с
+const achQ = []; let achBusy = false;
+function achToast(a) { achQ.push(a); if (!achBusy) achNext(); }
+function achNext() {
+  const a = achQ.shift(); if (!a) { achBusy = false; return; } achBusy = true;
+  const el = document.createElement('div'); el.className = 'achT';
+  el.innerHTML = `<img src="ach/${a[0]}.jpg?v=1" alt=""><div><small>${tr('ДОСТИЖЕНИЕ ПОЛУЧЕНО')}</small><b>${escH(achName(a))}</b></div>`;
+  ($('stage') || document.body).appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+  if (AC) play('ding', { gain: .22, rate: .75, bus: 'sfx' });
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => { el.remove(); achNext(); }, 450); }, 3600);
+}
+function achScreen() {
+  const n = ACHS.filter(a => achGot.has(a[0])).length;
+  return `<h1>${tr('ДОСТИЖЕНИЯ')}</h1><small class="achN">${trf('Получено {a} из {b}', { a: n, b: ACHS.length })}</small><div class="achG">${ACHS.map(a => { const g = achGot.has(a[0]), hid = !g && a[7];
+    return `<div class="${g ? 'got' : ''}"><img src="ach/${a[0]}.jpg?v=1" alt=""><span><b>${escH(hid ? tr('Скрытое достижение') : achName(a))}</b><i>${escH(hid ? '???' : achDesc(a))}</i></span></div>`; }).join('')}</div>`;
+}
 function gallery() {
   const got = LS.get('endings', []).filter(k => S.endings[k]), ov = oversGot();
   return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
@@ -1356,6 +1427,7 @@ function menu() {
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
       <button id="mGal">${tr('Концовки')}</button>
+      <button id="mAch">${tr('Достижения')}</button>
       <button id="mSet">${tr('Настройки')}</button>
       ${DESK || APP ? `<button id="mQuit">${tr('Выйти из игры')}</button>` : DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
     </nav>
@@ -1365,6 +1437,7 @@ function menu() {
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
   btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); });
+  btn('mAch', () => subScreen(achScreen()));
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
   else titleAudio();
@@ -1538,7 +1611,7 @@ function finale(th) {
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
-  if (DESK && DESK.ach) { DESK.ach('END_' + String(th.ending).toUpperCase()); DESK.ach('NIGHT_DONE'); }   // достижения Steam (tools/desktop: «все концовки» main.js считает сам)
+  ach('NIGHT_DONE'); ach('END_' + String(th.ending).toUpperCase());   // достижения: плашка в игре + Steam (ПК) / Google Play Игры (Android)
   if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
   const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
@@ -1571,7 +1644,7 @@ function demoEnd() {
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const ov = new Set(LS.get('overs', [])), oi = S.overs.indexOf(th.over); ov.add(OVER0[sceneId] || (oi >= 0 ? OVERS0[oi] : th.over)); LS.set('overs', [...ov]);
-  if (DESK && DESK.ach && oi >= 0) DESK.ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер)
+  if (oi >= 0) ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер); плашка + Steam / Google Play
   music(null); if (hushOn) hush(false);   // тишина финала (hush) не переходит на экран смерти и в повтор
   // обрыв в черноту, секунда темноты (звук смерти ещё звучит), потом название; за ним из темноты проступает последний кадр — застывший
   overBg = { t0: now(), st: lastShotT }; setTimeout(() => { const s = uiEl.querySelector('.screen.over'); if (s) s.style.pointerEvents = ''; }, 800);
@@ -2245,7 +2318,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
+window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot() { return [...achGot]; }, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },

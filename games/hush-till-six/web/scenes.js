@@ -384,7 +384,7 @@ function buildLobby() {
   buildFacade(o, S);
   // снаружи: тротуар, бордюр, дорога, фонарь, машина, дома напротив, небо
   const walk = plane(40, 5, mat(0xffffff, TX.tileSide), S); walk.rotation.x = -PI / 2; walk.position.set(0, .001, 8.5);
-  if (TX.puddles) { const pd = plane(40, 5, mat(0xffffff, TX.puddles, { transparent: true, opacity: 1, rough: .03, metal: 0, decal: 1 }), S); pd.rotation.x = -PI / 2; pd.position.set(0, .004, 8.5); pd.userData.solid = false; }   // лужи — зеркало: в них фонарь и свет входа
+  if (TX.puddles) { const pd = o.pud = plane(40, 5, mat(0xffffff, TX.puddles, { transparent: true, opacity: .85, rough: .02, metal: 0, decal: 1 }), S); pd.material.alphaTest = .3; pd.rotation.x = -PI / 2; pd.position.set(0, .004, 8.5); pd.userData.solid = false; }   // лужи — зеркало: в них фонарь и свет входа; растут за ночь (wetAt)
   box(40, .15, .3, mat(0xffffff, TX.curb), 0, .075, 11, S);
   const road = plane(60, 20, mat(0xffffff, TX.asphalt), S); road.rotation.x = -PI / 2; road.position.set(0, -.05, 21);
   for (let x = -24; x < 24; x += 6) { const ln = plane(2.4, .15, mat(0xb8b8a8, null, { decal: 1 }), S); ln.rotation.x = -PI / 2; ln.position.set(x, -.04, 17); }
@@ -397,7 +397,9 @@ function buildLobby() {
   const pole = cyl(.06, .08, 6, 6, mat(0x222428), S); pole.position.set(3.8, 3, 10.4);
   box(1.2, .06, .06, mat(0x222428), 3.3, 5.95, 10.4, S); o.streetBulb = box(.4, .1, .2, mat(0xffb35a, null, { basic: true, glow: 3 }), 2.8, 5.88, 10.4, S);
   o.street = new T.PointLight(0xff9a3a, 1.2, 16, 1.4); o.street.position.set(2.8, 5.6, 10.4); S.add(o.street);
-  const pool = plane(4, 4, new T.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: .12, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S); pool.rotation.x = -PI / 2; pool.position.set(2.8, .01, 10.6); ps1(pool.material);
+  // пятно света фонаря на тротуаре — круглое, края тают (была квадратная плашка 4×4 с резкими краями — владелец 13 ноя: «квадрат»)
+  const poolTex = ctex(128, 128, (x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+  const pool = plane(5, 5, new T.MeshBasicMaterial({ color: 0xff9a3a, map: poolTex, transparent: true, opacity: .16, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S); pool.rotation.x = -PI / 2; pool.position.set(2.8, .01, 10.6); ps1(pool.material);
   // машина у тротуара
   // мусорные баки справа от входа и кошка у них (смена: Фрэнк двадцать лет записывал её в журнал)
   { const bm = mat(0x24382c, null, { rough: .6 }), lid = mat(0x18241c, null, { rough: .5 });
@@ -440,6 +442,8 @@ function buildLobby() {
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
   // предметы-«нормы»: сюжет может их тихо менять (куртка пропала, часы встали, фото на пропуске исцарапано)
   o.props = (P = PROPS) => {
+    // лужи растут за ночь: в 21:00 дождь только начался — вода в самых низких местах; к часу ночи — разлилась (P.night — минут с 21:00; нет — средне)
+    if (o.pud) { const w = .15 + .85 * clamp((P.night ?? 120) / 240, 0, 1); o.pud.material.alphaTest = .85 * (1 - .9 * w); }
     o.jacket.visible = !!P.jacket; o.badge.visible = !!P.badge;
     o.badgeCard.material = mat(0xffffff, P.badge === 'scratched' ? TX.badgeX : TX.badge, { decal: 1 });
     o.note.material = mat(0xffffff, P.log === 2 ? TX.note2 : TX.note, { decal: 1 });
@@ -2432,7 +2436,7 @@ function eKnockDoor(t, hits = [.55, .82, 1.09]) { let away = 1; for (const h of 
   const e = hits[hits.length - 1], lift = seg(t, .1, .45) * (1 - seg(t, e + .26, e + .71)), z = -13.952 + .085 * Math.min(1, away);
   const R = locR(.14, -13.5, PI);   // левая рука с фонарём — у груди, светит в дверь (не у плеча вбок)
   return { clips: [['Idle_Torch_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: [-.08, 1.32, z], by: 'knuck', fdir: [-.1, .15, -1], pdir: [-.8, -.6, 0], w: lift },
-    l: { at: R.p(.16, 1.1, .3), by: 'palm', fdir: R.v(-.35, .05, 1), pdir: R.v(.95, 0, .1), w: 1 } }, fing: { r: ['fist', lift], l: ['grip', 1] }, hold: ETORCH, look: [-.1, 1.3, -14] }; }
+    l: { at: R.p(.13, 1.08, .3), by: 'palm', fdir: R.v(-1, .15, .2), pdir: R.v(.1, 1, -.15), w: 1 } }, fing: { r: ['fist', lift], l: ['grip', 1] }, hold: ETORCH, look: [-.1, 1.3, -14] }; }
 function torchFromHand(o, tgt) {   // свет фонаря — из руки Итана в цель (пятно на двери там, куда смотрит фонарь), а не из точки внутри руки
   const E = A.temych; if (!E || !E.bone || !E.bone.hand_l) return; const hp = E.bone.hand_l.getWorldPosition(new T.Vector3()), tv = new T.Vector3(...tgt), d = tv.clone().sub(hp).normalize();
   o.etorch.intensity = 7; o.etorch.position.copy(hp).addScaledVector(d, .14); o.etorch.target.position.copy(tv); o.etorch.target.updateMatrixWorld(); }
