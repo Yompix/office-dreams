@@ -1,0 +1,8 @@
+{
+ "leo": {"phenotype": {"gender": 1, "age": 0.33, "muscle": 0.35, "weight": 0.3, "proportions": 0.55, "height": 0.52, "cupsize": 0.5, "firmness": 0.5, "race": {"asian": 0.55, "caucasian": 0.4, "african": 0.05}},
+  "skin": "young_asian_male/young_asian_male.mhmat", "hair": "short01/short01.mhclo", "brows": "eyebrow006/eyebrow006.mhclo",
+  "clothes": ["male_casualsuit06/male_casualsuit06.mhclo", "shoes05/shoes05.mhclo"]},
+ "mara": {"phenotype": {"gender": 0, "age": 0.4, "muscle": 0.5, "weight": 0.5, "proportions": 0.55, "height": 0.5, "cupsize": 0.4, "firmness": 0.6, "race": {"asian": 0.1, "caucasian": 0.35, "african": 0.55}},
+  "skin": "young_african_female/young_african_female.mhmat", "hair": "ponytail01/ponytail01.mhclo", "brows": "eyebrow004/eyebrow004.mhclo",
+  "clothes": ["female_casualsuit01/female_casualsuit01.mhclo", "shoes01/shoes01.mhclo"]}
+}
