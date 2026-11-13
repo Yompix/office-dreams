@@ -26,10 +26,27 @@ func _ready() -> void:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(v)
 
+	# --- язык (переключается сразу, без перезапуска)
+	var gl := _group(v, "Язык / Language")
+	var names := []
+	var cur := 0
+	var langs := L.available()
+	for i in langs.size():
+		names.append(langs[i][1])
+		if langs[i][0] == L.current():
+			cur = i
+	var lo := UI.option(names, cur)
+	lo.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	lo.item_selected.connect(func(i):
+		Cfg.set_value("app", "lang", langs[i][0])
+		L.apply(langs[i][0])
+		app._rebuild())
+	gl.add_child(lo)
+
 	# --- внешний вид
-	var g := _group(v, "Внешний вид")
+	var g := _group(v, L.t("Внешний вид"))
 	var av := UI.vbox(10)
-	av.add_child(UI.label("Цвет акцента", 15, UI.TEXT, UI.font_bold))
+	av.add_child(UI.label(L.t("Цвет акцента"), 15, UI.TEXT, UI.font_bold))
 	var ar := UI.hbox(10)
 	for key in Cfg.ACCENTS:
 		var c: Color = Cfg.ACCENTS[key]
@@ -53,78 +70,84 @@ func _ready() -> void:
 	av.add_child(ar)
 	g.add_child(av)
 	g.add_child(UI.divider())
-	var rm := UI.switch_row("Меньше анимаций", "Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает.", Cfg.get_value("app", "reduce_motion", false), func(b): Cfg.set_value("app", "reduce_motion", b))
+	var rm := UI.switch_row(L.t("Меньше анимаций"), L.t("Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает."), Cfg.get_value("app", "reduce_motion", false), func(b): Cfg.set_value("app", "reduce_motion", b))
 	g.add_child(rm.row)
+	g.add_child(UI.divider())
+	g.add_child(UI.switch_row(L.t("Звуки"), L.t("Тихие звуки нажатий, входа в игру и ошибок."), bool(Cfg.get_value("app", "sounds", true)), func(b):
+		Cfg.set_value("app", "sounds", b)
+		Sfx.play("success")).row)
+	if FX.lite:
+		g.add_child(UI.para(L.t("На этом устройстве включён лёгкий режим: фон неподвижный, чтобы приложение не тормозило."), 12, UI.DIM))
 
 	# --- покупки (в версии для Google Play скрыто: покупки и реклама не подключены)
 	if Cfg.paid():
-		var gm := _group(v, "Покупки и реклама")
-		var demo := UI.switch_row("ДЕМО-режим", "Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд.", Social.demo, func(b):
+		var gm := _group(v, L.t("Покупки и реклама"))
+		var demo := UI.switch_row(L.t("ДЕМО-режим"), L.t("Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд."), Social.demo, func(b):
 			Social.set_demo(b)
-			app.toast("ДЕМО включён" if b else "ДЕМО выключен: демо-покупки и демо-искры стёрты"))
+			app.toast(L.t("ДЕМО включён") if b else L.t("ДЕМО выключен: демо-покупки и демо-искры стёрты")))
 		gm.add_child(demo.row)
 
 	# --- миры
-	var gd := _group(v, "Миры и копии")
+	var gd := _group(v, L.t("Миры и копии"))
 	if not Cfg.mobile():      # на телефоне копий нет — сервер только на ПК
-		gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), "Копии миров", "Резервные копии, облако, перенос по коду", UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
+		gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), L.t("Копии миров"), L.t("Резервные копии, облако, перенос по коду"), UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
 	if not Cfg.mobile():
-		gd.add_child(UI.list_row(UI.icon_tile("info", UI.BEDROCK, 40, 20), "Проверка системы", "Можно ли создать мир на этом компьютере", UI.icon("chevron", 20, UI.DIM), func(): app.go("syscheck", true), Color(0, 0, 0, 0)))
+		gd.add_child(UI.list_row(UI.icon_tile("info", UI.BEDROCK, 40, 20), L.t("Проверка системы"), L.t("Можно ли создать мир на этом компьютере"), UI.icon("chevron", 20, UI.DIM), func(): app.go("syscheck", true), Color(0, 0, 0, 0)))
 		gd.add_child(UI.divider())
 		var dv := UI.vbox(8)
-		dv.add_child(UI.label("Где хранить миры и серверы", 15, UI.TEXT, UI.font_bold))
-		dv.add_child(UI.para("Серверы, миры, Java и копии. Нужно 1–3 ГБ свободного места.", 13, UI.MUTED))
+		dv.add_child(UI.label(L.t("Где хранить миры и серверы"), 15, UI.TEXT, UI.font_bold))
+		dv.add_child(UI.para(L.t("Серверы, миры, Java и копии. Нужно 1–3 ГБ свободного места."), 13, UI.MUTED))
 		_dir = UI.line_edit(Cfg.data_dir())
 		_dir.editable = false
 		_dir.add_theme_font_size_override("font_size", 13)
 		dv.add_child(_dir)
 		if Cfg.server_root() != Cfg.data_dir():
-			dv.add_child(UI.para("Серверы и Java — в %s (Java на Windows не понимает русские буквы в пути)." % Cfg.server_root(), 12, UI.DIM))
+			dv.add_child(UI.para(L.t("Серверы и Java — в %s (Java на Windows не понимает русские буквы в пути).") % Cfg.server_root(), 12, UI.DIM))
 		var tools := UI.flow(8)
-		tools.add_child(UI.button("Изменить…", "secondary", _pick_dir, "folder"))
-		tools.add_child(UI.button("Открыть", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.data_dir()))))
-		tools.add_child(UI.button("По умолчанию", "ghost", func():
+		tools.add_child(UI.button(L.t("Изменить…"), "secondary", _pick_dir, "folder"))
+		tools.add_child(UI.button(L.t("Открыть"), "ghost", func(): UI.open(ProjectSettings.globalize_path(Cfg.data_dir()))))
+		tools.add_child(UI.button(L.t("По умолчанию"), "ghost", func():
 			Cfg.set_value("app", "data_dir", "")
 			_dir.text = Cfg.data_dir()))
 		dv.add_child(tools)
 		gd.add_child(dv)
 
 	# --- сервер LANTERN
-	var gr := _group(v, "Сервер LANTERN")
-	gr.add_child(UI.para("Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер.", 13, UI.MUTED))
+	var gr := _group(v, L.t("Сервер LANTERN"))
+	gr.add_child(UI.para(L.t("Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."), 13, UI.MUTED))
 	_relay = UI.line_edit(Cfg.relay_url(), Cfg.DEFAULT_RELAY)
 	_relay.add_theme_font_override("font", UI.font_mono)
 	_relay.add_theme_font_size_override("font_size", 13)
 	gr.add_child(_relay)
 	var rr := UI.flow(8)
-	rr.add_child(UI.button("Сохранить", "secondary", _save_relay))
-	rr.add_child(UI.button("Проверить связь", "ghost", _check_relay, "wifi"))
+	rr.add_child(UI.button(L.t("Сохранить"), "secondary", _save_relay))
+	rr.add_child(UI.button(L.t("Проверить связь"), "ghost", _check_relay, "wifi"))
 	gr.add_child(rr)
 	_relay_st = UI.label("", 13, UI.DIM)
 	gr.add_child(_relay_st)
 
 	# --- обновления (только ПК: серверы живут там)
 	if not Cfg.mobile():
-		var gu := _group(v, "Обновления серверов")
-		gu.add_child(UI.para("Серверы обновляются сами при каждом запуске мира. Здесь можно посмотреть, что нового.", 13, UI.MUTED))
-		var ub := UI.button("Проверить обновления", "secondary", _check, "refresh")
+		var gu := _group(v, L.t("Обновления серверов"))
+		gu.add_child(UI.para(L.t("Серверы обновляются сами при каждом запуске мира. Здесь можно посмотреть, что нового."), 13, UI.MUTED))
+		var ub := UI.button(L.t("Проверить обновления"), "secondary", _check, "refresh")
 		ub.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		gu.add_child(ub)
 		_upd = UI.vbox(6)
 		gu.add_child(_upd)
 
 	# --- профиль и данные
-	var gp := _group(v, "Профиль и данные")
-	gp.add_child(UI.list_row(UI.icon_tile("lock", UI.MUTED, 40, 20), "Конфиденциальность", "Что хранится и сколько", UI.icon("chevron", 20, UI.DIM), func(): OS.shell_open(Cfg.SITE + "/privacy"), Color(0, 0, 0, 0)))
-	gp.add_child(UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), "Условия использования", "", UI.icon("chevron", 20, UI.DIM), func(): OS.shell_open(Cfg.SITE + "/terms"), Color(0, 0, 0, 0)))
+	var gp := _group(v, L.t("Профиль и данные"))
+	gp.add_child(UI.list_row(UI.icon_tile("lock", UI.MUTED, 40, 20), L.t("Конфиденциальность"), L.t("Что хранится и сколько"), UI.icon("chevron", 20, UI.DIM), func(): UI.open(Cfg.SITE + "/privacy"), Color(0, 0, 0, 0)))
+	gp.add_child(UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), L.t("Условия использования"), "", UI.icon("chevron", 20, UI.DIM), func(): UI.open(Cfg.SITE + "/terms"), Color(0, 0, 0, 0)))
 	gp.add_child(UI.divider())
-	var db := UI.button("Удалить профиль", "danger", _ask_delete, "trash")
+	var db := UI.button(L.t("Удалить профиль"), "danger", _ask_delete, "trash")
 	db.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	gp.add_child(db)
-	gp.add_child(UI.para("Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся.", 12, UI.DIM))
+	gp.add_child(UI.para(L.t("Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."), 12, UI.DIM))
 
 	# --- о программе
-	var ga := _group(v, "О программе")
+	var ga := _group(v, L.t("О программе"))
 	var rep := Report.button(app, "settings")
 	rep.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	ga.add_child(rep)
@@ -133,24 +156,24 @@ func _ready() -> void:
 	var at := UI.vbox(0)
 	at.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	at.add_child(UI.label("LANTERN " + Cfg.APP_VERSION, 17, UI.TEXT, UI.font_bold))
-	at.add_child(UI.label("Создатель — Yompix", 13, UI.accent(), UI.font_bold))
+	at.add_child(UI.label(L.t("Создатель — Yompix"), 13, UI.accent(), UI.font_bold))
 	ah.add_child(at)
 	ga.add_child(ah)
-	ga.add_child(UI.para("Без телеметрии. Не требует прав администратора. Пароли не спрашивает.", 13, UI.MUTED))
-	ga.add_child(UI.para("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT.", 12, UI.DIM))
+	ga.add_child(UI.para(L.t("Без телеметрии. Не требует прав администратора. Пароли не спрашивает."), 13, UI.MUTED))
+	ga.add_child(UI.para(L.t("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT."), 12, UI.DIM))
 	ga.add_child(UI.para(Cfg.DISCLAIMER + "\n" + Cfg.DISCLAIMER_EN, 12, UI.DIM))
-	ga.add_child(UI.para("Minecraft — товарный знак Mojang Synergies AB. LANTERN не содержит файлов игры: нужна своя копия Minecraft.", 12, UI.DIM))
+	ga.add_child(UI.para(L.t("Minecraft — товарный знак Mojang Synergies AB. LANTERN не содержит файлов игры: нужна своя копия Minecraft."), 12, UI.DIM))
 	v.add_child(UI.gap(16))
 
 
 func _ask_delete() -> void:
-	var s: VBoxContainer = Overlays.sheet(app, "Удалить профиль?", "Ник, тег, друзья, сообщения, искры и облачные копии будут стёрты с сервера навсегда. Отменить нельзя.")
+	var s: VBoxContainer = Overlays.sheet(app, L.t("Удалить профиль?"), L.t("Ник, тег, друзья, сообщения, искры и облачные копии будут стёрты с сервера навсегда. Отменить нельзя."))
 	var row := UI.hbox(8)
-	var no := UI.button("Отмена", "secondary", func(): Overlays.close_sheet(app))
+	var no := UI.button(L.t("Отмена"), "secondary", func(): Overlays.close_sheet(app))
 	no.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var yes := UI.button("Удалить навсегда", "danger", func():
+	var yes := UI.button(L.t("Удалить навсегда"), "danger", func():
 		if not Social.online():
-			app.toast("Нужен интернет — подключитесь и повторите", UI.YELLOW)
+			app.toast(L.t("Нужен интернет — подключитесь и повторите"), UI.YELLOW)
 			return
 		Social.delete_account()
 		Overlays.close_sheet(app), "trash")
@@ -165,18 +188,18 @@ func _pick_dir() -> void:
 	fd.file_mode = FileDialog.FILE_MODE_OPEN_DIR
 	fd.access = FileDialog.ACCESS_FILESYSTEM
 	fd.use_native_dialog = true
-	fd.title = "Папка для миров"
+	fd.title = L.t("Папка для миров")
 	fd.dir_selected.connect(func(d):
 		if app.server.is_alive():
-			app.toast("Сначала остановите сервер", UI.YELLOW)
+			app.toast(L.t("Сначала остановите сервер"), UI.YELLOW)
 			return
 		Cfg.set_value("app", "data_dir", d.path_join("LANTERN"))
 		DirAccess.make_dir_recursive_absolute(Cfg.data_dir())
 		_dir.text = Cfg.data_dir()
 		if Cfg.is_windows() and not Cfg.is_ascii_path(Cfg.data_dir()):
-			app.toast("В пути есть русские буквы — серверы и Java всё равно будут в " + Cfg.server_root(), UI.YELLOW)
+			app.toast(L.t("В пути есть русские буквы — серверы и Java всё равно будут в ") + Cfg.server_root(), UI.YELLOW)
 		else:
-			app.toast("Новые миры будут в этой папке"))
+			app.toast(L.t("Новые миры будут в этой папке")))
 	add_child(fd)
 	fd.popup_centered(Vector2i(800, 500))
 
@@ -184,33 +207,33 @@ func _pick_dir() -> void:
 func _save_relay() -> void:
 	var u := _relay.text.strip_edges()
 	if u != "" and not (u.begins_with("wss://") or u.begins_with("ws://")):
-		_relay_st.text = "Адрес должен начинаться с wss://"
+		_relay_st.text = L.t("Адрес должен начинаться с wss://")
 		_relay_st.add_theme_color_override("font_color", UI.YELLOW)
 		return
 	Cfg.set_value("app", "relay", "" if u == Cfg.DEFAULT_RELAY else u)
 	_relay.text = Cfg.relay_url()
-	app.toast("Сохранено")
+	app.toast(L.t("Сохранено"))
 
 
 func _check_relay() -> void:
 	var u := _relay.text.strip_edges()
 	var h := u.replace("wss://", "https://").replace("ws://", "http://").trim_suffix("/ws") + "/healthz"
-	_relay_st.text = "Проверяем…"
+	_relay_st.text = L.t("Проверяем…")
 	var r: Dictionary = await Net.get_json(h)
 	if not is_inside_tree():
 		return
 	if r.ok and r.data is Dictionary and r.data.get("app", "") == "lantern-relay":
-		_relay_st.text = "✓ Работает. Комнат сейчас: %d" % int(r.data.rooms)
+		_relay_st.text = L.t("✓ Работает. Комнат сейчас: %d") % int(r.data.rooms)
 		_relay_st.add_theme_color_override("font_color", UI.JAVA)
 	else:
-		_relay_st.text = "✗ Не отвечает: " + str(r.get("error", "это не сервер LANTERN"))
+		_relay_st.text = L.t("✗ Не отвечает: ") + str(r.get("error", L.t("это не сервер LANTERN")))
 		_relay_st.add_theme_color_override("font_color", UI.RED)
 
 
 func _check() -> void:
 	for c in _upd.get_children():
 		c.queue_free()
-	_upd.add_child(UI.label("Проверяем…", 14, UI.DIM))
+	_upd.add_child(UI.label(L.t("Проверяем…"), 14, UI.DIM))
 	var lines: PackedStringArray = await app.server.check_updates()
 	if not is_inside_tree():
 		return

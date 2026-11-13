@@ -41,17 +41,17 @@ func _rebuild() -> void:
 			c.queue_free()
 	_spots.clear()
 	var online := Social.friends.filter(func(f): return f.get("online", false))
-	_hint.text = ("У костра друзей: %d · нажмите на фонарик" % online.size()) if Social.online() else "Нет связи с сервером LANTERN"
+	_hint.text = (L.t("У костра друзей: %d · нажмите на фонарик") % online.size()) if Social.online() else L.t("Нет связи с сервером LANTERN")
 	if app:
-		app.set_title("Костёр", "Друзья в сети — зайти в мир или написать")
-	var people := [{"me": true, "nick": Social.me.get("nick", "Вы"), "lantern": Social.eco.get("lantern", {"level": 1}), "equip": Social.eco.get("equip", {})}]
+		app.set_title(L.t("Костёр"), L.t("Друзья в сети — зайти в мир или написать"))
+	var people := [{"me": true, "nick": Social.me.get("nick", L.t("Вы")), "lantern": Social.eco.get("lantern", {"level": 1}), "equip": Social.eco.get("equip", {})}]
 	people.append_array(online)
 	for i in people.size():
 		var f: Dictionary = people[i]
 		var li := LanternIcon.new().setup(int(f.get("lantern", {}).get("level", 1)), f.get("equip", ""), 64)
 		li.seed_hue = i * 0.37
 		add_child(li)
-		var l := UI.label(f.get("nick", "") + ("" if not f.get("me", false) else " (вы)"), 14, UI.TEXT, UI.font_bold)
+		var l := UI.label(f.get("nick", "") + ("" if not f.get("me", false) else L.t(" (вы)")), 14, UI.TEXT, UI.font_bold)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.set_meta("spot", true)
 		l.clip_text = true
@@ -72,8 +72,8 @@ func _rebuild() -> void:
 static func _short(f: Dictionary) -> String:
 	var a: Variant = f.get("activity")
 	if a is Dictionary and a.get("code", "") != "":
-		return "в мире — зайти"
-	return "у костра"
+		return L.t("в мире — зайти")
+	return L.t("у костра")
 
 
 func _notification(what: int) -> void:

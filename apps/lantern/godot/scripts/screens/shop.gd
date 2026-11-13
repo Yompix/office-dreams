@@ -28,7 +28,7 @@ func _ready() -> void:
 	_body = UI.vbox(14)
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_body)
-	var foot := UI.para("Только внешний вид — никаких преимуществ в игре и случайных наград.", 12, UI.DIM)
+	var foot := UI.para(L.t("Только внешний вид — никаких преимуществ в игре и случайных наград."), 12, UI.DIM)
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(foot)
 	Social.changed.connect(func(w): if w in ["shop", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
@@ -56,7 +56,7 @@ func _render() -> void:
 	for c in _body.get_children():
 		c.queue_free()
 	if not Social.online():
-		_body.add_child(UI.empty("wifi", "Магазин работает через интернет", "Повторить", func(): Social.reconnect(), "Подключитесь к сети — и всё появится."))
+		_body.add_child(UI.empty("wifi", L.t("Магазин работает через интернет"), L.t("Повторить"), func(): Social.reconnect(), L.t("Подключитесь к сети — и всё появится.")))
 		return
 	if _kind == "pro":
 		_pro()
@@ -90,17 +90,17 @@ func _preview(it: Dictionary) -> Control:
 		"shape":
 			box.add_child(LanternIcon.new().setup(5, {"shape": it.id, "flame": Social.eco.get("equip", {}).get("flame", "")}, 84))
 		"nick":
-			box.add_child(UI.label(Social.me.get("nick", "Ник"), 22, Color(NICK_COLORS.get(it.id, "eef1f7")), UI.font_black))
+			box.add_child(UI.label(Social.me.get("nick", L.t("Ник")), 22, Color(NICK_COLORS.get(it.id, "eef1f7")), UI.font_black))
 		"frame":
 			var p := PanelContainer.new()
 			var colors := {"frame_wood": "8a5a32", "frame_stone": "8a8f9c", "frame_gold": "ffcf5a", "frame_night": "5a6cff", "frame_s1": "ff8a3d", "frame_none": "2c3345"}
 			p.add_theme_stylebox_override("panel", UI.box(UI.CARD_HI, 10, 10, Color(colors.get(it.id, "2c3345")), 4))
-			p.add_child(UI.label("Мой мир", 14, UI.TEXT, UI.font_bold))
+			p.add_child(UI.label(L.t("Мой мир"), 14, UI.TEXT, UI.font_bold))
 			box.add_child(p)
 		"sticker":
-			box.add_child(UI.label({"sticker_wave": "Привет! ♥", "sticker_creeper": "БУМ! ✦", "sticker_heart": "♥ ♥ ♥", "sticker_s1": "★ Сезон ★"}.get(it.id, "★"), 20, UI.AMBER, UI.font_black))
+			box.add_child(UI.label({"sticker_wave": L.t("Привет! ♥"), "sticker_creeper": L.t("БУМ! ✦"), "sticker_heart": "♥ ♥ ♥", "sticker_s1": L.t("★ Сезон ★")}.get(it.id, "★"), 20, UI.AMBER, UI.font_black))
 		"campfire":
-			box.add_child(UI.label({"camp_logs": "▲ костёр", "camp_tent": "▲ палатка", "camp_stars": "✦ ✦ ✦", "camp_snow": "❄ ❄ ❄", "camp_fireflies": "• ✦ •", "camp_s1": "❦ осень", "camp_s1b": "≈ сияние"}.get(it.id, "▲"), 20, UI.AMBER, UI.font_black))
+			box.add_child(UI.label({"camp_logs": L.t("▲ костёр"), "camp_tent": L.t("▲ палатка"), "camp_stars": "✦ ✦ ✦", "camp_snow": "❄ ❄ ❄", "camp_fireflies": "• ✦ •", "camp_s1": L.t("❦ осень"), "camp_s1b": L.t("≈ сияние")}.get(it.id, "▲"), 20, UI.AMBER, UI.font_black))
 	return box
 
 
@@ -128,24 +128,24 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	v.add_child(nl)
 	var b: Button
 	if it.get("season", null) != null and not it.owned:
-		b = UI.button("Сезон", "ghost", func(): app.go("quests", true, {"tab": "season"}), "star")
+		b = UI.button(L.t("Сезон"), "ghost", func(): app.go("quests", true, {"tab": "season"}), "star")
 	elif not it.owned:
 		var can: bool = int(Social.eco.get("sparks", 0)) >= int(it.price)
 		b = UI.button("%d" % int(it.price), "tonal" if can else "secondary", func():
 			if not can:
-				app.toast("Не хватает искр — выполняйте задания", UI.YELLOW)
+				app.toast(L.t("Не хватает искр — выполняйте задания"), UI.YELLOW)
 				return
 			Social.request("buy", {"item": it.id})
 			FX.burst(app, p.get_global_rect().get_center() - app.global_position, 18), "spark")
-		b.tooltip_text = "" if can else "Не хватает искр — выполняйте задания"
+		b.tooltip_text = "" if can else L.t("Не хватает искр — выполняйте задания")
 	elif it.kind == "sticker":
-		b = UI.button("Есть", "ghost", Callable(), "check")
+		b = UI.button(L.t("Есть"), "ghost", Callable(), "check")
 		b.disabled = true
 	elif worn:
-		b = UI.button("Надето", "tonal", Callable(), "check")
+		b = UI.button(L.t("Надето"), "tonal", Callable(), "check")
 		b.disabled = true
 	else:
-		b = UI.button("Надеть", "secondary", func(): Social.request("wear", {"item": it.id}))
+		b = UI.button(L.t("Надеть"), "secondary", func(): Social.request("wear", {"item": it.id}))
 	b.clip_text = true
 	b.add_theme_font_size_override("font_size", 14)
 	b.custom_minimum_size.y = 40
@@ -172,10 +172,10 @@ func _pro() -> void:
 	hv.add_child(UI.label("LANTERN Pro", 26, UI.AMBER, UI.font_black))
 	var active: bool = Social.eco.get("pro", false)
 	var until := int(Social.eco.get("pro_until", 0))
-	hv.add_child(UI.label(("Активна до " + Time.get_date_string_from_unix_time(until / 1000) + (" (ДЕМО)" if Social.demo else "")) if active else "99,99 ₴ в месяц · $2.49", 14, UI.JAVA if active else UI.MUTED, UI.font_bold))
+	hv.add_child(UI.label((L.t("Активна до ") + Time.get_date_string_from_unix_time(until / 1000) + (L.t(" (ДЕМО)") if Social.demo else "")) if active else L.t("99,99 ₴ в месяц · $2.49"), 14, UI.JAVA if active else UI.MUTED, UI.font_bold))
 	hr.add_child(hv)
 	v.add_child(hr)
-	for line in [["close", "Без рекламы совсем"], ["lock", "Свой код комнаты, например LUNA7"], ["cloud", "Облачные копии миров"], ["star", "Особая косметика каждый месяц"], ["heart", "Поддержка автора LANTERN — Yompix"]]:
+	for line in [["close", L.t("Без рекламы совсем")], ["lock", L.t("Свой код комнаты, например LUNA7")], ["cloud", L.t("Облачные копии миров")], ["star", L.t("Особая косметика каждый месяц")], ["heart", L.t("Поддержка автора LANTERN — Yompix")]]:
 		var r := UI.hbox(12)
 		var ic := UI.icon("check", 18, UI.AMBER)
 		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -186,32 +186,32 @@ func _pro() -> void:
 		v.add_child(r)
 	v.add_child(UI.gap(4))
 	if active:
-		v.add_child(UI.pill("✓ Pro активна", UI.JAVA))
-		v.add_child(UI.caption("Свой код комнаты"))
+		v.add_child(UI.pill(L.t("✓ Pro активна"), UI.JAVA))
+		v.add_child(UI.caption(L.t("Свой код комнаты")))
 		var vr := UI.hbox(8)
-		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), "Например LUNA7")
+		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), L.t("Например LUNA7"))
 		ve.max_length = 8
 		ve.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ve.add_theme_font_override("font", UI.font_black)
 		vr.add_child(ve)
-		vr.add_child(UI.button("Сохранить", "tonal", func(): Social.request("vanity_set", {"code": ve.text})))
+		vr.add_child(UI.button(L.t("Сохранить"), "tonal", func(): Social.request("vanity_set", {"code": ve.text})))
 		if String(Social.eco.get("vanity", "")) != "":
-			vr.add_child(UI.icon_button("close", func(): Social.request("vanity_clear"), "Убрать свой код", UI.MUTED))
+			vr.add_child(UI.icon_button("close", func(): Social.request("vanity_clear"), L.t("Убрать свой код"), UI.MUTED))
 		v.add_child(vr)
-		v.add_child(UI.para("3–8 символов: латиница и цифры 2–9. Друзья вводят его вместо случайного кода. Работает, пока активна Pro; один мир за раз.", 12, UI.DIM))
-		v.add_child(UI.button("Облачные копии миров", "secondary", func(): app.go("backups", true), "cloud"))
+		v.add_child(UI.para(L.t("3–8 символов: латиница и цифры 2–9. Друзья вводят его вместо случайного кода. Работает, пока активна Pro; один мир за раз."), 12, UI.DIM))
+		v.add_child(UI.button(L.t("Облачные копии миров"), "secondary", func(): app.go("backups", true), "cloud"))
 	else:
-		var buy := UI.button("Оформить Pro", "primary", func(): _buy("lantern_pro_month"))
+		var buy := UI.button(L.t("Оформить Pro"), "primary", func(): _buy("lantern_pro_month"))
 		buy.custom_minimum_size.y = 52
 		v.add_child(buy)
 	cols.add_child(pro)
 	var right := UI.vbox(10)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.add_child(UI.section("Наборы искр"))
-	for pk in [["sparks_500", "500 искр", "79,99 ₴"], ["sparks_1200", "1200 искр", "169,99 ₴ · выгоднее на 20%"]]:
+	right.add_child(UI.section(L.t("Наборы искр")))
+	for pk in [["sparks_500", L.t("500 искр"), "79,99 ₴"], ["sparks_1200", L.t("1200 искр"), L.t("169,99 ₴ · выгоднее на 20%")]]:
 		var tile := UI.icon_tile("spark", UI.AMBER, 48, 26)
-		right.add_child(UI.list_row(tile, pk[1], pk[2], UI.button("Купить", "secondary", func(): _buy(pk[0]))))
-	right.add_child(UI.para("Искры можно и не покупать: задания дня, серия и сезон дают их каждый день. Покупки — только через Google Play, родители могут ограничить их в настройках Play.", 13, UI.DIM))
+		right.add_child(UI.list_row(tile, pk[1], pk[2], UI.button(L.t("Купить"), "secondary", func(): _buy(pk[0]))))
+	right.add_child(UI.para(L.t("Искры можно и не покупать: задания дня, серия и сезон дают их каждый день. Покупки — только через Google Play, родители могут ограничить их в настройках Play."), 13, UI.DIM))
 	cols.add_child(right)
 	FX.stagger(cols, 0.05)
 

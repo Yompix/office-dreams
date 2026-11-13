@@ -21,7 +21,7 @@ static func from_launch() -> String:
 		var data: Variant = intent.call("getDataString")
 		return String(data) if data != null else ""
 	for a in OS.get_cmdline_args() + OS.get_cmdline_user_args():
-		if String(a).begins_with("lantern://") or Invite.web_code(String(a)) != "":
+		if String(a).begins_with("lantern://") or Invite.web_code(String(a)) != "" or web_tag(String(a)) != "":
 			return String(a)
 	return ""
 
@@ -38,9 +38,9 @@ static func parse(url: String) -> Dictionary:
 		if r.get("ok", false):
 			return {"kind": "join", "code": r.code, "edition": r.get("edition", ""), "name": r.get("name", ""), "relay": r.get("relay", "")}
 		return {"kind": ""}
-	if u.begins_with("lantern://friend"):
-		var q := Invite._query(u)
-		var tag := String(q.get("tag", "")).strip_edges()
+	var wt := web_tag(u)
+	if u.begins_with("lantern://friend") or wt != "":
+		var tag := wt if wt != "" else String(Invite._query(u).get("tag", "")).strip_edges()
 		if RegEx.create_from_string("^.{3,16}#\\d{4}$").search(tag):
 			return {"kind": "friend", "tag": tag}
 	return {"kind": ""}
@@ -48,3 +48,14 @@ static func parse(url: String) -> Dictionary:
 
 static func friend_link(tag: String) -> String:
 	return "lantern://friend?v=1&tag=" + tag.uri_encode()
+
+
+## 1.8.1: ссылка для QR друга — https://…/lantern/f/<тег>: страница открывает lantern://friend (камеры не открывают lantern://).
+static func friend_web_link(tag: String) -> String:
+	return Cfg.SITE + "/f/" + tag.uri_encode()
+
+
+## Тег из ссылки https://…/lantern/f/<тег> (или "").
+static func web_tag(url: String) -> String:
+	var m := RegEx.create_from_string("^https?://[^/]+/lantern/f/([^/?]+)(?:[/?].*)?$").search(url.strip_edges())
+	return m.get_string(1).uri_decode().strip_edges() if m else ""

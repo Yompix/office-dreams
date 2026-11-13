@@ -120,7 +120,11 @@ func _set_conn(s: String) -> void:
 	changed.emit("conn")
 
 
+var sent_count := 0      # сколько команд ушло на сервер (автотест «нерабочих кнопок» смотрит, был ли эффект)
+
+
 func _send(d: Dictionary) -> void:
+	sent_count += 1
 	if _active and _ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		_ws.send_text(JSON.stringify(d))
 
@@ -164,7 +168,7 @@ func _on_msg(m: Dictionary) -> void:
 			if found:
 				changed.emit("friends")
 		"friend_add_ok":
-			notice.emit({"kind": "info", "text": "Заявка отправлена: " + m.user.tag})
+			notice.emit({"kind": "info", "text": L.t("Заявка отправлена: ") + m.user.tag})
 		"notice", "invite":
 			var d := m.duplicate()
 			if t == "invite":
@@ -230,7 +234,7 @@ func _on_msg(m: Dictionary) -> void:
 			if str(m.get("error", "")) != "":
 				failed.emit("vanity", m.error)
 			else:
-				notice.emit({"kind": "info", "text": ("Ваш код комнаты: " + m.code) if m.get("code", "") != "" else "Свой код отключён"})
+				notice.emit({"kind": "info", "text": (L.t("Ваш код комнаты: ") + m.code) if m.get("code", "") != "" else L.t("Свой код отключён")})
 		"cloud":
 			cloud = m
 			changed.emit("cloud")
@@ -243,7 +247,7 @@ func _on_msg(m: Dictionary) -> void:
 			if str(m.get("error", "")) != "":
 				failed.emit(t, m.error)
 			else:
-				notice.emit({"kind": "info", "text": {"set_title": "Титул обновлён", "referral": "Код друга принят!", "like": "Спасибо за лайк!", "report_ok": "Жалоба отправлена. Спасибо!", "invite_ok": "Приглашение отправлено"}.get(t, "Готово")})
+				notice.emit({"kind": "info", "text": {"set_title": L.t("Титул обновлён"), "referral": L.t("Код друга принят!"), "like": L.t("Спасибо за лайк!"), "report_ok": L.t("Жалоба отправлена. Спасибо!"), "invite_ok": L.t("Приглашение отправлено")}.get(t, L.t("Готово"))})
 				if t == "set_title":
 					request("state")
 		"error":

@@ -31,16 +31,16 @@ func _ready() -> void:
 	_version = String(Cfg.get_value("game", "filter_version", "any"))
 	if UI.compact():
 		var hr := UI.hbox(8)
-		var h := UI.hero("Игры")
+		var h := UI.hero(L.t("Игры"))
 		h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hr.add_child(h)
-		var sb := UI.icon_button("search", _toggle_search, "Поиск", UI.TEXT, Color(1, 1, 1, 0.08))
+		var sb := UI.icon_button("search", _toggle_search, L.t("Поиск"), UI.TEXT, Color(1, 1, 1, 0.08))
 		sb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		hr.add_child(sb)
 		add_child(hr)
 	else:
-		app.set_title("Игры", "Зайдите в любую одним нажатием — LANTERN сам откроет Minecraft")
-		app.set_actions([UI.icon_button("search", _toggle_search, "Поиск", UI.MUTED), UI.icon_button("refresh", _load, "Обновить", UI.MUTED)])
+		app.set_title(L.t("Игры"), L.t("Зайдите в любую одним нажатием — LANTERN сам откроет Minecraft"))
+		app.set_actions([UI.icon_button("search", _toggle_search, L.t("Поиск"), UI.MUTED), UI.icon_button("refresh", _load, L.t("Обновить"), UI.MUTED)])
 	# --- игра уже идёт / «Продолжить»
 	var live := false
 	if app.own.active:
@@ -56,7 +56,7 @@ func _ready() -> void:
 		var cc := _continue_card()
 		if cc:
 			add_child(cc)
-	_search = UI.line_edit("", "Название, номер комнаты или режим")
+	_search = UI.line_edit("", L.t("Название, номер комнаты или режим"))
 	_search.right_icon = UI.icon_tex("search", 20, UI.DIM)
 	_search.visible = false
 	_search.text_submitted.connect(func(t): _q = t.strip_edges(); _first = true; _load())
@@ -108,12 +108,12 @@ func _toggle_search() -> void:
 func _render_filters() -> void:
 	for c in _filters.get_children():
 		c.queue_free()
-	var modes := [["any", "Все режимы"]] + Cfg.MODES
-	_filters.add_child(_drop(("Все режимы" if _mode == "any" else Cfg.mode_name(_mode)) + "  ▾", _mode != "any", modes, func(k): _mode = k))
-	var vers := [["any", "Любая версия"]]
+	var modes := [["any", L.t("Все режимы")]] + Cfg.MODES
+	_filters.add_child(_drop((L.t("Все режимы") if _mode == "any" else Cfg.mode_name(_mode)) + "  ▾", _mode != "any", modes, func(k): _mode = k))
+	var vers := [["any", L.t("Любая версия")]]
 	for v in _known_versions():
 		vers.append([v, v])
-	_filters.add_child(_drop(("Версия" if _version == "any" else _version) + "  ▾", _version != "any", vers, func(k):
+	_filters.add_child(_drop((L.t("Версия") if _version == "any" else _version) + "  ▾", _version != "any", vers, func(k):
 		_version = k
 		Cfg.set_value("game", "filter_version", k)))
 
@@ -175,11 +175,11 @@ func _input(e: InputEvent) -> void:
 	if (e is InputEventScreenDrag or (e is InputEventMouseMotion and e.button_mask & MOUSE_BUTTON_MASK_LEFT)) and at_top:
 		_pull = maxf(0.0, _pull + e.relative.y) if e.relative.y > 0 or _pull > 0 else 0.0
 		_pull_box.visible = _pull > 24
-		_pull_lbl.text = "Отпустите, чтобы обновить" if _pull > 90 else "Потяните, чтобы обновить"
+		_pull_lbl.text = L.t("Отпустите, чтобы обновить") if _pull > 90 else L.t("Потяните, чтобы обновить")
 		_pull_icon.rotation = sin(_pull * 0.07) * minf(_pull / 90.0, 1.0) * 0.45     # фонарь качается за пальцем
 	elif (e is InputEventScreenTouch or e is InputEventMouseButton) and not e.pressed:
 		if _pull > 90:
-			_pull_lbl.text = "Обновляем…"
+			_pull_lbl.text = L.t("Обновляем…")
 			_first = true
 			_load()
 			if FX.on():
@@ -236,12 +236,12 @@ func _continue_card() -> Control:
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	v.add_child(UI.caption("Продолжить", UI.accent().lightened(0.3)))
-	var t := UI.label(String(d.get("name", "Мир")), 19, UI.TEXT, UI.font_title)
+	v.add_child(UI.caption(L.t("Продолжить"), UI.accent().lightened(0.3)))
+	var t := UI.label(String(d.get("name", L.t("Мир"))), 19, UI.TEXT, UI.font_title)
 	t.clip_text = true
 	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(t)
-	var sub := "Ваша игра — открыть снова" if host else ("Вы заходили · " + (("№ " + String(d.num)) if String(d.get("num", "")) != "" else "код " + RoomCode.pretty(String(d.get("code", "")))))
+	var sub := L.t("Ваша игра — открыть снова") if host else (L.t("Вы заходили · ") + (("№ " + String(d.num)) if String(d.get("num", "")) != "" else L.t("код ") + RoomCode.pretty(String(d.get("code", "")))))
 	var sl := UI.label(sub, 13, UI.MUTED)
 	sl.clip_text = true
 	sl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -286,7 +286,7 @@ func _render_friends() -> void:
 	_friends_box.visible = not playing.is_empty()
 	if playing.is_empty():
 		return
-	_friends_box.add_child(UI.section("Друзья играют"))
+	_friends_box.add_child(UI.section(L.t("Друзья играют")))
 	for f in playing.slice(0, 4):
 		_friends_box.add_child(_friend_row(f))
 
@@ -307,14 +307,14 @@ func _friend_row(f: Dictionary) -> Control:
 	tv.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var t := UI.label(String(a.get("world", "Мир")), 16, UI.TEXT, UI.font_bold)
+	var t := UI.label(String(a.get("world", L.t("Мир"))), 16, UI.TEXT, UI.font_bold)
 	t.clip_text = true
 	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	tv.add_child(t)
 	var who := UI.hbox(6)
 	who.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	who.add_child(Avatar.of(f, 20))
-	var wl := UI.label("%s %s" % [f.nick, "создал(а) игру" if hosting else "играет"], 13, UI.MUTED)
+	var wl := UI.label("%s %s" % [f.nick, L.t("создал(а) игру") if hosting else L.t("играет")], 13, UI.MUTED)
 	wl.clip_text = true
 	wl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -336,8 +336,8 @@ func _render() -> void:
 		c.queue_free()
 	if not Social.online():
 		var reg := Social.conn == "need_register"
-		_list.add_child(UI.empty("wifi" if not reg else "user", "Нет связи с сервером LANTERN" if not reg else "Придумайте ник", "Повторить" if not reg else "Создать профиль",
-			func(): Overlays.register(app) if reg else Social.reconnect(), "Список игр появится, когда вернётся интернет." if not reg else "Без профиля список игр не виден."))
+		_list.add_child(UI.empty("wifi" if not reg else "user", L.t("Нет связи с сервером LANTERN") if not reg else L.t("Придумайте ник"), L.t("Повторить") if not reg else L.t("Создать профиль"),
+			func(): Overlays.register(app) if reg else Social.reconnect(), L.t("Список игр появится, когда вернётся интернет.") if not reg else L.t("Без профиля список игр не виден.")))
 		return
 	var mine: String = app.relay_host.stats().get("code", "")
 	var rooms: Array = Social.rooms.filter(func(r): return r.code != mine)
@@ -346,13 +346,13 @@ func _render() -> void:
 		# в поиске — код или номер закрытой игры: зайти можно всё равно
 		var code := RoomCode.normalize(_q) if _q != "" else ""
 		if code != "" and (RoomCode.is_random(code) or RoomCode.is_number(code)):
-			_list.add_child(UI.list_row(UI.icon_tile("play", UI.accent(), 48, 24), "Зайти по коду " + (code if RoomCode.is_number(code) else RoomCode.pretty(code)), "В открытых такой игры нет — попробуем по коду",
+			_list.add_child(UI.list_row(UI.icon_tile("play", UI.accent(), 48, 24), L.t("Зайти по коду ") + (code if RoomCode.is_number(code) else RoomCode.pretty(code)), L.t("В открытых такой игры нет — попробуем по коду"),
 				UI.icon("chevron", 20, UI.DIM), func(): app.go("join", true, {"input": code, "edition": "both"})))
 			return
-		_list.add_child(UI.empty("globe", "Сейчас нет открытых игр" + (" с такими фильтрами" if filt else ""), "Создай первую игру", func(): app.go("create"),
-			"Откройте свой мир — его увидят все в LANTERN." if not filt else "Попробуйте другое название, номер или режим."))
+		_list.add_child(UI.empty("globe", L.t("Сейчас нет открытых игр") + (L.t(" с такими фильтрами") if filt else ""), L.t("Создай первую игру"), func(): app.go("create"),
+			L.t("Откройте свой мир — его увидят все в LANTERN.") if not filt else L.t("Попробуйте другое название, номер или режим.")))
 		return
-	_list.add_child(UI.section("Открытые игры · %d" % rooms.size()))
+	_list.add_child(UI.section(L.t("Открытые игры · %d") % rooms.size()))
 	for r in rooms.slice(0, 60):     # список не растёт бесконечно: 60 строк хватает, остальное — поиском
 		_list.add_child(_row(r))
 	if _first:
@@ -427,7 +427,7 @@ func _row(r: Dictionary) -> Control:
 	row.add_child(rv)
 	UI.tappable(p, func():
 		if full:
-			app.toast("Все места заняты", UI.YELLOW)
+			app.toast(L.t("Все места заняты"), UI.YELLOW)
 			return
 		if String(r.get("version", "")) != "":
 			Cfg.set_value("own", "last_version", "%s %s" % [ed, r.version])
@@ -466,7 +466,7 @@ func _coach() -> void:
 	ov.add_child(ring)
 	var tip := PanelContainer.new()
 	tip.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.accent(), UI.R_BTN), 16, 10))
-	tip.add_child(UI.label("Нажми — и ты в игре  ↑", 15, UI.ON_ACCENT, UI.font_bold))
+	tip.add_child(UI.label(L.t("Нажми — и ты в игре  ↑"), 15, UI.ON_ACCENT, UI.font_bold))
 	tip.position = Vector2(r.position.x + 8, r.end.y + 14)
 	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ov.add_child(tip)
@@ -515,20 +515,20 @@ func _live_card(seed_text: String, mode: String, cap: String, title: String, sub
 func _live_card_host() -> Control:
 	var s: ServerHost = app.server
 	var code: String = app.relay_host.stats().get("code", "")
-	var st: String = {"installing": "Готовится…", "starting": "Запускается…", "running": "Идёт игра", "stopping": "Останавливается…", "error": "Ошибка"}.get(s.state, "")
-	var sub := "Код %s · игроков: %d" % [RoomCode.pretty(code), s.players.size()] if code != "" else "Нажмите, чтобы открыть"
-	return _live_card(code if code != "" else String(s.opts.get("world", "")), Cfg.game().mode, st, "Ваш мир «%s»" % s.opts.get("world", "Мир"), sub, UI.JAVA if s.state == "running" else UI.YELLOW, "host")
+	var st: String = {"installing": L.t("Готовится…"), "starting": L.t("Запускается…"), "running": L.t("Идёт игра"), "stopping": L.t("Останавливается…"), "error": L.t("Ошибка")}.get(s.state, "")
+	var sub := L.t("Код %s · игроков: %d") % [RoomCode.pretty(code), s.players.size()] if code != "" else L.t("Нажмите, чтобы открыть")
+	return _live_card(code if code != "" else String(s.opts.get("world", "")), Cfg.game().mode, st, L.t("Ваш мир «%s»") % s.opts.get("world", L.t("Мир")), sub, UI.JAVA if s.state == "running" else UI.YELLOW, "host")
 
 
 func _live_card_own() -> Control:
 	var w: Dictionary = app.own.world
 	var code: String = app.relay_host.stats().get("code", "")
-	var sub := "Код %s · друзей: %d" % [RoomCode.pretty(code), int(app.relay_host.stats().get("peers", 0))] if code != "" else "Открываем комнату…"
+	var sub := L.t("Код %s · друзей: %d") % [RoomCode.pretty(code), int(app.relay_host.stats().get("peers", 0))] if code != "" else L.t("Открываем комнату…")
 	var ok: bool = app.own.alive()
-	return _live_card(code if code != "" else String(w.get("name", "")), Cfg.game().mode, "Игра открыта" if ok else "Откройте Minecraft", "Ваш мир «%s»" % w.get("name", "Мир"), sub, UI.JAVA if ok else UI.YELLOW, "host")
+	return _live_card(code if code != "" else String(w.get("name", "")), Cfg.game().mode, L.t("Игра открыта") if ok else L.t("Откройте Minecraft"), L.t("Ваш мир «%s»") % w.get("name", L.t("Мир")), sub, UI.JAVA if ok else UI.YELLOW, "host")
 
 
 func _live_card_join() -> Control:
 	var st: Dictionary = app.relay_join.stats()
-	var t := "Мир «%s»" % st.name if st.state == "online" and st.name != "" else "Подключаемся…"
-	return _live_card(app.relay_join.code, "other", "Вы в игре" if st.state == "online" else "Заходим", t, "Код " + RoomCode.pretty(app.relay_join.code), UI.BEDROCK, "join")
+	var t := L.t("Мир «%s»") % st.name if st.state == "online" and st.name != "" else L.t("Подключаемся…")
+	return _live_card(app.relay_join.code, "other", L.t("Вы в игре") if st.state == "online" else L.t("Заходим"), t, L.t("Код ") + RoomCode.pretty(app.relay_join.code), UI.BEDROCK, "join")

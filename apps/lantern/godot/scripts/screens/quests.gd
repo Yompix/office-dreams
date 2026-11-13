@@ -14,7 +14,7 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 14)
 	if arg is Dictionary and arg.has("tab"):
 		_tab = arg.tab
-	_seg = UI.segmented([["quests", "Задания"], ["season", "Сезон"], ["achievements", "Достижения"]], _tab, func(k):
+	_seg = UI.segmented([["quests", L.t("Задания")], ["season", L.t("Сезон")], ["achievements", L.t("Достижения")]], _tab, func(k):
 		_tab = k
 		UI.segmented_select(_seg, k)
 		_render())
@@ -42,7 +42,7 @@ static func _demo_banner() -> Control:
 	var ic := UI.icon("info", 18, UI.YELLOW)
 	ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	r.add_child(ic)
-	var l := UI.para("ДЕМО: деньги не списываются, реклама тестовая. Выключить — «Настройки».", 13, Color("ffdf9a"))
+	var l := UI.para(L.t("ДЕМО: деньги не списываются, реклама тестовая. Выключить — «Настройки»."), 13, Color("ffdf9a"))
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	r.add_child(l)
 	return p
@@ -65,7 +65,7 @@ func _render() -> void:
 	for c in _body.get_children():
 		c.queue_free()
 	if not Social.online():
-		_body.add_child(UI.empty("quests", "Задания считаются на сервере LANTERN", "Повторить", func(): Social.reconnect(), "Подключитесь к интернету."))
+		_body.add_child(UI.empty("quests", L.t("Задания считаются на сервере LANTERN"), L.t("Повторить"), func(): Social.reconnect(), L.t("Подключитесь к интернету.")))
 		return
 	match _tab:
 		"quests": _quests()
@@ -101,22 +101,22 @@ func _quests() -> void:
 	FX.count(big, 0, int(e.get("streak", 0)), "%d", 0.5)
 	var bl := UI.hbox(8)
 	bl.add_child(big)
-	var dl := UI.label(_days(int(e.get("streak", 0))) + " подряд", 14, UI.TEXT, UI.font_bold)
+	var dl := UI.label(_days(int(e.get("streak", 0))) + L.t(" подряд"), 14, UI.TEXT, UI.font_bold)
 	dl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bl.add_child(dl)
 	sv.add_child(bl)
-	sv.add_child(UI.para("Рекорд: %d · пропуск раз в неделю не сжигает серию" % int(e.get("best_streak", 0)), 12, UI.MUTED))
+	sv.add_child(UI.para(L.t("Рекорд: %d · пропуск раз в неделю не сжигает серию") % int(e.get("best_streak", 0)), 12, UI.MUTED))
 	sr.add_child(sv)
 	var claimed: bool = e.get("streak_claimed", false)
-	var sb := UI.button("Получено" if claimed else "+%d" % int(e.get("streak_reward", 5)), "primary", func(): Social.request("streak_claim"), "check" if claimed else "spark")
+	var sb := UI.button(L.t("Получено") if claimed else "+%d" % int(e.get("streak_reward", 5)), "primary", func(): Social.request("streak_claim"), "check" if claimed else "spark")
 	sb.disabled = claimed
 	sb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	sr.add_child(sb)
 	left.add_child(sp)
-	left.add_child(UI.section("Задания дня · ещё %s" % _hm(int(q.get("resets_in", 0)))))
+	left.add_child(UI.section(L.t("Задания дня · ещё %s") % _hm(int(q.get("resets_in", 0)))))
 	for it in q.get("daily", []):
 		left.add_child(_quest_row(it))
-	left.add_child(UI.section("Задания недели"))
+	left.add_child(UI.section(L.t("Задания недели")))
 	for it in q.get("weekly", []):
 		left.add_child(_quest_row(it))
 	# фонарь, реклама, друг
@@ -124,7 +124,7 @@ func _quests() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cols.add_child(right)
 	if UI.compact():
-		right.add_child(UI.section("Ещё искры"))
+		right.add_child(UI.section(L.t("Ещё искры")))
 	var lp := UI.panel(18)
 	var lv := UI.vbox(10)
 	lp.add_child(lv)
@@ -132,8 +132,8 @@ func _quests() -> void:
 	var lr := UI.hbox(14)
 	lr.add_child(LanternIcon.new().setup(int(lan.level), e.get("equip", {}), 64))
 	var lt := UI.vbox(2)
-	lt.add_child(UI.h3("Фонарь — уровень %d" % int(lan.level)))
-	lt.add_child(UI.para("Разгорается от игры с друзьями и наград за задания.", 13, UI.MUTED))
+	lt.add_child(UI.h3(L.t("Фонарь — уровень %d") % int(lan.level)))
+	lt.add_child(UI.para(L.t("Разгорается от игры с друзьями и наград за задания."), 13, UI.MUTED))
 	lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lr.add_child(lt)
 	lv.add_child(lr)
@@ -144,15 +144,15 @@ func _quests() -> void:
 		bar.max_value = float(lan.next)
 		_grow(bar, float(lan.minutes))
 		lv.add_child(bar)
-		lv.add_child(UI.label("%d / %d очков света до следующего уровня" % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
+		lv.add_child(UI.label(L.t("%d / %d очков света до следующего уровня") % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
 	right.add_child(lp)
 	if Cfg.paid():
 		var left_ads := int(e.get("ads_left", 3))
-		var ab := UI.button("Смотреть рекламу", "tonal", func(): Store.show_rewarded(app), "play")
+		var ab := UI.button(L.t("Смотреть рекламу"), "tonal", func(): Store.show_rewarded(app), "play")
 		ab.disabled = left_ads <= 0
-		right.add_child(UI.list_row(UI.icon_tile("spark", UI.AMBER, 44, 22), "+20 искр за ролик", "Осталось сегодня: %d из 3 · в Pro рекламы нет" % left_ads, null))
+		right.add_child(UI.list_row(UI.icon_tile("spark", UI.AMBER, 44, 22), L.t("+20 искр за ролик"), L.t("Осталось сегодня: %d из 3 · в Pro рекламы нет") % left_ads, null))
 		right.add_child(ab)
-	right.add_child(UI.list_row(UI.icon_tile("friends", UI.BEDROCK, 44, 22), "Позовите друга — +100 искр", "Пусть впишет ваш тег %s в профиле и наиграет час" % Social.me.get("tag", ""), null))
+	right.add_child(UI.list_row(UI.icon_tile("friends", UI.BEDROCK, 44, 22), L.t("Позовите друга — +100 искр"), L.t("Пусть впишет ваш тег %s в профиле и наиграет час") % Social.me.get("tag", ""), null))
 	FX.stagger(left, 0.035)
 
 
@@ -169,15 +169,15 @@ static func _days(n: int) -> String:
 	var m10 := n % 10
 	var m100 := n % 100
 	if m10 == 1 and m100 != 11:
-		return "день"
+		return L.t("день")
 	if m10 >= 2 and m10 <= 4 and (m100 < 12 or m100 > 14):
-		return "дня"
-	return "дней"
+		return L.t("дня")
+	return L.t("дней")
 
 
 static func _hm(ms: int) -> String:
 	var m := ms / 60000
-	return "%d ч %02d мин" % [m / 60, m % 60]
+	return L.t("%d ч %02d мин") % [m / 60, m % 60]
 
 
 func _quest_row(it: Dictionary) -> Control:
@@ -196,7 +196,7 @@ func _quest_row(it: Dictionary) -> Control:
 	bar.max_value = float(it.target)
 	_grow(bar, float(it.progress))
 	v.add_child(bar)
-	var pl := UI.label("%d / %d  ·  +%d искр  ·  +%d света" % [int(it.progress), int(it.target), int(it.sparks), int(it.xp)], 12, UI.MUTED)
+	var pl := UI.label(L.t("%d / %d  ·  +%d искр  ·  +%d света") % [int(it.progress), int(it.target), int(it.sparks), int(it.xp)], 12, UI.MUTED)
 	pl.clip_text = true
 	pl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(pl)
@@ -205,10 +205,10 @@ func _quest_row(it: Dictionary) -> Control:
 	var b: Button
 	if it.claimed:
 		b = UI.button("", "ghost", Callable(), "check")
-		b.tooltip_text = "Получено"
+		b.tooltip_text = L.t("Получено")
 		b.disabled = true
 	else:
-		b = UI.button("Забрать" if done else "В пути", "tonal" if done else "secondary", func(): Social.request("quest_claim", {"id": it.id, "period": it.period}))
+		b = UI.button(L.t("Забрать") if done else L.t("В пути"), "tonal" if done else "secondary", func(): Social.request("quest_claim", {"id": it.id, "period": it.period}))
 		b.disabled = not done
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.custom_minimum_size.x = 48 if it.claimed else 104
@@ -228,10 +228,10 @@ func _season() -> void:
 	head.add_theme_stylebox_override("panel", UI._hpad(UI.glass(2, UI.R_XL, 0, UI.AMBER), 18, 18))
 	var hv := UI.vbox(8)
 	head.add_child(hv)
-	hv.add_child(UI.caption("Сезон", UI.AMBER))
+	hv.add_child(UI.caption(L.t("Сезон"), UI.AMBER))
 	hv.add_child(UI.h2(s.title))
 	var days := int((float(s.end) - Time.get_unix_time_from_system() * 1000.0) / 86400000.0)
-	hv.add_child(UI.label("Ступень %d из %d · %d очков · ещё %d дн." % [int(s.tier), int(s.tiers), int(s.points), max(days, 0)], 13, UI.MUTED))
+	hv.add_child(UI.label(L.t("Ступень %d из %d · %d очков · ещё %d дн.") % [int(s.tier), int(s.tiers), int(s.points), max(days, 0)], 13, UI.MUTED))
 	var bar := ProgressBar.new()
 	bar.show_percentage = false
 	bar.custom_minimum_size.y = 8
@@ -239,16 +239,16 @@ func _season() -> void:
 	_grow(bar, float(int(s.points) % int(s.tierPoints)))
 	hv.add_child(bar)
 	if s.premium:
-		hv.add_child(UI.pill("✓ Премиум-путь открыт", UI.AMBER))
+		hv.add_child(UI.pill(L.t("✓ Премиум-путь открыт"), UI.AMBER))
 	elif Cfg.paid():
-		var b := UI.button("Премиум-путь · 149,99 ₴", "primary", func():
+		var b := UI.button(L.t("Премиум-путь · 149,99 ₴"), "primary", func():
 			if not s.get("premium_available", false):
-				app.toast("Скоро! Покупки появятся после запуска в Google Play.")
+				app.toast(L.t("Скоро! Покупки появятся после запуска в Google Play."))
 				return
 			Overlays.purchase(app, "lantern_pass_s1", func(): Social.request("season")), "star")
 		hv.add_child(b)
 	_body.add_child(head)
-	_body.add_child(UI.section("Награды — листайте вбок"))
+	_body.add_child(UI.section(L.t("Награды — листайте вбок")))
 	var sc := ScrollContainer.new()
 	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if UI.compact() else ScrollContainer.SCROLL_MODE_AUTO
@@ -257,7 +257,7 @@ func _season() -> void:
 	var labels := UI.vbox(10)
 	labels.add_child(UI.gap(22))
 	var prem_on := Cfg.paid() or bool(s.premium)
-	for tr in ([["Бесплатно", UI.MUTED], ["Премиум", UI.AMBER]] if prem_on else []):
+	for tr in ([[L.t("Бесплатно"), UI.MUTED], [L.t("Премиум"), UI.AMBER]] if prem_on else []):
 		var fl := UI.label(tr[0], 12, tr[1], UI.font_bold)
 		fl.custom_minimum_size = Vector2(0, 132)
 		fl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -277,7 +277,7 @@ func _season() -> void:
 		row.add_child(col)
 	_body.add_child(sc)
 	if UI.compact() and prem_on:
-		_body.add_child(UI.para("Верхний ряд — бесплатные награды, нижний — премиум.", 12, UI.DIM))
+		_body.add_child(UI.para(L.t("Верхний ряд — бесплатные награды, нижний — премиум."), 12, UI.DIM))
 	FX.stagger(row, 0.03, Vector2(16, 0))
 
 
@@ -298,7 +298,7 @@ func _reward_cell(s: Dictionary, tier: int, track: String, reward: Variant, clai
 		return p
 	var text := ""
 	if reward is Array:
-		text = "+%d искр" % int(reward[1]) if reward[0] == "sparks" else str(s.items.get(reward[1], reward[1]))
+		text = L.t("+%d искр") % int(reward[1]) if reward[0] == "sparks" else str(s.items.get(reward[1], reward[1]))
 		if reward[0] == "sparks":
 			var ic := UI.icon("spark", 34, UI.AMBER)
 			ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -319,10 +319,10 @@ func _reward_cell(s: Dictionary, tier: int, track: String, reward: Variant, clai
 	v.add_child(l)
 	var key := ("p" if prem else "f") + str(tier)
 	if key in claimed:
-		v.add_child(UI.pill("✓ есть", UI.JAVA))
+		v.add_child(UI.pill(L.t("✓ есть"), UI.JAVA))
 		(v.get_child(v.get_child_count() - 1) as Control).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	elif open and (not prem or s.premium):
-		var b := UI.button("Забрать", "tonal", func(): Social.request("season_claim", {"tier": tier, "track": track}))
+		var b := UI.button(L.t("Забрать"), "tonal", func(): Social.request("season_claim", {"tier": tier, "track": track}))
 		b.custom_minimum_size = Vector2(0, 32)
 		b.add_theme_font_size_override("font_size", 13)
 		v.add_child(b)
@@ -355,7 +355,7 @@ func _achievements() -> void:
 		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(v)
 		v.add_child(UI.label(it.name, 15, UI.TEXT if it.done else UI.MUTED, UI.font_bold))
-		v.add_child(UI.label("Титул «%s» · +%d искр" % [it.title, int(it.sparks)], 12, UI.MUTED))
+		v.add_child(UI.label(L.t("Титул «%s» · +%d искр") % [it.title, int(it.sparks)], 12, UI.MUTED))
 		var bar := ProgressBar.new()
 		bar.show_percentage = false
 		bar.custom_minimum_size.y = 6
@@ -363,7 +363,7 @@ func _achievements() -> void:
 		_grow(bar, float(it.progress))
 		v.add_child(bar)
 		if it.done:
-			var tb := UI.button("Носится" if cur == it.title else "Носить титул", "tonal" if cur != it.title else "ghost", func(): Social.request("set_title", {"title": it.title}); Social.request("achievements"))
+			var tb := UI.button(L.t("Носится") if cur == it.title else L.t("Носить титул"), "tonal" if cur != it.title else "ghost", func(): Social.request("set_title", {"title": it.title}); Social.request("achievements"))
 			tb.custom_minimum_size.y = 36
 			tb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 			tb.disabled = cur == it.title

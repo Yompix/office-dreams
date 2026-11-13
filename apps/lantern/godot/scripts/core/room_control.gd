@@ -35,17 +35,17 @@ func ok() -> bool:
 ## Короткая строка статуса и подсказка, что делать.
 func status() -> Dictionary:
 	if not hosting():
-		return {"ok": false, "text": "Мир закрыт", "why": ""}
+		return {"ok": false, "text": L.t("Мир закрыт"), "why": ""}
 	var st: Dictionary = app.relay_host.stats()
 	if st.state == "connecting":
-		return {"ok": false, "text": "Открываем мир для друзей…", "why": "", "wait": true}
+		return {"ok": false, "text": L.t("Открываем мир для друзей…"), "why": "", "wait": true}
 	if st.state != "online":
-		return {"ok": false, "text": "Мир не виден друзьям", "why": "Нет связи с LANTERN. Проверьте интернет — комната вернётся с тем же кодом."}
+		return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": L.t("Нет связи с LANTERN. Проверьте интернет — комната вернётся с тем же кодом.")}
 	if app.own.active and not app.own.alive():
-		return {"ok": false, "text": "Мир не виден друзьям", "why": "Minecraft не отвечает. Вернитесь в мир" + (" и проверьте «Видимость для игроков LAN»." if app.own.world.get("edition", "") == "bedrock" else " («Открыть для сети»).")}
+		return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": L.t("Minecraft не отвечает. Вернитесь в мир") + (L.t(" и проверьте «Видимость для игроков LAN».") if app.own.world.get("edition", "") == "bedrock" else L.t(" («Открыть для сети»)."))}
 	if not app.own.active and not app.server.is_alive():
-		return {"ok": false, "text": "Мир не виден друзьям", "why": "Сервер не запущен."}
-	return {"ok": true, "text": "Друзья могут зайти прямо сейчас ✓", "why": ""}
+		return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": L.t("Сервер не запущен.")}
+	return {"ok": true, "text": L.t("Друзья могут зайти прямо сейчас ✓"), "why": ""}
 
 
 func code() -> String:
@@ -54,7 +54,7 @@ func code() -> String:
 
 
 func world_name() -> String:
-	return String(app.own.world.get("name", "Мир")) if app.own.active else String(app.server.opts.get("world", "Мир"))
+	return String(app.own.world.get("name", L.t("Мир"))) if app.own.active else String(app.server.opts.get("world", L.t("Мир")))
 
 
 func edition() -> String:
@@ -75,7 +75,7 @@ func app_link() -> String:
 func share_text() -> String:
 	if code() == "":
 		return ""
-	return "Заходи в мой мир «%s» через LANTERN — нажми на ссылку:\n%s\nКод: %s" % [world_name(), invite_link(), code()]
+	return L.t("Заходи в мой мир «%s» через LANTERN — нажми на ссылку:\n%s\nКод: %s") % [world_name(), invite_link(), code()]
 
 
 # ------------------------------------------------------------------ игроки
@@ -98,7 +98,7 @@ func invite(friend_id: int) -> void:
 	if friend_id <= 0 or code() == "":
 		return
 	Social.request("invite", {"to": friend_id, "code": app.relay_host.stats().get("code", ""), "world": world_name(), "edition": app.relay_host.edition})
-	app.toast("Приглашение отправлено", UI.JAVA)
+	app.toast(L.t("Приглашение отправлено"), UI.JAVA)
 
 
 func peers() -> Array:
@@ -114,21 +114,22 @@ func peers() -> Array:
 var _mc_names := {}   # peer -> ник в Minecraft (угадываем на своём сервере: кто зашёл в игру вслед за другом)
 var _await_mc: Array = []
 var _opped := false
+var _cheat_ops: Array = []      # кому уже выданы права при включённых «читах»
 
 
 func kick(peer: String) -> void:
 	app.relay_host.kick(peer, false)
 	_server_cmd("kick", peer)
-	app.toast("Игрок выгнан из мира", UI.YELLOW)
+	app.toast(L.t("Игрок выгнан из мира"), UI.YELLOW)
 
 
 func ban(peer: String) -> void:
 	for p in app.relay_host.peers():
 		if p.peer == peer:
-			_remember_ban(p.user)
+			_remember_ban(p.user, String(_mc_names.get(peer, "")))
 	app.relay_host.kick(peer, true)
 	_server_cmd("ban", peer)
-	app.toast("Игроку закрыт вход в ваш мир", UI.RED)
+	app.toast(L.t("Игроку закрыт вход в ваш мир"), UI.RED)
 
 
 func _server_cmd(what: String, peer: String) -> void:
@@ -147,19 +148,23 @@ static func bans() -> Array:
 	return a if a is Array else []
 
 
-func _remember_ban(u: Variant) -> void:
+func _remember_ban(u: Variant, mc := "") -> void:
 	if not u is Dictionary or int(u.get("id", 0)) <= 0:
 		return
 	var a := bans()
 	for b in a:
 		if int(b.id) == int(u.id):
 			return
-	a.append({"id": int(u.id), "nick": String(u.get("nick", "")), "tag": String(u.get("tag", ""))})
+	a.append({"id": int(u.id), "nick": String(u.get("nick", "")), "tag": String(u.get("tag", "")), "mc": mc})
 	Cfg.set_value("host", "bans", a)
 	app.relay_host.bans = ban_ids()
 
 
 func unban(id: int) -> void:
+	for b in bans():
+		if int(b.id) == id and String(b.get("mc", "")) != "" and _live():
+			for c in GameRules.commands(app.server.edition, "pardon", String(b.mc)):
+				app.server.command(c)
 	var a := bans().filter(func(b): return int(b.id) != id)
 	Cfg.set_value("host", "bans", a)
 	app.relay_host.send_bans(ban_ids())
@@ -186,7 +191,7 @@ func set_public(on: bool) -> void:
 		Cfg.set_value("own", "public", on)
 	app.relay_host.set_public(on, public_card())
 	changed.emit()
-	app.toast("Теперь зайти могут все в LANTERN" if on else "Теперь зайти можно только по коду", UI.JAVA)
+	app.toast(L.t("Теперь зайти могут все в LANTERN") if on else L.t("Теперь зайти можно только по коду"), UI.JAVA)
 
 
 func public_card() -> Dictionary:
@@ -202,9 +207,9 @@ func _public_card() -> Dictionary:
 	if app.own.active:
 		var w: Dictionary = app.own.world
 		var mx := int(w.get("max", 0))
-		return {"title": String(w.get("name", "Мир")), "tags": [], "version": String(w.get("version", "")), "slots": mx if mx > 0 else 10}
+		return {"title": String(w.get("name", L.t("Мир"))), "tags": [], "version": String(w.get("version", "")), "slots": mx if mx > 0 else 10}
 	var o: Dictionary = app.server.opts
-	return {"title": String(o.get("public_title", o.get("world", "Мир"))), "tags": o.get("tags", []),
+	return {"title": String(o.get("public_title", o.get("world", L.t("Мир")))), "tags": o.get("tags", []),
 		"version": String(o.get("mc_version", "")) if app.server.edition == "java" else "", "slots": int(o.get("max_players", 10))}
 
 
@@ -226,7 +231,7 @@ func _ready() -> void:
 	app.server.players_changed.connect(_on_mc_players)
 	app.server.state_changed.connect(func(st):
 		if st == "running":
-			protect_apply())
+			rules_apply())
 
 
 ## Комнату только что открыли (OwnWorld.start / сервер).
@@ -235,6 +240,7 @@ func room_opened() -> void:
 	_alerted = false
 	_bad_since = 0
 	_mc_names.clear()
+	_cheat_ops.clear()
 	_opped = false
 	app.relay_host.bans = ban_ids()
 	app.relay_host.share_text = ""
@@ -279,7 +285,7 @@ func _process(d: float) -> void:
 		_ov_t += 0.5
 		if _ov_t >= 5.0:
 			_ov_t = 0.0
-			var ovs := "%s; разрешение=%s" % [String(app.relay_host.android.overlayState()), bool(app.relay_host.android.canDrawOverlays())]
+			var ovs := L.t("%s; разрешение=%s") % [String(app.relay_host.android.overlayState()), bool(app.relay_host.android.canDrawOverlays())]
 			if ovs != _ov_last:
 				_ov_last = ovs
 				AppLog.add("overlay", ovs)
@@ -295,7 +301,7 @@ func _process(d: float) -> void:
 			_await_mc.append([e.peer, Time.get_ticks_msec()])
 		else:
 			_mc_names.erase(e.peer)
-		var text := "%s %s ваш мир" % [nm, "зашёл в" if e.on else "вышел из"]
+		var text := L.t("%s %s ваш мир") % [nm, L.t("зашёл в") if e.on else L.t("вышел из")]
 		app.toast(text, UI.JAVA if e.on else UI.MUTED)
 		_attention(text, false, e.on)
 		if app.server.is_alive() and app.server.edition == "java" and not app.own.active:
@@ -310,7 +316,7 @@ func _process(d: float) -> void:
 			_bad_since = Time.get_ticks_msec()
 		if not _alerted and _was_ok == 1 and Time.get_ticks_msec() - _bad_since > 8000:
 			_alerted = true
-			_attention("Мир не виден друзьям: вернитесь в мир / откройте LANTERN", true)
+			_attention(L.t("Мир не виден друзьям: вернитесь в мир / откройте LANTERN"), true)
 	if k != _was_ok and (s.ok or not s.get("wait", false)):
 		_was_ok = k
 	changed.emit()
@@ -323,6 +329,11 @@ func _on_mc_players(list: PackedStringArray) -> void:
 	if me != "" and me in list and not _opped and app.server.is_alive() and app.server.edition == "java":
 		_opped = true
 		app.server.command("op " + me)
+	if app.server.is_alive() and app.server.edition == "java" and not app.own.active and rules_get().get("cheats", false):
+		for n in list:
+			if not n in _cheat_ops:
+				_cheat_ops.append(n)
+				app.server.command("op " + n)
 	var known := _mc_names.values()
 	known.append(me)
 	for n in list:
@@ -334,7 +345,7 @@ func _on_mc_players(list: PackedStringArray) -> void:
 			var p: Array = _await_mc.pop_front()
 			_mc_names[p[0]] = n
 	if app.server.is_alive() and app.server.edition == "java" and code() != "" and list.size() > 0:
-		app.server.command('tellraw @a {"text":"[LANTERN] Код для друзей: %s","color":"aqua"}' % code())
+		app.server.command('tellraw @a {"text":L.t("[LANTERN] Код для друзей: %s"),"color":"aqua"}' % code())
 
 
 func _attention(text: String, alert: bool, notify := true) -> void:
@@ -390,14 +401,14 @@ func _ask_overlay() -> void:
 	if bool(Cfg.get_value("own", "overlay_asked", false)):
 		return
 	Cfg.set_value("own", "overlay_asked", true)
-	var v: VBoxContainer = Overlays.sheet(app, "Кнопка поверх Minecraft", "Маленький кружок LANTERN прямо в игре: видно, могут ли друзья зайти, кто зашёл, и можно выгнать игрока, не выходя из Minecraft.")
-	v.add_child(UI.para("Android спросит разрешение «Поверх других приложений» — включите его для LANTERN и вернитесь назад. Без него всё будет в уведомлении.", 14, UI.MUTED))
-	v.add_child(UI.button("Разрешить", "primary", func():
+	var v: VBoxContainer = Overlays.sheet(app, L.t("Кнопка поверх Minecraft"), L.t("Маленький кружок LANTERN прямо в игре: видно, могут ли друзья зайти, кто зашёл, и можно выгнать игрока, не выходя из Minecraft."))
+	v.add_child(UI.para(L.t("Android спросит разрешение «Поверх других приложений» — включите его для LANTERN и вернитесь назад. Без него всё будет в уведомлении."), 14, UI.MUTED))
+	v.add_child(UI.button(L.t("Разрешить"), "primary", func():
 		Overlays.close_sheet(app)
 		AppLog.add("overlay", "открываем настройку «Поверх других приложений»")
 		cls.requestOverlay()
 		_vendor_after_overlay = true, "check"))
-	v.add_child(UI.button("Не сейчас", "ghost", func(): Overlays.close_sheet(app)))
+	v.add_child(UI.button(L.t("Не сейчас"), "ghost", func(): Overlays.close_sheet(app)))
 
 
 var _vendor_after_overlay := false
@@ -432,14 +443,14 @@ static func vendor_sheet(app: Control, force: bool, maker_override := "") -> boo
 	Cfg.set_value("own", "vendor_sheet", true)
 	AppLog.add("overlay", "показываем шаги для «%s» (%s)" % [maker, kind if kind != "" else "общие"])
 	var steps: Array = VENDOR_STEPS.get(kind, VENDOR_STEPS["other"])
-	var v: VBoxContainer = Overlays.sheet(app, "Чтобы кнопка была видна в игре", String(steps[0]))
+	var v: VBoxContainer = Overlays.sheet(app, L.t("Чтобы кнопка была видна в игре"), String(steps[0]))
 	for i in range(1, steps.size()):
 		v.add_child(app._num_row(str(i), String(steps[i][0]), String(steps[i][1])))
-	v.add_child(UI.button("Открыть настройки", "primary", func():
+	v.add_child(UI.button(L.t("Открыть настройки"), "primary", func():
 		if cls != null:
 			AppLog.add("overlay", "открыли экран настроек: " + String(cls.openVendorSettings()))
 		Overlays.close_sheet(app), "settings"))
-	v.add_child(UI.button("Уже сделано", "ghost", func(): Overlays.close_sheet(app)))
+	v.add_child(UI.button(L.t("Уже сделано"), "ghost", func(): Overlays.close_sheet(app)))
 	return true
 
 
@@ -478,81 +489,97 @@ const VENDOR_STEPS := {
 }
 
 
-# ------------------------------------------------------------------ защита мира (сервер LANTERN: правила — командами сервера)
+# ------------------------------------------------------------------ правила мира (сервер LANTERN: командами сервера)
 
-const PROTECT := [["pvp", "Без PvP"], ["boom", "Без взрывов"], ["fire", "Огонь не распространяется"], ["keep", "Вещи остаются после смерти"]]
-const PROTECT_OWN_HINT := "Эти правила включаются в настройках самого мира в Minecraft."
-
-
-## Переключатели работают только на сервере LANTERN (Paper / BDS). Мир из самого Minecraft снаружи не настроить.
-func protect_available() -> bool:
-	return not app.own.active and app.server.state in ["starting", "running", "installing"]
+const RULES_OWN_HINT := "Остальные правила — в настройках мира в самом Minecraft."
 
 
-func _protect_key() -> String:
-	return "%s:%s" % [app.server.edition, String(app.server.opts.get("world", "Мир"))]
+## Правила работают только на сервере LANTERN (Paper / BDS). Мир из самого Minecraft снаружи не настроить.
+func rules_available() -> bool:
+	return not app.own.active
 
 
-func protect_get() -> Dictionary:
-	var all: Variant = Cfg.get_value("host", "protect", {})
-	var d: Variant = (all as Dictionary).get(_protect_key(), {}) if all is Dictionary else {}
-	return d if d is Dictionary else {}
+func _live() -> bool:
+	return not app.own.active and app.server.is_alive() and app.server.state == "running"
 
 
-func protect_set(key: String, on: bool) -> void:
-	var all: Variant = Cfg.get_value("host", "protect", {})
-	var a: Dictionary = (all as Dictionary).duplicate(true) if all is Dictionary else {}
-	var d: Dictionary = a.get(_protect_key(), {})
-	d[key] = on
-	a[_protect_key()] = d
-	Cfg.set_value("host", "protect", a)
-	for c in protect_commands(app.server.edition, {key: on}):
-		app.server.command(c)
-	AppLog.add("host", "защита мира: %s = %s" % [key, on])
+func _ctx() -> Dictionary:
+	var r := rules_get()
+	return {"mc": String(app.server._installed.get("mc_version", "")), "players": Array(app.server.players),
+		"host": String(Cfg.get_value("host", "mc_nick", "")), "admins": r.get("admins", [])}
+
+
+func rules_get() -> Dictionary:
+	return app.server.rules()
+
+
+func _rules_save(d: Dictionary) -> void:
+	GameRules.save_for(app.server.edition, String(app.server.opts.get("world", L.t("Мир"))), d)
+
+
+## Переключатель правила: запоминаем для этого мира и, если сервер работает, сразу шлём команду.
+func rule_set(key: String, value: Variant) -> void:
+	var d := rules_get()
+	d[key] = value
+	_rules_save(d)
+	if _live():
+		for c in GameRules.commands(app.server.edition, key, value, _ctx()):
+			app.server.command(c)
+	AppLog.add("host", "правило мира: %s = %s" % [key, str(value)])
+	changed.emit()
+
+
+## Режим и сложность — настройки сервера (server.properties) + команда на ходу.
+func opt_live(key: String, value: String) -> void:
+	app.server.opts[key] = value
+	app.server._save_opts()
+	if _live():
+		for c in GameRules.commands(app.server.edition, key, value, _ctx()):
+			app.server.command(c)
+	changed.emit()
+
+
+## Списки: «Только свои» (wl) и админы (admins).
+func list_add(list: String, nick: String) -> bool:
+	var n := GameRules.clean_nick(nick)
+	var d := rules_get()
+	var a: Array = d.get(list, [])
+	if n == "" or n in a:
+		return false
+	a.append(n)
+	d[list] = a
+	_rules_save(d)
+	if _live():
+		for c in GameRules.commands(app.server.edition, "wl_add" if list == "wl" else "admin_add", n):
+			app.server.command(c)
+	changed.emit()
+	return true
+
+
+func list_remove(list: String, nick: String) -> void:
+	var d := rules_get()
+	var a: Array = d.get(list, [])
+	a.erase(nick)
+	d[list] = a
+	_rules_save(d)
+	if _live():
+		for c in GameRules.commands(app.server.edition, "wl_remove" if list == "wl" else "admin_remove", nick):
+			app.server.command(c)
 	changed.emit()
 
 
 ## Сервер заработал — применяем сохранённые правила этого мира заново.
-func protect_apply() -> void:
+func rules_apply() -> void:
 	if app.own.active or not app.server.is_alive():
 		return
-	var d := protect_get()
-	if d.is_empty():
-		return
-	for c in protect_commands(app.server.edition, d):
+	var d := rules_get()
+	var cmds := GameRules.start_commands(app.server.edition, d, _ctx())
+	var host := String(Cfg.get_value("host", "mc_nick", ""))
+	if host != "":
+		cmds.append_array(GameRules.commands(app.server.edition, "admin_add", host))
+	for c in cmds:
 		app.server.command(c)
-	AppLog.add("host", "защита мира применена: " + JSON.stringify(d))
-
-
-## Команды сервера для правил. Java: имена правил менялись (1.21.11: snake_case, правило pvp, огонь — радиус),
-## поэтому шлём и старое, и новое имя — неизвестное сервер просто отклонит. Bedrock (BDS): имена в нижнем регистре.
-static func protect_commands(edition: String, d: Dictionary) -> PackedStringArray:
-	var out := PackedStringArray()
-	for k in d:
-		var on := bool(d[k])
-		var off_s := "false" if on else "true"
-		var on_s := "true" if on else "false"
-		if edition == "bedrock":
-			match String(k):
-				"pvp": out.append("gamerule pvp " + off_s)
-				"boom":
-					out.append("gamerule tntexplodes " + off_s)
-					out.append("gamerule mobgriefing " + off_s)
-				"fire": out.append("gamerule dofiretick " + off_s)
-				"keep": out.append("gamerule keepinventory " + on_s)
-		else:
-			match String(k):
-				"pvp": out.append("gamerule pvp " + off_s)
-				"boom":
-					for r in ["tntExplodes", "tnt_explodes", "mobGriefing", "mob_griefing"]:
-						out.append("gamerule %s %s" % [r, off_s])
-				"fire":
-					out.append("gamerule doFireTick " + off_s)
-					out.append("gamerule fire_spread_radius_around_player " + ("0" if on else "128"))
-				"keep":
-					for r in ["keepInventory", "keep_inventory"]:
-						out.append("gamerule %s %s" % [r, on_s])
-	return out
+	AppLog.add("host", "правила мира применены (%d команд)" % cmds.size())
 
 
 # ------------------------------------------------------------------ ПК: окошко поверх всех окон

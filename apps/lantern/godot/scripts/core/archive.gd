@@ -7,7 +7,7 @@ extends RefCounted
 static func unzip(zip_path: String, dest: String, strip := 0, keep_existing: PackedStringArray = []) -> String:
 	var z := ZIPReader.new()
 	if z.open(zip_path) != OK:
-		return "архив повреждён или не открылся: " + zip_path.get_file()
+		return L.t("архив повреждён или не открылся: ") + zip_path.get_file()
 	DirAccess.make_dir_recursive_absolute(dest)
 	for name in z.get_files():
 		var rel := _strip(name, strip)
@@ -25,7 +25,7 @@ static func unzip(zip_path: String, dest: String, strip := 0, keep_existing: Pac
 		var f := FileAccess.open(out, FileAccess.WRITE)
 		if f == null:
 			z.close()
-			return "не удалось записать " + out
+			return L.t("не удалось записать ") + out
 		f.store_buffer(data)
 		f.close()
 	z.close()
@@ -36,10 +36,10 @@ static func unzip(zip_path: String, dest: String, strip := 0, keep_existing: Pac
 static func untar_gz(path: String, dest: String, strip := 0, only: PackedStringArray = []) -> String:
 	var raw := FileAccess.get_file_as_bytes(path)
 	if raw.is_empty():
-		return "не удалось прочитать " + path.get_file()
+		return L.t("не удалось прочитать ") + path.get_file()
 	var tar := raw.decompress_dynamic(-1, FileAccess.COMPRESSION_GZIP)
 	if tar.is_empty():
-		return "архив повреждён: " + path.get_file()
+		return L.t("архив повреждён: ") + path.get_file()
 	return untar_bytes(tar, dest, strip, only)
 
 
@@ -90,7 +90,7 @@ static func untar_bytes(tar: PackedByteArray, dest: String, strip := 0, only: Pa
 			DirAccess.make_dir_recursive_absolute(out.get_base_dir())
 			var f := FileAccess.open(out, FileAccess.WRITE)
 			if f == null:
-				return "не удалось записать " + out
+				return L.t("не удалось записать ") + out
 			f.store_buffer(tar.slice(data_start, data_start + size))
 			f.close()
 			if not Cfg.is_windows() and mode & 73:
@@ -152,7 +152,7 @@ static func zip_dirs(base: String, dirs: PackedStringArray, out_zip: String) -> 
 	DirAccess.make_dir_recursive_absolute(out_zip.get_base_dir())
 	var z := ZIPPacker.new()
 	if z.open(out_zip) != OK:
-		return "не удалось создать " + out_zip
+		return L.t("не удалось создать ") + out_zip
 	for d in dirs:
 		_zip_walk(z, base, d)
 	z.close()

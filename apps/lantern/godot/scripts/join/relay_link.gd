@@ -43,6 +43,7 @@ func poll() -> Array:
 	var st := ws.get_ready_state()
 	if st == WebSocketPeer.STATE_OPEN and not _was_open:
 		_was_open = true
+		ws.set_no_delay(true)     # 1.8: маленькие пакеты игры уходят сразу, без склейки Нейгла
 		ev.append({"k": "open"})
 	if st != WebSocketPeer.STATE_CONNECTING:
 		# и при закрытии: последнее сообщение relay («Хозяин мира закрыл вам вход») не теряем
@@ -73,6 +74,12 @@ func send_bin(sid: int, data: PackedByteArray) -> bool:
 	return ws.send(b, WebSocketPeer.WRITE_MODE_BINARY) == OK
 
 
+## Дописать в сеть то, что поставлено в очередь за этот проход (не ждём следующего опроса).
+func flush() -> void:
+	if ws.get_ready_state() == WebSocketPeer.STATE_OPEN and ws.get_current_outbound_buffered_amount() > 0:
+		ws.poll()
+
+
 ## Сколько ещё не ушло в сеть — для притормаживания TCP.
 func backlog() -> int:
 	return ws.get_current_outbound_buffered_amount()
@@ -90,15 +97,15 @@ func close() -> void:
 
 static func error_text(code: String) -> String:
 	match code:
-		"not_found": return "Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново."
-		"full": return "Все места заняты."
-		"need_password": return "Эта игра с паролем."
-		"bad_password": return "Неверный пароль."
-		"kicked", "banned_by_host": return "Хозяин мира закрыл вам вход."
-		"rate": return "Слишком много попыток. Подождите минуту."
-		"busy": return "Серверы LANTERN сейчас перегружены. Попробуйте через пару минут."
-		"bad_version": return "Нужна новая версия LANTERN."
-		"host_left", "host_ended", "room_closed": return "Хозяин закрыл мир."
-		"server_restart": return "LANTERN обновляется. Попробуйте через минуту."
-		"expired": return "Комната устарела. Попросите друга запустить мир заново."
-	return "Не получилось подключиться (%s). Попробуйте ещё раз; не помогло — нажмите «Сообщить о проблеме»." % code
+		"not_found": return L.t("Комната с таким кодом не найдена. Проверьте код или попросите друга запустить мир заново.")
+		"full": return L.t("Все места заняты.")
+		"need_password": return L.t("Эта игра с паролем.")
+		"bad_password": return L.t("Неверный пароль.")
+		"kicked", "banned_by_host": return L.t("Хозяин мира закрыл вам вход.")
+		"rate": return L.t("Слишком много попыток. Подождите минуту.")
+		"busy": return L.t("Серверы LANTERN сейчас перегружены. Попробуйте через пару минут.")
+		"bad_version": return L.t("Нужна новая версия LANTERN.")
+		"host_left", "host_ended", "room_closed": return L.t("Хозяин закрыл мир.")
+		"server_restart": return L.t("LANTERN обновляется. Попробуйте через минуту.")
+		"expired": return L.t("Комната устарела. Попросите друга запустить мир заново.")
+	return L.t("Не получилось подключиться (%s). Попробуйте ещё раз; не помогло — нажмите «Сообщить о проблеме».") % code

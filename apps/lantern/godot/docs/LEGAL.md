@@ -66,3 +66,11 @@ Minecraft EULA (https://aka.ms/MinecraftEULA), политика Google Play об
 - Разрешения: INTERNET, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE (поиск миров в локальной сети), FOREGROUND_SERVICE +
   FOREGROUND_SERVICE_SPECIAL_USE (служба «мир открыт для друзей»), POST_NOTIFICATIONS, WAKE_LOCK, SYSTEM_ALERT_WINDOW (кнопка поверх игры).
 - targetSdk 36, compileSdk 36 (android/build/config.gradle шаблона Godot 4.7).
+
+## 1.8
+- «Настройки игры»: опция `online-mode` называется «Проверка аккаунтов Minecraft: включена / выключена» с нейтральным пояснением
+  (без советов, как играть без покупки). Слова «лицензия», названий лаунчеров и «пиратка» в интерфейсе нет.
+- Звуки интерфейса — свои, сгенерированы `tools/make_sounds.py` (синус с затуханием), чужих сэмплов нет.
+- Оговорка переведена: английский — официальный текст Mojang, украинский — «НЕ Є ОФІЦІЙНИМ ПРОДУКТОМ MINECRAFT. НЕ СХВАЛЕНО MOJANG
+  АБО MICROSOFT І НЕ ПОВ'ЯЗАНО З НИМИ.» На экране «О программе» всегда показывается и английский оригинал.
+- «Прямое соединение по Wi-Fi»: адреса устройств через relay не передаются (см. docs/PROTOCOL.md), политика конфиденциальности не меняется.

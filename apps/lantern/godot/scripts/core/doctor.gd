@@ -91,21 +91,21 @@ static func free_port(want: int, udp: bool, skip := []) -> int:
 ## Понятный текст для хозяина по правилу (без жаргона).
 static func text(d: Dictionary, server_version := "") -> String:
 	var n := String(d.get("nick", ""))
-	var who := ("Игрок " + n) if n != "" else "Игрок"
+	var who := (L.t("Игрок ") + n) if n != "" else L.t("Игрок")
 	var v := String(d.get("version", ""))
 	if v == "":
 		v = server_version
 	match String(d.get("rule", "")):
 		"auth":
-			return "%s не прошёл проверку аккаунта Microsoft: на сервер заходят только игроки со своим аккаунтом Minecraft." % who
+			return L.t("%s не прошёл проверку аккаунта Microsoft: на сервер заходят только игроки со своим аккаунтом Minecraft.") % who
 		"outdated_client":
-			return "%s пришёл со старой версией Minecraft. Сервер на версии %s — пусть выберет в лаунчере версию %s." % [who, v, v] if v != "" else "%s пришёл со старой версией Minecraft. Пусть выберет в лаунчере ту же версию, что у сервера." % who
+			return L.t("%s пришёл со старой версией Minecraft. Сервер на версии %s — пусть выберет в лаунчере версию %s.") % [who, v, v] if v != "" else L.t("%s пришёл со старой версией Minecraft. Пусть выберет в лаунчере ту же версию, что у сервера.") % who
 		"outdated_server":
-			return "У %s версия Minecraft новее сервера (%s). Пусть выберет в лаунчере версию %s." % [n if n != "" else "игрока", v, v] if v != "" else "У игрока версия Minecraft новее сервера. Пусть выберет в лаунчере версию сервера."
+			return L.t("У %s версия Minecraft новее сервера (%s). Пусть выберет в лаунчере версию %s.") % [n if n != "" else L.t("игрока"), v, v] if v != "" else L.t("У игрока версия Minecraft новее сервера. Пусть выберет в лаунчере версию сервера.")
 		"banned":
-			return "%s забанен на этом сервере." % who
+			return L.t("%s забанен на этом сервере.") % who
 		"full":
-			return "Сервер полон — %s не поместился." % ("игрок " + n if n != "" else "новый игрок")
+			return L.t("Сервер полон — %s не поместился.") % (L.t("игрок ") + n if n != "" else L.t("новый игрок"))
 		"whitelist":
-			return "%s не в белом списке." % who
+			return L.t("%s не в белом списке.") % who
 	return ""

@@ -26,7 +26,7 @@ else
   RUN=("$GODOT" --headless)
 fi
 "${RUN[@]}" --path "$HERE" -- --autotest "$MODE" --data="$DATA" --relay=ws://127.0.0.1:$PORT/ws \
-  --join_java_port=25570 --join_bedrock_port=19142 --client_timeout=${CLIENT_TIMEOUT:-600} --shots="$SHOTS" "${EXTRA[@]}" > "$DATA/app.log" 2>&1 & APP=$!
+  --join_java_port=25570 --join_bedrock_port=19142 --lan=${LAN:-1} --client_timeout=${CLIENT_TIMEOUT:-600} --shots="$SHOTS" "${EXTRA[@]}" > "$DATA/app.log" 2>&1 & APP=$!
 NODE_PATH=${E2E_NODE_PATH:-/tmp/claude-0/bot/node_modules:/tmp/claude-0/bp/node_modules} node "$HERE/tests/e2e_client.js" "$DATA" "$MODE" > "$DATA/client.log" 2>&1 & CL=$!
 wait $APP; RC=$?
 # приложение упало до готовности — клиенту ждать нечего; сервер, оставшийся без приложения, гасим

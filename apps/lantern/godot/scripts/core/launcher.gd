@@ -26,13 +26,13 @@ static func open_bedrock(port := 0, why := "") -> bool:
 	if Cfg.autotest != "":
 		opened += 1
 		return true
-	var err := OS.shell_open(url)
+	var err := UI.open(url)
 	if err != OK and port > 0:
-		err = OS.shell_open("minecraft://")
+		err = UI.open("minecraft://")
 	if err != OK:
 		AppLog.add("launch", "Minecraft не открылся (ошибка %d)" % err)
 		if OS.get_name() == "Android":
-			OS.shell_open(STORE)
+			UI.open(STORE)
 		return false
 	opened += 1     # считаем только удачные: иначе экран входа писал «Minecraft открыт» после неудачи
 	return true
@@ -49,7 +49,7 @@ class Countdown extends PanelContainer:
 	var state: Dictionary
 	var fire: Callable
 	var cancel: Callable
-	var title := "Открываем Minecraft…"
+	var title := L.t("Открываем Minecraft…")
 	var sub := ""
 	var _num: Label
 	var _bar: Panel
@@ -90,7 +90,7 @@ class Countdown extends PanelContainer:
 		_bar.set_anchors_preset(Control.PRESET_FULL_RECT)
 		_track.add_child(_bar)
 		v.add_child(_track)
-		v.add_child(UI.button("Отмена", "secondary", func():
+		v.add_child(UI.button(L.t("Отмена"), "secondary", func():
 			state.on = false
 			if cancel.is_valid():
 				cancel.call()))

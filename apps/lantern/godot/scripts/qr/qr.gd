@@ -341,3 +341,15 @@ func to_image(scale := 8, dark := Color.BLACK, light := Color.WHITE) -> Image:
 			if modules[y][x]:
 				img.fill_rect(Rect2i((x + b) * scale, (y + b) * scale, scale, scale), dark)
 	return img
+
+
+## 1.8.1: показать QR в TextureRect так, чтобы камера читала его наверняка: чёрное на белом, поля 4 модуля,
+## целое число точек на модуль (сторона не меньше min_px), без сглаживания.
+func show_in(rect: TextureRect, min_px: int) -> void:
+	var n := size + 8
+	var k := maxi(2, int(ceil(float(min_px) / n)))
+	rect.texture = ImageTexture.create_from_image(to_image(k))
+	rect.custom_minimum_size = Vector2(n * k, n * k)
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

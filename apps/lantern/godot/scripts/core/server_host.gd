@@ -9,6 +9,7 @@ signal state_changed(state: String)
 signal players_changed(players: PackedStringArray)
 signal versions_changed                         # узнали, с каких версий Bedrock пускает Geyser
 signal doctor_changed                            # «доктор»: новые подсказки (issues) или исправления (fixes)
+signal perf_changed                              # 1.8: сервер успевает / не успевает (TPS)
 
 const FILL := "https://fill.papermc.io/v3/projects/paper"
 const GEYSER := "https://download.geysermc.org/v2/projects/%s/versions/latest/builds/latest"
@@ -39,6 +40,19 @@ var fixes: Array = []         # «Что LANTERN исправил сам»: ст
 var _port_conflict := false
 var _port_retries := 0
 var _auto_restarts := 0
+## 1.8 «Скорость игры»
+var perf := "balance"          # набор, с которым сервер запущен (Tuning.effective)
+var perf_auto_fast := false    # «Баланс» сам стал «Быстро» — компьютер слабый
+var mem_mb := 2048             # сколько памяти дано серверу Java при этом запуске
+var tps := -1.0                # последнее TPS за минуту (20 — идеально); -1 — ещё не знаем
+var mspt := -1.0
+var lagging := false           # два замера подряд ниже 17 TPS или «Can't keep up»
+var _tps_t := 0
+var _tps_low := 0
+var _tps_lines := 0
+var _started := {}             # с какими настройками (требующими перезапуска) сервер запущен
+var _auto_backup_t := 0
+var _backing_up := false
 var bedrock_range := ""      # «1.21.130 - 26.30» — из ответа Geyser на «geyser version»
 static var _re_geyser_ver := RegEx.create_from_string("Bedrock: ([0-9][0-9.]*(?:\\s*-\\s*[0-9][0-9.]*)?)")
 
@@ -63,6 +77,16 @@ func _progress(label: String, f: float) -> void:
 func _process(_d: float) -> void:
 	if proc:
 		proc.poll()
+	if state == "running":
+		var now := Time.get_ticks_msec()
+		if edition == "java" and now - _tps_t > 60000:
+			_tps_t = now
+			_tps_lines = 0
+			command("tps")
+			command("mspt")
+		if now - _auto_backup_t > 30000:
+			_auto_backup_t = now
+			_auto_backup_check()
 	if state == "stopping" and _stop_deadline > 0 and Time.get_ticks_msec() > _stop_deadline:
 		_stop_deadline = 0
 		_log("[LANTERN] Сервер не остановился вовремя — завершаем принудительно.")
@@ -81,7 +105,7 @@ func _set_state(s: String) -> void:
 
 func _fail(msg: String) -> bool:
 	last_error = msg
-	_status("Ошибка: " + msg)
+	_status(L.t("Ошибка: ") + msg)
 	_log("[LANTERN] Ошибка: " + msg)
 	_set_state("error")
 	return false
@@ -107,6 +131,11 @@ func _save_install_info(d: Dictionary) -> void:
 func host(ed: String, o: Dictionary) -> bool:
 	if state in ["installing", "starting", "running", "stopping"]:
 		return false
+	if Cfg.autotest == "deadbuttons":      # автотест кнопок: настоящий сервер не качаем и не запускаем
+		edition = ed
+		opts = o
+		_set_state("installing")
+		return false
 	edition = ed
 	if o != opts:
 		_auto_restarts = 0
@@ -116,6 +145,15 @@ func host(ed: String, o: Dictionary) -> bool:
 	bedrock_range = ""
 	_last_err = ""
 	_port_conflict = false
+	var mc := Tuning.machine()
+	perf = Tuning.effective(opts, mc)
+	perf_auto_fast = perf == "fast" and String(opts.get("perf", "balance")) != "fast"
+	if perf_auto_fast:
+		_fixed(L.t("Компьютер не самый мощный — включили режим «Быстро», чтобы игра шла без рывков"))
+	tps = -1.0
+	mspt = -1.0
+	lagging = false
+	_tps_low = 0
 	_check_memory()
 	_check_ports()
 	players = []
@@ -141,11 +179,11 @@ func _install_java() -> bool:
 	var dir := server_dir()
 	var info := _install_info()
 	# --- Paper
-	_status("Узнаём последнюю версию Paper…")
+	_status(L.t("Узнаём последнюю версию Paper…"))
 	var version: String = opts.get("version", "latest")
 	var pr: Dictionary = await Net.get_json(FILL)
 	if not pr.ok:
-		return _offline_or_fail(info, "не удалось получить список версий Paper: " + pr.error)
+		return _offline_or_fail(info, L.t("не удалось получить список версий Paper: ") + pr.error)
 	var newest := _latest_paper_version(pr.data)
 	if opts.get("crossplay", false) and version != "latest" and version != newest:
 		# Geyser работает только на самом новом сервере. Старые Java-клиенты всё равно зайдут — через ViaBackwards/ViaRewind.
@@ -155,11 +193,11 @@ func _install_java() -> bool:
 		version = newest
 	var vr: Dictionary = await Net.get_json(FILL + "/versions/" + version)
 	if not vr.ok:
-		return _offline_or_fail(info, "версия %s не найдена у Paper: %s" % [version, vr.error])
+		return _offline_or_fail(info, L.t("версия %s не найдена у Paper: %s") % [version, vr.error])
 	var java_min: int = int(vr.data.get("version", {}).get("java", {}).get("version", {}).get("minimum", 21))
 	var br: Dictionary = await Net.get_json(FILL + "/versions/%s/builds" % version)
 	if not br.ok or not (br.data is Array) or br.data.is_empty():
-		return _offline_or_fail(info, "нет сборок Paper для %s" % version)
+		return _offline_or_fail(info, L.t("нет сборок Paper для %s") % version)
 	var build: Dictionary = br.data[0]
 	for b in br.data:
 		if b.get("channel", "") == "STABLE":
@@ -167,10 +205,10 @@ func _install_java() -> bool:
 			break
 	var dl: Dictionary = build.get("downloads", {}).get("server:default", {})
 	if dl.is_empty():
-		return _fail("у сборки Paper нет файла сервера")
+		return _fail(L.t("у сборки Paper нет файла сервера"))
 	var jar := dir.path_join(dl.name)
 	if not FileAccess.file_exists(jar) or info.get("paper_sha256", "") != dl.checksums.sha256:
-		if not await _dl("Скачиваем сервер Paper %s (сборка %d)" % [version, build.id], dl.url, jar, {"sha256": dl.checksums.sha256}):
+		if not await _dl(L.t("Скачиваем сервер Paper %s (сборка %d)") % [version, build.id], dl.url, jar, {"sha256": dl.checksums.sha256}):
 			return false
 		if info.get("paper_jar", "") != "" and info.paper_jar != dl.name:
 			DirAccess.remove_absolute(dir.path_join(info.paper_jar))
@@ -193,17 +231,17 @@ func _install_java() -> bool:
 	# --- Кроссплей
 	if opts.get("crossplay", false):
 		for p in [["geyser", "Geyser-Spigot.jar"], ["floodgate", "floodgate-spigot.jar"]]:
-			_status("Проверяем %s…" % p[1])
+			_status(L.t("Проверяем %s…") % p[1])
 			var gr: Dictionary = await Net.get_json(GEYSER % p[0])
 			var dest := plugins.path_join(p[1])
 			if not gr.ok:
 				if FileAccess.file_exists(dest):
 					continue
-				return _fail("не удалось узнать версию %s: %s" % [p[1], gr.error])
+				return _fail(L.t("не удалось узнать версию %s: %s") % [p[1], gr.error])
 			var d: Dictionary = gr.data.downloads.spigot
 			var url := "https://download.geysermc.org/v2/projects/%s/versions/%s/builds/%d/downloads/spigot" % [p[0], gr.data.version, int(gr.data.build)]
 			if info.get(p[0] + "_sha256", "") != d.sha256 or not FileAccess.file_exists(dest):
-				if not await _dl("Скачиваем %s %s" % [p[1].get_basename(), gr.data.version], url, dest, {"sha256": d.sha256}):
+				if not await _dl(L.t("Скачиваем %s %s") % [p[1].get_basename(), gr.data.version], url, dest, {"sha256": d.sha256}):
 					return false
 			info[p[0] + "_sha256"] = d.sha256
 			info[p[0] + "_version"] = "%s-%d" % [gr.data.version, int(gr.data.build)]
@@ -225,13 +263,14 @@ func _install_java() -> bool:
 				FileAccess.open(gc, FileAccess.WRITE).store_string(txt)
 	# --- EULA и настройки
 	if not opts.get("eula", false):
-		return _fail("нужно принять лицензионное соглашение Minecraft (EULA)")
+		return _fail(L.t("нужно принять лицензионное соглашение Minecraft (EULA)"))
 	var f := FileAccess.open(dir.path_join("eula.txt"), FileAccess.WRITE)
-	f.store_string("# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n")
+	f.store_string(L.t("# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n"))
 	f.close()
 	_geyser_port(dir.path_join("plugins/Geyser-Spigot/config.yml"), bedrock_port())
-	write_properties(dir.path_join("server.properties"), {
-		"motd": opts.get("world", "Мир") + " — LANTERN",
+	var wr := rules()
+	var jp := {
+		"motd": opts.get("world", L.t("Мир")) + " — LANTERN",
 		"level-name": _safe_name(opts.get("world", "world")),
 		"max-players": str(opts.get("max_players", 10)),
 		"difficulty": opts.get("difficulty", "normal"),
@@ -240,12 +279,20 @@ func _install_java() -> bool:
 		"server-port": str(java_port()),
 		"enable-status": "true",
 		"spawn-protection": "0",
-		# «Защита мира → Без PvP»: до 1.21.11 это настройка сервера (после — правило игры, его шлёт RoomControl)
-		"pvp": "false" if _protect("pvp") else "true",
-		# белый список — только если хозяин сам включил «Только для своих» (иначе друзей выкидывает «not whitelisted»)
-		"white-list": "true" if opts.get("whitelist", false) else "false",
-		"enforce-whitelist": "true" if opts.get("whitelist", false) else "false",
-	})
+		# PvP: до 1.21.11 это настройка сервера (после — правило игры, его шлёт RoomControl)
+		"pvp": "true" if wr.get("pvp", true) else "false",
+		# «Только свои» — только если хозяин сам включил (иначе друзей выкидывает «not whitelisted»)
+		"white-list": "true" if wr.get("whitelist", false) else "false",
+		"enforce-whitelist": "true" if wr.get("whitelist", false) else "false",
+	}
+	if not world_exists():
+		# тип мира и зерно действуют только при создании мира
+		jp["level-type"] = {"flat": "minecraft:flat", "large": "minecraft:large_biomes"}.get(String(opts.get("world_type", "normal")), "minecraft:normal")
+		jp["level-seed"] = String(opts.get("seed", ""))
+	jp.merge(Tuning.java_properties(perf), true)
+	write_properties(dir.path_join("server.properties"), jp)
+	var tuned := Tuning.apply_java(dir, perf)
+	_log("[LANTERN] Скорость игры: «%s» (прорисовка %d, живая зона %d чанков; файлов настроек обновлено: %d)" % [Tuning.name_of(perf), Tuning.PRESETS[perf].view, Tuning.PRESETS[perf].sim, tuned])
 	_save_install_info(info)
 	_installed = info
 	return true
@@ -336,11 +383,11 @@ func versions_text() -> String:
 	var r: Array = _installed.get("java_range", [])
 	var mc := String(_installed.get("mc_version", ""))
 	if r.size() == 2 and r[0] != r[1]:
-		out.append("Заходить можно с Java %s – %s (любая версия)" % [r[0], r[1]])
+		out.append(L.t("Заходить можно с Java %s – %s (любая версия)") % [r[0], r[1]])
 	elif mc != "":
-		out.append("Заходить можно только с Java %s" % mc)
+		out.append(L.t("Заходить можно только с Java %s") % mc)
 	if opts.get("crossplay", false):
-		out.append("Телефоны и консоли (Bedrock): " + (bedrock_range.replace(" - ", " – ") if bedrock_range != "" else "актуальная версия Minecraft"))
+		out.append(L.t("Телефоны и консоли (Bedrock): ") + (bedrock_range.replace(" - ", " – ") if bedrock_range != "" else L.t("актуальная версия Minecraft")))
 	return "\n".join(out)
 
 
@@ -423,7 +470,7 @@ func _install_via(plugins: String, info: Dictionary, version: String, jmajor: in
 	for p in VIA:
 		var slug: String = p[0]
 		var dest := plugins.path_join(p[1])
-		_status("Проверяем %s…" % p[1].get_basename())
+		_status(L.t("Проверяем %s…") % p[1].get_basename())
 		var r: Dictionary = await Net.get_json(MODRINTH % [slug, version], PackedStringArray(["User-Agent: LANTERN"]))
 		var pick := pick_via(r.data, slug, jmajor) if r.ok and r.data is Array else {}
 		var old: Dictionary = info.get("via", {}).get(slug, {})
@@ -431,13 +478,13 @@ func _install_via(plugins: String, info: Dictionary, version: String, jmajor: in
 			if FileAccess.file_exists(dest) and not old.is_empty():
 				got[slug] = old
 				continue
-			_log("[LANTERN] %s: нет подходящей сборки для %s (%s) — пропускаем." % [p[1].get_basename(), version, r.get("error", "нет сборок")])
+			_log("[LANTERN] %s: нет подходящей сборки для %s (%s) — пропускаем." % [p[1].get_basename(), version, r.get("error", L.t("нет сборок"))])
 			break   # без ViaVersion остальные не нужны
 		if old.get("sha1", "") != pick.sha1 or not FileAccess.file_exists(dest):
-			_status("Скачиваем %s %s" % [p[1].get_basename(), pick.version])
+			_status(L.t("Скачиваем %s %s") % [p[1].get_basename(), pick.version])
 			var res: Dictionary = await Net.download(pick.url, dest, {"sha1": pick.sha1}, func(done: int, total: int):
-				_progress("Скачиваем " + p[1].get_basename(), float(done) / total if total > 0 else -1.0))
-			_progress("Скачиваем " + p[1].get_basename(), 1.0)
+				_progress(L.t("Скачиваем ") + p[1].get_basename(), float(done) / total if total > 0 else -1.0))
+			_progress(L.t("Скачиваем ") + p[1].get_basename(), 1.0)
 			if not res.ok:
 				_log("[LANTERN] Не удалось скачать %s: %s" % [p[1].get_basename(), res.error])
 				if FileAccess.file_exists(dest) and not old.is_empty():
@@ -496,22 +543,22 @@ func ensure_java(major: int) -> String:
 	if sys_java != "":
 		_log("[LANTERN] Используем установленную Java: " + sys_java)
 		return sys_java
-	_status("Ищем Java %d (Eclipse Temurin)…" % major)
+	_status(L.t("Ищем Java %d (Eclipse Temurin)…") % major)
 	var os_name := "windows" if Cfg.is_windows() else ("mac" if OS.get_name() == "macOS" else "linux")
 	var r: Dictionary = await Net.get_json(ADOPTIUM % [major, os_name])
 	if not r.ok or not (r.data is Array) or r.data.is_empty():
-		_fail("не удалось найти Java %d на adoptium.net: %s" % [major, r.get("error", "")])
+		_fail(L.t("не удалось найти Java %d на adoptium.net: %s") % [major, r.get("error", "")])
 		return ""
 	var pkg: Dictionary = r.data[0].binary.package
 	var arc := Cfg.sub("downloads").path_join(pkg.name)
-	if not await _dl("Скачиваем Java %d (%s)" % [major, r.data[0].version.semver], pkg.link, arc, {"sha256": pkg.checksum}):
+	if not await _dl(L.t("Скачиваем Java %d (%s)") % [major, r.data[0].version.semver], pkg.link, arc, {"sha256": pkg.checksum}):
 		return ""
-	_status("Распаковываем Java…")
+	_status(L.t("Распаковываем Java…"))
 	await get_tree().process_frame
 	var err := Archive.unzip(arc, rt, 1) if pkg.name.ends_with(".zip") else Archive.untar_gz(arc, rt, 1)
 	DirAccess.remove_absolute(arc)
 	if err != "" or not FileAccess.file_exists(exe):
-		_fail("не удалось распаковать Java: " + err)
+		_fail(L.t("не удалось распаковать Java: ") + err)
 		return ""
 	return exe
 
@@ -545,7 +592,7 @@ func _install_bedrock() -> bool:
 	var dir := server_dir()
 	var info := _install_info()
 	var exe := dir.path_join("bedrock_server.exe" if Cfg.is_windows() else "bedrock_server")
-	_status("Узнаём последнюю версию Bedrock Dedicated Server…")
+	_status(L.t("Узнаём последнюю версию Bedrock Dedicated Server…"))
 	var r: Dictionary = await Net.get_json(BEDROCK_LINKS)
 	var url := ""
 	if r.ok:
@@ -556,14 +603,14 @@ func _install_bedrock() -> bool:
 		if FileAccess.file_exists(exe):
 			_log("[LANTERN] Нет связи с minecraft.net, запускаем уже скачанную версию.")
 		else:
-			return _fail("не удалось получить ссылку на Bedrock Dedicated Server: " + r.get("error", "ссылка не найдена"))
+			return _fail(L.t("не удалось получить ссылку на Bedrock Dedicated Server: ") + r.get("error", L.t("ссылка не найдена")))
 	elif info.get("bedrock_url", "") != url or not FileAccess.file_exists(exe):
 		if not opts.get("eula", false):
-			return _fail("нужно принять условия Minecraft (EULA и политику конфиденциальности)")
+			return _fail(L.t("нужно принять условия Minecraft (EULA и политику конфиденциальности)"))
 		var zip := Cfg.sub("downloads").path_join(url.get_file())
-		if not await _dl("Скачиваем Bedrock Dedicated Server " + url.get_file().get_basename().trim_prefix("bedrock-server-"), url, zip):
+		if not await _dl(L.t("Скачиваем Bedrock Dedicated Server ") + url.get_file().get_basename().trim_prefix("bedrock-server-"), url, zip):
 			return false
-		_status("Распаковываем сервер…")
+		_status(L.t("Распаковываем сервер…"))
 		await get_tree().process_frame
 		var err := Archive.unzip(zip, dir, 0, PackedStringArray(["server.properties", "allowlist.json", "permissions.json"]))
 		DirAccess.remove_absolute(zip)
@@ -573,8 +620,9 @@ func _install_bedrock() -> bool:
 			FileAccess.set_unix_permissions(exe, 493)
 		info.bedrock_url = url
 		info.bedrock_version = url.get_file().get_basename().trim_prefix("bedrock-server-")
-	write_properties(dir.path_join("server.properties"), {
-		"server-name": opts.get("world", "Мир") + " — LANTERN",
+	var brules := rules()
+	var bp := {
+		"server-name": opts.get("world", L.t("Мир")) + " — LANTERN",
 		"level-name": _safe_name(opts.get("world", "world")),
 		"max-players": str(opts.get("max_players", 10)),
 		"difficulty": opts.get("difficulty", "normal"),
@@ -582,12 +630,17 @@ func _install_bedrock() -> bool:
 		"server-port": str(bedrock_port()),
 		"server-portv6": str(bedrock_port() + 1),
 		"online-mode": "true" if opts.get("online_mode", true) else "false",
-		"allow-cheats": "false",
+		"allow-cheats": "true" if brules.get("cheats", false) else "false",
 		"enable-lan-visibility": "true",
-		"allow-list": "false",
+		"allow-list": "true" if brules.get("whitelist", false) else "false",
 		# BDS 1.26+ по умолчанию слушает NetherNet (WebRTC); LANTERN передаёт RakNet по UDP
 		"transport": "raknet",
-	}, false)
+	}
+	if not world_exists():
+		bp["level-type"] = "FLAT" if String(opts.get("world_type", "normal")) == "flat" else "DEFAULT"
+		bp["level-seed"] = String(opts.get("seed", ""))
+	bp.merge(Tuning.bedrock_properties(perf, OS.get_processor_count()), true)
+	write_properties(dir.path_join("server.properties"), bp, false)
 	_save_install_info(info)
 	_installed = info
 	return true
@@ -646,17 +699,16 @@ func _launch() -> bool:
 	proc.exited.connect(_on_exit)
 	var err := ""
 	if edition == "java":
-		var mem: int = int(opts.get("memory_mb", 2048))
-		var args := PackedStringArray(["-Xms%dM" % min(mem, 1024), "-Xmx%dM" % mem,
-			"-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+		var args := Tuning.jvm_flags(int(_installed.get("java_major", 21)), mem_mb)
+		args.append_array(["-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
 			"-Dterminal.jline=false", "-Dterminal.ansi=false", "-DPaper.IgnoreJavaVersion=false",
 			"-jar", _installed.paper_jar, "--nogui"])
-		_status("Запускаем сервер Java…")
+		_status(L.t("Запускаем сервер Java…"))
 		err = proc.start(_installed.java, args, dir)
 	else:
 		if not Cfg.is_windows():
 			OS.set_environment("LD_LIBRARY_PATH", dir)
-		_status("Запускаем сервер Bedrock…")
+		_status(L.t("Запускаем сервер Bedrock…"))
 		# Только для автотестов в песочнице без IPv6: заглушка сокетов для BDS (см. tests/e2e.sh)
 		var pre := OS.get_environment("LANTERN_TEST_BDS_PRELOAD")
 		if pre != "":
@@ -667,8 +719,13 @@ func _launch() -> bool:
 	if err != "":
 		return _fail(err)
 	started_msec = Time.get_ticks_msec()
+	_tps_t = started_msec - 15000      # первый замер TPS — через 45 с после запуска
+	_auto_backup_t = started_msec
+	_last_auto_backup = started_msec
+	_started = restart_state()
 	_log("[LANTERN] Сервер запущен (процесс %d). Папка: %s" % [proc.pid, dir])
-	AppLog.add("server", "запуск %s: версия %s, память %s МБ, кроссплей %s, Java %s" % [edition, str(_installed.get("mc_version", "")), str(opts.get("memory_mb", "")), str(opts.get("crossplay", false)), str(_installed.get("java_major", ""))])
+	var mc := Tuning.machine()
+	AppLog.add("server", "запуск %s: версия %s, память %d МБ, скорость «%s»%s, кроссплей %s, Java %s; компьютер: %d потоков, памяти %d МБ, свободно %d МБ" % [edition, str(_installed.get("mc_version", "")), mem_mb, perf, " (авто)" if perf_auto_fast else "", str(opts.get("crossplay", false)), str(_installed.get("java_major", "")), int(mc.threads), int(mc.total_mb), int(mc.free_mb)])
 	return true
 
 
@@ -726,19 +783,19 @@ func resolve(id: String) -> void:
 	match String(it.action):
 		"whitelist_add":
 			command("whitelist add " + String(it.arg))
-			_fixed("%s добавлен в белый список — пусть зайдёт ещё раз" % it.arg)
+			_fixed(L.t("%s добавлен в белый список — пусть зайдёт ещё раз") % it.arg)
 		"pardon":
 			command("pardon " + String(it.arg))
-			_fixed("%s разбанен — пусть зайдёт ещё раз" % it.arg)
+			_fixed(L.t("%s разбанен — пусть зайдёт ещё раз") % it.arg)
 		"allow_offline":
 			opts["online_mode"] = false
 			_save_opts()
-			_fixed("Проверка аккаунтов выключена (мир тот же, сервер перезапущен)")
+			_fixed(L.t("Проверка аккаунтов выключена (мир тот же, сервер перезапущен)"))
 			restart()
 		"more_slots":
 			opts["max_players"] = int(opts.get("max_players", 10)) + 5
 			_save_opts()
-			_fixed("Мест на сервере теперь %d (сервер перезапущен)" % int(opts.max_players))
+			_fixed(L.t("Мест на сервере теперь %d (сервер перезапущен)") % int(opts.max_players))
 			restart()
 
 
@@ -759,22 +816,22 @@ func _doctor(t: String) -> bool:
 		"whitelist":
 			if n == "":
 				return true
-			if opts.get("whitelist", false):
-				_issue("wl:" + n, Doctor.text(d), "Впустить", "whitelist_add", n)
+			if rules().get("whitelist", false):
+				_issue("wl:" + n, Doctor.text(d), L.t("Впустить"), "whitelist_add", n)
 			else:
 				command("whitelist off")
 				command("whitelist add " + n)
-				_fixed("%s не пускал белый список — LANTERN выключил его. Пусть %s зайдёт ещё раз" % [n, n])
+				_fixed(L.t("%s не пускал белый список — LANTERN выключил его. Пусть %s зайдёт ещё раз") % [n, n])
 		"auth":
 			if opts.get("online_mode", true):
-				_issue("auth", Doctor.text(d), "Понятно", "")
+				_issue("auth", Doctor.text(d), L.t("Понятно"), "")
 		"outdated_client", "outdated_server":
-			_issue("ver:" + n, Doctor.text(d, String(_installed.get("mc_version", ""))), "Понятно", "")
+			_issue("ver:" + n, Doctor.text(d, String(_installed.get("mc_version", ""))), L.t("Понятно"), "")
 		"banned":
 			if n != "":
-				_issue("ban:" + n, Doctor.text(d), "Разбанить", "pardon", n)
+				_issue("ban:" + n, Doctor.text(d), L.t("Разбанить"), "pardon", n)
 		"full":
-			_issue("full", Doctor.text(d), "Больше мест (+5)", "more_slots")
+			_issue("full", Doctor.text(d), L.t("Больше мест (+5)"), "more_slots")
 	return true
 
 
@@ -784,14 +841,14 @@ func _check_memory() -> void:
 		return
 	var info := OS.get_memory_info()
 	var total := int(info.get("physical", 0) / (1 << 20))
-	var want := int(opts.get("memory_mb", 2048))
+	var want := Tuning.memory(opts, Tuning.machine())
 	var mem := Doctor.memory_for(want, total)
-	if mem != want:
-		opts["memory_mb"] = mem
-		_fixed("Памяти на компьютере немного — серверу выделено %.1f ГБ" % (mem / 1024.0))
+	mem_mb = mem
+	if mem != want and not opts.get("memory_auto", true):
+		_fixed(L.t("Памяти на компьютере немного — серверу выделено %.1f ГБ") % (mem / 1024.0))
 	var free := int(info.get("available", -1) / (1 << 20)) if int(info.get("available", -1)) > 0 else -1
 	if free >= 0 and free < mem:
-		_issue("ram", "Свободной памяти мало (%.1f ГБ). Закройте браузер и лишние программы, иначе сервер может тормозить." % (free / 1024.0), "Понятно", "")
+		_issue("ram", L.t("Свободной памяти мало (%.1f ГБ). Закройте браузер и лишние программы, иначе сервер может тормозить.") % (free / 1024.0), L.t("Понятно"), "")
 
 
 ## Заняты 25565 / 19132 (другой сервер, открытый в игре мир) — берём свободные, комната работает как обычно.
@@ -801,12 +858,12 @@ func _check_ports() -> void:
 	if edition == "java":
 		var jp := Doctor.free_port(java_port(), false)
 		if jp != java_port():
-			_fixed("Порт %d был занят — сервер на порту %d, друзья заходят как обычно" % [java_port(), jp])
+			_fixed(L.t("Порт %d был занят — сервер на порту %d, друзья заходят как обычно") % [java_port(), jp])
 			opts["java_port"] = jp
 	if edition == "bedrock" or opts.get("crossplay", false):
 		var bp := Doctor.free_port(bedrock_port(), true, [BEDROCK_PORT + 1, BEDROCK_PORT + 2])
 		if bp != bedrock_port():
-			_fixed("Порт %d был занят — сервер на порту %d, друзья заходят как обычно" % [bedrock_port(), bp])
+			_fixed(L.t("Порт %d был занят — сервер на порту %d, друзья заходят как обычно") % [bedrock_port(), bp])
 			opts["port"] = bp
 
 
@@ -824,6 +881,24 @@ static func _geyser_port(path: String, port: int) -> void:
 static var _re_note := RegEx.create_from_string("(?i)(lost connection|Internal Exception|timed out|kicked|disconnect|Exception|\\bERROR\\b|OutOfMemory|Can't keep up|Geyser|Floodgate|ViaVersion|ViaRewind|ViaBackwards|joined the game|left the game|Done \\()")
 
 func _on_line(t: String) -> void:
+	# 1.8: ответы на наши замеры «tps» / «mspt» — в журнал хозяину не выводим
+	if edition == "java" and state == "running":
+		var tp := Tuning.parse_tps(t)
+		if tp >= 0.0:
+			_on_tps(tp)
+			_tps_lines = 2
+			return
+		if _tps_lines > 0 and (t.contains("Server tick times") or t.contains("/")):
+			_tps_lines -= 1
+			var ms := Tuning.parse_mspt(t)
+			if ms >= 0.0:
+				mspt = ms
+				_tps_lines = 0
+			return
+		if t.contains("Can't keep up!"):
+			if not lagging:
+				lagging = true
+				perf_changed.emit()
 	_log(t)
 	if _re_note.search(t) and not t.contains("STUN discovery"):
 		AppLog.add("server", t.substr(0, 400))
@@ -832,9 +907,7 @@ func _on_line(t: String) -> void:
 	if state == "starting":
 		if (edition == "java" and t.contains("Done (") and t.contains("help")) or (edition == "bedrock" and t.contains("Server started.")):
 			_set_state("running")
-			_status("Сервер работает")
-			if edition == "java" and opts.get("whitelist", false) and String(opts.get("whitelist_nick", "")) != "":
-				command("whitelist add " + String(opts.whitelist_nick))
+			_status(L.t("Сервер работает"))
 			if edition == "java" and opts.get("crossplay", false):
 				command("geyser version")   # ответ: «… (Java: 26.3, Bedrock: 1.21.130 - 26.30)» — покажем друзьям
 	if edition == "java" and t.contains("Bedrock: "):
@@ -859,7 +932,7 @@ func _on_line(t: String) -> void:
 			players.remove_at(i)
 			players_changed.emit(players)
 	if edition == "java" and t.contains("You need to agree to the EULA"):
-		last_error = "сервер требует принять EULA"
+		last_error = L.t("сервер требует принять EULA")
 
 
 func _on_exit(code: int) -> void:
@@ -871,7 +944,7 @@ func _on_exit(code: int) -> void:
 	AppLog.add("server", "процесс сервера завершился, код %d, после %d с, последняя ошибка: %s" % [code, (Time.get_ticks_msec() - started_msec) / 1000, _last_err.substr(0, 200)])
 	if was == "stopping":
 		_set_state("stopped")
-		_status("Сервер остановлен, мир сохранён")
+		_status(L.t("Сервер остановлен, мир сохранён"))
 	else:
 		var plan := Doctor.exit_plan(_port_conflict, _port_retries, _auto_restarts, Time.get_ticks_msec() - started_msec)
 		if plan == "port":
@@ -882,30 +955,111 @@ func _on_exit(code: int) -> void:
 			else:
 				opts["port"] = Doctor.free_port(bedrock_port() + 3, true)
 			var now_p := java_port() if edition == "java" else bedrock_port()
-			_fixed("Порт %d был занят — перезапустили сервер на порту %d" % [old, now_p])
+			_fixed(L.t("Порт %d был занят — перезапустили сервер на порту %d") % [old, now_p])
 			_set_state("stopped")
 			host(edition, opts)
 			return
 		if plan == "restart":
 			_auto_restarts += 1
-			_fixed("Сервер упал — LANTERN перезапустил его" + (" (ошибка: %s)" % _last_err.substr(0, 80) if _last_err != "" else ""))
+			_fixed(L.t("Сервер упал — LANTERN перезапустил его") + (L.t(" (ошибка: %s)") % _last_err.substr(0, 80) if _last_err != "" else ""))
 			_set_state("stopped")
 			host(edition, opts)
 			return
 		var hint := ""
 		if edition == "java" and Time.get_ticks_msec() - started_msec < 15000:
-			hint = " Возможно, не хватает памяти — закройте лишние программы."
-		var why := (" Последняя ошибка: " + _last_err.substr(0, 160) + ".") if _last_err != "" else ""
-		_fail("сервер неожиданно остановился (код %d).%s%s Подробности — в журнале." % [code, why, hint])
+			hint = L.t(" Возможно, не хватает памяти — закройте лишние программы.")
+		var why := (L.t(" Последняя ошибка: ") + _last_err.substr(0, 160) + ".") if _last_err != "" else ""
+		_fail(L.t("сервер неожиданно остановился (код %d).%s%s Подробности — в журнале.") % [code, why, hint])
 
 
-func _protect(key: String) -> bool:
-	var all: Variant = Cfg.get_value("host", "protect", {})
-	var d: Variant = (all as Dictionary).get("%s:%s" % [edition, String(opts.get("world", "Мир"))], {}) if all is Dictionary else {}
-	return d is Dictionary and bool((d as Dictionary).get(key, false))
+## Правила этого мира (GameRules). Старый флажок «белый список» из мастера 1.7 переносим в правила.
+func rules() -> Dictionary:
+	var w := String(opts.get("world", L.t("Мир")))
+	var d := GameRules.load_for(edition, w)
+	if opts.get("whitelist", false):
+		opts.erase("whitelist")
+		d["whitelist"] = true
+		var nick := String(opts.get("whitelist_nick", ""))
+		if nick != "" and not nick in d.wl:
+			d.wl.append(nick)
+		GameRules.save_for(edition, w, d)
+		_save_opts()
+	return d
+
+
+func world_exists() -> bool:
+	return not world_dirs().is_empty()
+
+
+## Настройки, которые сервер читает только при запуске. Изменились — нужен перезапуск.
+func restart_state() -> Dictionary:
+	var mc := Tuning.machine()
+	var d := {"perf": Tuning.effective(opts, mc), "online": bool(opts.get("online_mode", true)), "max": int(opts.get("max_players", 10))}
+	if edition == "java":
+		d["version"] = String(opts.get("version", "latest"))
+		d["crossplay"] = bool(opts.get("crossplay", false))
+		d["mem"] = "auto" if opts.get("memory_auto", true) else str(int(opts.get("memory_mb", 0)))
+	return d
+
+
+## Что изменилось с запуска: список ключей ("perf", "online", "version", "crossplay", "mem", "max").
+func restart_needed() -> Array:
+	var out := []
+	if not state in ["running", "starting"] or _started.is_empty():
+		return out
+	var now_s := restart_state()
+	for k in now_s:
+		if k == "max":
+			if int(now_s[k]) > int(_started.get(k, 0)):
+				out.append(k)
+		elif k == "perf":
+			if String(now_s[k]) != perf:
+				out.append(k)
+		elif str(now_s[k]) != str(_started.get(k, "")):
+			out.append(k)
+	return out
+
+
+func _on_tps(v: float) -> void:
+	tps = v
+	_tps_low = _tps_low + 1 if v < 17.0 else 0
+	var was := lagging
+	lagging = _tps_low >= 2
+	if lagging != was:
+		AppLog.add("server", "TPS %.1f — сервер %s" % [v, "не успевает" if lagging else "снова успевает"])
+	perf_changed.emit()
+
+
+## «Сервер успевает ✓» / «не успевает»: {known, ok, tps, mspt}
+func perf_status() -> Dictionary:
+	return {"known": tps >= 0.0 or lagging, "ok": not lagging, "tps": tps, "mspt": mspt}
+
+
+var _last_auto_backup := 0
+
+
+## Автокопия мира раз в N минут (правило autobackup). Храним 5 последних автокопий.
+func _auto_backup_check() -> void:
+	var every := int(rules().get("autobackup", 0))
+	if every <= 0 or _backing_up or Time.get_ticks_msec() - _last_auto_backup < every * 60000:
+		return
+	_last_auto_backup = Time.get_ticks_msec()
+	var p := await backup("auto-")
+	if p == "":
+		return
+	_log("[LANTERN] Автокопия мира сохранена: " + p.get_file())
+	var autos := list_backups().filter(func(b): return String(b.name).begins_with("auto-"))
+	for i in range(5, autos.size()):
+		DirAccess.remove_absolute(String(autos[i].path))
+
+
+var cmd_log: PackedStringArray = []    # последние команды серверу (для отчётов и автотестов)
 
 
 func command(cmd: String) -> void:
+	cmd_log.append(cmd)
+	if cmd_log.size() > 200:
+		cmd_log = cmd_log.slice(100)
 	if proc and proc.running:
 		proc.write_line(cmd)
 
@@ -915,7 +1069,7 @@ func stop() -> void:
 		_set_state("stopped")
 		return
 	_set_state("stopping")
-	_status("Сохраняем мир и останавливаем сервер…")
+	_status(L.t("Сохраняем мир и останавливаем сервер…"))
 	proc.write_line("stop")
 	_stop_deadline = Time.get_ticks_msec() + 45000
 
@@ -950,10 +1104,20 @@ func world_path() -> String:
 
 
 ## Резервная копия мира в zip. Возвращает путь или "" (ошибка — в last_error).
-func backup() -> String:
+func backup(prefix := "") -> String:
+	if _backing_up:
+		last_error = L.t("копия уже делается")
+		return ""
+	_backing_up = true
+	var p: String = await _backup(prefix)
+	_backing_up = false
+	return p
+
+
+func _backup(prefix: String) -> String:
 	var dirs := world_dirs()
 	if dirs.is_empty():
-		last_error = "мир ещё не создан — запустите сервер хотя бы раз"
+		last_error = L.t("мир ещё не создан — запустите сервер хотя бы раз")
 		return ""
 	if is_alive():
 		if edition == "java":
@@ -963,7 +1127,7 @@ func backup() -> String:
 			command("save hold")
 		await get_tree().create_timer(3.0).timeout
 	var stamp := Time.get_datetime_string_from_system().replace(":", "-").replace("T", "_")
-	var out := Cfg.sub("backups").path_join("%s-%s-%s.zip" % [edition, _safe_name(opts.get("world", "world")), stamp])
+	var out := Cfg.sub("backups").path_join("%s%s-%s-%s.zip" % [prefix, edition, _safe_name(opts.get("world", "world")), stamp])
 	var err := Archive.zip_dirs(server_dir(), dirs, out)
 	if is_alive():
 		command("save-on" if edition == "java" else "save resume")
@@ -977,7 +1141,7 @@ func backup() -> String:
 static func inspect_backup(zip: String) -> Dictionary:
 	var z := ZIPReader.new()
 	if z.open(zip) != OK:
-		return {"ok": false, "error": "файл не открылся — это не zip-копия мира"}
+		return {"ok": false, "error": L.t("файл не открылся — это не zip-копия мира")}
 	var files := z.get_files()
 	z.close()
 	for f in files:
@@ -986,14 +1150,14 @@ static func inspect_backup(zip: String) -> Dictionary:
 			return {"ok": true, "edition": "bedrock", "world": parts[1]}
 		if parts.size() == 2 and parts[1] == "level.dat" and not (parts[0].ends_with("_nether") or parts[0].ends_with("_the_end")):
 			return {"ok": true, "edition": "java", "world": parts[0]}
-	return {"ok": false, "error": "в архиве нет мира Minecraft (level.dat)"}
+	return {"ok": false, "error": L.t("в архиве нет мира Minecraft (level.dat)")}
 
 
 ## Восстановить мир из копии (своей, из облака или от друга). Текущая папка мира с тем же именем
 ## не удаляется, а переименовывается в «<мир>.before-<время>». Сервер должен быть остановлен.
 func restore_backup(zip: String) -> Dictionary:
 	if is_alive():
-		return {"ok": false, "error": "Сначала остановите сервер"}
+		return {"ok": false, "error": L.t("Сначала остановите сервер")}
 	var info := inspect_backup(zip)
 	if not info.ok:
 		return info
@@ -1040,18 +1204,18 @@ func check_updates() -> PackedStringArray:
 	if pr.ok:
 		var v := _latest_paper_version(pr.data)
 		var br: Dictionary = await Net.get_json(FILL + "/versions/%s/builds/latest" % v)
-		var latest := "Paper %s сборка %s" % [v, str(br.data.get("id", "?")) if br.ok else "?"]
+		var latest := L.t("Paper %s сборка %s") % [v, str(br.data.get("id", "?")) if br.ok else "?"]
 		if ji.has("paper_build"):
 			var same: bool = br.ok and ji.get("mc_version", "") == v and int(ji.paper_build) == int(br.data.get("id", -1))
-			out.append("Java: установлен Paper %s сборка %d — %s" % [ji.mc_version, int(ji.paper_build), "это последняя версия" if same else "доступна " + latest + " (обновится при следующем запуске)"])
+			out.append(L.t("Java: установлен Paper %s сборка %d — %s") % [ji.mc_version, int(ji.paper_build), L.t("это последняя версия") if same else L.t("доступна ") + latest + L.t(" (обновится при следующем запуске)")])
 		else:
-			out.append("Java: ещё не установлен. Последняя версия — " + latest)
+			out.append(L.t("Java: ещё не установлен. Последняя версия — ") + latest)
 	else:
-		out.append("Java: не удалось проверить (" + pr.error + ")")
+		out.append(L.t("Java: не удалось проверить (") + pr.error + ")")
 	var gr: Dictionary = await Net.get_json(GEYSER % "geyser")
 	if gr.ok:
 		var gv := "%s-%d" % [gr.data.version, int(gr.data.build)]
-		out.append("Кроссплей (Geyser): " + ("установлен %s, последняя %s" % [ji.geyser_version, gv] if ji.has("geyser_version") else "последняя версия " + gv))
+		out.append(L.t("Кроссплей (Geyser): ") + (L.t("установлен %s, последняя %s") % [ji.geyser_version, gv] if ji.has("geyser_version") else L.t("последняя версия ") + gv))
 	edition = "bedrock"
 	var bi := _install_info()
 	var r: Dictionary = await Net.get_json(BEDROCK_LINKS)
@@ -1061,10 +1225,10 @@ func check_updates() -> PackedStringArray:
 			if l.downloadType == ("serverBedrockWindows" if Cfg.is_windows() else "serverBedrockLinux"):
 				lv = String(l.downloadUrl).get_file().get_basename().trim_prefix("bedrock-server-")
 		if bi.has("bedrock_version"):
-			out.append("Bedrock: установлен %s — %s" % [bi.bedrock_version, "это последняя версия" if bi.bedrock_version == lv else "доступна " + lv + " (обновится при следующем запуске)"])
+			out.append(L.t("Bedrock: установлен %s — %s") % [bi.bedrock_version, L.t("это последняя версия") if bi.bedrock_version == lv else L.t("доступна ") + lv + L.t(" (обновится при следующем запуске)")])
 		else:
-			out.append("Bedrock: ещё не установлен. Последняя версия — " + lv)
+			out.append(L.t("Bedrock: ещё не установлен. Последняя версия — ") + lv)
 	else:
-		out.append("Bedrock: не удалось проверить (" + r.error + ")")
+		out.append(L.t("Bedrock: не удалось проверить (") + r.error + ")")
 	edition = saved
 	return out
