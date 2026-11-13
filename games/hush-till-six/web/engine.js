@@ -1381,8 +1381,8 @@ const endScene = k => Object.keys(S.scenes).find(id => ((S.scenes[id] || {}).the
 let watching = null;
 function watchEnding(k) { const id = endScene(k); if (!id) return; watching = { save: LS.get('save', null), saveT: LS.get('saveT', null) }; begin(id); }
 function gallery() {
-  const got = LS.get('endings', []).filter(k => S.endings[k]), ov = oversGot();
-  return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => got.includes(k) && endScene(k) ? `<button class="got" data-end="${k}">${n}<small>▶ ${tr('Смотреть')}</small></button>` : `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
+  const got = LS.get('endings', []).filter(k => S.endings[k]), ov = oversGot(), all = LS.get('qa', false) && !DEMO;   // режим проверки (владелец): смотреть можно все концовки, не только открытые
+  return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => (got.includes(k) || all) && endScene(k) ? `<button class="got" data-end="${k}">${n}<small>▶ ${tr('Смотреть')}</small></button>` : `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
     <small>${trf('Концовки: {a} из {b} · Смертей найдено: {c} из {d}', { a: got.length, b: Object.keys(S.endings).length, c: ov.size, d: S.overs.length })}</small>`;
 }
 /* ---------- спонсоры игры (донаты звёздами Telegram через бота) ---------- */
