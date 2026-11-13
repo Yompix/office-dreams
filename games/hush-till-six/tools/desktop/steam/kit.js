@@ -40,7 +40,7 @@ async function frames(b) {
 <canvas id="c" width="16" height="16"></canvas></body></html>`;
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('ошибка JS:', String(e).slice(0, 200)));
-  await p.route(/\/nightshift\/_kit\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
+  await p.route(/\/_kit\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
   await p.goto(`http://127.0.0.1:${PORT}/web/_kit.html?gfx=cine&lang=${process.env.KITLANG || 'en'}`);   // надписи в 3D-мире (вывеска «HORIZON») — по-английски: капсулы общие для всех языков
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 300000 });
   await p.evaluate(async () => { window.__W3core.V.rsPin = true; await window.__W3chars.load(); World.init(); });

@@ -136,6 +136,22 @@ body.land #act .ex-leave { left: auto; right: 3%; bottom: 5%; width: calc(64 * v
 .gal { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2.4 * var(--u)); width: 100%; margin: calc(4 * var(--u)) 0; }
 .gal div { border: calc(.4 * var(--u)) solid rgba(255,255,255,.15); border-radius: calc(2 * var(--u)); padding: calc(3 * var(--u)) calc(2 * var(--u)); font-size: calc(3.6 * var(--u)); font-weight: 700; min-height: calc(15 * var(--u)); display: flex; align-items: center; justify-content: center; }
 .gal div.got { border-color: var(--red); background: rgba(224, 48, 58, .12); }
+/* достижения: плашка «получено» сверху и экран в меню */
+.achT { position: absolute; left: 50%; top: calc(3 * var(--u)); transform: translate(-50%, -140%); z-index: 60; display: flex; align-items: center; gap: calc(3 * var(--u)); padding: calc(2 * var(--u)) calc(4.5 * var(--u)) calc(2 * var(--u)) calc(2 * var(--u)); background: linear-gradient(90deg, rgba(10,10,12,.96), rgba(28,10,12,.94)); border: calc(.35 * var(--u)) solid rgba(var(--accRGB),.75); border-radius: calc(2.4 * var(--u)); box-shadow: 0 0 calc(6 * var(--u)) rgba(var(--accRGB),.35), 0 calc(2 * var(--u)) calc(6 * var(--u)) rgba(0,0,0,.6); transition: transform .45s cubic-bezier(.2,.9,.25,1.2), opacity .45s; opacity: 0; pointer-events: none; max-width: 92%; }
+.achT.on { transform: translate(-50%, 0); opacity: 1; }
+.achT img { width: calc(13 * var(--u)); height: calc(13 * var(--u)); border-radius: calc(1.6 * var(--u)); border: calc(.3 * var(--u)) solid rgba(255,255,255,.25); object-fit: cover; flex: none; }
+.achT small { display: block; font-size: calc(2.5 * var(--u)); letter-spacing: .14em; color: rgb(var(--accRGB)); font-weight: 700; }
+.achT b { display: block; font-size: calc(3.8 * var(--u)); color: #f2ece4; margin-top: calc(.6 * var(--u)); }
+.achN { display: block; margin: calc(1 * var(--u)) 0 calc(3 * var(--u)); opacity: .8; }
+.achG { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2 * var(--u)); width: 100%; text-align: left; }
+.achG div { display: flex; align-items: center; gap: calc(2.4 * var(--u)); padding: calc(1.6 * var(--u)); border: calc(.3 * var(--u)) solid rgba(255,255,255,.12); border-radius: calc(2 * var(--u)); background: rgba(255,255,255,.03); }
+.achG div.got { border-color: rgba(var(--accRGB),.7); background: rgba(var(--accRGB),.1); }
+.achG img { width: calc(12 * var(--u)); height: calc(12 * var(--u)); border-radius: calc(1.4 * var(--u)); object-fit: cover; flex: none; filter: grayscale(1) brightness(.35) blur(1px); }
+.achG div.got img { filter: none; }
+.achG b { display: block; font-size: calc(3.1 * var(--u)); }
+.achG i { display: block; font-style: normal; font-size: calc(2.5 * var(--u)); opacity: .7; margin-top: calc(.5 * var(--u)); }
+@media (max-aspect-ratio: 1/1) { .achG { grid-template-columns: 1fr; } }
+
 /* финал концовки: название по буквам поверх живого последнего кадра */
 .screen.fin { justify-content: flex-end; padding-bottom: 9%; background: linear-gradient(0deg, rgba(0,0,0,.9), rgba(0,0,0,.55) 30%, rgba(0,0,0,0) 62%); cursor: pointer; animation: fadein 1.5s; }
 .screen.fin h1 { font-size: calc(13 * var(--u)); letter-spacing: calc(1.2 * var(--u)); }
@@ -317,7 +333,7 @@ body:not(.land) .sh-toast { white-space: normal; width: 92%; text-align: center;
 .sh-pop p { margin: 0 0 calc(2.4 * var(--u)); font-size: calc(3.2 * var(--u)); opacity: .8; }
 .sh-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(1.6 * var(--u)); }
 .sh-grid.log { grid-template-columns: repeat(2, 1fr); } .sh-grid.log button:last-child { grid-column: 1 / -1; }   /* «Записать»: 2 × 2 и «Другое» во всю ширину */
-body.shifting #bRules, body.shifting #bAuto { display: none; }   /* в смене памятка лежит в «Журнале», а «реплики сами» ни на что не влияет — лишние кнопки путали */
+#bRules, #bAuto { display: none !important; }   /* владелец (12 и 13 ноя): убрать — памятка лежит в «Журнале», «реплики сами» включаются в настройках */   /* в смене памятка лежит в «Журнале», а «реплики сами» ни на что не влияет — лишние кнопки путали */
 .sh-grid button, .sh-row button { padding: calc(3 * var(--u)) calc(1 * var(--u)); font-size: calc(3.2 * var(--u)); font-weight: 700; text-transform: uppercase; }
 .sh-row { display: flex; gap: calc(2 * var(--u)); margin-bottom: calc(2.4 * var(--u)); } .sh-row button { flex: 1; }
 .sh-row button.on b { color: var(--acc); }
@@ -619,16 +635,16 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=2"></script><script src="i18n.js?v=24"></script>
+<script src="fonts/cjk/faces.js?v=2"></script><script src="i18n.js?v=25"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
-<script src="world.js?v=22"></script>
+<script src="world.js?v=23"></script>
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=45"></script>
-<script src="scenes.js?v=76"></script>
+<script src="scenes.js?v=77"></script>
 <script src="story.js?v=34"></script>
-<script src="engine.js?v=80"></script>
+<script src="engine.js?v=82"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

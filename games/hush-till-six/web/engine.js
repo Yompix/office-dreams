@@ -12,6 +12,7 @@ const APP = window.nsAppNative ? { quit: () => { try { window.nsAppNative.quit()
   orient: l => { try { window.nsAppNative.orient(!!l); } catch (e) {} } } : null;   // orient — экран телефона как выбран кадр (16:9 — альбомный, 9:16 — книжный): в браузере это делает lock() в goFull
 const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 const OVERS0 = S.overs.slice(), OVER0 = {};   // названия смертей по-русски — ключи для счётчика «Смертей найдено» (переведённые терялись при смене языка, а в английской две смерти звались одинаково)
+setTimeout(() => { try { const e = LS.get('endings', []) || [], o = LS.get('overs', []) || []; if (e.length) ach('NIGHT_DONE', 1); e.forEach(k => ach('END_' + String(k).toUpperCase(), 1)); o.forEach(n => { const i = OVERS0.indexOf(n); if (i >= 0) ach('DEATH_' + String(i + 1).padStart(2, '0'), 1); }); } catch (e) {} }, 0);   // достижения за то, что открыто раньше (без плашек)
 for (const id in S.scenes) { const th = S.scenes[id].then; if (th && th.over) OVER0[id] = th.over; }
 if (window.trStory) window.trStory(S);
 if (EN) {   // статичные надписи страницы
@@ -507,10 +508,11 @@ function placeOf(img, fx) {
 }
 // тихие перемены в холле: часы встали на 03:00, куртка Михалыча пропала после открытой двери, фото на пропуске исцарапано
 function propsNow() {
+  const ct = [clockEl && clockEl.textContent, lastTime].find(v => /^\d\d:\d\d$/.test(v || '')) || '21:00', night = Math.max(0, toMin(ct) - toMin('21:00'));   // минут с начала ночи — по ним растут лужи у входа
   const book = flags.jread ? 0 : 1;   // журнал Фрэнка на столе перевязан, пока Итан его не прочитал (02:50)
-  if (mode === 'shift' && shf) return { sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, fphone: flags.fphone ? 1 : 0 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
+  if (mode === 'shift' && shf) return { night, sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, fphone: flags.fphone ? 1 : 0 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
   const tm = toMin(lastTime) < toMin('03:00') ? lastTime : '03:00';   // до трёх часы идут (ночь с 21:00 — строки «21:00» < «03:00» не сравнить: в прологе стояли на трёх), в три встают
-  return Object.assign({ clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book, fphone: flags.fphone ? 1 : 0 }, scene && scene.props, beat && beat.props);   // fphone — телефон Фрэнка на зарядке на столе
+  return Object.assign({ night, clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book, fphone: flags.fphone ? 1 : 0 }, scene && scene.props, beat && beat.props);   // fphone — телефон Фрэнка на зарядке на столе
 }
 function gameClock(withSec = true) {
   const [h, m] = lastTime.split(':').map(Number), s = h * 3600 + m * 60 + secBase + Math.floor(Math.max(0, now() - sceneT0)), p2 = v => String(v).padStart(2, '0');
@@ -1320,6 +1322,59 @@ function shiftCall(c) {   // внутренний телефон будки: с�
 }
 // найденные смерти: в сохранении — русские названия (старые сохранения — на языке, на котором играли); считаем по номеру в S.overs
 const oversGot = () => { const s = new Set(); for (const k of LS.get('overs', [])) { let i = OVERS0.indexOf(k); if (i < 0) i = S.overs.indexOf(k); if (i >= 0) s.add(i); } return s; };
+/* ---------- достижения (владелец 13 ноя: «красивое достижение, как в Майнкрафте в Плей Маркете») ----------
+   Те же 21, что в Steam (tools/desktop/steam/STEAM.md, те же ID). Хранятся у игрока (LS 'ach'), плашка «Достижение получено» с иконкой
+   (web/ach/<ID>.jpg — кадры игры, tools/desktop/steam/kit.js → tools/android/achievements.py), экран «Достижения» в меню.
+   Наружу: ПК — DESK.ach (Steam), Android — nsAppNative.ach (Google Play Игры, когда в приложение добавлены ID из Play Console). */
+const ACHS = [   // ID, название ru / uk / en, описание ru / uk / en, скрытое до получения
+  ['NIGHT_DONE', 'Конец смены', 'Кінець зміни', 'End of Shift', 'Доживи до утра — до любой концовки.', 'Доживи до ранку — до будь-якої кінцівки.', 'Make it through the night to any ending.', 0],
+  ['END_DAWN', 'Рассвет', 'Світанок', 'Dawn', 'Концовка «Рассвет».', 'Кінцівка «Світанок».', 'Reach the ending “Dawn”.', 1],
+  ['END_SISTER', 'Сестра', 'Сестра', 'Sister', 'Концовка «Сестра».', 'Кінцівка «Сестра».', 'Reach the ending “Sister”.', 1],
+  ['END_INSIDE', 'Внутри', 'Всередині', 'Inside', 'Концовка «Внутри».', 'Кінцівка «Всередині».', 'Reach the ending “Inside”.', 1],
+  ['END_NEWENTRY', 'Новая запись', 'Новий запис', 'New Entry', 'Концовка «Новая запись».', 'Кінцівка «Новий запис».', 'Reach the ending “New Entry”.', 1],
+  ['ALL_ENDINGS', 'Все концовки', 'Усі кінцівки', 'Every Ending', 'Открой все четыре концовки.', 'Відкрий усі чотири кінцівки.', 'Unlock all four endings.', 0],
+  ['DEATH_01', 'Ты посмотрел ему в лицо', 'Ти подивився йому в обличчя', 'You Looked It in the Face', 'Не смотри в тринадцатую камеру.', 'Не дивись у тринадцяту камеру.', "Don't look at camera thirteen.", 1],
+  ['DEATH_02', 'Ты пошёл на свет', 'Ти пішов на світло', 'You Went to the Light', 'Сам к нему не ходи — ни на свет, ни в лифт.', 'Сам до нього не ходи — ні на світло, ні в ліфт.', "Don't go to it yourself — not to the light, not in the elevator.", 1],
+  ['DEATH_03', 'Ты отозвался', 'Ти озвався', 'You Answered the Radio', 'Гас не знал твоего имени. А оно знает.', 'Гас не знав твого імені. А воно знає.', "Gus didn't know your name. It does.", 1],
+  ['DEATH_04', 'Оно обернулось', 'Воно обернулося', 'It Turned Around', 'Тринадцатая включилась сама — выдёргивай шнур, не смотри.', 'Тринадцята ввімкнулася сама — висмикуй шнур, не дивись.', "Thirteen turned on by itself — pull the cord, don't look.", 1],
+  ['DEATH_05', 'Оно услышало', 'Воно почуло', 'It Heard You', 'Оно ищет на звук. Пока шаги рядом — не дыши.', 'Воно шукає на звук. Поки кроки поруч — не дихай.', "It hunts by sound. While the footsteps are near — don't breathe.", 1],
+  ['DEATH_06', 'Темнота догнала', 'Темрява наздогнала', 'The Dark Caught Up', 'Остановишься — догонит.', 'Зупинишся — наздожене.', 'Stop, and it catches you.', 1],
+  ['DEATH_07', 'Ты пошёл на зов', 'Ти пішов на поклик', 'You Followed the Call', 'Оно умеет звать. Стучать — нет.', 'Воно вміє кликати. Стукати — ні.', 'It knows how to call. Not how to knock.', 1],
+  ['DEATH_08', 'Фрэнк ушёл на голос', 'Френк пішов на голос', 'Frank Went to the Voice', 'Держи его, пока голос не стихнет.', 'Тримай його, доки голос не стихне.', 'Hold him until the voice fades.', 1],
+  ['DEATH_09', 'Ты ответил', 'Ти відповів', 'You Answered the Call', 'Свои до утра подождут.', 'Свої до ранку зачекають.', 'Your own can wait till morning.', 1],
+  ['DEATH_10', 'Оно пришло', 'Воно прийшло', 'It Came', 'Три странности за час остались без внимания.', 'Три дивацтва за годину лишилися без уваги.', 'Three anomalies in an hour went unnoticed.', 1],
+  ['DEATH_11', 'Ты засмотрелся', 'Ти задивився', 'You Stared Too Long', 'Там, где помехи, кто-то стоит.', 'Там, де перешкоди, хтось стоїть.', 'Someone is standing where the static is.', 1],
+  ['DEATH_12', 'Ты назвался', 'Ти назвався', 'You Said Your Name', 'Оно знает твоё имя. Ему нужно только, чтобы ты ответил.', 'Воно знає твоє ім’я. Йому треба лише, щоб ти відповів.', 'It knows your name. All it needs is for you to answer.', 1],
+  ['DEATH_13', 'Ты открыл ей', 'Ти відчинив їй', 'You Let Her In', 'Посторонних не впускать.', 'Стороннім вхід заборонено.', 'No unauthorized visitors.', 1],
+  ['DEATH_14', 'Ты взял трубку', 'Ти взяв слухавку', 'You Picked Up', 'Звонили не тебе. Но ответил — ты.', 'Дзвонили не тобі. Але відповів — ти.', "The call wasn't for you. But you're the one who answered.", 1],
+  ['ALL_DEATHS', 'Четырнадцать способов умереть', 'Чотирнадцять способів померти', 'Fourteen Ways to Die', 'Найди все 14 смертей.', 'Знайди всі 14 смертей.', 'Find all 14 deaths.', 0]];
+const ACH_BY = Object.fromEntries(ACHS.map(a => [a[0], a])), achL = LNG === 'ru' ? 0 : LNG === 'uk' ? 1 : 2;
+const achName = a => a[1 + achL], achDesc = a => a[4 + achL];
+let achGot = new Set((LS.get('ach', []) || []).filter(k => ACH_BY[k]));
+function achSync(id) { if (DESK && DESK.ach) DESK.ach(id); if (window.nsAppNative && window.nsAppNative.ach) try { window.nsAppNative.ach(id); } catch (e) {} }
+function ach(id, quiet) {
+  if (!ACH_BY[id]) return; achSync(id); if (achGot.has(id)) return;
+  achGot.add(id); LS.set('ach', [...achGot]); if (!quiet) achToast(ACH_BY[id]);
+  const all = p => ACHS.filter(a => a[0].startsWith(p)).every(a => achGot.has(a[0]));
+  if (id.startsWith('END_') && all('END_')) setTimeout(() => ach('ALL_ENDINGS', quiet), quiet ? 0 : 2600);
+  if (id.startsWith('DEATH_') && all('DEATH_')) setTimeout(() => ach('ALL_DEATHS', quiet), quiet ? 0 : 2600);
+}
+// плашки идут по очереди (концовка + «Конец смены» + «Все концовки»), каждая ~3,6 с
+const achQ = []; let achBusy = false;
+function achToast(a) { achQ.push(a); if (!achBusy) achNext(); }
+function achNext() {
+  const a = achQ.shift(); if (!a) { achBusy = false; return; } achBusy = true;
+  const el = document.createElement('div'); el.className = 'achT';
+  el.innerHTML = `<img src="ach/${a[0]}.jpg?v=1" alt=""><div><small>${tr('ДОСТИЖЕНИЕ ПОЛУЧЕНО')}</small><b>${escH(achName(a))}</b></div>`;
+  ($('stage') || document.body).appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+  if (AC) play('ding', { gain: .22, rate: .75, bus: 'sfx' });
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => { el.remove(); achNext(); }, 450); }, 3600);
+}
+function achScreen() {
+  const n = ACHS.filter(a => achGot.has(a[0])).length;
+  return `<h1>${tr('ДОСТИЖЕНИЯ')}</h1><small class="achN">${trf('Получено {a} из {b}', { a: n, b: ACHS.length })}</small><div class="achG">${ACHS.map(a => { const g = achGot.has(a[0]), hid = !g && a[7];
+    return `<div class="${g ? 'got' : ''}"><img src="ach/${a[0]}.jpg?v=1" alt=""><span><b>${escH(hid ? tr('Скрытое достижение') : achName(a))}</b><i>${escH(hid ? '???' : achDesc(a))}</i></span></div>`; }).join('')}</div>`;
+}
 function gallery() {
   const got = LS.get('endings', []).filter(k => S.endings[k]), ov = oversGot();
   return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
@@ -1372,6 +1427,7 @@ function menu() {
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
       <button id="mGal">${tr('Концовки')}</button>
+      <button id="mAch">${tr('Достижения')}</button>
       <button id="mSet">${tr('Настройки')}</button>
       ${DESK || APP ? `<button id="mQuit">${tr('Выйти из игры')}</button>` : DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
     </nav>
@@ -1381,6 +1437,7 @@ function menu() {
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
   btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); });
+  btn('mAch', () => subScreen(achScreen()));
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
   else titleAudio();
@@ -1554,7 +1611,7 @@ function finale(th) {
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
-  if (DESK && DESK.ach) { DESK.ach('END_' + String(th.ending).toUpperCase()); DESK.ach('NIGHT_DONE'); }   // достижения Steam (tools/desktop: «все концовки» main.js считает сам)
+  ach('NIGHT_DONE'); ach('END_' + String(th.ending).toUpperCase());   // достижения: плашка в игре + Steam (ПК) / Google Play Игры (Android)
   if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
   const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
@@ -1587,7 +1644,7 @@ function demoEnd() {
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const ov = new Set(LS.get('overs', [])), oi = S.overs.indexOf(th.over); ov.add(OVER0[sceneId] || (oi >= 0 ? OVERS0[oi] : th.over)); LS.set('overs', [...ov]);
-  if (DESK && DESK.ach && oi >= 0) DESK.ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер)
+  if (oi >= 0) ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер); плашка + Steam / Google Play
   music(null); if (hushOn) hush(false);   // тишина финала (hush) не переходит на экран смерти и в повтор
   // обрыв в черноту, секунда темноты (звук смерти ещё звучит), потом название; за ним из темноты проступает последний кадр — застывший
   overBg = { t0: now(), st: lastShotT }; setTimeout(() => { const s = uiEl.querySelector('.screen.over'); if (s) s.style.pointerEvents = ''; }, 800);
@@ -2261,7 +2318,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
+window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot() { return [...achGot]; }, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },
