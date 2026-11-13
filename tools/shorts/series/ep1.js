@@ -19,6 +19,8 @@ function envelope(f) {
   const mx = Math.max(.01, ...e); return { e: e.map(v => +Math.min(1, v / mx * 1.3).toFixed(2)), d: n / 8000 };
 }
 const VOX = {}; for (const k of Object.keys(TXT)) VOX[k] = envelope(path.join(VO, k + '.wav'));
+// слова со временем (tools/shorts/series/align.py → ПАПКА_ГОЛОСА/words.json): губы складываются под буквы, как в игре; без файла — только по громкости
+const WORDS = fs.existsSync(path.join(VO, 'words.json')) ? JSON.parse(fs.readFileSync(path.join(VO, 'words.json'), 'utf8')) : {};
 
 // ----- монтаж: планы по порядку; время считается от длины реплик -----
 const PLAN = [
@@ -47,7 +49,7 @@ function spec() {
     seg.push(s); T = t;
   }
   ev[1] = { f: 'drone_dread', at: seg[3].t0, g: .32, loop: 1 };
-  return { dur: T, seg, ev, vox: VOX, txt: TXT };
+  return { dur: T, seg, ev, vox: VOX, txt: TXT, words: WORDS };
 }
 
 // ----- страница: локация, герои, планы, надписи -----
@@ -55,8 +57,15 @@ function pageMain(SP, FPS) {
   const W = 1080, H = 1920, c3 = document.getElementById('c'), g3 = c3.getContext('2d'), o = document.getElementById('o'), g = o.getContext('2d');
   const G = window.__G, PI = Math.PI;
   const segAt = T => SP.seg.find(s => T < s.t1) || SP.seg[SP.seg.length - 1];
+  // буква → форма губ (то же, что VIS_CH/visemeAt в web/engine.js)
+  const VC = {}; for (const [s, v] of [['a', 'viseme_aa'], ['o', 'viseme_O'], ['uw', 'viseme_U'], ['iy', 'viseme_I'], ['e', 'viseme_E'], ['pbm', 'viseme_PP'], ['fv', 'viseme_FF'], ['sz', 'viseme_SS'], ['jc', 'viseme_CH'], ['td', 'viseme_DD'], ['nl', 'viseme_nn'], ['kgqxh', 'viseme_kk'], ['r', 'viseme_RR']]) for (const c of s) VC[c] = v;
+  const visAt = (w, tl) => { if (!w || !w.length) return null; let i = -1; for (let j = 0; j < w.length && w[j][0] <= tl; j++) i = j; if (i < 0) return 'sil';
+    const Lt = [...String(w[i][1]).toLowerCase()].filter(c => VC[c]); if (!Lt.length) return 'sil';
+    const st = w[i][0], nx = i + 1 < w.length ? w[i + 1][0] : st + 9, en = Math.min(nx - .02, st + .075 * Lt.length + .1); if (tl > en) return 'sil';
+    return VC[Lt[Math.min(Lt.length - 1, Math.floor((tl - st) / Math.max(.05, en - st) * Lt.length))]]; };
   window.__state = T => { const s = segAt(T); G.T = T; G.s = s; G.say = s.say.find(q => T >= q.t0 && T < q.t0 + q.d) || null;
     G.amp = G.say ? (SP.vox[G.say.k].e[Math.floor((T - G.say.t0) * 48)] || 0) : 0;
+    G.vis = G.say ? visAt(SP.words[G.say.k], T - G.say.t0) : null;
     const sc = s.scr, t = T - s.t0; let v = sc.v || 0;
     if (sc.tick) v = sc.tick.filter(a => t >= a).length; if (sc.run) v = Math.round(sc.run[0] + (sc.run[1] - sc.run[0]) * Math.min(1, t / (s.t1 - s.t0)) ** 1.6);
     G.votes = v; G.scr = sc.m; return s; };
@@ -154,7 +163,7 @@ function pageHook() {
     L.laundry = o;
     // ----- планы -----
     const TERM = [TXW - .07, 1.43, -3.0], CAMP = [1.95, 2.42, -5.72], STOR = [0, 1.2, -len];
-    const base = (k, t, who, more) => Object.assign({ clips: [['Idle_Loop', t + k, 1]], legs: 'feet', talk: G.say && G.say.who === who ? 1 : 0, post: C => { if (G.say && G.say.who === who) C.talk = .08 + .55 * G.amp; } }, more);
+    const base = (k, t, who, more) => Object.assign({ clips: [['Idle_Loop', t + k, 1]], legs: 'feet', talk: G.say && G.say.who === who ? 1 : 0, post: C => { const me = G.say && G.say.who === who; C.talk = me ? .2 + .6 * G.amp : 0; C.vis = me ? G.vis : null; } }, more);
     const face = (leo, mara) => { A.leo.faceSet = leo; A.mara.faceSet = mara; };
     const ry = (x, z, tx, tz) => Math.atan2(tx - x, tz - z);
     const P = { a: { leo: [1.5, -3.0], mara: [.2, -2.0] }, b: { leo: [1.45, -3.42], mara: [1.4, -2.5] }, c: { leo: [1.45, -3.2], mara: [.05, -.72] }, d: { leo: [.85, -2.3], mara: [-.25, -3.2] } };
