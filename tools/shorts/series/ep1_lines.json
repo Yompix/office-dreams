@@ -1,0 +1,20 @@
+{
+ "voices": {
+  "leo": {"clone": "owner"},
+  "mara": {"design": "A 20-year-old young woman with a low, dry, slightly husky voice. Tired, practical older sister; speaks quietly and tensely, sharp and loud when she panics. Natural cinematic acting, not theatrical.", "ref": "Stay behind me and keep quiet. I don't know what that is, but we are not touching that door tonight."}
+ },
+ "lines": [
+  ["leo1", "leo", "The card reader's on. It was dead this morning."],
+  ["mara1", "mara", "So somebody fixed it. Pay and let's go."],
+  ["leo2", "leo", "Mara. Look at this."],
+  ["mara2", "mara", "Should they open the door. Who's they?"],
+  ["leo3", "leo", "I think it means us."],
+  ["leo4", "leo", "Somebody just voted."],
+  ["mara3", "mara", "There's nobody down here."],
+  ["leo5", "leo", "That camera wasn't on yesterday."],
+  ["mara4", "mara", "It's locked. Leo, it's locked!"],
+  ["leo6", "leo", "It says we wait. Until they decide."],
+  ["mara5", "mara", "Okay. Whoever you are. Vote B. Please. Just leave it shut."],
+  ["leo7", "leo", "Don't tell them what to pick. What if that makes them want A."]
+ ]
+}
