@@ -1,0 +1,23 @@
+{
+ "voices": {
+  "leo": {"clone": "owner"},
+  "mara": {"design": "A 19-year-old young woman with a low, dry, slightly husky voice. Tired and protective older sister; speaks quietly and tensely, sharp when she gives orders. Natural cinematic acting, not theatrical.", "ref": "Stay behind me and keep quiet. I don't know what that is, but we are not opening that door tonight."},
+  "mom": {"design": "A 45-year-old mother with a warm, tired, slightly worried voice, just woken up in the middle of the night. Natural, quiet, realistic phone conversation.", "ref": "It's the middle of the night, sweetheart. Everyone is asleep. Tell me slowly what happened down there."},
+  "tim": {"design": "A six-year-old little boy with a small, high, soft voice. Unnaturally calm and slow, almost flat, as if reciting; quiet and close to the listener.", "ref": "It is very dark in here and I have been waiting for a long time. Please open the door for me."}
+ },
+ "lines": [
+  ["leo1", "leo", "Whose is that? Nobody else is down here."],
+  ["mara1", "mara", "Not ours. Just load the thing, I want to go to bed."],
+  ["leo2", "leo", "Mara. The door."],
+  ["tim1", "tim", "Leo? It's dark in here. Let me out."],
+  ["mara2", "mara", "That's Tim's voice."],
+  ["leo3", "leo", "Tim's upstairs. He's asleep."],
+  ["mara3", "mara", "I'm calling Mom."],
+  ["mom1", "mom", "Mara? It's midnight. What's wrong?"],
+  ["mara4", "mara", "Mom, where's Tim?"],
+  ["mom2", "mom", "In his bed. I'm looking right at him. Why?"],
+  ["tim2", "tim", "She's lying. That isn't me up there. Open the door, Leo."],
+  ["mom3", "mom", "Mara, who is that? Who's talking?"],
+  ["mara5", "mara", "Leo. Don't."]
+ ]
+}
