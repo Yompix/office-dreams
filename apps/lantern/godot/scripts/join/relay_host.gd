@@ -6,6 +6,8 @@ extends RefCounted
 ## Работает в своём потоке, без узлов сцены — общий код ПК и Android.
 
 const UDP_IDLE_MS := 60000
+const SILENCE_MS := 25000     # от relay ничего нет столько — связь мёртвая, переподключаемся
+const CONNECT_MS := 10000     # подключение + ответ «room» не пришли за столько — новая попытка
 const BACKLOG_MAX := 2 << 20
 
 var relay_url := ""
@@ -48,6 +50,7 @@ var _world_seen := 0
 var _ok_since := 0
 var _bad_since := 0
 var _alerted := false
+var _net_hint := ""
 
 
 ## resume — попросить у relay прежний код (relay держит комнату 5 минут после обрыва).
@@ -85,8 +88,23 @@ func stop(graceful := true) -> void:
 func stats() -> Dictionary:
 	_mutex.lock()
 	var d := _stats.duplicate()
+	var hint := _net_hint
 	_mutex.unlock()
+	# пока переподключаемся: «LANTERN обновляется» (интернет есть, relay нет) вместо «проверьте интернет»
+	if d.state == "reconnecting":
+		if hint == "server":
+			d["error"] = L.t("Сервер LANTERN обновляется — подключимся сами через несколько секунд")
+		elif hint != "offline" and d.get("why", "") == "net":
+			d["error"] = L.t("Переподключаемся к LANTERN…")
 	return d
+
+
+## Что знает соцчасть о сети (Social.net_state(): online / connecting / server / offline) — для текста ошибки.
+## Ставит основной поток (RoomControl), читает stats().
+func set_net_hint(s: String) -> void:
+	_mutex.lock()
+	_net_hint = s
+	_mutex.unlock()
 
 
 ## Журнал событий для UI (забрать и очистить).
@@ -216,8 +234,10 @@ func _loop() -> void:
 		token = _last_room[1]
 		num = _last_room[2] if _last_room.size() > 2 else ""
 		_mutex.unlock()
-	var backoff := 1000
+	var backoff := 500
 	var next_try := 0
+	var restart_hint := false   # relay прислал {t:"restart"} (выкладка) — переподключаемся почти сразу
+	var got_room := false       # relay выдал комнату на этом соединении
 	var connected := false
 	var last_ping := 0
 	var last_sync := 0
@@ -246,15 +266,17 @@ func _loop() -> void:
 			else:
 				active = true
 				link_t0 = now
+				got_room = false
 		var busy := false
 		var evs: Array = link.poll() if active else []
-		# связь «зависла» (телефон сменил сеть, а сокет не закрылся): нет ничего от relay 40 с — переподключаемся
-		if active and connected and now - last_rx > 40000:
+		# связь «зависла» (телефон сменил сеть, а сокет не закрылся): нет ничего от relay 25 с — переподключаемся
+		# (ping уходит каждые 10 с, relay отвечает pong и сам шлёт «net» каждые 15 с; было 40 с)
+		if active and connected and now - last_rx > SILENCE_MS:
 			AppLog.add("host", "relay молчит %d с — переподключаемся" % ((now - last_rx) / 1000))
 			link.ws.close()
 			evs.append({"k": "closed", "code": -1, "reason": "timeout", "was_open": true})
-		elif active and not connected and now - link_t0 > 20000:
-			AppLog.add("host", "relay не отвечает 20 с при подключении")
+		elif active and not got_room and now - link_t0 > (CONNECT_MS if not connected else CONNECT_MS + 5000):
+			AppLog.add("host", "relay не %s за %d с" % ["открыл соединение" if not connected else "выдал комнату", (now - link_t0) / 1000])
 			link.ws.close()
 			evs.append({"k": "closed", "code": -1, "reason": "connect timeout", "was_open": false})
 		for ev in evs:
@@ -265,7 +287,8 @@ func _loop() -> void:
 			match ev.k:
 				"open":
 					connected = true
-					backoff = 1000
+					got_room = false
+					backoff = 500
 					var hello := {"t": "host", "v": RelayLink.PROTO, "edition": edition, "name": world_name, "bans": bans}
 					hello.merge(extra)
 					if lanp:
@@ -296,12 +319,22 @@ func _loop() -> void:
 					AppLog.add("host", "relay: связь закрыта (код %s, %s, была открыта %s, %d с); потоков ждут возврата: %d" % [str(ev.code), String(ev.get("reason", "")), str(ev.was_open), (now - link_t0) / 1000, kept])
 					if _run:
 						_st("state", "reconnecting")
+						_st("why", "link" if ev.was_open else "net")
 						_st("error", L.t("Связь с LANTERN прервалась — восстанавливаем, игроки не вылетят, если она вернётся за полминуты.") if ev.was_open else L.t("Нет связи с LANTERN — проверьте интернет. Пробуем снова…"))
-					next_try = Time.get_ticks_msec() + (300 if int(ev.code) == 1012 else backoff)
-					backoff = min(backoff * 2, 8000)
+					# 1.8.2: перезапуск relay (выкладка) — {t:"restart"} и код 4012 (1012 Godot видит как 1002);
+					# иначе пауза 0.5 → 1 → 2 → 4 → 5 с (было до 8 с) с разбросом, чтобы все хозяева не стучались разом
+					if int(ev.code) in [4012, 1012] or restart_hint:
+						next_try = Time.get_ticks_msec() + 300 + randi() % 700
+					else:
+						next_try = Time.get_ticks_msec() + int(backoff * randf_range(0.75, 1.25))
+						backoff = mini(backoff * 2, 5000)
+					restart_hint = false
 				"msg":
 					var m: Dictionary = ev.m
 					match String(m.get("t", "")):
+						"restart":
+							restart_hint = true
+							AppLog.add("host", "relay перезапускается (выкладка) — переподключимся сразу")
 						"net":
 							_st("ping", int(m.get("ping", 0)))
 							_st("quality", String(m.get("quality", "")))
@@ -316,6 +349,7 @@ func _loop() -> void:
 								_update_counts(streams)
 							elif code != "":
 								AppLog.add("host", "комната возвращена с прежним кодом")
+							got_room = true
 							code = m.code
 							token = m.token
 							num = String(m.get("num", ""))

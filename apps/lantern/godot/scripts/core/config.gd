@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.8.1"
+const APP_VERSION := "1.8.2"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -193,7 +193,7 @@ func game() -> Dictionary:
 static func mode_name(m: String) -> String:
 	for x in MODES:
 		if x[0] == m:
-			return x[1]
+			return L.t(x[1])
 	return L.t("Другое")
 
 

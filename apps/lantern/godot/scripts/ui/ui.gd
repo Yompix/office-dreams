@@ -348,7 +348,7 @@ static func label(text: String, size := T_BODY, color := TEXT, font: Font = null
 static func para(text: String, size := T_BODY, color := MUTED) -> Label:
 	var l := label(text, size, color)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size.x = 120
+	l.custom_minimum_size.x = 72 if compact() else 120     # 1.8.2: узкий телефон (320 dp) — абзац рядом с кнопкой не распирает строку
 	return l
 
 
@@ -379,7 +379,9 @@ static func num(text: String, size := T_LABEL, color := MUTED) -> Label:
 
 static func h2(text: String) -> Label:
 	_fallbacks()
-	return label(text, T_TITLE if compact() else T_TITLE + 2, TEXT, font_title)
+	var l := label(text, T_TITLE if compact() else T_TITLE + 2, TEXT, font_title)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART     # 1.8.2: длинное название (сезон на испанском) — перенос, а не шире экрана
+	return l
 
 
 static func h3(text: String) -> Label:
@@ -395,6 +397,7 @@ static func caption(text: String, color := DIM) -> Label:
 static func section(text: String, action := "", cb := Callable()) -> Control:
 	var r := hbox(8)
 	var c := caption(text)
+	c.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: «CÓMO ABRIR UN MUNDO A TUS AMIGOS» на 320 dp
 	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	r.add_child(c)
@@ -530,7 +533,7 @@ static func chip(text: String, on := false, cb := Callable()) -> Button:
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	b.custom_minimum_size.y = 40 if compact() else 36
+	b.custom_minimum_size = Vector2(44, 44) if compact() else Vector2(0, 36)     # 1.8.2: палец — не меньше 44 dp
 	b.add_theme_font_size_override("font_size", 14)
 	chip_set(b, on)
 	if cb.is_valid():
@@ -589,7 +592,7 @@ static func segmented(items: Array, current: String, cb: Callable) -> PanelConta
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", box(FIELD, R_BTN + 2, 4, Color(1, 1, 1, 0.12), 1))
 	var holder := Control.new()
-	holder.custom_minimum_size.y = 42
+	holder.custom_minimum_size.y = 44 if compact() else 42
 	p.add_child(holder)
 	var pill_bg := Panel.new()
 	var pst := box(Color(accent(), 0.22), R_BTN - 2, 0, Color(accent(), 0.6), 1)
@@ -610,9 +613,9 @@ static func segmented(items: Array, current: String, cb: Callable) -> PanelConta
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		b.clip_text = true        # узкий экран (360 dp): длинная подпись обрезается, а не распирает экран
 		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		b.add_theme_font_size_override("font_size", 14 if compact() else T_BODY)
 		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			b.add_theme_stylebox_override(st, box(Color(0, 0, 0, 0), R_M - 2))
+		fit_font(b, 14 if compact() else T_BODY, 10)
 		# подсветка переезжает сама: раньше часть экранов забывала segmented_select — выбор менялся, а выглядело, будто кнопка не работает
 		b.pressed.connect(func(): segmented_select(p, it[0]); cb.call(it[0]))
 		d[it[0]] = b
@@ -623,6 +626,32 @@ static func segmented(items: Array, current: String, cb: Callable) -> PanelConta
 	holder.resized.connect(func(): segmented_select(p, p.get_meta("key"), false))
 	segmented_select(p, current, false)
 	return p
+
+
+## 1.8.2: подпись кнопки/вкладки с clip_text уменьшается (max → min), чтобы влезть целиком, а не «Досягнен…»;
+## не влезла и мелким шрифтом — убираем иконку кнопки.
+static func fit_font(b: Button, max_fs: int, min_fs: int) -> void:
+	b.set_meta("fit_fs", Vector2i(max_fs, min_fs))
+	b.add_theme_font_size_override("font_size", max_fs)
+	b.resized.connect(_fit_font_now.bind(b))
+
+
+static func _fit_font_now(b: Button) -> void:
+	if not is_instance_valid(b) or b.size.x < 2.0:
+		return
+	var fs: Vector2i = b.get_meta("fit_fs")
+	var font := b.get_theme_font("font")
+	var txt := b.atr(b.text)
+	var sb := b.get_theme_stylebox("normal")
+	var pad := sb.get_minimum_size().x if sb else 0.0
+	var ic := (b.icon.get_width() + b.get_theme_constant("h_separation")) if b.icon else 0.0
+	var k := fs.x
+	while k > fs.y and font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, k).x + pad + ic > b.size.x - 1.0:
+		k -= 1
+	if b.icon and font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, k).x + pad + ic > b.size.x - 1.0:
+		b.icon = null
+	if b.get_theme_font_size("font_size") != k:
+		b.add_theme_font_size_override("font_size", k)
 
 
 static func segmented_select(p: Control, key: String, animate := true) -> void:
@@ -700,12 +729,16 @@ static func list_row(lead: Control, title: String, sub := "", trail: Control = n
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var tl := label(title, T_BODY + 1, TEXT, font_bold)
-	tl.clip_text = true
+	# 1.8.2: заголовок строки — до 2 строк («Умови використання» рядом с кнопкой на 360 dp), а не «Умови вико…»
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tl.max_lines_visible = 2
 	tl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(tl)
 	if sub != "":
 		var sl := label(sub, T_LABEL, MUTED)
-		sl.clip_text = true
+		# 1.8.2: подпись переносится (до 3 строк), а не обрезается: «Надіслати журнал розробникові — отримаєте номер…»
+		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sl.max_lines_visible = 3
 		sl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		v.add_child(sl)
 	row.add_child(v)
@@ -986,7 +1019,7 @@ static func sparks_chip(n: int, cb := Callable()) -> Button:
 	b.icon = icon_tex("spark", 16, AMBER)
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	b.custom_minimum_size.y = 36
+	b.custom_minimum_size.y = 44 if compact() else 36     # 1.8.2: палец — 44 dp
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.add_theme_stylebox_override("normal", _hpad(box(Color(AMBER, 0.14), 99, 0, Color(AMBER, 0.35), 1), 12, 4))
 	b.add_theme_stylebox_override("hover", _hpad(box(Color(AMBER, 0.2), 99), 12, 4))

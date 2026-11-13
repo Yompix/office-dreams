@@ -124,6 +124,8 @@ func _loop() -> void:
 	var next_try := 0
 	var backoff := 500
 	var link_t0 := Time.get_ticks_msec()
+	var first_t := link_t0
+	var restart_hint := false
 	var last_rx := link_t0
 	var rng := RandomNumberGenerator.new()
 	var last_busy := 0
@@ -153,12 +155,12 @@ func _loop() -> void:
 				OS.delay_usec(1000)
 				continue
 		var evs: Array = link.poll()
-		if joined and now - last_rx > 40000:
+		if joined and now - last_rx > 25000:     # ping каждые 10 с; было 40 с
 			AppLog.add("join", "relay молчит %d с — переподключаемся" % ((now - last_rx) / 1000))
 			link.ws.close()
 			evs.append({"k": "closed", "code": -1, "reason": "timeout", "was_open": true})
-		elif not joined and now - link_t0 > 20000:
-			AppLog.add("join", "relay не отвечает 20 с")
+		elif not joined and now - link_t0 > 10000:
+			AppLog.add("join", "relay не отвечает 10 с")
 			link.ws.close()
 			evs.append({"k": "closed", "code": -1, "reason": "connect timeout", "was_open": link.is_open()})
 		for ev in evs:
@@ -186,6 +188,15 @@ func _loop() -> void:
 						_st("error", RelayLink.error_text(reason if reason != "room closed" else "room_closed"))
 						_run = false
 						break
+					# первый вход во время выкладки relay (перезапуск, «зависшее» подключение): пробуем ещё ~25 с, а не сразу ошибка
+					if not ever_joined and (int(ev.code) in [4012, 1012] or restart_hint or reason == "connect timeout" or not ev.was_open) \
+							and now - first_t < 25000:
+						link_on = false
+						lost_t = now   # для проверки RECONNECT_MS (первый вход ограничен 25 с выше)
+						next_try = now + (300 if int(ev.code) in [4012, 1012] or restart_hint else backoff) + rng.randi_range(0, 300)
+						backoff = min(backoff * 2, 4000)
+						restart_hint = false
+						continue
 					if not ever_joined:
 						_st("state", "error")
 						_st("error_code", "unreachable" if not ev.was_open else "lost")
@@ -197,7 +208,8 @@ func _loop() -> void:
 					link_on = false
 					if lost_t == 0:
 						lost_t = now
-					next_try = now + (200 if int(ev.code) == 1012 else backoff) + rng.randi_range(0, 300)
+					next_try = now + (200 if int(ev.code) in [4012, 1012] or restart_hint else backoff) + rng.randi_range(0, 300)
+					restart_hint = false
 					backoff = min(backoff * 2, 4000)
 					_detach_all(streams, by_client, now)
 					_st("state", "reconnecting")
@@ -205,6 +217,8 @@ func _loop() -> void:
 				"msg":
 					var m: Dictionary = ev.m
 					match String(m.get("t", "")):
+						"restart":
+							restart_hint = true
 						"joined":
 							joined = true
 							edition = m.edition
@@ -225,6 +239,8 @@ func _loop() -> void:
 									_reopen(link, streams, udp != null, now)
 								continue
 							ever_joined = true
+							lost_t = 0
+							backoff = 500
 							AppLog.add("join", "в комнате: %s, издание %s, хозяин %s" % [name, edition, "на месте" if host_here else "отошёл"])
 							if want_java and edition in ["java", "both"]:
 								tcp_server = TCPServer.new()
@@ -679,7 +695,7 @@ func _loop() -> void:
 		_st("state", "off")
 
 
-const RECONNECT_MS := 90000
+const RECONNECT_MS := 180000   # выкладка relay на Railway идёт 1–2 мин; комната на relay ждёт хозяина 5 мин
 
 
 static func _key(rng: RandomNumberGenerator) -> String:

@@ -89,7 +89,7 @@ func _render_local() -> void:
 		row.add_child(rb)
 		if Cfg.paid():
 			var ub := UI.button(L.t("В облако"), "secondary", func(): upload(b.path), "upload")
-			ub.disabled = not Social.online()
+			ub.disabled = not Social.live()     # загрузка в облако — только при живом соединении (не по сохранённому профилю)
 			row.add_child(ub)
 		row.add_child(UI.icon_button("trash", func():
 			DirAccess.remove_absolute(b.path)
@@ -105,7 +105,7 @@ func _render_cloud() -> void:
 	for c in _cloud.get_children():
 		c.queue_free()
 	if not Social.online():
-		_cloud.add_child(UI.list_row(UI.icon_tile("wifi", UI.YELLOW, 44, 22), L.t("Нет связи с сервером LANTERN"), L.t("Облако появится, когда вернётся интернет"), null))
+		_cloud.add_child(UI.list_row(UI.icon_tile("wifi", UI.YELLOW, 44, 22), L.t("Нет связи с сервером LANTERN"), (Social.net_text() if Social.net_text() != "" else L.t("Облако появится, когда вернётся интернет")), null))
 		return
 	var c: Dictionary = Social.cloud
 	if c.is_empty():
@@ -160,7 +160,7 @@ func restore(path: String) -> void:
 	if r.ok:
 		app.toast(L.t("Мир «%s» восстановлен — он запустится при следующем «Создать мир» (%s)") % [r.world, "Java" if r.edition == "java" else "Bedrock"], UI.JAVA)
 	else:
-		app.toast(L.t("Не получилось: ") + r.error, UI.RED)
+		app.toast(L.t("Не получилось: ") + L.t(String(r.error)), UI.RED)
 
 
 func upload(path: String) -> void:
@@ -179,7 +179,7 @@ func upload(path: String) -> void:
 		app.toast(L.t("Копия в облаке ✓"), UI.JAVA)
 		Social.request("cloud_list")
 	else:
-		app.toast(L.t("Не получилось: ") + r.error, UI.RED)
+		app.toast(L.t("Не получилось: ") + L.t(String(r.error)), UI.RED)
 
 
 func download_cloud(it: Dictionary) -> void:
@@ -213,11 +213,11 @@ func _download(url: String, name: String) -> void:
 		var info := ServerHost.inspect_backup(dest)
 		if not info.ok:
 			DirAccess.remove_absolute(dest)
-			app.toast(L.t("Это не копия мира: ") + info.error, UI.RED)
+			app.toast(L.t("Это не копия мира: ") + L.t(String(info.error)), UI.RED)
 			last_result.ok = false
 		else:
 			app.toast(L.t("Копия мира «%s» скачана — нажмите «Восстановить»") % info.world, UI.JAVA)
 	else:
-		app.toast(L.t("Не получилось: ") + r.error, UI.RED)
+		app.toast(L.t("Не получилось: ") + L.t(String(r.error)), UI.RED)
 	if is_inside_tree():
 		_render_local()

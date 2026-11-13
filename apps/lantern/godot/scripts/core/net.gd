@@ -4,6 +4,14 @@ extends Node
 
 const UA := "LANTERN/1.0 (by Yompix; +minecraft server helper)"
 
+## 1.8.2: «сервер долго думает» при запуске — проверка обновлений (Paper, Geyser, Via, Java) шла запросами по 60 с
+## подряд; на плохой сети запуск висел минутами. Теперь JSON — 15 с, а сайт, который только что не ответил,
+## следующие 60 с сразу считается недоступным (запускаем уже скачанное, без ожиданий).
+const JSON_TIMEOUT := 15.0
+const DOWN_HOLD_MS := 60000
+const STALL_MS := 30000        # загрузка файла: столько нет ни байта — обрываем с понятной ошибкой
+
+var _down := {}                # хост -> {until: мс, error: текст}
 var _proxy_host := ""
 var _proxy_port := 0
 var _tls: TLSOptions = null
@@ -68,10 +76,32 @@ static func _err_text(result: int, code: int) -> String:
 	return L.t("ошибка сети (%d)") % result
 
 
-## Запрос, возвращает {ok, code, text, data(JSON или null), error}
-func request(url: String, method := HTTPClient.METHOD_GET, body := "", headers: PackedStringArray = []) -> Dictionary:
+static func _host_of(url: String) -> String:
+	return url.get_slice("://", 1).get_slice("/", 0)
+
+
+## Сайт недавно не ответил (нет соединения, не нашёлся адрес, таймаут) — вернуть ошибку сразу, не ждать снова
+func _fast_fail(url: String) -> String:
+	var d: Variant = _down.get(_host_of(url))
+	if d is Dictionary and Time.get_ticks_msec() < int(d.until):
+		return String(d.error)
+	return ""
+
+
+func _note_result(url: String, result: int, code: int) -> void:
+	if result in [HTTPRequest.RESULT_CANT_CONNECT, HTTPRequest.RESULT_CONNECTION_ERROR, HTTPRequest.RESULT_CANT_RESOLVE, HTTPRequest.RESULT_TIMEOUT]:
+		_down[_host_of(url)] = {"until": Time.get_ticks_msec() + DOWN_HOLD_MS, "error": _err_text(result, code)}
+	elif result == HTTPRequest.RESULT_SUCCESS:
+		_down.erase(_host_of(url))
+
+
+## Запрос, возвращает {ok, code, text, data(JSON или null), error}. timeout_sec: 0 — по размеру (15 с + на отправку тела)
+func request(url: String, method := HTTPClient.METHOD_GET, body := "", headers: PackedStringArray = [], timeout_sec := 0.0) -> Dictionary:
+	var ff := _fast_fail(url)
+	if ff != "":
+		return {"ok": false, "code": 0, "error": ff, "data": null, "text": ""}
 	var r := _make(url)
-	r.timeout = 60
+	r.timeout = timeout_sec if timeout_sec > 0 else JSON_TIMEOUT + body.length() / 50000.0
 	var h := PackedStringArray(["User-Agent: " + UA, "Accept: application/json"])
 	h.append_array(headers)
 	if body != "":
@@ -84,12 +114,28 @@ func request(url: String, method := HTTPClient.METHOD_GET, body := "", headers: 
 	r.queue_free()
 	var result: int = res[0]
 	var code: int = res[1]
+	_note_result(url, result, code)
 	var text: String = (res[3] as PackedByteArray).get_string_from_utf8()
 	var data: Variant = null
 	if text != "":
 		data = JSON.parse_string(text)
 	var ok := result == HTTPRequest.RESULT_SUCCESS and code >= 200 and code < 300
 	return {"ok": ok, "code": code, "text": text, "data": data, "error": "" if ok else _err_text(result, code)}
+
+
+## Быстрая проверка «сайт отвечает?» (без тела, с коротким таймаутом): true — ответ 2xx/204.
+## Нужна, чтобы отличать «нет интернета» от «сервер LANTERN перезапускается» (Social._maybe_probe).
+func probe(url: String, timeout_sec := 5.0) -> bool:
+	var r := _make(url)
+	r.timeout = timeout_sec
+	r.max_redirects = 2
+	r.body_size_limit = 65536
+	if r.request(url, PackedStringArray(["User-Agent: " + UA, "Cache-Control: no-cache"])) != OK:
+		r.queue_free()
+		return false
+	var res: Array = await r.request_completed
+	r.queue_free()
+	return int(res[0]) == HTTPRequest.RESULT_SUCCESS and int(res[1]) >= 200 and int(res[1]) < 300
 
 
 func get_json(url: String, headers: PackedStringArray = []) -> Dictionary:
@@ -118,9 +164,21 @@ func download(url: String, dest: String, checksum: Dictionary = {}, progress := 
 	if err != OK:
 		r.queue_free()
 		return {"ok": false, "error": L.t("не удалось начать загрузку (%d)") % err}
+	var seen := -1
+	var seen_t := Time.get_ticks_msec()
 	while not done[0]:
+		var got := r.get_downloaded_bytes()
 		if progress.is_valid():
-			progress.call(r.get_downloaded_bytes(), r.get_body_size())
+			progress.call(got, r.get_body_size())
+		if got != seen:
+			seen = got
+			seen_t = Time.get_ticks_msec()
+		elif Time.get_ticks_msec() - seen_t > STALL_MS:
+			# загрузка «встала» (сеть пропала, сокет не закрылся) — не ждём бесконечно
+			r.cancel_request()
+			done[0] = true
+			done[1] = HTTPRequest.RESULT_TIMEOUT
+			break
 		await get_tree().process_frame
 	# Windows: пока HTTPRequest жив, он держит .part открытым, и переименовать файл нельзя
 	# (так было: «paper.jar.part» оставался, а сервер «не находил» файл). Освобождаем сразу.

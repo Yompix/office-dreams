@@ -123,4 +123,5 @@ static func dialog(app: Control, kind := "manual", why := "") -> void:
 ## Маленькая кнопка «Сообщить о проблеме» для экранов.
 static func button(app: Control, kind := "manual", why := "") -> Button:
 	var b := UI.button(L.t("Сообщить о проблеме"), "ghost", func(): dialog(app, kind, why), "info")
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART     # 1.8.2: «Повідомити про проблему» на 320 dp — в две строки
 	return b

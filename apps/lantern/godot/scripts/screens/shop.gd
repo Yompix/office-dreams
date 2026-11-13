@@ -56,7 +56,7 @@ func _render() -> void:
 	for c in _body.get_children():
 		c.queue_free()
 	if not Social.online():
-		_body.add_child(UI.empty("wifi", L.t("Магазин работает через интернет"), L.t("Повторить"), func(): Social.reconnect(), L.t("Подключитесь к сети — и всё появится.")))
+		_body.add_child(UI.empty("wifi", L.t("Магазин работает через интернет"), L.t("Повторить"), func(): Social.reconnect(), (Social.net_text() if Social.net_text() != "" else L.t("Подключитесь к сети — и всё появится."))))
 		return
 	if _kind == "pro":
 		_pro()
@@ -119,7 +119,7 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	stage.add_theme_stylebox_override("panel", UI.box(Color(0.02, 0.03, 0.08, 0.45), UI.R_L, 0, Color(1, 1, 1, 0.06), 1))
 	stage.add_child(_preview(it))
 	v.add_child(stage)
-	var nl := UI.label(it.name, 14, UI.TEXT, UI.font_bold)
+	var nl := UI.label(L.t(String(it.name)), 14, UI.TEXT, UI.font_bold)
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	nl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -147,8 +147,8 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	else:
 		b = UI.button(L.t("Надеть"), "secondary", func(): Social.request("wear", {"item": it.id}))
 	b.clip_text = true
-	b.add_theme_font_size_override("font_size", 14)
-	b.custom_minimum_size.y = 40
+	UI.fit_font(b, 14, 11)          # 1.8.2: «Надягнено» / «Temporada» на 320 dp — мельче, а не обрезано
+	b.custom_minimum_size.y = 44
 	v.add_child(b)
 	return p
 

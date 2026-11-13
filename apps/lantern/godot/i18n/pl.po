@@ -396,8 +396,14 @@ msgstr "Balans"
 msgid "Батарея"
 msgstr "Bateria"
 
+msgid "Башенка"
+msgstr "Wieżyczka"
+
 msgid "Без профиля список игр не виден."
 msgstr "Bez profilu lista gier jest niewidoczna."
+
+msgid "Без рамки"
+msgstr "Bez ramki"
 
 msgid "Без рекламы совсем"
 msgstr "Zero reklam"
@@ -411,8 +417,14 @@ msgstr "Bez przesunięć i błysków — dla słabych telefonów i wrażliwych n
 msgid "Без телеметрии. Не требует прав администратора. Пароли не спрашивает."
 msgstr "Bez telemetrii. Nie wymaga uprawnień administratora. Nie pyta o hasła."
 
+msgid "Белый ник"
+msgstr "Biały nick"
+
 msgid "Бесплатно"
 msgstr "Za darmo"
+
+msgid "Болтун"
+msgstr "Gaduła"
 
 msgid "Больше мест (+5)"
 msgstr "Więcej miejsc (+5)"
@@ -437,6 +449,9 @@ msgstr "Szybko"
 
 msgid "Быстрый ответ"
 msgstr "Szybka odpowiedź"
+
+msgid "В гостях"
+msgstr "W gościach"
 
 msgid "В игре нажмите Esc и кликните по окошку. Не видно поверх игры — включите в Minecraft оконный режим (Java: F11)."
 msgstr "W grze naciśnij Esc i kliknij okienko. Nie widać go nad grą? Włącz w Minecrafcie tryb okienkowy (Java: F11)."
@@ -594,6 +609,9 @@ msgstr "Na dole, w „Grach w sieci LAN” — „%s”. Kliknij"
 msgid "Во что играем?"
 msgstr "W co gramy?"
 
+msgid "Вожак"
+msgstr "Przywódca"
+
 msgid "Войти"
 msgstr "Wejdź"
 
@@ -651,6 +669,9 @@ msgstr "Jesteś w samym świecie, a nie w menu"
 msgid "Вы заходили · "
 msgstr "Byłeś tu · "
 
+msgid "Вы не в комнате"
+msgstr "Nie jesteś w pokoju"
+
 msgid "Вы отключились"
 msgstr "Rozłączono cię"
 
@@ -662,6 +683,9 @@ msgstr "Już jesteś w świecie — jest otwarty w twoim Minecrafcie. Znajomi we
 
 msgid "Вы уже в этом мире."
 msgstr "Już jesteś w tym świecie."
+
+msgid "Вы уже друзья"
+msgstr "Już jesteście znajomymi"
 
 msgid "Вы хозяин — к себе заходите без кода."
 msgstr "Jesteś hostem — do siebie wchodzisz bez kodu."
@@ -726,6 +750,9 @@ msgstr "Menu główne i lista światów się nie liczą — wejdź do świata."
 msgid "Го!"
 msgstr "Dawaj!"
 
+msgid "Гостеприимный"
+msgstr "Gościnny"
+
 msgid "Гость"
 msgstr "Gość"
 
@@ -764,6 +791,18 @@ msgstr "Tak, nowy świat"
 
 msgid "Даже пока вы в Minecraft. Не закрывайте игру и LANTERN."
 msgstr "Nawet gdy jesteś w Minecrafcie. Nie zamykaj gry ani LANTERN."
+
+msgid "Делу время"
+msgstr "Czas na zadania"
+
+msgid "Демо-покупки выключены на сервере"
+msgstr "Zakupy demo są wyłączone na serwerze"
+
+msgid "Деревянная рамка"
+msgstr "Drewniana ramka"
+
+msgid "Десять часов"
+msgstr "Dziesięć godzin"
 
 msgid "Динамит и монстры разрушают постройки."
 msgstr "TNT i potwory niszczą budowle."
@@ -807,6 +846,9 @@ msgstr "Dodaj serwer w Minecrafcie"
 msgid "Добавьте сервер %s один раз — дальше он всегда ведёт в игру, к которой вы подключились в LANTERN."
 msgstr "Dodaj serwer %s raz — potem zawsze prowadzi do gry, do której dołączyłeś w LANTERN."
 
+msgid "Добавьте хотя бы одну букву"
+msgstr "Dodaj co najmniej jedną literę"
+
 msgid "Добываем ресурсы, строим, сражаемся и можем погибнуть."
 msgstr "Zbieramy surowce, budujemy, walczymy i możemy zginąć."
 
@@ -829,7 +871,7 @@ msgid "Драки между игроками (PvP)"
 msgstr "Walki między graczami (PvP)"
 
 msgid "Друг"
-msgstr "Znajomy"
+msgstr "Przyjaciel"
 
 msgid "Друг вводит код или номер в «Зайти по коду» — мир сам появится у него в Minecraft."
 msgstr "Znajomy wpisuje kod lub numer w „Wejdź po kodzie” — świat sam pojawi się w jego Minecrafcie."
@@ -909,6 +951,9 @@ msgstr "Znajomi z Bedrocka (telefon, tablet, konsola) wejdą do tego samego świ
 msgid "Друзьям нужна та же версия Minecraft: Java Edition и свой аккаунт Microsoft."
 msgstr "Znajomi potrzebują tej samej wersji Minecraft: Java Edition i własnego konta Microsoft."
 
+msgid "Душа компании"
+msgstr "Dusza towarzystwa"
+
 msgid "Если кнопка пропадает в игре, проверьте два пункта:"
 msgstr "Jeśli przycisk znika w grze, sprawdź dwie rzeczy:"
 
@@ -951,6 +996,15 @@ msgstr "Odbierz"
 msgid "Забрать +20 искр"
 msgstr "Odbierz +20 iskier"
 
+msgid "Загрузка прервалась"
+msgstr "Wysyłanie zostało przerwane"
+
+msgid "Задание ещё не выполнено"
+msgstr "Zadanie jeszcze nie wykonane"
+
+msgid "Задание устарело"
+msgstr "Zadanie wygasło"
+
 msgid "Задания"
 msgstr "Zadania"
 
@@ -968,6 +1022,12 @@ msgstr "Zadania tygodnia"
 
 msgid "Задания считаются на сервере LANTERN"
 msgstr "Zadania są liczone na serwerze LANTERN"
+
+msgid "Зайди в открытый мир"
+msgstr "Wejdź do otwartego świata"
+
+msgid "Зайдите в игру сегодня"
+msgstr "Zagraj dzisiaj"
 
 msgid "Зайдите в любую одним нажатием — LANTERN сам откроет Minecraft"
 msgstr "Wejdź do dowolnej jednym kliknięciem — LANTERN sam otworzy Minecrafta"
@@ -1071,6 +1131,12 @@ msgstr "Wejść można z Javy %s – %s (dowolna wersja)"
 msgid "Заходить можно только с Java %s"
 msgstr "Wejść można tylko z Javy %s"
 
+msgid "Захости мир, где побывало 2+ игрока"
+msgstr "Hostuj świat, w którym będzie 2+ graczy"
+
+msgid "Заявка не найдена"
+msgstr "Nie znaleziono zaproszenia"
+
 msgid "Заявка отправлена: "
 msgstr "Zaproszenie wysłane: "
 
@@ -1080,8 +1146,17 @@ msgstr "Zaproszenie pójdzie, gdy wróci połączenie — kliknij „Dodaj”"
 msgid "Заявки в друзья · %d"
 msgstr "Zaproszenia do znajomych · %d"
 
+msgid "Звезда"
+msgstr "Gwiazda"
+
 msgid "Звуки"
 msgstr "Dźwięki"
+
+msgid "Звёздное небо"
+msgstr "Gwiaździste niebo"
+
+msgid "Звёздный фонарь"
+msgstr "Gwiezdna latarnia"
 
 msgid "Здесь будет реклама"
 msgstr "Tu będzie reklama"
@@ -1092,8 +1167,17 @@ msgstr "Tu będą światy, do których wchodziłeś."
 msgid "Зерно (seed)"
 msgstr "Ziarno (seed)"
 
+msgid "Зимняя поляна"
+msgstr "Zimowa polana"
+
+msgid "Золотая рамка"
+msgstr "Złota ramka"
+
 msgid "Золотая середина — подойдёт почти всем."
 msgstr "Złoty środek — pasuje prawie każdemu."
+
+msgid "Золотой ник"
+msgstr "Złoty nick"
 
 msgid "Зомби, скелеты и другие враги появляются в мире."
 msgstr "Zombie, szkielety i inni wrogowie pojawiają się w świecie."
@@ -1146,6 +1230,12 @@ msgstr "Gracz wyrzucony ze świata"
 msgid "Игрок заблокирован"
 msgstr "Gracz zablokowany"
 
+msgid "Игрок не найден"
+msgstr "Nie znaleziono gracza"
+
+msgid "Игрок с таким тегом не найден"
+msgstr "Nie ma gracza z takim tagiem"
+
 msgid "Игрок снова может зайти"
 msgstr "Gracz znów może wejść"
 
@@ -1179,6 +1269,9 @@ msgstr "Zmień kod"
 msgid "Изменить…"
 msgstr "Zmień…"
 
+msgid "Изумрудное пламя"
+msgstr "Szmaragdowy płomień"
+
 msgid "Или зайдите к другу"
 msgstr "Albo dołącz do znajomego"
 
@@ -1190,6 +1283,9 @@ msgstr "Internet zniknął na dłużej. Gdy wróci, kliknij „Spróbuj ponownie
 
 msgid "Интернет-комната выключена: зайти смогут только друзья из вашей Wi-Fi сети."
 msgstr "Pokój internetowy jest wyłączony: wejdą tylko znajomi z twojej sieci Wi-Fi."
+
+msgid "Искорка"
+msgstr "Iskierka"
 
 msgid "Искры"
 msgstr "Iskry"
@@ -1205,6 +1301,9 @@ msgstr "Iskry codziennie"
 
 msgid "Искры можно и не покупать: задания дня, серия и сезон дают их каждый день. Покупки — только через Google Play, родители могут ограничить их в настройках Play."
 msgstr "Iskier nie trzeba kupować: zadania dnia, seria i sezon dają je codziennie. Zakupy — tylko przez Google Play, rodzice mogą je ograniczyć w ustawieniach Play."
+
+msgid "Исполнитель"
+msgstr "Wykonawca"
 
 msgid "Ищем Java %d (Eclipse Temurin)…"
 msgstr "Szukamy Javy %d (Eclipse Temurin)…"
@@ -1229,6 +1328,15 @@ msgstr "Jak grać razem"
 
 msgid "Как открыть мир для друзей"
 msgstr "Jak otworzyć świat znajomym"
+
+msgid "Каменная рамка"
+msgstr "Kamienna ramka"
+
+msgid "Карманный мир"
+msgstr "Kieszonkowy świat"
+
+msgid "Кирка и блоки"
+msgstr "Kilof i bloki"
 
 msgid "Кнопка не видна в игре?"
 msgstr "Nie widać przycisku w grze?"
@@ -1266,6 +1374,9 @@ msgstr "Kod dla znajomego:"
 msgid "Код для друзей"
 msgstr "Kod dla znajomych"
 
+msgid "Код друга можно ввести в первую неделю"
+msgstr "Kod znajomego można wpisać tylko w pierwszym tygodniu"
+
 msgid "Код друга принят!"
 msgstr "Kod znajomego przyjęty!"
 
@@ -1275,6 +1386,9 @@ msgstr "Kod lub numer od znajomego"
 msgid "Код комнаты и игроки"
 msgstr "Kod pokoju i gracze"
 
+msgid "Код не найден или устарел (действует 24 часа)"
+msgstr "Kod nie istnieje lub wygasł (ważny 24 godziny)"
+
 msgid "Код от друга"
 msgstr "Kod od znajomego"
 
@@ -1283,6 +1397,9 @@ msgstr "Kod skopiowany"
 
 msgid "Код — 6 символов"
 msgstr "Kod ma 6 znaków"
+
+msgid "Код — от 3 до 8 символов: латинские буквы и цифры 2–9"
+msgstr "Kod: od 3 do 8 znaków, litery łacińskie i cyfry 2–9"
 
 msgid "Код, например 7KQ-M2X"
 msgstr "Kod, np. 7KQ-M2X"
@@ -1302,6 +1419,9 @@ msgstr "Pokój %s"
 msgid "Комната %s. Не закрывайте LANTERN, пока играете."
 msgstr "Pokój %s. Nie zamykaj LANTERN, póki grasz."
 
+msgid "Комната не найдена"
+msgstr "Nie znaleziono pokoju"
+
 msgid "Комната открыта · код %s — отправьте его друзьям"
 msgstr "Pokój otwarty · kod %s — wyślij go znajomym"
 
@@ -1310,6 +1430,9 @@ msgstr "Nie znaleziono pokoju z takim kodem. Sprawdź kod albo poproś znajomego
 
 msgid "Комната устарела. Попросите друга запустить мир заново."
 msgstr "Pokój wygasł. Poproś znajomego, żeby uruchomił świat od nowa."
+
+msgid "Компания"
+msgstr "Paczka"
 
 msgid "Компьютер или ноутбук с Minecraft: Java Edition той же версии."
 msgstr "Komputer lub laptop z Minecraft: Java Edition w tej samej wersji."
@@ -1344,6 +1467,9 @@ msgstr "Kopia w chmurze ✓"
 msgid "Копия мира «%s» скачана — нажмите «Восстановить»"
 msgstr "Kopia świata „%s” pobrana — kliknij „Przywróć”"
 
+msgid "Копия не найдена"
+msgstr "Nie znaleziono kopii"
+
 msgid "Копия сохранена: %s — она в «Копиях миров»"
 msgstr "Kopia zapisana: %s — jest w „Kopiach światów”"
 
@@ -1356,20 +1482,38 @@ msgstr "Ładnie"
 msgid "Кроссплей (Geyser): "
 msgstr "Crossplay (Geyser): "
 
+msgid "Круглый фонарь"
+msgstr "Okrągła latarnia"
+
 msgid "Кто админ"
 msgstr "Kto jest adminem"
 
 msgid "Кто может зайти"
 msgstr "Kto może wejść"
 
+msgid "Кубический фонарь"
+msgstr "Sześcienna latarnia"
+
 msgid "Купить"
 msgstr "Kup"
+
+msgid "Легендарное пламя"
+msgstr "Legendarny płomień"
+
+msgid "Ледяное пламя"
+msgstr "Lodowy płomień"
 
 msgid "Личные сообщения"
 msgstr "Wiadomości prywatne"
 
 msgid "Любая версия"
 msgstr "Dowolna wersja"
+
+msgid "Любимец"
+msgstr "Ulubieniec"
+
+msgid "Любимый мир"
+msgstr "Ulubiony świat"
 
 msgid "Лёгкая"
 msgstr "Łatwy"
@@ -1389,6 +1533,12 @@ msgstr "Małe okno LANTERN nad grą: kto wszedł, wyrzuć, kod."
 msgid "Мало памяти"
 msgstr "Mało pamięci"
 
+msgid "Мастер"
+msgstr "Mistrz"
+
+msgid "Мастер заданий"
+msgstr "Mistrz zadań"
+
 msgid "Меньше анимаций"
 msgstr "Mniej animacji"
 
@@ -1403,6 +1553,9 @@ msgstr "Zmieniają się od razu, nawet w trakcie gry"
 
 msgid "Мест на сервере теперь %d (сервер перезапущен)"
 msgstr "Miejsc na serwerze jest teraz %d (serwer zrestartowany)"
+
+msgid "Месяц подряд"
+msgstr "Miesiąc z rzędu"
 
 msgid "Мини-игра"
 msgstr "Minigra"
@@ -1485,6 +1638,9 @@ msgstr "Światy i kopie"
 msgid "Многопользовательская игра"
 msgstr "Gra wieloosobowa"
 
+msgid "Мобильный"
+msgstr "Mobilny"
+
 msgid "Можно зайти снова по тому же коду"
 msgstr "Możesz wejść ponownie tym samym kodem"
 
@@ -1506,11 +1662,23 @@ msgstr "Potwory"
 msgid "Мост готов"
 msgstr "Most gotowy"
 
+msgid "Мост между мирами"
+msgstr "Most między światami"
+
+msgid "Мостостроитель"
+msgstr "Mostowniczy"
+
 msgid "Мультиплеер"
 msgstr "Tryb wieloosobowy"
 
 msgid "Мы получим журнал приложения и сервера — без паролей и чужих адресов. Это поможет быстро найти ошибку."
 msgstr "Dostaniemy dziennik aplikacji i serwera — bez haseł i cudzych adresów. To pomoże szybko znaleźć błąd."
+
+msgid "Мэр"
+msgstr "Burmistrz"
+
+msgid "Мятный ник"
+msgstr "Miętowy nick"
 
 msgid "НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ ПРОДУКТОМ MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С MOJANG ИЛИ MICROSOFT."
 msgstr "NIE JEST OFICJALNYM PRODUKTEM MINECRAFT. NIE JEST ZATWIERDZONY PRZEZ MOJANG ANI MICROSOFT ANI Z NIMI POWIĄZANY."
@@ -1527,8 +1695,14 @@ msgstr "Na Samsungu system może „uśpić” LANTERN, gdy grasz. Jeden krok:"
 msgid "На Xiaomi, Redmi и POCO кнопку поверх игры нужно разрешить отдельно — три переключателя:"
 msgstr "Na Xiaomi, Redmi i POCO przycisk nad grą wymaga osobnej zgody — trzy przełączniki:"
 
+msgid "На сегодня реклама закончилась"
+msgstr "Na dziś reklamy się skończyły"
+
 msgid "На чём вы играете?"
 msgstr "Na czym grasz?"
+
+msgid "На этой ступени нет награды"
+msgstr "Na tym stopniu nie ma nagrody"
 
 msgid "На этом устройстве"
 msgstr "Na tym urządzeniu"
@@ -1541,6 +1715,9 @@ msgstr "Pakiety iskier"
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Na zawsze usunie z serwera nick, znajomych, wiadomości i kopie w chmurze. Światy na urządzeniu zostaną."
+
+msgid "Награда уже получена"
+msgstr "Nagroda już odebrana"
 
 msgid "Награды за игру"
 msgstr "Nagrody za grę"
@@ -1602,6 +1779,9 @@ msgstr "Znaleziono Javę %d na komputerze"
 msgid "Написать всем в комнате…"
 msgstr "Napisz do wszystkich w pokoju…"
 
+msgid "Напиши в чат комнаты"
+msgstr "Napisz na czacie pokoju"
+
 msgid "Например LUNA7"
 msgstr "Na przykład LUNA7"
 
@@ -1647,6 +1827,9 @@ msgstr "Nie działa"
 msgid "Не знаю"
 msgstr "Nie wiem"
 
+msgid "Не один"
+msgstr "Nie sam"
+
 msgid "Не отвечает"
 msgstr "Nie odpowiada"
 
@@ -1674,8 +1857,17 @@ msgstr "Nie teraz"
 msgid "Не удалось слушать объявления миров Java. Введите номер порта из чата Minecraft."
 msgstr "Nie udało się nasłuchiwać ogłoszeń światów Java. Wpisz numer portu z czatu Minecrafta."
 
+msgid "Не удалось сохранить копию"
+msgstr "Nie udało się zapisać kopii"
+
+msgid "Не хватает искр"
+msgstr "Za mało iskier"
+
 msgid "Не хватает искр — выполняйте задания"
 msgstr "Za mało iskier — wykonuj zadania"
+
+msgid "Небесный ник"
+msgstr "Błękitny nick"
 
 msgid "Неверный пароль"
 msgstr "Błędne hasło"
@@ -1686,8 +1878,29 @@ msgstr "Błędne hasło."
 msgid "Недавние"
 msgstr "Ostatnie"
 
+msgid "Неделя подряд"
+msgstr "Tydzień z rzędu"
+
+msgid "Нельзя"
+msgstr "Niedozwolone"
+
+msgid "Нельзя добавить этого игрока"
+msgstr "Nie można dodać tego gracza"
+
+msgid "Нельзя надеть"
+msgstr "Nie można założyć"
+
+msgid "Нельзя написать этому игроку"
+msgstr "Nie można napisać do tego gracza"
+
 msgid "Нет интернета или связи с LANTERN. Откройте LANTERN."
 msgstr "Brak internetu lub połączenia z LANTERN. Otwórz LANTERN."
+
+msgid "Нет интернета — проверьте Wi-Fi или мобильные данные"
+msgstr "Brak internetu — sprawdź Wi-Fi lub dane komórkowe"
+
+msgid "Нет кода комнаты"
+msgstr "Brak kodu pokoju"
 
 msgid "Нет подключения к домашней сети"
 msgstr "Brak połączenia z siecią domową"
@@ -1713,8 +1926,20 @@ msgstr "Brak połączenia z serwerem LANTERN."
 msgid "Нет связи с сервером — ник не сохранён"
 msgstr "Brak połączenia z serwerem — nick niezapisany"
 
+msgid "Нет такого задания"
+msgstr "Nie ma takiego zadania"
+
+msgid "Нет такого товара"
+msgstr "Nie ma takiego przedmiotu"
+
+msgid "Неугасимый"
+msgstr "Niegasnący"
+
 msgid "Ник"
 msgstr "Nick"
+
+msgid "Ник «Заря»"
+msgstr "Nick „Zorza”"
 
 msgid "Ник видят друзья. Пароль не нужен. Вы получите тег вида Ник#4821 — по нему вас добавят в друзья."
 msgstr "Nick widzą znajomi. Hasło niepotrzebne. Dostaniesz tag w stylu Nick#4821 — po nim dodadzą cię do znajomych."
@@ -1728,8 +1953,14 @@ msgstr "Nick gracza w Minecrafcie"
 msgid "Ник изменён"
 msgstr "Nick zmieniony"
 
+msgid "Ник слишком популярный, выберите другой"
+msgstr "Ten nick jest zbyt popularny, wybierz inny"
+
 msgid "Ник убран"
 msgstr "Nick usunięty"
+
+msgid "Ник — от 3 до 16 символов"
+msgstr "Nick: od 3 do 16 znaków"
 
 msgid "Ник, тег, друзья, сообщения, искры и облачные копии будут стёрты с сервера навсегда. Отменить нельзя."
 msgstr "Nick, tag, znajomi, wiadomości, iskry i kopie w chmurze zostaną na zawsze usunięte z serwera. Nie da się tego cofnąć."
@@ -1770,11 +2001,23 @@ msgstr "Noszony"
 msgid "Носить титул"
 msgstr "Noś tytuł"
 
+msgid "Ночное небо"
+msgstr "Nocne niebo"
+
 msgid "Нравится"
 msgstr "Lubię to"
 
 msgid "Нужен интернет — подключитесь и повторите"
 msgstr "Potrzebny internet — połącz się i powtórz"
+
+msgid "Нужен профиль"
+msgstr "Potrzebny profil"
+
+msgid "Нужен профиль LANTERN"
+msgstr "Potrzebny profil LANTERN"
+
+msgid "Нужен размер файла"
+msgstr "Potrzebny rozmiar pliku"
 
 msgid "Нужен тег целиком: Ник#1234"
 msgstr "Potrzebny cały tag: Nick#1234"
@@ -1793,6 +2036,9 @@ msgstr "O programie"
 
 msgid "Облако LANTERN"
 msgstr "Chmura LANTERN"
+
+msgid "Облако LANTERN сейчас заполнено, попробуйте позже"
+msgstr "Chmura LANTERN jest teraz pełna, spróbuj później"
 
 msgid "Облако выключено на этом сервере"
 msgstr "Chmura jest wyłączona na tym serwerze"
@@ -1830,8 +2076,14 @@ msgstr "Domyślny"
 msgid "Обычный — горы, леса и пещеры. Плоский — ровная площадка для строек."
 msgstr "Domyślny — góry, lasy i jaskinie. Superpłaski — równy teren pod budowy."
 
+msgid "Огненный ник"
+msgstr "Ognisty nick"
+
 msgid "Огонь распространяется"
 msgstr "Ogień się rozprzestrzenia"
+
+msgid "Огонёк"
+msgstr "Płomyk"
 
 msgid "Одинаковое зерно — одинаковый мир. Выбирается один раз, при создании."
 msgstr "To samo ziarno — ten sam świat. Wybiera się raz, przy tworzeniu."
@@ -1854,8 +2106,14 @@ msgstr "Jest już skopiowany"
 msgid "Оперативная память: %.1f ГБ, свободно %.1f ГБ. Серверу Java нужно 1,5–4 ГБ, Bedrock — около 1 ГБ."
 msgstr "Pamięć RAM: %.1f GB, wolne %.1f GB. Serwer Java potrzebuje 1,5–4 GB, Bedrock — około 1 GB."
 
+msgid "Оранжевое пламя"
+msgstr "Pomarańczowy płomień"
+
 msgid "Освободите место или выберите другой диск в «Настройках»."
 msgstr "Zwolnij miejsce lub wybierz inny dysk w Ustawieniach."
+
+msgid "Осенний костёр"
+msgstr "Jesienne ognisko"
 
 msgid "Осмотрюсь сам"
 msgstr "Rozejrzę się sam"
@@ -2010,6 +2268,9 @@ msgstr "Błąd: "
 msgid "ПК (Java)"
 msgstr "PC (Java)"
 
+msgid "Палатка у костра"
+msgstr "Namiot przy ognisku"
+
 msgid "Памяти на компьютере немного — серверу выделено %.1f ГБ"
 msgstr "Komputer ma mało pamięci — serwer dostał %.1f GB"
 
@@ -2049,6 +2310,12 @@ msgstr "Pauza → Ustawienia"
 msgid "Первый замер — через минуту после запуска."
 msgstr "Pierwszy pomiar — minutę po starcie."
 
+msgid "Первый костёр"
+msgstr "Pierwsze ognisko"
+
+msgid "Первый час вместе"
+msgstr "Pierwsza wspólna godzina"
+
 msgid "Передано: ↓ %s  ↑ %s · соединений: %d"
 msgstr "Przesłano: ↓ %s  ↑ %s · połączeń: %d"
 
@@ -2061,11 +2328,23 @@ msgstr "Restartujemy serwer — świat się zapisze"
 msgid "Перезапустить сейчас"
 msgstr "Zrestartuj teraz"
 
+msgid "Переподключаемся к LANTERN…"
+msgstr "Ponowne łączenie z LANTERN…"
+
+msgid "Писать можно только друзьям"
+msgstr "Pisać można tylko do znajomych"
+
 msgid "Пламя"
 msgstr "Płomienie"
 
 msgid "Пламя и рамки за искры"
 msgstr "Płomienie i ramki za iskry"
+
+msgid "Пламя первых огней"
+msgstr "Płomień pierwszych ogni"
+
+msgid "Пламя сезона (премиум)"
+msgstr "Płomień sezonu (premium)"
 
 msgid "Плоский"
 msgstr "Superpłaski"
@@ -2073,14 +2352,14 @@ msgstr "Superpłaski"
 msgid "По коду"
 msgstr "Po kodzie"
 
-msgid "По коду или ссылке"
-msgstr "Po kodzie lub linku"
-
 msgid "По нику и тегу вас найдут друзья"
 msgstr "Znajomi znajdą cię po nicku i tagu"
 
 msgid "По умолчанию"
 msgstr "Domyślnie"
+
+msgid "Побывай в 5 открытых мирах"
+msgstr "Odwiedź 5 otwartych światów"
 
 msgid "Повторить"
 msgstr "Powtórz"
@@ -2217,6 +2496,9 @@ msgstr "Port, np. 54321"
 msgid "После гибели рюкзак не выпадает."
 msgstr "Po śmierci ekwipunek nie wypada."
 
+msgid "Постоянный"
+msgstr "Stały bywalec"
+
 msgid "Потяните, чтобы обновить"
 msgstr "Pociągnij, żeby odświeżyć"
 
@@ -2232,6 +2514,9 @@ msgstr "Ścieżka premium · 149,99 ₴"
 msgid "Премиум-путь сезона: 9 эксклюзивных предметов"
 msgstr "Ścieżka premium sezonu: 9 ekskluzywnych przedmiotów"
 
+msgid "Премиум-путь скоро"
+msgstr "Ścieżka premium wkrótce"
+
 msgid "При первом запуске мира LANTERN скачает Eclipse Temurin (~50 МБ) в свою папку. Устанавливать ничего не нужно."
 msgstr "Przy pierwszym uruchomieniu świata LANTERN pobierze Eclipse Temurin (~50 MB) do swojego folderu. Nic nie trzeba instalować."
 
@@ -2243,6 +2528,18 @@ msgstr "Cześć!"
 
 msgid "Привет! ♥"
 msgstr "Cześć! ♥"
+
+msgid "Привёл друга"
+msgstr "Polecony znajomy"
+
+msgid "Пригласи друга по коду"
+msgstr "Zaproś znajomego kodem"
+
+msgid "Пригласивший уже указан"
+msgstr "Zapraszający już podany"
+
+msgid "Приглашать можно только друзей"
+msgstr "Zapraszać można tylko znajomych"
 
 msgid "Приглашение из более новой версии — обновите LANTERN"
 msgstr "Zaproszenie z nowszej wersji — zaktualizuj LANTERN"
@@ -2267,6 +2564,9 @@ msgstr "Przygoda"
 
 msgid "Применится после перезапуска"
 msgstr "Zadziała po restarcie"
+
+msgid "Прими в своём мире 10 гостей"
+msgstr "Przyjmij 10 gości w swoim świecie"
 
 msgid "Принять"
 msgstr "Przyjmij"
@@ -2301,11 +2601,17 @@ msgstr "Sprawdzamy %s…"
 msgid "Проверяем…"
 msgstr "Sprawdzamy…"
 
+msgid "Проводник"
+msgstr "Przewodnik"
+
 msgid "Продолжить"
 msgstr "Dalej"
 
 msgid "Пропуск сезона «Первые огни»"
 msgstr "Przepustka sezonu „Pierwsze ognie”"
+
+msgid "Простой костёр"
+msgstr "Zwykłe ognisko"
 
 msgid "Профиль"
 msgstr "Profil"
@@ -2337,14 +2643,23 @@ msgstr "Puste — losowy świat"
 msgid "Пусть впишет ваш тег %s в профиле и наиграет час"
 msgstr "Niech wpisze twój tag %s w profilu i pogra godzinę"
 
+msgid "Путешественник"
+msgstr "Podróżnik"
+
 msgid "Путь с русскими буквами"
 msgstr "Ścieżka z niełacińskimi literami"
 
 msgid "Путь с русскими буквами — обошли"
 msgstr "Ścieżka z niełacińskimi literami — obeszliśmy"
 
+msgid "Пятьдесят часов"
+msgstr "Pięćdziesiąt godzin"
+
 msgid "Работает"
 msgstr "Działa"
+
+msgid "Радужное пламя"
+msgstr "Tęczowy płomień"
 
 msgid "Раз в 3 часа"
 msgstr "Co 3 godziny"
@@ -2361,6 +2676,12 @@ msgstr "Odbanuj"
 msgid "Разгорается от игры с друзьями и наград за задания."
 msgstr "Rozpala się od gry ze znajomymi i nagród za zadania."
 
+msgid "Разжигатель"
+msgstr "Rozpalacz"
+
+msgid "Размер не совпал"
+msgstr "Rozmiar się nie zgadza"
+
 msgid "Разрешение должно быть включено для LANTERN"
 msgstr "Uprawnienie musi być włączone dla LANTERN"
 
@@ -2372,6 +2693,9 @@ msgstr "Pozwól LANTERN działać w tle"
 
 msgid "Разрешить"
 msgstr "Zezwól"
+
+msgid "Рамка сезона"
+msgstr "Ramka sezonu"
 
 msgid "Рамки"
 msgstr "Ramki"
@@ -2415,6 +2739,9 @@ msgstr "Reklamy pokazują się tylko po wyjściu ze świata. W Pro ich nie ma."
 msgid "Рекорд: %d · пропуск раз в неделю не сжигает серию"
 msgstr "Rekord: %d · jedno pominięcie w tygodniu nie przerywa serii"
 
+msgid "Розовое пламя"
+msgstr "Różowy płomień"
+
 msgid "Ролевая"
 msgstr "Roleplay"
 
@@ -2436,11 +2763,20 @@ msgstr "Zminimalizuj"
 msgid "Свернуть LANTERN можно, закрывать — нет. Если телефон всё же остановит LANTERN, откройте его снова: комната вернётся с тем же кодом."
 msgstr "LANTERN można zminimalizować, zamykać — nie. Jeśli telefon mimo to zatrzyma LANTERN, otwórz go znowu: pokój wróci z tym samym kodem."
 
+msgid "Светлячки"
+msgstr "Świetliki"
+
+msgid "Светоч"
+msgstr "Pochodnia"
+
 msgid "Свободно на диске: %.1f ГБ"
 msgstr "Wolne miejsce na dysku: %.1f GB"
 
 msgid "Свободной памяти мало (%.1f ГБ). Закройте браузер и лишние программы, иначе сервер может тормозить."
 msgstr "Mało wolnej pamięci (%.1f GB). Zamknij przeglądarkę i zbędne programy, inaczej serwer może lagować."
+
+msgid "Свой клан"
+msgstr "Własny klan"
 
 msgid "Свой код комнаты"
 msgstr "Własny kod pokoju"
@@ -2450,6 +2786,9 @@ msgstr "Własny kod pokoju, np. LUNA7"
 
 msgid "Свой код отключён"
 msgstr "Własny kod wyłączony"
+
+msgid "Свой код — функция LANTERN Pro"
+msgstr "Własny kod to funkcja LANTERN Pro"
 
 msgid "Связь прервалась — восстанавливаем…"
 msgstr "Połączenie przerwane — przywracamy…"
@@ -2472,8 +2811,20 @@ msgstr "Przyspiesz"
 msgid "Сделать копию"
 msgstr "Zrób kopię"
 
+msgid "Северное сияние"
+msgstr "Zorza polarna"
+
+msgid "Сегодня вы уже ставили лайк"
+msgstr "Dziś już dałeś polubienie"
+
+msgid "Сегодня награда уже получена"
+msgstr "Dzisiejsza nagroda już odebrana"
+
 msgid "Сезон"
 msgstr "Sezon"
+
+msgid "Сезон 1 · Первые огни"
+msgstr "Sezon 1 · Pierwsze ognie"
 
 msgid "Сезон «Первые огни»"
 msgstr "Sezon „Pierwsze ognie”"
@@ -2492,6 +2843,9 @@ msgstr "Serwer LANTERN"
 
 msgid "Сервер LANTERN (комнаты по коду)"
 msgstr "Serwer LANTERN (pokoje po kodzie)"
+
+msgid "Сервер LANTERN обновляется — подключимся сами через несколько секунд"
+msgstr "Serwer LANTERN się aktualizuje — połączymy się sami za kilka sekund"
 
 msgid "Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT."
 msgstr "Serwer Paper (PaperMC), Geyser i Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) są pobierane z oficjalnych stron. Czcionki Montserrat i JetBrains Mono — licencja SIL OFL 1.1. Silnik Godot — MIT."
@@ -2607,11 +2961,26 @@ msgstr "Szybkość gry: „%s”"
 msgid "Скорость игры: «%s». Игра идёт без задержек."
 msgstr "Szybkość gry: „%s”. Gra działa bez opóźnień."
 
+msgid "Слишком много друзей"
+msgstr "Za dużo znajomych"
+
+msgid "Слишком много жалоб"
+msgstr "Za dużo zgłoszeń"
+
+msgid "Слишком много заявок, подождите"
+msgstr "Za dużo zaproszeń, poczekaj"
+
 msgid "Слишком много попыток. Подождите минуту."
 msgstr "Za dużo prób. Poczekaj minutę."
 
 msgid "Слишком старая версия Minecraft. Выберите в лаунчере 1.8.9 или новее — и заходите!"
 msgstr "Zbyt stara wersja Minecrafta. Wybierz w launcherze 1.8.9 lub nowszą — i wchodź!"
+
+msgid "Слишком часто"
+msgstr "Za często"
+
+msgid "Слишком часто, подождите немного"
+msgstr "Za często, poczekaj chwilę"
 
 msgid "Сложная"
 msgstr "Trudny"
@@ -2633,6 +3002,9 @@ msgstr "Obejrzyj reklamę"
 
 msgid "Сначала остановите сервер"
 msgstr "Najpierw zatrzymaj serwer"
+
+msgid "Сначала получите этот предмет"
+msgstr "Najpierw zdobądź ten przedmiot"
 
 msgid "Сначала придумайте ник"
 msgstr "Najpierw wymyśl nick"
@@ -2712,8 +3084,38 @@ msgstr "Link Minecrafta bez adresu serwera"
 msgid "Стикеры"
 msgstr "Naklejki"
 
+msgid "Стикеры «Бум»"
+msgstr "Naklejki „Bum”"
+
+msgid "Стикеры «Привет»"
+msgstr "Naklejki „Cześć”"
+
+msgid "Стикеры «Сердечки»"
+msgstr "Naklejki „Serduszka”"
+
+msgid "Стикеры сезона"
+msgstr "Naklejki sezonu"
+
+msgid "Сто часов"
+msgstr "Sto godzin"
+
+msgid "Странник"
+msgstr "Wędrowiec"
+
+msgid "Строитель"
+msgstr "Budowniczy"
+
 msgid "Ступень %d из %d · %d очков · ещё %d дн."
 msgstr "Stopień %d z %d · %d pkt · jeszcze %d dn."
+
+msgid "Ступень ещё не открыта"
+msgstr "Stopień jeszcze nie odblokowany"
+
+msgid "Сыграй 30 минут с другом"
+msgstr "Zagraj 30 minut ze znajomym"
+
+msgid "Сыграйте с друзьями 5 часов"
+msgstr "Zagrajcie ze znajomymi 5 godzin"
 
 msgid "Так было в прошлый раз. Друзьям нужна та же версия игры."
 msgstr "Tak było ostatnio. Znajomi muszą mieć tę samą wersję gry."
@@ -2721,8 +3123,14 @@ msgstr "Tak było ostatnio. Znajomi muszą mieć tę samą wersję gry."
 msgid "Так игру увидят друзья."
 msgstr "Tak grę zobaczą znajomi."
 
+msgid "Такой код нельзя"
+msgstr "Taki kod jest niedozwolony"
+
 msgid "Такой ник не подходит или занят"
 msgstr "Taki nick nie pasuje lub jest zajęty"
+
+msgid "Такой ник нельзя"
+msgstr "Taki nick jest niedozwolony"
 
 msgid "Такой ник уже есть в списке"
 msgstr "Taki nick jest już na liście"
@@ -2781,6 +3189,9 @@ msgstr "Ciche dźwięki kliknięć, wejścia do gry i błędów."
 msgid "Только Bedrock"
 msgstr "Tylko Bedrock"
 
+msgid "Только буквы, цифры и «_»"
+msgstr "Tylko litery, cyfry i „_”"
+
 msgid "Только внешний вид — никаких преимуществ в игре и случайных наград."
 msgstr "Tylko wygląd — żadnej przewagi w grze ani losowych nagród."
 
@@ -2835,6 +3246,15 @@ msgstr "Usuń profil"
 msgid "Удалить профиль?"
 msgstr "Usunąć profil?"
 
+msgid "Уже идёт загрузка"
+msgstr "Wysyłanie już trwa"
+
+msgid "Уже куплено"
+msgstr "Już kupione"
+
+msgid "Уже получено"
+msgstr "Już odebrane"
+
 msgid "Уже сделано"
 msgstr "Już zrobione"
 
@@ -2859,14 +3279,26 @@ msgstr "Warunki korzystania"
 msgid "Файлы мира на этом компьютере."
 msgstr "Pliki świata na tym komputerze."
 
+msgid "Фиолетовое пламя"
+msgstr "Fioletowy płomień"
+
 msgid "Фонарь"
 msgstr "Latarnia"
 
 msgid "Фонарь — уровень %d"
 msgstr "Latarnia — poziom %d"
 
+msgid "Фонарь-маяк"
+msgstr "Latarnia morska"
+
+msgid "Фонарь-ракушка"
+msgstr "Latarnia-muszla"
+
+msgid "Хватит на сегодня :)"
+msgstr "Wystarczy na dziś :)"
+
 msgid "Хозяин"
-msgstr "Host"
+msgstr "Gospodarz"
 
 msgid "Хозяин закрыл мир."
 msgstr "Host zamknął świat."
@@ -2876,6 +3308,9 @@ msgstr "Host świata zamknął ci wstęp."
 
 msgid "Хозяин переподключается…"
 msgstr "Host łączy się ponownie…"
+
+msgid "Хранитель огня"
+msgstr "Strażnik ognia"
 
 msgid "Цвет акцента"
 msgstr "Kolor akcentu"
@@ -2919,11 +3354,20 @@ msgstr "Żeby przycisk był widoczny w grze"
 msgid "Шаг %d из %d"
 msgstr "Krok %d z %d"
 
+msgid "Шумный двор"
+msgstr "Gwarne podwórko"
+
 msgid "Эта игра с паролем."
 msgstr "Ta gra jest na hasło."
 
+msgid "Это вы :)"
+msgstr "To ty :)"
+
 msgid "Это код вашего мира"
 msgstr "To kod twojego świata"
+
+msgid "Это не zip-копия мира"
+msgstr "To nie jest kopia świata w zip"
 
 msgid "Это не копия мира: "
 msgstr "To nie jest kopia świata: "
@@ -2931,11 +3375,26 @@ msgstr "To nie jest kopia świata: "
 msgid "Это не похоже ни на код комнаты, ни на адрес"
 msgstr "To nie wygląda ani na kod pokoju, ani na adres"
 
+msgid "Этот код зарезервирован"
+msgstr "Ten kod jest zarezerwowany"
+
+msgid "Этот код уже занят — попробуйте другой"
+msgstr "Ten kod jest zajęty — spróbuj innego"
+
 msgid "Этот компьютер не самый мощный — LANTERN сам включит «Быстро», чтобы игра не лагала."
 msgstr "Ten komputer nie jest zbyt mocny — LANTERN sam włączy „Szybko”, żeby gra nie lagowała."
 
 msgid "Этот мир для Minecraft %s. Выберите его и подключитесь снова."
 msgstr "Ten świat jest dla Minecrafta %s. Wybierz go i połącz się ponownie."
+
+msgid "Этот ник занят"
+msgstr "Ten nick jest zajęty"
+
+msgid "Этот предмет — награда сезона"
+msgstr "Ten przedmiot to nagroda sezonu"
+
+msgid "Этот титул ещё не открыт"
+msgstr "Ten tytuł nie jest jeszcze odblokowany"
 
 msgid "Я принимаю Лицензионное соглашение Minecraft (EULA)"
 msgstr "Akceptuję Umowę licencyjną Minecrafta (EULA)"
@@ -2943,8 +3402,14 @@ msgstr "Akceptuję Umowę licencyjną Minecrafta (EULA)"
 msgid "Я принимаю Лицензионное соглашение Minecraft и Политику конфиденциальности"
 msgstr "Akceptuję Umowę licencyjną Minecrafta i Politykę prywatności"
 
-msgid "Язык / Language"
-msgstr "Язык / Language"
+msgid "Язык"
+msgstr "Język"
+
+msgid "Янтарное пламя"
+msgstr "Bursztynowy płomień"
+
+msgid "Яркий фонарь"
+msgstr "Jasna latarnia"
 
 msgid "а"
 msgstr "а"

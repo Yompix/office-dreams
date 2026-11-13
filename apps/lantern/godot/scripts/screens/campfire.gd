@@ -30,7 +30,7 @@ func _ready() -> void:
 	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(head)
 	clip_contents = true
-	Social.changed.connect(func(w): if w in ["friends", "conn", "eco"]: _rebuild())
+	Social.changed.connect(func(w): if w in ["friends", "conn", "eco"] and is_inside_tree(): _rebuild())
 	_rebuild()
 
 
@@ -42,8 +42,9 @@ func _rebuild() -> void:
 	_spots.clear()
 	var online := Social.friends.filter(func(f): return f.get("online", false))
 	_hint.text = (L.t("У костра друзей: %d · нажмите на фонарик") % online.size()) if Social.online() else L.t("Нет связи с сервером LANTERN")
-	if app:
-		app.set_title(L.t("Костёр"), L.t("Друзья в сети — зайти в мир или написать"))
+	if app and is_inside_tree() and app.current == "campfire":
+		# телефон: подзаголовок в узкой верхней панели не помещался («Друзі в мережі — зайти у світ а…») — там подсказка-таблетка
+		app.set_title(L.t("Костёр"), "" if UI.compact() else L.t("Друзья в сети — зайти в мир или написать"))
 	var people := [{"me": true, "nick": Social.me.get("nick", L.t("Вы")), "lantern": Social.eco.get("lantern", {"level": 1}), "equip": Social.eco.get("equip", {})}]
 	people.append_array(online)
 	for i in people.size():
@@ -56,14 +57,14 @@ func _rebuild() -> void:
 		l.set_meta("spot", true)
 		l.clip_text = true
 		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		l.size.x = 160
+		l.size.x = 184
 		add_child(l)
 		var st := UI.label("" if f.get("me", false) else _short(f), 12, Color("ffb648"))
 		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		st.set_meta("spot", true)
 		st.clip_text = true
 		st.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		st.size.x = 160
+		st.size.x = 184
 		add_child(st)
 		_spots.append({"f": f, "icon": li, "label": l, "status": st})
 	_layout()
@@ -82,6 +83,19 @@ func _notification(what: int) -> void:
 
 
 func _layout() -> void:
+	# 1.8.2: подсказка-таблетка не шире экрана (на 320 dp — в две строки)
+	if is_instance_valid(_hint) and size.x > 0:
+		_hint.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var tw := _hint.get_theme_font("font").get_string_size(_hint.text, HORIZONTAL_ALIGNMENT_LEFT, -1, _hint.get_theme_font_size("font_size")).x
+		if tw > size.x - 56:
+			_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_hint.custom_minimum_size.x = size.x - 56
+		else:
+			_hint.custom_minimum_size.x = 0
+		var head := _hint.get_parent() as Control
+		head.reset_size()
+		head.position.x = (size.x - head.size.x) / 2
 	var c := Vector2(size.x / 2, size.y * 0.66)
 	var n := _spots.size()
 	for i in n:
@@ -92,8 +106,10 @@ func _layout() -> void:
 		var s: Dictionary = _spots[i]
 		s.icon.position = p - Vector2(32, 52)
 		s.icon.size = Vector2(64, 64)
-		s.label.position = p + Vector2(-80, 12)
-		s.status.position = p + Vector2(-80, 32)
+		# подписи (160 dp) — не за краем экрана: у крайних фонариков сдвигаем внутрь
+		var lx := clampf(p.x - 92, 0.0, maxf(0.0, size.x - 184))
+		s.label.position = Vector2(lx, p.y + 12)
+		s.status.position = Vector2(lx, p.y + 32)
 		s["rect"] = Rect2(p - Vector2(50, 56), Vector2(100, 110))
 
 
