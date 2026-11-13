@@ -1,0 +1,625 @@
+{
+ "note": "Дубляж серии 1: ElevenLabs eleven_v4, по одному дублю; в квадратных скобках — подсказка игры для v4 (не произносится)",
+ "langs": {
+  "ru": [
+   [
+    "leo1",
+    "9fof2VPjlqYRNgXCv1cT",
+    "Терминал работает. Утром он был мёртвый."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Значит, починили. Плати и пошли."
+   ],
+   [
+    "leo2",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[uneasy, quiet] Мара. Посмотри."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] «Открыть ли им дверь». «Им» — это кому?"
+   ],
+   [
+    "leo3",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[quiet, afraid] По-моему, это про нас."
+   ],
+   [
+    "leo4",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[startled, hushed] Кто-то только что проголосовал."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Здесь никого нет."
+   ],
+   [
+    "leo5",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[slowly, with dread] Вчера эта камера не работала."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] Заперто. Лео, заперто!"
+   ],
+   [
+    "leo6",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[numb, reading the screen] Тут написано — ждать. Пока они не решат."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Ладно. Кто бы вы ни были. Голосуйте за «Б». Пожалуйста. Не открывайте."
+   ],
+   [
+    "leo7",
+    "9fof2VPjlqYRNgXCv1cT",
+    "[whispering, urgent] Не подсказывай им. А вдруг они назло выберут «А»."
+   ]
+  ],
+  "uk": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "Термінал працює. Зранку він був мертвий."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Значить, полагодили. Плати і ходімо."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Маро. Глянь сюди."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] «Чи відчинити їм двері». «Їм» — це кому?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Здається, це про нас."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Хтось щойно проголосував."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Тут нікого немає."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Учора ця камера не працювала."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] Зачинено. Лео, зачинено!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Тут написано — чекати. Доки вони не вирішать."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Гаразд. Хто б ви не були. Голосуйте за «Б». Будь ласка. Не відчиняйте."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] Не підказуй їм. А раптом вони навмисне оберуть «А»."
+   ]
+  ],
+  "de": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "Das Kartenlesegerät läuft. Heute früh war es tot."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Dann hat's jemand repariert. Zahl und komm."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Mara. Sieh dir das an."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] „Sollen sie die Tür öffnen.“ Wer ist „sie“?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Ich glaube, das sind wir."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Gerade hat jemand abgestimmt."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Hier unten ist niemand."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Die Kamera war gestern noch aus."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] Abgeschlossen. Leo, es ist abgeschlossen!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Da steht, wir warten. Bis sie entscheiden."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Okay. Wer auch immer ihr seid. Stimmt für B. Bitte. Lasst sie einfach zu."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] Sag ihnen nicht, was sie wählen sollen. Was, wenn sie dann erst recht A wollen."
+   ]
+  ],
+  "es": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "El lector de tarjetas funciona. Esta mañana estaba muerto."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Pues alguien lo arregló. Paga y vámonos."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Mara. Mira esto."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] «¿Deben ellos abrir la puerta?» ¿Quiénes son «ellos»?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Creo que somos nosotros."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Alguien acaba de votar."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Aquí abajo no hay nadie."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Esa cámara ayer no estaba encendida."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] Está cerrada. ¡Leo, está cerrada!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Dice que esperemos. Hasta que ellos decidan."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Vale. Seas quien seas. Vota B. Por favor. Déjala cerrada."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] No les digas qué elegir. ¿Y si eso hace que quieran la A?"
+   ]
+  ],
+  "pt": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "O leitor de cartão está ligado. De manhã estava morto."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Então alguém consertou. Paga e vamos embora."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Mara. Olha isso."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] \"Eles devem abrir a porta?\" Quem são \"eles\"?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Acho que somos nós."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Alguém acabou de votar."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Não tem ninguém aqui embaixo."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Essa câmera não estava ligada ontem."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] Está trancada. Leo, está trancada!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Diz pra gente esperar. Até eles decidirem."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Tá bom. Seja quem for. Vota B. Por favor. Deixa fechada."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] Não fala pra eles o que escolher. E se isso fizer eles quererem a A?"
+   ]
+  ],
+  "fr": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "Le lecteur de carte marche. Ce matin, il était mort."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Donc quelqu'un l'a réparé. Paie et on y va."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Mara. Regarde ça."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] « Doivent-ils ouvrir la porte ? » C'est qui, « ils » ?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Je crois que c'est nous."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Quelqu'un vient de voter."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Il n'y a personne ici."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Cette caméra n'était pas allumée hier."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] C'est fermé. Leo, c'est fermé à clé !"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Ça dit qu'on attend. Jusqu'à ce qu'ils décident."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] D'accord. Qui que vous soyez. Votez B. S'il vous plaît. Laissez-la fermée."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] Ne leur dis pas quoi choisir. Et si ça leur donnait envie de voter A ?"
+   ]
+  ],
+  "it": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "Il lettore di carte funziona. Stamattina era morto."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] Allora qualcuno l'ha riparato. Paga e andiamo."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] Mara. Guarda qui."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] «Loro devono aprire la porta?» Chi sono «loro»?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] Credo che siamo noi."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] Qualcuno ha appena votato."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] Qui sotto non c'è nessuno."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] Quella telecamera ieri non era accesa."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] È chiusa a chiave. Leo, è chiusa!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] Dice di aspettare. Finché non decidono loro."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] Va bene. Chiunque tu sia. Vota B. Ti prego. Lasciala chiusa."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] Non dirgli cosa scegliere. E se così gli viene voglia di votare A?"
+   ]
+  ],
+  "ja": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "カードリーダー、動いてる。今朝は壊れてたのに。"
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] 誰かが直したんでしょ。払って、行くよ。"
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] マーラ。これ見て。"
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] 「彼らはドアを開けるべきか」。「彼ら」って誰？"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] たぶん、僕たちのことだ。"
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] 今、誰かが投票した。"
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] ここには誰もいないのに。"
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] あのカメラ、昨日は点いてなかった。"
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] 開かない。レオ、鍵がかかってる！"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] 待て、って書いてある。彼らが決めるまで。"
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] わかった。誰だか知らないけど。Bに入れて。お願い。閉めたままにして。"
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] 選ばせるようなこと言うなよ。逆にAを選ばれたらどうする。"
+   ]
+  ],
+  "ko": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "카드 단말기가 켜져 있어. 아침엔 죽어 있었는데."
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] 누가 고쳤나 보지. 계산하고 가자."
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] 마라. 이것 좀 봐."
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] \"그들이 문을 열어야 할까.\" \"그들\"이 누군데?"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] 우리 얘기인 것 같아."
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] 방금 누가 투표했어."
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] 여기 아무도 없잖아."
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] 저 카메라, 어제는 꺼져 있었어."
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] 잠겼어. 레오, 잠겼다고!"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] 기다리래. 그들이 정할 때까지."
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] 좋아. 당신이 누구든. B에 투표해요. 제발. 그냥 닫아 두세요."
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] 뭘 고르라고 말하지 마. 그러다 A를 고르고 싶어지면 어떡해."
+   ]
+  ],
+  "zh": [
+   [
+    "leo1",
+    "hryj0YLzRd2iGghnwoOI",
+    "刷卡机亮了。早上它还是坏的。"
+   ],
+   [
+    "mara1",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tired, dismissive] 那就是有人修好了。付钱，走吧。"
+   ],
+   [
+    "leo2",
+    "hryj0YLzRd2iGghnwoOI",
+    "[uneasy, quiet] 玛拉。你看这个。"
+   ],
+   [
+    "mara2",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[reading slowly, confused] “他们该不该开门。”“他们”是谁？"
+   ],
+   [
+    "leo3",
+    "hryj0YLzRd2iGghnwoOI",
+    "[quiet, afraid] 我想，说的是我们。"
+   ],
+   [
+    "leo4",
+    "hryj0YLzRd2iGghnwoOI",
+    "[startled, hushed] 刚刚有人投票了。"
+   ],
+   [
+    "mara3",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[tense, low] 这下面没有别人。"
+   ],
+   [
+    "leo5",
+    "hryj0YLzRd2iGghnwoOI",
+    "[slowly, with dread] 那个摄像头昨天还没开。"
+   ],
+   [
+    "mara4",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[panicking, loud] 锁住了。里奥，门锁住了！"
+   ],
+   [
+    "leo6",
+    "hryj0YLzRd2iGghnwoOI",
+    "[numb, reading the screen] 上面说，等着。等他们决定。"
+   ],
+   [
+    "mara5",
+    "CamFZN2KIaqnyvcaFe3E",
+    "[shaky, pleading] 好吧。不管你是谁。投B。求你了。别开那扇门。"
+   ],
+   [
+    "leo7",
+    "hryj0YLzRd2iGghnwoOI",
+    "[whispering, urgent] 别告诉他们选什么。万一他们偏要选A呢。"
+   ]
+  ]
+ }
+}
