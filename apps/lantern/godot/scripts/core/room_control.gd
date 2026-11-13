@@ -15,6 +15,7 @@ var _was_ok := -1
 var _bad_since := 0
 var _alerted := false
 var _overlay_asked := false
+var _connecting_since := 0
 var mini: Window
 
 
@@ -37,9 +38,15 @@ func status() -> Dictionary:
 	if not hosting():
 		return {"ok": false, "text": L.t("Мир закрыт"), "why": ""}
 	var st: Dictionary = app.relay_host.stats()
+	# 1.8.2: пока relay недоступен, различаем «LANTERN обновляется» (интернет есть — ждём, вернёмся сами, жёлтым)
+	# и «нет интернета» (красным); раньше любое ожидание дольше одной попытки было «Проверьте интернет».
+	var net: String = Social.net_state()
 	if st.state == "connecting":
-		return {"ok": false, "text": L.t("Открываем мир для друзей…"), "why": "", "wait": true}
+		var long := _connecting_since > 0 and Time.get_ticks_msec() - _connecting_since > 12000
+		return {"ok": false, "text": L.t("Открываем мир для друзей…"), "why": Social.net_text() if long else "", "wait": true}
 	if st.state != "online":
+		if st.state == "reconnecting" and net != "offline":
+			return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": str(st.get("error", "")), "wait": true}
 		return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": L.t("Нет связи с LANTERN. Проверьте интернет — комната вернётся с тем же кодом.")}
 	if app.own.active and not app.own.alive():
 		return {"ok": false, "text": L.t("Мир не виден друзьям"), "why": L.t("Minecraft не отвечает. Вернитесь в мир") + (L.t(" и проверьте «Видимость для игроков LAN».") if app.own.world.get("edition", "") == "bedrock" else L.t(" («Открыть для сети»)."))}
@@ -279,7 +286,14 @@ func _process(d: float) -> void:
 	if not hosting():
 		if mini:
 			room_closed()
+		_connecting_since = 0
 		return
+	app.relay_host.set_net_hint(Social.net_state())
+	if app.relay_host.stats().state == "connecting":
+		if _connecting_since == 0:
+			_connecting_since = Time.get_ticks_msec()
+	else:
+		_connecting_since = 0
 	# Android: что с кнопкой поверх игры — в журнал (для «Сообщить о проблеме»), когда состояние меняется
 	if OS.get_name() == "Android" and app.relay_host.android != null:
 		_ov_t += 0.5
@@ -450,6 +464,7 @@ static func vendor_sheet(app: Control, force: bool, maker_override := "") -> boo
 		if cls != null:
 			AppLog.add("overlay", "открыли экран настроек: " + String(cls.openVendorSettings()))
 		Overlays.close_sheet(app), "settings"))
+	(v.get_child(v.get_child_count() - 1) as Button).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # 1.8.2: 320 dp — не шире листа
 	v.add_child(UI.button(L.t("Уже сделано"), "ghost", func(): Overlays.close_sheet(app)))
 	return true
 

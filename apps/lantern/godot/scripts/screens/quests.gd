@@ -65,7 +65,7 @@ func _render() -> void:
 	for c in _body.get_children():
 		c.queue_free()
 	if not Social.online():
-		_body.add_child(UI.empty("quests", L.t("Задания считаются на сервере LANTERN"), L.t("Повторить"), func(): Social.reconnect(), L.t("Подключитесь к интернету.")))
+		_body.add_child(UI.empty("quests", L.t("Задания считаются на сервере LANTERN"), L.t("Повторить"), func(): Social.reconnect(), (Social.net_text() if Social.net_text() != "" else L.t("Подключитесь к интернету."))))
 		return
 	match _tab:
 		"quests": _quests()
@@ -103,13 +103,19 @@ func _quests() -> void:
 	bl.add_child(big)
 	var dl := UI.label(_days(int(e.get("streak", 0))) + L.t(" подряд"), 14, UI.TEXT, UI.font_bold)
 	dl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	dl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: «128 днів поспіль» не распирает строку
 	bl.add_child(dl)
 	sv.add_child(bl)
 	sv.add_child(UI.para(L.t("Рекорд: %d · пропуск раз в неделю не сжигает серию") % int(e.get("best_streak", 0)), 12, UI.MUTED))
 	sr.add_child(sv)
 	var claimed: bool = e.get("streak_claimed", false)
-	var sb := UI.button(L.t("Получено") if claimed else "+%d" % int(e.get("streak_reward", 5)), "primary", func(): Social.request("streak_claim"), "check" if claimed else "spark")
+	# 1.8.2: на телефоне «✓ Отримано» не помещалось рядом с длинной серией — экран становился шире (владелец, 1080×2400):
+	# полученная награда — просто галочка, как у заданий
+	var sb := UI.button((L.t("Получено") if not UI.compact() else "") if claimed else "+%d" % int(e.get("streak_reward", 5)), "primary", func(): Social.request("streak_claim"), "check" if claimed else "spark")
 	sb.disabled = claimed
+	if claimed:
+		sb.tooltip_text = L.t("Получено")
 	sb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	sr.add_child(sb)
 	left.add_child(sp)
@@ -132,7 +138,9 @@ func _quests() -> void:
 	var lr := UI.hbox(14)
 	lr.add_child(LanternIcon.new().setup(int(lan.level), e.get("equip", {}), 64))
 	var lt := UI.vbox(2)
-	lt.add_child(UI.h3(L.t("Фонарь — уровень %d") % int(lan.level)))
+	var lh := UI.h3(L.t("Фонарь — уровень %d") % int(lan.level))
+	lh.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lt.add_child(lh)
 	lt.add_child(UI.para(L.t("Разгорается от игры с друзьями и наград за задания."), 13, UI.MUTED))
 	lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lr.add_child(lt)
@@ -144,7 +152,7 @@ func _quests() -> void:
 		bar.max_value = float(lan.next)
 		_grow(bar, float(lan.minutes))
 		lv.add_child(bar)
-		lv.add_child(UI.label(L.t("%d / %d очков света до следующего уровня") % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
+		lv.add_child(UI.para(L.t("%d / %d очков света до следующего уровня") % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
 	right.add_child(lp)
 	if Cfg.paid():
 		var left_ads := int(e.get("ads_left", 3))
@@ -187,7 +195,7 @@ func _quest_row(it: Dictionary) -> Control:
 	p.add_child(row)
 	var v := UI.vbox(8)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var tl := UI.para(it.title, 15, UI.TEXT)
+	var tl := UI.para(L.t(String(it.title)), 15, UI.TEXT)     # 1.8.2: тексты с сервера — по-русски, переводим тут
 	tl.add_theme_font_override("font", UI.font_bold)
 	v.add_child(tl)
 	var bar := ProgressBar.new()
@@ -197,8 +205,7 @@ func _quest_row(it: Dictionary) -> Control:
 	_grow(bar, float(it.progress))
 	v.add_child(bar)
 	var pl := UI.label(L.t("%d / %d  ·  +%d искр  ·  +%d света") % [int(it.progress), int(it.target), int(it.sparks), int(it.xp)], 12, UI.MUTED)
-	pl.clip_text = true
-	pl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: не «+200 lig…», а перенос на вторую строку
 	v.add_child(pl)
 	row.add_child(v)
 	var done: bool = int(it.progress) >= int(it.target)
@@ -229,9 +236,9 @@ func _season() -> void:
 	var hv := UI.vbox(8)
 	head.add_child(hv)
 	hv.add_child(UI.caption(L.t("Сезон"), UI.AMBER))
-	hv.add_child(UI.h2(s.title))
+	hv.add_child(UI.h2(L.t(String(s.title))))
 	var days := int((float(s.end) - Time.get_unix_time_from_system() * 1000.0) / 86400000.0)
-	hv.add_child(UI.label(L.t("Ступень %d из %d · %d очков · ещё %d дн.") % [int(s.tier), int(s.tiers), int(s.points), max(days, 0)], 13, UI.MUTED))
+	hv.add_child(UI.para(L.t("Ступень %d из %d · %d очков · ещё %d дн.") % [int(s.tier), int(s.tiers), int(s.points), max(days, 0)], 13, UI.MUTED))
 	var bar := ProgressBar.new()
 	bar.show_percentage = false
 	bar.custom_minimum_size.y = 8
@@ -298,7 +305,7 @@ func _reward_cell(s: Dictionary, tier: int, track: String, reward: Variant, clai
 		return p
 	var text := ""
 	if reward is Array:
-		text = L.t("+%d искр") % int(reward[1]) if reward[0] == "sparks" else str(s.items.get(reward[1], reward[1]))
+		text = L.t("+%d искр") % int(reward[1]) if reward[0] == "sparks" else L.t(str(s.items.get(reward[1], reward[1])))
 		if reward[0] == "sparks":
 			var ic := UI.icon("spark", 34, UI.AMBER)
 			ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -308,7 +315,7 @@ func _reward_cell(s: Dictionary, tier: int, track: String, reward: Variant, clai
 			li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			v.add_child(li)
 	else:
-		text = str(s.items.get(reward, reward))
+		text = L.t(str(s.items.get(reward, reward)))
 		var li := LanternIcon.new().setup(6, {"flame": reward if String(reward).begins_with("flame") else "flame_s1p", "shape": reward if String(reward).begins_with("shape") else "shape_cube"}, 44)
 		li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		v.add_child(li)
@@ -354,8 +361,10 @@ func _achievements() -> void:
 		var v := UI.vbox(6)
 		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(v)
-		v.add_child(UI.label(it.name, 15, UI.TEXT if it.done else UI.MUTED, UI.font_bold))
-		v.add_child(UI.label(L.t("Титул «%s» · +%d искр") % [it.title, int(it.sparks)], 12, UI.MUTED))
+		var an := UI.label(L.t(String(it.name)), 15, UI.TEXT if it.done else UI.MUTED, UI.font_bold)
+		an.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.add_child(an)
+		v.add_child(UI.para(L.t("Титул «%s» · +%d искр") % [L.t(String(it.title)), int(it.sparks)], 12, UI.MUTED))
 		var bar := ProgressBar.new()
 		bar.show_percentage = false
 		bar.custom_minimum_size.y = 6

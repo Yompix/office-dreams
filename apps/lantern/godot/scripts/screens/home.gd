@@ -337,7 +337,7 @@ func _render() -> void:
 	if not Social.online():
 		var reg := Social.conn == "need_register"
 		_list.add_child(UI.empty("wifi" if not reg else "user", L.t("Нет связи с сервером LANTERN") if not reg else L.t("Придумайте ник"), L.t("Повторить") if not reg else L.t("Создать профиль"),
-			func(): Overlays.register(app) if reg else Social.reconnect(), L.t("Список игр появится, когда вернётся интернет.") if not reg else L.t("Без профиля список игр не виден.")))
+			func(): Overlays.register(app) if reg else Social.reconnect(), (Social.net_text() if Social.net_text() != "" else L.t("Список игр появится, когда вернётся интернет.")) if not reg else L.t("Без профиля список игр не виден.")))
 		return
 	var mine: String = app.relay_host.stats().get("code", "")
 	var rooms: Array = Social.rooms.filter(func(r): return r.code != mine)
@@ -402,7 +402,7 @@ func _row(r: Dictionary) -> Control:
 	meta.add_child(ep)
 	tv.add_child(meta)
 	# игроки: хозяин и ещё до двух кружков + «3/10»; номер комнаты табличными цифрами
-	var bot := UI.hbox(8)
+	var bot := UI.flow(8)        # 1.8.2: 320 dp — номер комнаты переносится под игроков
 	bot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var names := [String(host.get("nick", "?"))]
 	for i in mini(players - 1, 2):

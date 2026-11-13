@@ -54,6 +54,9 @@ let reports = new Reports('');
 let roomSecret = crypto.randomBytes(32);
 function roomToken(code, num) { return crypto.createHmac('sha256', roomSecret).update(code + '|' + num).digest('hex').slice(0, 32); }
 let publicBase = '';
+let draining = false;          // идёт перезапуск: новые соединения не принимаем, /healthz → 503
+const CLOSE_RESTART = 4012;    // «relay перезапускается, переподключитесь» (1012 не годится для Godot/wslay)
+const RESTART_HINT_MS = 1000;  // через сколько примерно стоит пробовать снова
 
 function makeSocial(dbPath, opts = {}) {
   const s = new Social({ dbPath });
@@ -443,6 +446,10 @@ function onHttp(req, res, url) {
   if (joinPage.http(req, res, url, publicBase, (c) => (/^\d{8}$/.test(c) ? roomNums.get(c) : rooms.get(c)), social)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
+    if (draining) {
+      res.writeHead(503, { 'content-type': 'application/json', 'cache-control': 'no-store', 'retry-after': '5' });
+      return res.end(JSON.stringify({ ok: false, app: 'lantern-relay', restarting: true }));
+    }
     let joiners = 0;
     for (const r of rooms.values()) joiners += r.joiners.size;
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
@@ -522,6 +529,7 @@ function attach(httpServer, opts = {}) {
   httpServer.on('upgrade', (req, socket, head) => {
     const p = String(req.url || '').split('?')[0];
     if (p !== wsPath) return; // чужой путь — не наше дело
+    if (draining) { socket.end('HTTP/1.1 503 Service Unavailable\r\nRetry-After: 5\r\nConnection: close\r\n\r\n'); return; }
     wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
   });
   const t1 = setInterval(() => {
@@ -540,8 +548,19 @@ function attach(httpServer, opts = {}) {
   return {
     http: onHttp,
     // 1.6: при перезапуске (выкладка) комнаты не закрываем — хозяева и друзья переподключатся к новому процессу
-    // и продолжат с тем же кодом (код 1012 = «сервис перезапускается»).
-    close() { clearInterval(t1); clearInterval(t2); for (const ws of wss.clients) { try { ws.close(1012, 'restart'); } catch {} } },
+    // и продолжат с тем же кодом. 1.8.2: сначала сообщение {t:'restart'}, потом закрытие кодом 4012:
+    // код 1012 Godot (wslay) считает недопустимым и видит вместо него 1002 «ошибка протокола» — «перезапуск» терялся.
+    // /healthz с этого момента отвечает 503 — приложение пишет «LANTERN обновляется», а не «нет интернета».
+    close() {
+      draining = true;
+      clearInterval(t1); clearInterval(t2);
+      for (const ws of wss.clients) {
+        try { send(ws, { t: 'restart', ms: RESTART_HINT_MS }); ws.close(CLOSE_RESTART, 'restart'); } catch {}
+      }
+      // кто не ответил на закрытие за 2 с (телефон без сети) — рвём, чтобы процесс не ждал их до SIGKILL
+      const t3 = setTimeout(() => { for (const ws of wss.clients) try { ws.terminate(); } catch {} }, 2000);
+      t3.unref();
+    },
   };
 }
 
@@ -563,4 +582,4 @@ if (require.main === module) {
   process.on('SIGINT', shutdown);
 }
 
-module.exports = { attach, standalone, rooms, roomNums, quality, MODES, CFG, normCode, ALPHABET, get social() { return social; } };
+module.exports = { attach, standalone, rooms, roomNums, quality, MODES, CFG, normCode, ALPHABET, CLOSE_RESTART, get social() { return social; } };

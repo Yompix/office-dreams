@@ -43,8 +43,7 @@ func _ready() -> void:
 	var qr := UI.hbox(8)
 	qs.add_child(qr)
 	for st in QUICK:
-		var b := UI.chip(st, false, func(): _send(st))
-		b.custom_minimum_size.y = 36
+		var b := UI.chip(st, false, func(): _send(L.t(st)))     # другу уходит текст на языке приложения, а не ключ-русский
 		b.tooltip_text = L.t("Быстрый ответ")
 		qr.add_child(b)
 	add_child(qs)
@@ -166,7 +165,7 @@ func _render() -> void:
 			mb.icon = UI.icon_tex("dots_v", 16, UI.DIM)
 			mb.flat = true
 			mb.tooltip_text = L.t("Пожаловаться или заблокировать")
-			mb.custom_minimum_size = Vector2(32, 32)
+			mb.custom_minimum_size = Vector2(44, 44) if UI.compact() else Vector2(32, 32)     # 1.8.2: палец — 44 dp
 			mb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			var pm := mb.get_popup()
 			pm.add_item(L.t("Пожаловаться"), 0)

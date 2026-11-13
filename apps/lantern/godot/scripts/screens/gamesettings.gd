@@ -294,7 +294,7 @@ func _sec_access() -> Control:
 	var set_hint := func(p: bool):
 		hint.text = L.t("Игра видна в списке «Игры» у всех — зайти может любой.") if p else L.t("В списке её нет. Зайдут только те, кому вы отправите код или ссылку.")
 	set_hint.call(public)
-	var seg := UI.segmented([["all", L.t("Все в LANTERN")], ["code", L.t("По коду или ссылке")]], "all" if public else "code", func(k):
+	var seg := UI.segmented([["all", L.t("Все в LANTERN")], ["code", L.t("По коду")]], "all" if public else "code", func(k):
 		var p: bool = k == "all"
 		set_hint.call(p)
 		Cfg.set_value("game", "public", p)

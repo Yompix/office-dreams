@@ -17,7 +17,7 @@ func _ready() -> void:
 	Social.failed.connect(func(what, text):
 		if what == "register" and _nick_wait != "" and is_inside_tree():
 			_nick_wait = ""
-			app.toast(String(text) if not RegEx.create_from_string("^[a-z_]+$").search(String(text)) else "Такой ник не подходит или занят", UI.YELLOW))
+			app.toast(L.t(String(text)) if not RegEx.create_from_string("^[a-z_]+$").search(String(text)) else "Такой ник не подходит или занят", UI.YELLOW))
 	Social.request("eco")
 	_render()
 
@@ -62,7 +62,7 @@ func _render() -> void:
 	var pills := UI.hbox(6)
 	pills.alignment = BoxContainer.ALIGNMENT_CENTER
 	if String(e.get("title", "")) != "":
-		pills.add_child(UI.pill("«%s»" % e.title, UI.AMBER))
+		pills.add_child(UI.pill("«%s»" % L.t(String(e.title)), UI.AMBER))
 	if e.get("pro", false) and Cfg.paid():
 		pills.add_child(UI.pill("LANTERN Pro" + (L.t(" · ДЕМО") if Social.demo else ""), UI.JAVA))
 	if pills.get_child_count() > 0:

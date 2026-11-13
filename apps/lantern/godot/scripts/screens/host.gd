@@ -425,11 +425,13 @@ func _make_code_card(compact: bool) -> PanelContainer:
 	var acts: BoxContainer = UI.vbox(8) if compact else UI.hbox(8)
 	var cb := UI.button(L.t("Скопировать код"), "primary", _copy_code, "copy")
 	cb.clip_text = true
+	UI.fit_font(cb, cb.get_theme_font_size("font_size"), 11)
 	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	acts.add_child(cb)
 	_btns["copy"] = cb
 	var sh := UI.button(L.t("Скопировать приглашение"), "tonal", _share, "share")
 	sh.clip_text = true
+	UI.fit_font(sh, sh.get_theme_font_size("font_size"), 11)     # 1.8.2: «Скопировать приглашение» — мельче, а не «Скопировать при…»
 	sh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	acts.add_child(sh)
 	_btns["share"] = sh

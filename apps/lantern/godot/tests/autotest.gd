@@ -13,7 +13,10 @@ extends Node
 ##   tour     — обход ВСЕХ экранов и сценариев для дизайн-скриншотов (tests/design_shots.sh), нужен relay и social_seed.js
 ##   deadbuttons — нажимает КАЖДУЮ видимую кнопку/карточку на каждом экране и проверяет, что что-то произошло
 ##              (tests/deadbuttons.sh; список «мёртвых» — в <data>/dead.json)
+##   fit      — 1.8.2: каждый экран, лист и состояние (пусто, нет сети, загрузка, ошибка, с данными) на каждом языке:
+##              ничего не вылезает за край, не обрезано, всё переведено (tests/fit.sh — все размеры телефонов и ПК)
 ##   bridge   — только мосты: хозяин → relay → друг поверх эхо-сервера (tests/latency.sh меряет задержку и скорость)
+##   reconnect — журнал связи с relay (tests/reconnect.gd); tests/reconnect.js перезапускает/«вешает» relay и меряет возврат
 ## Код выхода 0 — успех.
 
 var app
@@ -43,7 +46,9 @@ func run(a) -> void:
 		"tour": code = await _tour()
 		"mini": code = await _mini()
 		"bridge": code = await _bridge()
+		"reconnect": code = await load("res://tests/reconnect.gd").new().run(self)
 		"deadbuttons": code = await _deadbuttons()
+		"fit": code = await _fit_mode()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
 		"java", "bedrock": code = await _host(Cfg.autotest)
@@ -58,6 +63,7 @@ func run(a) -> void:
 func _shot(name: String) -> void:
 	if Cfg.phone_preview():
 		_overflow(app._content, get_viewport().get_visible_rect().size.x, name)
+	_fit_now(name)
 	if shots == "" or DisplayServer.get_name() == "headless":
 		return
 	await get_tree().create_timer(0.8).timeout
@@ -933,6 +939,269 @@ func _widest(n: Node, depth: int) -> void:
 	var t := String(best.get("text")).substr(0, 30) if best is Label or best is Button else ""
 	_log("%s└ %s (%d px) %s" % ["  ".repeat(depth + 1), best.get_class(), int(best.get_combined_minimum_size().x), t])
 	_widest(best, depth + 1)
+
+
+# ------------------------------------------------------------------ 1.8.2: всё помещается на каждом языке и размере (tests/fit.sh)
+var _fc = null
+
+
+func _fit_now(where: String) -> int:
+	if _fc == null:
+		_fc = load("res://tests/fit_check.gd").new()
+	_fc.lang = L.current()
+	_fc.phone = UI.compact()
+	var n: int = _fc.check(app, where, app._nav_pill if UI.compact() else null, app._nav if UI.compact() else {}, app._bar_title)
+	if Social._pill_layer and Social._pill and Social._pill.visible:
+		n += _fc.check_extra(Social._pill, where)
+		# плашка не закрывает заголовок, «Назад» и нижнее меню
+		for c in [app._bar_title, app._bar_back, app._nav_bar]:
+			if is_instance_valid(c) and (c as Control).is_visible_in_tree() and Social._pill.get_global_rect().intersects((c as Control).get_global_rect()):
+				_fc.issues.append({"kind": "OVERLAP", "where": where, "what": "плашка связи закрывает %s" % c.get_class(), "lang": L.current()})
+				_log("FIT OVERLAP [%s %s] плашка связи закрывает %s" % [L.current(), where, c.get_class()])
+				n += 1
+	if n > 0:
+		for it in _fc.issues.slice(_fc.issues.size() - n):
+			_log("FIT %s [%s %s] %s" % [it.kind, it.lang, it.where, it.what])
+	return n
+
+
+func _fit_step(where: String, wait := 0.45) -> void:
+	await get_tree().create_timer(wait).timeout
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_fit_now(where)
+	var only := String(Cfg.autotest_args.get("shotlang", ""))
+	if shots != "" and DisplayServer.get_name() != "headless" and (only == "" or L.current() in only.split(",")):
+		DirAccess.make_dir_recursive_absolute(shots)
+		var vs := get_viewport().get_visible_rect().size
+		var p := shots.path_join("%s_%dx%d_%s.png" % [L.current(), int(vs.x), int(vs.y), where])
+		get_viewport().get_texture().get_image().save_png(p)
+
+
+## Пройти все экраны / листы / состояния на текущем языке
+func _fit_all() -> void:
+	var phone := UI.compact()
+	var steps := String(Cfg.autotest_args.get("only", "")).split(",", false)
+	var want := func(k: String) -> bool: return steps.is_empty() or k in steps or k.get_slice("_", 0) in steps
+	if want.call("home"):
+		app.go("home", true)
+		await _fit_step("home", 0.8)
+		app.play_sheet()
+		await _fit_step("home_play_sheet")
+		await _close_overlays()
+		if phone:
+			app._more_menu()
+			await _fit_step("home_more_sheet")
+			await _close_overlays()
+	if want.call("create"):
+		app.go("create", true)
+		await _fit_step("create", 0.6)
+	if want.call("gamesettings"):
+		app.go("gamesettings", true)
+		await _fit_step("gamesettings", 0.6)
+	if want.call("setup") and Cfg.mobile():
+		app.go("setup", true, {"own": true})
+		await _fit_step("setup_own", 0.8)
+	if want.call("join"):
+		app.go("join", true)
+		await _fit_step("join_code")
+		var js = app._screen
+		js._input.text = "K7M2QX"
+		js._render_tiles()
+		await _fit_step("join_typing")
+		js.preview("connecting")
+		await _fit_step("join_connecting")
+		js.preview("launch")
+		await _fit_step("join_room")
+		js._launch.on = false
+		app.go("join", true, {"edition": "both"})
+	if want.call("friends"):
+		app.go("friends", true)
+		await _fit_step("friends", 0.8)
+		if not Social.friends.is_empty():
+			app.go("friends", true, {"chat": int(Social.friends[0].id)})
+			await _fit_step("friends_chat", 0.8)
+			app.go("friends", true)
+			await get_tree().create_timer(0.3).timeout
+		app._screen._qr_sheet(String(Social.me.get("tag", "Тест#1234")))
+		await _fit_step("friends_qr")
+		await _close_overlays()
+	if want.call("campfire"):
+		app.go("campfire", true)
+		await _fit_step("campfire", 0.8)
+	if want.call("quests"):
+		app.go("quests", true)
+		await _fit_step("quests", 0.8)
+		# «тяжёлое» состояние: серия длинная, награда уже получена, задания выполнены/получены, большие числа
+		var e0: Dictionary = Social.eco.duplicate(true)
+		var q0: Dictionary = Social.quests.duplicate(true)
+		Social.eco["streak"] = 128
+		Social.eco["best_streak"] = 365
+		Social.eco["streak_claimed"] = true
+		Social.eco["ads_left"] = 0
+		Social.eco["lantern"] = {"level": 9, "minutes": 12345, "next": 99999}
+		var qd: Dictionary = Social.quests
+		for per in ["daily", "weekly"]:
+			var i := 0
+			for it in qd.get(per, []):
+				it["progress"] = it["target"] if i % 3 != 2 else 0
+				it["claimed"] = i % 3 == 0
+				i += 1
+		Social.changed.emit("eco")
+		await _fit_step("quests_full")
+		Social.eco = e0
+		Social.quests = q0
+		Social.changed.emit("eco")
+		app.go("quests", true, {"tab": "season"})
+		await _fit_step("quests_season", 0.8)
+		var s0: Dictionary = Social.season.duplicate(true)
+		Social.season = {}
+		Social.changed.emit("season")
+		await _fit_step("quests_season_loading")
+		Social.season = s0
+		Social.changed.emit("season")
+		app.go("quests", true, {"tab": "achievements"})
+		await _fit_step("quests_achievements", 0.8)
+	if want.call("shop"):
+		app.go("shop", true)
+		await _fit_step("shop", 0.8)
+		app.go("shop", true, {"kind": "pro"})
+		await _fit_step("shop_pro", 0.8)
+		Overlays.purchase(app, "sparks_1200", Callable())
+		await _fit_step("shop_purchase")
+		await _close_overlays()
+		Overlays.ad(app, true)
+		await _fit_step("shop_ad")
+		await _close_overlays()
+	if want.call("profile"):
+		app.go("profile", true)
+		await _fit_step("profile", 0.8)
+	if want.call("backups") and not Cfg.mobile():
+		app.go("backups", true)
+		await _fit_step("backups", 0.8)
+	if want.call("settings"):
+		app.go("settings", true)
+		await _fit_step("settings", 0.6)
+		_scroll_down()
+		await _fit_step("settings_bottom")
+	if want.call("syscheck") and not Cfg.mobile():
+		app.go("syscheck", true)
+		await _fit_step("syscheck", 3.0)
+	if want.call("host") and not Cfg.mobile():
+		var s: ServerHost = app.server
+		s.edition = "java"
+		s.opts = Create.server_opts("java")
+		s.opts["world"] = "Наш мир"
+		s.state = "running"
+		s._started = s.restart_state()
+		s.players = PackedStringArray(["Алекс", "Маша_Кубик"])
+		app.go("host", true)
+		await _fit_step("host", 0.8)
+		app._screen._qr_sheet()
+		await _fit_step("host_qr")
+		await _close_overlays()
+		app.go("gamesettings", true)
+		await _fit_step("host_gamesettings_live", 0.6)
+		s.state = "idle"
+		s.players = PackedStringArray()
+	if want.call("dialogs"):
+		app.go("home", true)
+		await get_tree().create_timer(0.3).timeout
+		Report.dialog(app, "test")
+		await _fit_step("dialog_report")
+		await _close_overlays()
+		app.toast(L.t("Код %s скопирован — отправьте его друзьям") % "K7M-2QX", UI.JAVA)
+		await _fit_step("toast")
+		# ошибка от сервера (по-русски с сервера → переведена в приложении)
+		Social.failed.emit("shop_buy", "Не хватает искр")
+		await _fit_step("toast_error")
+		if phone:
+			RoomControl.vendor_sheet(app, true, "Xiaomi")
+			await _fit_step("dialog_vendor")
+			await _close_overlays()
+		# первый запуск: знакомство → ник
+		Overlays.register(app)
+		await _fit_step("onboard_welcome")
+		var ov: Node = app.get_node_or_null("RegisterOverlay")
+		if ov:
+			var b := _find_button(ov, "Начать")
+			if b:
+				b.pressed.emit()
+				await _fit_step("onboard_nick")
+			ov.queue_free()
+		await _close_overlays()
+	# нет сети: каждый экран показывает пустое состояние «нет связи»
+	if want.call("offline"):
+		var keep := Social.conn
+		var keep_net: String = Social._net
+		Social.set_process(false)     # ответы сервера не приходят — как без сети
+		Social.conn = "off"
+		Social._net = "offline"
+		Social._was_online = true
+		Social._down_since = Time.get_ticks_msec() - 5000
+		Cfg.autotest_args["pill"] = "1"       # плашка «Нет интернета…» сверху (social_client.gd) — тоже проверяем
+		Social._update_pill()
+		Social.changed.emit("conn")
+		for scr in ["home", "friends", "campfire", "quests", "shop", "profile", "settings"]:
+			app.go(scr, true)
+			await _fit_step("offline_" + scr, 0.5)
+		Social._net = "connecting"
+		Social._update_pill()
+		await _fit_step("offline_reconnecting")
+		Social._net = keep_net
+		Social._down_since = 0
+		Social.conn = keep
+		Social._update_pill()
+		Cfg.autotest_args.erase("pill")
+		Social.set_process(true)
+		Social.changed.emit("conn")
+		await get_tree().create_timer(0.3).timeout
+
+
+func _fit_mode() -> int:
+	_fc = load("res://tests/fit_check.gd").new()
+	if not await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь с relay"):
+		return 1
+	if Social.conn == "need_register":
+		Social.register("Ночной_Лис")
+		await _wait(func(): return Social.online(), 10, "профиль создан")
+	await _close_overlays()
+	var tag_file := data.path_join("autotest-tag.txt")
+	var f := FileAccess.open(tag_file, FileAccess.WRITE)
+	f.store_string(Social.me.tag)
+	f.close()
+	await _wait(func(): return Social.incoming.size() >= 3, 30, "заявки в друзья")
+	for u in Social.incoming.duplicate():
+		Social.request("friend_accept", {"id": u.id})
+	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
+	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	Social.request("eco")
+	await get_tree().create_timer(0.8).timeout
+	var langs := String(Cfg.autotest_args.get("langs", "")).split(",", false)
+	if langs.is_empty():
+		for l in L.available():
+			langs.append(l[0])
+	var vp := get_viewport().get_visible_rect().size
+	for lang in langs:
+		L.apply(lang)
+		app._rebuild()
+		await get_tree().create_timer(0.4).timeout
+		await _fit_all()
+	var lines: PackedStringArray = _fc.report_lines()
+	_log("FIT ИТОГ %dx%d dp: ошибок %d (уникальных %d), предупреждений %d" % [int(vp.x), int(vp.y), _fc.issues.size(), lines.size(), _fc.warnings.size()])
+	for l in lines:
+		_log("FIT! " + l)
+	var wseen := {}
+	for it in _fc.warnings:
+		var k: String = "%s %s: %s" % [it.kind, it.lang, it.what]
+		if not wseen.has(k):
+			wseen[k] = it.where
+	for k in wseen:
+		_log("FIT? %s  [%s]" % [k, wseen[k]])
+	var fo := FileAccess.open(data.path_join("fit.json"), FileAccess.WRITE)
+	fo.store_string(JSON.stringify({"issues": _fc.issues, "warnings": _fc.warnings}, " "))
+	fo.close()
+	return 1 if not _fc.issues.is_empty() else 0
 
 
 # ------------------------------------------------------------------ дизайн-обход: все экраны и сценарии (tests/design_shots.sh)

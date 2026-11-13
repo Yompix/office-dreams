@@ -56,10 +56,10 @@ process.on('exit', () => { try { relay && relay.kill('SIGKILL'); } catch {} try 
   a2.send(JSON.stringify({ t: 'join', v: 1, code: room.code, peer: ja.peer }));
   assert.equal((await next(a2)).peer, ja.peer);
   console.log('  ✓ обрыв друга: хозяин видит lost, друг возвращается с тем же id');
-  // --- перезапуск relay (SIGTERM): клиенты получают 1012, хозяин возвращает тот же код
+  // --- перезапуск relay (SIGTERM): клиенты получают {t:'restart'} и код 4012, хозяин возвращает тот же код
   const hc = closed(host), ac = closed(a2);
   relay.kill('SIGTERM');
-  assert.equal(await hc, 1012); assert.equal(await ac, 1012);
+  assert.equal(await hc, 4012); assert.equal(await ac, 4012);
   await sleep(300);
   relay = await start();
   const h2 = await open();

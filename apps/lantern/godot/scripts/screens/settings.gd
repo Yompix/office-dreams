@@ -27,7 +27,7 @@ func _ready() -> void:
 	add_child(v)
 
 	# --- язык (переключается сразу, без перезапуска)
-	var gl := _group(v, "Язык / Language")
+	var gl := _group(v, L.t("Язык"))     # 1.8.2: заголовок на выбранном языке («Мова», «Language»…), не «Язык / Language»
 	var names := []
 	var cur := 0
 	var langs := L.available()
@@ -47,11 +47,11 @@ func _ready() -> void:
 	var g := _group(v, L.t("Внешний вид"))
 	var av := UI.vbox(10)
 	av.add_child(UI.label(L.t("Цвет акцента"), 15, UI.TEXT, UI.font_bold))
-	var ar := UI.hbox(10)
+	var ar := UI.flow(10)      # 1.8.2: 320 dp — кружки переносятся, а не вылезают за карточку
 	for key in Cfg.ACCENTS:
 		var c: Color = Cfg.ACCENTS[key]
 		var b := Button.new()
-		b.custom_minimum_size = Vector2(40, 40)
+		b.custom_minimum_size = Vector2(44, 44)
 		b.focus_mode = Control.FOCUS_NONE
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		var on: bool = Cfg.get_value("app", "accent", "amber") == key
@@ -61,7 +61,7 @@ func _ready() -> void:
 		if on:
 			var ck := UI.icon("check", 20, UI.ON_ACCENT)
 			ck.stroke = 3.0
-			ck.position = Vector2(10, 10)
+			ck.position = Vector2(12, 12)
 			ck.size = Vector2(20, 20)
 			b.add_child(ck)
 		b.pressed.connect(func(): Cfg.set_accent(key))
@@ -88,7 +88,8 @@ func _ready() -> void:
 		gm.add_child(demo.row)
 
 	# --- миры
-	var gd := _group(v, L.t("Миры и копии"))
+	# 1.8.2: на телефоне в этой группе ничего нет (копии и проверка — только на ПК) — пустую карточку не показываем
+	var gd: VBoxContainer = _group(v, L.t("Миры и копии")) if not Cfg.mobile() else UI.vbox(0)
 	if not Cfg.mobile():      # на телефоне копий нет — сервер только на ПК
 		gd.add_child(UI.list_row(UI.icon_tile("cloud", UI.accent(), 40, 20), L.t("Копии миров"), L.t("Резервные копии, облако, перенос по коду"), UI.icon("chevron", 20, UI.DIM), func(): app.go("backups", true), Color(0, 0, 0, 0)))
 	if not Cfg.mobile():
@@ -161,7 +162,9 @@ func _ready() -> void:
 	ga.add_child(ah)
 	ga.add_child(UI.para(L.t("Без телеметрии. Не требует прав администратора. Пароли не спрашивает."), 13, UI.MUTED))
 	ga.add_child(UI.para(L.t("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT."), 12, UI.DIM))
-	ga.add_child(UI.para(Cfg.DISCLAIMER + "\n" + Cfg.DISCLAIMER_EN, 12, UI.DIM))
+	# 1.8.2: на выбранном языке (+ английский оригинал, если язык другой) — не по-русски в английской версии
+	var disc := L.t(Cfg.DISCLAIMER)
+	ga.add_child(UI.para(disc if disc == Cfg.DISCLAIMER_EN else disc + "\n" + Cfg.DISCLAIMER_EN, 12, UI.DIM))
 	ga.add_child(UI.para(L.t("Minecraft — товарный знак Mojang Synergies AB. LANTERN не содержит файлов игры: нужна своя копия Minecraft."), 12, UI.DIM))
 	v.add_child(UI.gap(16))
 
@@ -172,7 +175,7 @@ func _ask_delete() -> void:
 	var no := UI.button(L.t("Отмена"), "secondary", func(): Overlays.close_sheet(app))
 	no.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var yes := UI.button(L.t("Удалить навсегда"), "danger", func():
-		if not Social.online():
+		if not Social.live():
 			app.toast(L.t("Нужен интернет — подключитесь и повторите"), UI.YELLOW)
 			return
 		Social.delete_account()

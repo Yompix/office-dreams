@@ -21,6 +21,8 @@ var _arg: Variant = null
 var _deeplink_seen := ""
 
 var _bar_title: Label
+var _bar_row: HBoxContainer           # телефон: строка верхней панели (узкий экран — прячем искры, см. _fit_bar_row)
+var _bar_gear: Control                 # телефон: «Настройки» в верхней панели (на самих настройках не нужна)
 var _bar_sub: Label
 var _bar_back: Button
 var _bar_brand: Control
@@ -47,7 +49,8 @@ const TITLES := {"home": "Игры", "create": "Создать игру", "games
 ## Корневые разделы телефона (без стрелки «Назад»)
 const ROOTS := ["home", "friends", "profile"]
 ## Узкая колонка на широком экране — для форм и списков настроек
-const NARROW := ["settings", "backups", "syscheck", "profile", "join", "setup", "create"]
+## (профиль — две колонки: в узкой не помещался, экран становился шире окна — 1.8.2)
+const NARROW := ["settings", "backups", "syscheck", "join", "setup", "create"]
 
 
 const TOUCH_DEADZONE := 14   # px: меньше — это ещё нажатие, больше — уже прокрутка
@@ -83,7 +86,7 @@ func _ready() -> void:
 	Social.failed.connect(func(what, text):
 		# служебные коды (need_hello, bad_token…) людям не показываем
 		if what != "register" and not RegEx.create_from_string("^[a-z_]+$").search(String(text)):
-			toast(text, UI.YELLOW))
+			toast(L.t(String(text)), UI.YELLOW))
 	relay_host.extra = {}
 	if Cfg.autotest != "":
 		var t: Node = load("res://tests/autotest.gd").new()
@@ -385,6 +388,7 @@ func _build_phone() -> void:
 	root.add_child(bar)
 	var row := UI.hbox(4)
 	bar.add_child(row)
+	_bar_row = row
 	_bar_back = UI.icon_button("back", func(): back(), L.t("Назад"))
 	row.add_child(_bar_back)
 	var lead := UI.gap(12)
@@ -406,10 +410,14 @@ func _build_phone() -> void:
 	_bar_title = UI.label("", 21, UI.TEXT, UI.font_title)
 	_bar_title.clip_text = true
 	_bar_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_bar_title.set_meta("fs", Vector2i(21, 15))     # 1.8.2: длинный заголовок («Налаштування гри») уменьшается, а не «Налаштув…»
+	_bar_title.resized.connect(_fit_bar_text.bind(_bar_title))
 	tv.add_child(_bar_title)
 	_bar_sub = UI.label("", 12, UI.MUTED)
 	_bar_sub.clip_text = true
 	_bar_sub.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_bar_sub.set_meta("fs", Vector2i(12, 10))
+	_bar_sub.resized.connect(_fit_bar_text.bind(_bar_sub))
 	tv.add_child(_bar_sub)
 	row.add_child(tv)
 	_bar_actions = UI.hbox(0)
@@ -417,7 +425,8 @@ func _build_phone() -> void:
 	_sparks = UI.sparks_chip(0, func(): go("shop"))
 	row.add_child(_sparks)
 	# настройки — всегда на виду, а не только в «Ещё» (владелец, 12 ноя: «спрятаны, фиг найдёшь»)
-	row.add_child(UI.icon_button("settings", func(): go("settings"), L.t("Настройки")))
+	_bar_gear = UI.icon_button("settings", func(): go("settings"), L.t("Настройки"))
+	row.add_child(_bar_gear)
 	_me_btn = _avatar_button(40)
 	row.add_child(_me_btn)
 	# --- содержимое
@@ -520,7 +529,25 @@ func _bottom_nav() -> Control:
 		FX.press(b, 0.92)
 		row.add_child(b)
 		_nav[item[0]] = b
+	row.resized.connect(_fit_nav_labels.bind(row))
 	return wrap
+
+
+## 1.8.2: узкий телефон (320 dp) — подписи меню («Створити», «Профіль») слипались: уменьшаем шрифт, чтобы между ними был зазор.
+func _fit_nav_labels(row: Control) -> void:
+	if row.get_child_count() == 0:
+		return
+	var w := row.size.x / row.get_child_count() - 6.0
+	var k := 11
+	for b in row.get_children():
+		var lb: Label = b.get_meta("label")
+		var f := lb.get_theme_font("font")
+		while k > 8 and f.get_string_size(lb.text, HORIZONTAL_ALIGNMENT_LEFT, -1, k).x > w:
+			k -= 1
+	for b in row.get_children():
+		var lb: Label = b.get_meta("label")
+		if lb.get_theme_font_size("font_size") != k:
+			lb.add_theme_font_size_override("font_size", k)
 
 
 func _build_desktop() -> void:
@@ -623,6 +650,8 @@ func _build_desktop() -> void:
 	_bar_title = UI.label("", 34, UI.TEXT, UI.font_title)
 	_bar_title.clip_text = true
 	_bar_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_bar_title.set_meta("fs", Vector2i(34, 24))
+	_bar_title.resized.connect(_fit_bar_text.bind(_bar_title))
 	tv.add_child(_bar_title)
 	_bar_sub = UI.label("", 14, UI.MUTED)
 	_bar_sub.clip_text = true
@@ -714,7 +743,9 @@ func play_option(kind: String, big := false) -> Control:
 	var v := UI.vbox(3)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	v.add_child(UI.label(L.t("Играть с друзьями") if host else L.t("Зайти к другу"), 20 if big else 18, UI.TEXT, UI.font_black))
+	var pt := UI.label(L.t("Играть с друзьями") if host else L.t("Зайти к другу"), 20 if big else 18, UI.TEXT, UI.font_black)
+	pt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: «Entrar con un amigo» на узком экране — в две строки
+	v.add_child(pt)
 	var desc := L.t("Откройте мир в Minecraft — код для друзей появится сразу") if host else L.t("Введите код, который прислал друг")
 	if host and not mobile:
 		desc = L.t("Ваш мир из Minecraft или отдельный сервер — друзья зайдут по коду")
@@ -1034,6 +1065,7 @@ func _refresh_me() -> void:
 		_me_btn.add_child(row)
 	if is_instance_valid(_sparks):
 		_sparks.visible = Social.online() and not (_compact and _has_actions)
+		_fit_bar_row.call_deferred()
 		var n := int(Social.eco.get("sparks", 0))
 		if _last_sparks >= 0 and n != _last_sparks and FX.on():
 			var from := _last_sparks
@@ -1071,7 +1103,7 @@ func _on_notice(d: Dictionary) -> void:
 		"request": toast(L.t("%s хочет дружить — откройте «Друзья»") % d.from.tag)
 		"accepted": toast(L.t("%s принял(а) вашу заявку!") % d.from.tag, UI.JAVA)
 		"invite": invite_popup(d)
-		"achievement": toast(L.t("Достижение «%s» · +%d искр · титул «%s»") % [d.name, d.sparks, d.title], UI.AMBER)
+		"achievement": toast(L.t("Достижение «%s» · +%d искр · титул «%s»") % [L.t(String(d.name)), d.sparks, L.t(String(d.title))], UI.AMBER)
 		"referral": toast(L.t("Ваш друг %s наиграл час — вам +%d искр!") % [d.from.nick, d.sparks], UI.AMBER)
 		"purchased": toast(L.t("Готово! Покупка получена") + (L.t(" (ДЕМО)") if Social.demo else ""), UI.JAVA)
 		"ad_reward": toast(L.t("+20 искр за просмотр"), UI.AMBER)
@@ -1125,9 +1157,55 @@ func set_title(t: String, sub := "") -> void:
 	_bar_title.text = t
 	_bar_sub.text = sub
 	_bar_sub.visible = sub != ""
+	_fit_bar_text(_bar_title)
+	_fit_bar_text(_bar_sub)
 	if _compact:
 		_bar_brand.visible = false
 		_bar_title.get_parent().visible = true
+
+
+## Подпись верхней панели: уменьшить шрифт (до meta "fs".y), чтобы слово целиком влезло; не влезло и так — многоточие.
+func _fit_bar_text(l: Label) -> void:
+	if not is_instance_valid(l) or not l.has_meta("fs"):
+		return
+	var fs: Vector2i = l.get_meta("fs")
+	var font := l.get_theme_font("font")
+	var avail := l.size.x
+	# тот же текст и ширина — уже подобрано (перенос в 2 строки меняет высоту → resized; без этого — пересчёт каждый кадр)
+	var key := "%s|%d|%s|%s" % [l.text, int(avail), _bar_sub.visible if is_instance_valid(_bar_sub) else false, _sparks.visible if is_instance_valid(_sparks) else false]
+	if l.get_meta("fit_key", "") == key:
+		return
+	l.set_meta("fit_key", key)
+	var k := fs.x
+	if l.autowrap_mode != TextServer.AUTOWRAP_OFF:
+		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		l.clip_text = true
+	if avail > 1.0:
+		var txt := tr(l.text)
+		while k > fs.y and font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, k).x > avail - 1.0:
+			k -= 1
+	if l.get_theme_font_size("font_size") != k:
+		l.add_theme_font_size_override("font_size", k)
+	# телефон: заголовок не влез даже мелким шрифтом — убираем из панели счётчик искр (он есть в «Магазине» и «Заданиях»),
+	# а если и так не влез (320 dp, «Configurações do jogo») — в две строки
+	if l == _bar_title and _compact and avail > 1.0 and font.get_string_size(tr(l.text), HORIZONTAL_ALIGNMENT_LEFT, -1, k).x > avail - 1.0:
+		if is_instance_valid(_sparks) and _sparks.visible:
+			_sparks.visible = false
+		elif not _bar_sub.visible:
+			l.clip_text = false
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.max_lines_visible = 2
+			l.add_theme_constant_override("line_spacing", -4)
+	_fit_bar_row.call_deferred()
+
+
+## Телефон 320 dp: строка верхней панели (лого/заголовок, искры, настройки, аватар) шире экрана — прячем искры,
+## иначе вся оболочка становится шире окна и нижнее меню уезжает.
+func _fit_bar_row() -> void:
+	if not _compact or not is_instance_valid(_bar_row) or not is_instance_valid(_sparks) or not _sparks.visible:
+		return
+	if _bar_row.get_combined_minimum_size().x > get_viewport().get_visible_rect().size.x - 16:
+		_sparks.visible = false
 
 
 func set_back(cb: Callable) -> void:
@@ -1153,6 +1231,7 @@ func set_actions(list: Array) -> void:
 	if _compact:
 		# у экрана свои кнопки (чат) — искры и аватар убираем, чтобы заголовку хватило места
 		_sparks.visible = list.is_empty() and Social.online()
+		_fit_bar_row.call_deferred()
 		_me_btn.visible = list.is_empty()
 
 
@@ -1208,7 +1287,10 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		_bar_title.text = TITLES.get(name, "")
 		_bar_sub.text = ""
 		_bar_sub.visible = false
+		if is_instance_valid(_bar_gear):
+			_bar_gear.visible = name != "settings"
 		set_actions([])
+		_fit_bar_text(_bar_title)
 		if _compact:
 			var brand := name == "home"
 			_bar_brand.visible = brand
@@ -1246,7 +1328,13 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if name in SCROLL_IN_COMPACT and not (scr is ScrollContainer) else ScrollContainer.SCROLL_MODE_DISABLED
 		scr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		scr.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		sc.add_child(scr)
+		# 1.8.2: ScrollContainer без прокрутки вбок всё равно передаёт ширину содержимого наверх — и широкая
+		# строка растягивала оболочку за край экрана. Прокладка FitWidth держит экран ровно по ширине окна.
+		var fit: Container = preload("res://scripts/ui/fit_width.gd").new()
+		fit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		fit.add_child(scr)
+		sc.add_child(fit)
 		root = sc
 	elif name in SCROLL_IN_COMPACT and not (scr is ScrollContainer):
 		# ПК: длинные экраны (мастера, профиль) тоже прокручиваются

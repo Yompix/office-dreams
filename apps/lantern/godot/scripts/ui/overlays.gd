@@ -416,14 +416,14 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 		top.add_child(UI.pill(L.t("ДЕМО"), Color("d93025")))
 	v.add_child(top)
 	var row := UI.hbox(14)
-	row.add_child(UI.texture("res://assets/img/icon.png", 56, 56))
+	row.add_child(UI.texture("res://assets/img/icon.png", 48 if UI.compact() else 56, 48 if UI.compact() else 56))
 	var tv := UI.vbox(2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var tt := UI.label(info.get("title", product), 17, Color("202124"), UI.font_bold)
 	tt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tt.custom_minimum_size.x = 120
+	tt.custom_minimum_size.x = 72 if UI.compact() else 120
 	tv.add_child(tt)
-	tv.add_child(UI.label("LANTERN (by Yompix)", 13, Color("5f6368")))
+	tv.add_child(UI.para("LANTERN (by Yompix)", 13, Color("5f6368")))     # 1.8.2: перенос на 320 dp
 	row.add_child(tv)
 	var pv := UI.vbox(0)
 	var pr := UI.label(info.get("uah", ""), 17, Color("202124"), UI.font_bold)

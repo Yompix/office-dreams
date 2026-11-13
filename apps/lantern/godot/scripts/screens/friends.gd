@@ -140,7 +140,7 @@ func _render() -> void:
 		if Social.conn == "need_register":
 			_list.add_child(UI.empty("user", L.t("Сначала придумайте ник"), L.t("Придумать ник"), func(): Overlays.register(app), L.t("По нику и тегу вас найдут друзья")))
 		else:
-			_list.add_child(UI.empty("wifi", L.t("Нет связи с сервером LANTERN"), L.t("Повторить"), func(): Social.reconnect(), L.t("Друзья появятся, когда вернётся интернет")))
+			_list.add_child(UI.empty("wifi", L.t("Нет связи с сервером LANTERN"), L.t("Повторить"), func(): Social.reconnect(), (Social.net_text() if Social.net_text() != "" else L.t("Друзья появятся, когда вернётся интернет"))))
 		return
 	if not Social.incoming.is_empty():
 		_list.add_child(UI.section(L.t("Заявки в друзья · %d") % Social.incoming.size()))
@@ -210,7 +210,8 @@ func _row(u: Dictionary, status: String, trail: Control, cb := Callable()) -> Pa
 		var a: Variant = u.get("activity")
 		sl.add_theme_color_override("font_color", UI.JAVA if a is Dictionary and a.get("code", "") != "" else (UI.MUTED if u.get("online", false) else UI.DIM))
 	if String(u.get("title", "")) != "":
-		var tt := UI.label(u.title, 12, UI.accent(), UI.font_bold)
+		var tt := UI.label(L.t(String(u.title)), 12, UI.accent(), UI.font_bold)
+		tt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: титул («Constructor de puentes») не распирает строку друга
 		tv.add_child(tt)
 	return r
 
