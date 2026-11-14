@@ -17,6 +17,7 @@ public class GConfig {
     public int brightness = 0;
     public int screenFx = 2;            // 0 — без пост-эффектов, 1 — слабо, 2 — полностью
     public boolean fakeCrash = true;
+    public boolean vhs = true;           // лёгкий плёночный фильтр и без камеры (в видоискателе VHS всегда)
     public boolean noBlood = false;      // убрать кровь с экрана скримера
     public boolean goreReduced = false;  // 18+: «меньше жестокости» — останки заменены кровью
     public boolean ageAck = false;       // предупреждение 18+ уже показано    // ложный «вылет игры» в финале            // 0 — темно (как задумано), 1 — обычно, 2 — светлее

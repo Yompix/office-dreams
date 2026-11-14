@@ -2,7 +2,6 @@ package com.yompix.glukhoman;
 
 import com.yompix.glukhoman.block.LampBlock;
 import com.yompix.glukhoman.block.PropBlock;
-import com.yompix.glukhoman.entity.AnnaEntity;
 import com.yompix.glukhoman.entity.ChoirEntity;
 import com.yompix.glukhoman.entity.ListenerEntity;
 import com.yompix.glukhoman.entity.PebbleEntity;
@@ -56,9 +55,9 @@ public final class GContent {
     public static final Block CRATE = block("crate", new PropBlock(AbstractBlock.Settings.create().mapColor(MapColor.OAK_TAN).strength(-1f, 3600000f)
             .sounds(BlockSoundGroup.WOOD).nonOpaque(), box(1, 0, 1, 15, 12, 15)));
     public static final Block LAMP = block("lamp", new LampBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).sounds(BlockSoundGroup.GLASS)
-            .nonOpaque().noCollision().luminance(s -> s.get(LampBlock.LIT) ? 13 : 0)));
+            .nonOpaque().noCollision().luminance(s -> s.get(LampBlock.LIT) ? 9 : 0)));
     public static final Block STREET_LAMP = block("street_lamp", new LampBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).sounds(BlockSoundGroup.METAL)
-            .nonOpaque().luminance(s -> s.get(LampBlock.LIT) ? 15 : 0)));
+            .nonOpaque().luminance(s -> s.get(LampBlock.LIT) ? 11 : 0)));
 
     // ---------- обстановка: история без слов ----------
     public static final Block POSTER = block("poster", new com.yompix.glukhoman.block.DecorBlock(decor(), box(1, 2, 0, 15, 15, 0.5)));
@@ -67,6 +66,16 @@ public final class GContent {
     public static final Block BLOOD = block("blood", new com.yompix.glukhoman.block.DecorBlock(decor(), box(0, 0, 0, 16, 0.2, 16)));
     /** 18+: останки — 0 разорванное тело, 1 оторванная рука, 2 внутренности (в режиме «меньше жестокости» — просто кровь). */
     public static final Block REMAINS = block("remains", new com.yompix.glukhoman.block.DecorBlock(decor(), box(1, 0, 1, 15, 4, 15)));
+    /** 0.4 «Порожняк»: босые следы на шпалах. */
+    public static final Block FOOTPRINTS = block("footprints", new com.yompix.glukhoman.block.DecorBlock(decor(), box(0, 0, 0, 16, 0.2, 16)));
+    /** Старый почтовый ящик лагпункта: сюда каждое утро сдают кассету. */
+    public static final Block BOX = block("box", new PropBlock(metal(), box(2, 0, 0, 14, 14, 7)));
+    public static final Block LOUDSPEAKER = block("loudspeaker", new PropBlock(metal(), box(3, 3, 0, 13, 13, 12)));
+    /** Лампа табло рельсовых цепей (горит без тока) и красный огонь переезда. */
+    public static final Block BOARD_LAMP = block("board_lamp", new LampBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).sounds(BlockSoundGroup.GLASS)
+            .nonOpaque().luminance(s -> s.get(LampBlock.LIT) ? 5 : 0)));
+    public static final Block SIGNAL = block("signal", new LampBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).sounds(BlockSoundGroup.METAL)
+            .nonOpaque().luminance(s -> s.get(LampBlock.LIT) ? 10 : 0)));
     public static final Block PHOTO = block("photo", new com.yompix.glukhoman.block.DecorBlock(decor(), box(3, 4, 0, 13, 13, 1)));
 
     // ---------- предметы ----------
@@ -81,6 +90,9 @@ public final class GContent {
     public static final Item CANISTER = item("canister", new Item(new Item.Settings().maxCount(1)));
     /** Куски для частиц расправы (в «меньше жестокости» текстура — капли крови). */
     public static final Item GORE_CHUNK = item("gore_chunk", new Item(new Item.Settings()));
+    /** Камера «Панасоник»: заряд батареи = прочность. ПКМ — поднять к глазу. */
+    public static final Item CAMCORDER = item("camcorder", new com.yompix.glukhoman.item.CamcorderItem(new Item.Settings().maxCount(1).maxDamage(7200)));
+    public static final Item CASSETTE = item("cassette", new com.yompix.glukhoman.item.CassetteItem(new Item.Settings().maxCount(8)));
     public static final Item TUNING_FORK = item("tuning_fork", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
     // ---------- существа ----------
@@ -92,8 +104,12 @@ public final class GContent {
             .dimensions(1.8f, 3.2f).maxTrackingRange(12));
     public static final EntityType<com.yompix.glukhoman.entity.DoppelEntity> DOPPEL = entity("doppel", EntityType.Builder.create(com.yompix.glukhoman.entity.DoppelEntity::new, SpawnGroup.MONSTER)
             .dimensions(0.6f, 1.8f).maxTrackingRange(12));
-    public static final EntityType<AnnaEntity> ANNA = entity("anna", EntityType.Builder.create(AnnaEntity::new, SpawnGroup.MISC)
-            .dimensions(0.6f, 1.8f).maxTrackingRange(10));
+    public static final EntityType<com.yompix.glukhoman.entity.ResidentEntity> RESIDENT = entity("resident", EntityType.Builder.create(com.yompix.glukhoman.entity.ResidentEntity::new, SpawnGroup.MISC)
+            .dimensions(0.6f, 1.8f).maxTrackingRange(12));
+    public static final EntityType<com.yompix.glukhoman.entity.TrainEntity> TRAIN = entity("train", EntityType.Builder.<com.yompix.glukhoman.entity.TrainEntity>create(com.yompix.glukhoman.entity.TrainEntity::new, SpawnGroup.MISC)
+            .dimensions(2.4f, 3.4f).maxTrackingRange(24).trackingTickInterval(1));
+    public static final EntityType<com.yompix.glukhoman.entity.WatcherEntity> WATCHER = entity("watcher", EntityType.Builder.create(com.yompix.glukhoman.entity.WatcherEntity::new, SpawnGroup.MONSTER)
+            .dimensions(0.7f, 3.2f).maxTrackingRange(12));
     public static final EntityType<PebbleEntity> PEBBLE_ENTITY = entity("pebble", EntityType.Builder.<PebbleEntity>create(PebbleEntity::new, SpawnGroup.MISC)
             .dimensions(0.25f, 0.25f).maxTrackingRange(6).trackingTickInterval(10));
 
@@ -103,7 +119,8 @@ public final class GContent {
             "heartbeat", "breath", "knock", "steps_far", "steps_near", "whisper", "radio_static", "radio_click", "stinger", "stinger_soft",
             "pole_appear", "pole_vanish", "pole_step", "listener_click", "listener_scream", "listener_hurt", "choir_roar", "choir_hum", "choir_hurt",
             "flashlight_click", "battery_dead", "fuse", "generator", "power_on", "lamp_buzz", "door_creak", "lift", "tape_click", "title_hit",
-            "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo"};
+            "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo",
+            "crossing_bell", "cam_motor", "relay", "loudspeaker", "rewind", "motor", "joints"};
 
     public static SoundEvent sound(String name) {
         return SOUNDS.get(name);
@@ -115,11 +132,12 @@ public final class GContent {
         FabricDefaultAttributeRegistry.register(POLE, PoleEntity.attributes());
         FabricDefaultAttributeRegistry.register(LISTENER, ListenerEntity.attributes());
         FabricDefaultAttributeRegistry.register(CHOIR, ChoirEntity.attributes());
-        FabricDefaultAttributeRegistry.register(ANNA, AnnaEntity.attributes());
+        FabricDefaultAttributeRegistry.register(RESIDENT, com.yompix.glukhoman.entity.ResidentEntity.attributes());
+        FabricDefaultAttributeRegistry.register(WATCHER, com.yompix.glukhoman.entity.WatcherEntity.attributes());
         FabricDefaultAttributeRegistry.register(DOPPEL, com.yompix.glukhoman.entity.DoppelEntity.attributes());
         Registry.register(Registries.CHUNK_GENERATOR, Glukhoman.id("taiga"), com.yompix.glukhoman.world.TaigaChunkGenerator.CODEC);
         Registry.register(Registries.ITEM_GROUP, Glukhoman.id("main"), FabricItemGroup.builder()
-                .icon(() -> new ItemStack(FLASHLIGHT)).displayName(Text.translatable("itemGroup.glukhoman"))
+                .icon(() -> new ItemStack(CAMCORDER)).displayName(Text.translatable("itemGroup.glukhoman"))
                 .entries((ctx, entries) -> TAB.forEach(entries::add)).build());
     }
 

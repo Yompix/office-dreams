@@ -190,7 +190,7 @@ public class PoleEntity extends HorrorMob {
         if (dist < 1.9 && cooldown == 0) {
             float dmg = (float) getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) * (diff == 0 ? 0.6f : diff == 2 ? 1.6f : 1f);
             if (target.getHealth() <= dmg && !target.isCreative()) {
-                com.yompix.glukhoman.story.Story.execute(target, this);
+                target.damage(getDamageSources().mobAttack(this), 1000f);
                 cooldown = 200;
                 return;
             }

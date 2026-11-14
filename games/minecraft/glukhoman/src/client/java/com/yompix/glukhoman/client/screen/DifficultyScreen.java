@@ -11,9 +11,9 @@ import net.minecraft.text.Text;
 /** Первый запуск мира: заставка и выбор сложности (выбирает тот, кто зашёл первым). */
 public class DifficultyScreen extends Screen {
     static final String[][] D = {
-            {"Жутко", "Мягче: существа медленнее, рассудок тает медленно, батарейки дольше."},
+            {"Жутко", "Мягче: Обходчик только вырывает плёнку, поезд стоит у перрона меньше."},
             {"Страшно", "Как задумано. Рекомендуем."},
-            {"Кошмар", "Существа быстрее и чутче, батарейки тают, ошибки дорого стоят."}};
+            {"Кошмар", "Обходчик учится быстрее, ошибки дорого стоят."}};
 
     public DifficultyScreen() {
         super(Text.literal("Глухомань"));
@@ -40,9 +40,11 @@ public class DifficultyScreen extends Screen {
         ctx.getMatrices().translate(width / 2f, height / 2f - 70, 0);
         ctx.getMatrices().scale(4f, 4f, 1f);
         ctx.drawCenteredTextWithShadow(textRenderer, "ГЛУХОМАНЬ", 0, 0, 0xFFD8D0C0);
+        ctx.getMatrices().scale(0.4f, 0.4f, 1f);
+        ctx.drawCenteredTextWithShadow(textRenderer, "ПОРОЖНЯК · часть первая", 0, 26, 0xFFB04040);
         ctx.getMatrices().pop();
-        ctx.drawCenteredTextWithShadow(textRenderer, "Тайга, октябрь 1996-го. Посёлок Еловый. Анна Ветрова не выходит на связь.", width / 2, height / 2 - 30, 0xFF9A9A9A);
-        ctx.drawCenteredTextWithShadow(textRenderer, "Играй в наушниках. Выбери, насколько будет страшно:", width / 2, height / 2 - 14, 0xFF9A9A9A);
+        ctx.drawCenteredTextWithShadow(textRenderer, "Октябрь 1996-го. Мёртвая узкоколейка «Ветка 41». Тебя наняли сторожить и снимать её каждую ночь.", width / 2, height / 2 - 30, 0xFF9A9A9A);
+        ctx.drawCenteredTextWithShadow(textRenderer, "ПКМ с камерой — к глазу. В камере видно то, чего нет глазами. Играй в наушниках:", width / 2, height / 2 - 14, 0xFF9A9A9A);
         ctx.drawCenteredTextWithShadow(textRenderer, "Yompix Games · не связано с Mojang", width / 2, height - 14, 0xFF555555);
         super.render(ctx, mx, my, delta);
     }

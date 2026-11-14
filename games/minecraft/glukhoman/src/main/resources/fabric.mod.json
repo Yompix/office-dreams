@@ -3,7 +3,7 @@
   "id": "glukhoman",
   "version": "${version}",
   "name": "Глухомань",
-  "description": "Хоррор с сюжетом от Yompix Games: таёжный посёлок, закрытая метеостанция и то, что говорит чужими голосами. Соло и кооператив. Не связано с Mojang.",
+  "description": "Хоррор с сюжетом от Yompix Games: мёртвая узкоколейка, поезд, которого видно только в камере, и память на кассетах. Соло и кооператив. Не связано с Mojang.",
   "authors": ["Yompix"],
   "license": "All-Rights-Reserved",
   "icon": "assets/glukhoman/icon.png",

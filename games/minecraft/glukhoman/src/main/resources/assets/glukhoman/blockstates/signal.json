@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "lit=true": {
+   "model": "glukhoman:block/signal_on"
+  },
+  "lit=false": {
+   "model": "glukhoman:block/signal"
+  }
+ }
+}

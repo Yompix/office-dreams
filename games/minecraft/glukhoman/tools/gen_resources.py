@@ -42,6 +42,8 @@ PROPS = {
     'chalk_mark': [el([0, 0, 0], [16, 16, 0.5], 'front', 'front')],
     'lock': [el([5, 4, 0], [11, 12, 4], 'side', 'front')],
     'crate': [el([1, 0, 1], [15, 12, 15], 'side', 'side', 'top')],
+    'box': [el([2, 0, 0], [14, 14, 7], 'side', 'front', 'top'), el([1, 14, 0], [15, 15, 8], 'side')],
+    'loudspeaker': [el([3, 3, 0], [13, 13, 4], 'side', 'front'), el([5, 5, 4], [11, 11, 9], 'side'), el([7, 7, 9], [9, 9, 16], 'side')],
 }
 DECOR = {  # имя: (элементы, текстура зависит от варианта)
     'poster': ([el([1, 2, 0], [15, 15, 0.5], 'front', 'front')], True),
@@ -49,8 +51,9 @@ DECOR = {  # имя: (элементы, текстура зависит от в�
     'doll': ([el([6, 0, 7], [10, 5, 9.5], 'side', 'front'), el([6.5, 5, 7], [9.5, 8.5, 9.5], 'top', 'front'), el([4.5, 3, 7.5], [6, 5, 8.5], 'side'), el([10, 3, 7.5], [11.5, 5, 8.5], 'side')], False),
     'photo': ([el([3, 4, 0], [13, 13, 1], 'side', 'front')], True),
     'blood': ([{'from': [0, 0, 0], 'to': [16, 0.1, 16], 'faces': {'up': {'texture': '#front'}}}], True),
+    'footprints': ([{'from': [0, 0, 0], 'to': [16, 0.1, 16], 'faces': {'up': {'texture': '#front'}}}], True),
 }
-ITEMS = ['gore_chunk', 'flashlight', 'battery', 'oil_lamp', 'oil', 'pebble', 'fuse', 'gate_key', 'mine_key', 'canister', 'tuning_fork']
+ITEMS = ['camcorder', 'cassette', 'gore_chunk', 'flashlight', 'battery', 'oil_lamp', 'oil', 'pebble', 'fuse', 'gate_key', 'mine_key', 'canister', 'tuning_fork']
 
 NAMES = {
     'radio': ('Рация', 'Radio', 'Рація'), 'tape_player': ('Магнитофон', 'Tape player', 'Магнітофон'),
@@ -66,22 +69,31 @@ NAMES = {
     'oil_lamp': ('Керосиновая лампа', 'Oil lamp', 'Гасова лампа'), 'oil': ('Керосин', 'Lamp oil', 'Гас'),
     'pebble': ('Камешек', 'Pebble', 'Камінчик'), 'fuse': ('Предохранитель', 'Fuse', 'Запобіжник'),
     'gate_key': ('Ключ от ворот просеки', 'Gate key', 'Ключ від воріт просіки'), 'mine_key': ('Ключ от шахты', 'Mine key', 'Ключ від шахти'),
-    'canister': ('Канистра', 'Fuel canister', 'Каністра'), 'tuning_fork': ('Камертон Шумова', "Shumov's tuning fork", 'Камертон Шумова'),
+    'canister': ('Канистра', 'Fuel canister', 'Каністра'),
+    'camcorder': ('Камера «Панасоник»', 'Camcorder', 'Камера «Панасонік»'), 'cassette': ('Кассета E-180', 'E-180 tape', 'Касета E-180'),
+    'box': ('Ящик для кассет', 'Tape drop box', 'Скринька для касет'), 'loudspeaker': ('Громкоговоритель', 'Loudspeaker', 'Гучномовець'),
+    'board_lamp': ('Лампа табло', 'Track board lamp', 'Лампа табло'), 'signal': ('Огонь переезда', 'Crossing light', 'Вогонь переїзду'),
+    'footprints': ('Босые следы', 'Bare footprints', 'Босі сліди'), 'tuning_fork': ('Камертон Шумова', "Shumov's tuning fork", 'Камертон Шумова'),
 }
 ENT = {'doppel': ('Двойник', 'Doppelganger', 'Двійник'), 'pole': ('Жердь', 'The Pole', 'Жердина'), 'listener': ('Слухач', 'Listener', 'Слухач'), 'choir': ('Хор', 'The Choir', 'Хор'),
-       'anna': ('Анна Ветрова', 'Anna Vetrova', 'Анна Вєтрова'), 'pebble': ('Камешек', 'Pebble', 'Камінчик')}
+       'resident': ('Житель', 'Villager', 'Мешканець'), 'train': ('Порожняк', 'The Empty Train', 'Порожняк'),
+       'watcher': ('Обходчик', 'The Lineman', 'Обхідник'), 'pebble': ('Камешек', 'Pebble', 'Камінчик')}
 SUBS = {'knock': ('Стук в дверь', 'Knocking', 'Стукіт у двері'), 'steps_far': ('Шаги в лесу', 'Footsteps in the woods', 'Кроки в лісі'),
         'steps_near': ('Шаги за спиной', 'Footsteps behind', 'Кроки позаду'), 'branch_snap': ('Хруст ветки', 'Branch snaps', 'Хрускіт гілки'),
         'listener_click': ('Слухач щёлкает', 'Listener clicks', 'Слухач клацає'), 'listener_scream': ('Слухач кричит', 'Listener shrieks', 'Слухач кричить'),
         'choir_roar': ('Хор ревёт', 'The Choir roars', 'Хор реве'), 'choir_hum': ('Хор гудит', 'The Choir hums', 'Хор гуде'),
         'pole_step': ('Скрип дерева', 'Wood creaks', 'Скрип дерева'), 'door_creak': ('Скрип двери', 'Door creaks', 'Рипіння дверей'),
         'distant_scream': ('Крик вдалеке', 'Distant scream', 'Крик вдалині'), 'heartbeat': ('Сердцебиение', 'Heartbeat', 'Серцебиття'),
-        'whisper': ('Шёпот', 'Whisper', 'Шепіт'), 'radio_static': ('Треск эфира', 'Radio static', 'Тріск ефіру')}
+        'whisper': ('Шёпот', 'Whisper', 'Шепіт'), 'radio_static': ('Треск эфира', 'Radio static', 'Тріск ефіру'),
+        'crossing_bell': ('Звонит переезд', 'Crossing bell rings', 'Дзвонить переїзд'), 'relay': ('Щёлкает реле табло', 'Relay clicks', 'Клацає реле'),
+        'loudspeaker': ('Громкоговоритель', 'Loudspeaker crackles', 'Гучномовець'), 'motor': ('Мотовоз вдали', 'Distant railcar', 'Мотовоз вдалині'),
+        'joints': ('Стук на стыках', 'Rail joints knock', 'Стукіт на стиках'), 'cam_motor': ('Мотор камеры', 'Camera motor', 'Мотор камери')}
 SOUNDS = ["amb.forest", "amb.village", "amb.mine", "amb.station", "amb.bunker", "amb.dread", "amb.relief", "amb.chase",
           "heartbeat", "breath", "knock", "steps_far", "steps_near", "whisper", "radio_static", "radio_click", "stinger", "stinger_soft",
           "pole_appear", "pole_vanish", "pole_step", "listener_click", "listener_scream", "listener_hurt", "choir_roar", "choir_hum", "choir_hurt",
           "flashlight_click", "battery_dead", "fuse", "generator", "power_on", "lamp_buzz", "door_creak", "lift", "tape_click", "title_hit",
-          "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo"]
+          "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo",
+          "crossing_bell", "cam_motor", "relay", "loudspeaker", "rewind", "motor", "joints"]
 
 
 def blocks():
@@ -97,6 +109,21 @@ def blocks():
             m = f'{n}_on' if lit else n
             w(f'{A}/models/block/{m}.json', {'textures': {'side': f'{NS}:block/lamp_shade', 'bulb': f'{NS}:block/bulb_{"on" if lit else "off"}',
                                                            'particle': f'{NS}:block/lamp_shade'}, 'elements': els})
+        w(f'{A}/blockstates/{n}.json', {'variants': {'lit=true': {'model': f'{NS}:block/{n}_on'}, 'lit=false': {'model': f'{NS}:block/{n}'}}})
+        w(f'{A}/models/item/{n}.json', {'parent': f'{NS}:block/{n}_on'})
+    for n in ('board_lamp', 'signal'):
+        base = 'board' if n == 'board_lamp' else 'signal'
+        for lit in (True, False):
+            m = f'{n}_on' if lit else n
+            tex = f'{NS}:block/{base}_{"on" if lit else "off"}'
+            if n == 'board_lamp':
+                w(f'{A}/models/block/{m}.json', {'parent': 'minecraft:block/cube_all', 'textures': {'all': tex}})
+            else:
+                b = f'{NS}:block/signal_back'
+                lamp = {'from': [4, 3, 4], 'to': [12, 11, 12], 'faces': {f: {'texture': '#l'} for f in ('north', 'south', 'east', 'west')}
+                        | {'up': {'texture': '#b'}, 'down': {'texture': '#b'}}}
+                hood = {'from': [3.5, 11, 3.5], 'to': [12.5, 12, 12.5], 'faces': {f: {'texture': '#b'} for f in ('north', 'south', 'east', 'west', 'up', 'down')}}
+                w(f'{A}/models/block/{m}.json', {'textures': {'l': tex, 'b': b, 'particle': b}, 'elements': [lamp, hood]})
         w(f'{A}/blockstates/{n}.json', {'variants': {'lit=true': {'model': f'{NS}:block/{n}_on'}, 'lit=false': {'model': f'{NS}:block/{n}'}}})
         w(f'{A}/models/item/{n}.json', {'parent': f'{NS}:block/{n}_on'})
     for n, (els, per_variant) in DECOR.items():
@@ -150,6 +177,7 @@ def lang():
              'key.categories.glukhoman': ('Глухомань', 'Glukhoman', 'Глухомань')[i],
              'key.glukhoman.flashlight': ('Фонарик вкл/выкл', 'Flashlight on/off', 'Ліхтарик увімк/вимк')[i],
              'key.glukhoman.hint': ('Подсказка: куда идти', 'Hint: where to go', 'Підказка: куди йти')[i],
+             'key.glukhoman.ir': ('ИК-режим камеры', 'Camera IR mode', 'ІЧ-режим камери')[i],
              'generator.glukhoman.taiga': ('Глухомань', 'Glukhoman (story)', 'Глухомань')[i]}
         for n, v in NAMES.items():
             L[('item' if n in ITEMS else 'block') + f'.{NS}.{n}'] = v[i]
@@ -169,8 +197,9 @@ def sounds():
         if n in SUBS:
             e['subtitle'] = f'subtitles.{NS}.{n}'
         S[n] = e
-    for lid in story['lines']:
-        S[f'voice.{lid}'] = {'sounds': [{'name': f'{NS}:voice/{lid}', 'stream': True}]}
+    for lid in story['lines']:   # озвучка — только если есть файл (0.4: реплики пока только субтитрами)
+        if os.path.exists(f'{A}/sounds/voice/{lid}.ogg'):
+            S[f'voice.{lid}'] = {'sounds': [{'name': f'{NS}:voice/{lid}', 'stream': True}]}
     w(f'{A}/sounds.json', S)
 
 

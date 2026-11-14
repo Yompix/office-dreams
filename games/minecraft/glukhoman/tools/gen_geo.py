@@ -359,6 +359,8 @@ def humans():
     out['animation.human.jumpscare'] = anim(lambda t: {'head': {'rotation': [-15 + wob(t, 9, 10), wob(t, 12, 14), wob(t, 8, 18)], 'position': [0, 0, -min(5, t * 12)]},
                                                        'right_arm': {'rotation': [-120, 0, 40]}, 'left_arm': {'rotation': [-120, 0, -40]}}, 1.2, loop=False, fps=20)
     out['animation.human.write'] = out['animation.human.type']
+    # Двойник: голова медленно, слишком далеко клонится набок и замирает
+    out['animation.human.tilt_slow'] = anim(lambda t: {'head': {'rotation': [6, 0, 58 * min(1, (t / 4) ** 1.5)]}, 'neck': {'rotation': [0, 0, 6 * min(1, t / 4)]}}, 4.5, loop=False)
     w(f'{A}/animations/human.animation.json', {'format_version': '1.8.0', 'animations': out})
 
 
@@ -398,10 +400,89 @@ def human_skin(name, coat, pants, hair, face=(226, 190, 160), eyes=(40, 60, 80),
         g.save(f'{A}/textures/entity/{name}_glowmask.png')
 
 
+def anna_skins():
+    """Анна — обычный усталый человек: приглушённая куртка, тени на лице, синяки под глазами.
+    Двойник — та же Анна, но не так: глаза шире и целиком чёрные, шов вместо рта, бледная кожа, нет бровей."""
+    def paint(double, blink=False, talk=False, fear=False):
+        img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        px = img.load()
+        skin = (172, 156, 150) if double else (198, 162, 138)
+        hair, coat, jeans, boots = (46, 34, 28), (70, 74, 58), (42, 46, 58), (36, 30, 26)
+
+        def region(x0, y0, w_, h_, col, var=0.06, grad=0.18):
+            for y in range(h_):
+                for x in range(w_):
+                    k = 1 + rnd.uniform(-var, var) - grad * (y / max(1, h_ - 1) - 0.4)
+                    px[x0 + x, y0 + y] = shade(col, k)
+
+        def box(u, v, w_, h_, d_, col, var=0.06):
+            region(u + d_, v, w_, d_, col, var, 0)             # верх
+            region(u + d_ + w_, v, w_, d_, shade(col, 0.7)[:3], var, 0)
+            region(u, v + d_, 2 * d_ + 2 * w_, h_, col, var)  # бока, перед, спина
+        box(0, 0, 8, 8, 8, hair, 0.12)
+        region(8, 8, 8, 8, skin, 0.04, 0.12)                  # лицо
+        for x in range(8, 16):
+            px[x, 8] = shade(hair, 1.0)
+        for x in (8, 9, 10, 15):
+            px[x, 9] = shade(hair, 0.9)
+        for x in (8, 15):
+            for y in range(10, 14):
+                px[x, y] = shade(hair, 0.85)                  # пряди по бокам
+        for x in range(9, 15):
+            px[x, 15] = shade(skin, 0.86)                     # тень под подбородком
+        if not double:
+            for x in (9, 10, 13, 14):
+                px[x, 10] = (58, 42, 34, 255)                 # брови
+            eyes = [(9, (176, 170, 164)), (10, (64, 50, 40)), (13, (64, 50, 40)), (14, (176, 170, 164))]
+            if fear:
+                eyes = [(9, (196, 190, 184)), (10, (40, 30, 24)), (13, (40, 30, 24)), (14, (196, 190, 184))]
+            for x, c in eyes:
+                px[x, 11] = (c + (255,)) if not blink else shade(skin, 0.8)
+            for x in (9, 10, 13, 14):
+                px[x, 12] = shade(skin, 0.82)                 # синяки под глазами
+            px[11, 13] = shade(skin, 0.9)
+            px[12, 13] = shade(skin, 0.9)
+            for x in (11, 12):
+                px[x, 14] = (132, 88, 84, 255) if not (talk or fear) else (54, 26, 26, 255)
+        else:
+            for x in (8, 9, 14, 15):                          # глаза шире, целиком чёрные
+                px[x, 11] = (8, 6, 6, 255) if not blink else shade(skin, 0.75)
+                px[x, 12] = shade(skin, 0.7)
+            for x in range(9, 15):
+                px[x, 14] = (58, 34, 34, 255)                 # шов вместо рта
+            for x in (9, 11, 13):
+                px[x, 13] = shade(skin, 0.8)
+                px[x + 1, 15] = shade(skin, 0.78)             # стежки
+        box(16, 16, 8, 12, 4, coat, 0.07)                     # куртка
+        for y in range(20, 32):
+            px[24, y] = shade(coat, 0.7)                      # молния
+        for x in range(20, 28):
+            px[x, 20] = shade(coat, 1.15)                     # воротник
+        box(40, 16, 3, 12, 4, coat, 0.07)
+        box(32, 48, 3, 12, 4, coat, 0.07)
+        for (u, v) in ((44, 29), (36, 61)):
+            for x in range(u, u + 3):
+                for y in range(v, v + 3):
+                    px[x, y] = shade(skin, 0.95)
+        box(0, 16, 4, 12, 4, jeans, 0.08)
+        box(16, 48, 4, 12, 4, jeans, 0.08)
+        for (u, v) in ((0, 29), (16, 61)):
+            for x in range(u, u + 16):
+                for y in range(v, v + 3):
+                    px[x, y] = shade(boots, 1 + rnd.uniform(-0.05, 0.05))
+        return img
+    paint(False).save(f'{A}/textures/entity/anna.png')
+    paint(False, blink=True).save(f'{A}/textures/entity/anna_blink.png')
+    paint(False, talk=True).save(f'{A}/textures/entity/anna_talk.png')
+    paint(False, fear=True).save(f'{A}/textures/entity/anna_fear.png')
+    paint(True).save(f'{A}/textures/entity/anna_double.png')
+    paint(True, blink=True).save(f'{A}/textures/entity/anna_double_blink.png')
+
+
 def main():
     # существа 0.3 — tools/gen_creatures.py; здесь только люди (Анна, Двойник)
     humans()
-    human_skin('anna', (214, 110, 40), (52, 62, 96), (58, 40, 30))
+    anna_skins()
     # лица Анны: моргание, «говорит» (рот открыт), испуг (широкие глаза, открытый рот)
     base = Image.open(f'{A}/textures/entity/anna.png')
     for name, fn in (('anna_blink', lambda d: [d.line([9, 11, 10, 11], fill=(150, 110, 90, 255)), d.line([13, 11, 14, 11], fill=(150, 110, 90, 255))]),

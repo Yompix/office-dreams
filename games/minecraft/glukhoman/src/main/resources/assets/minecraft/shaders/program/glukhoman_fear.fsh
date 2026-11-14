@@ -4,7 +4,7 @@
 uniform sampler2D DiffuseSampler;
 in vec2 texCoord;
 uniform vec2 OutSize;
-uniform float Time, Fear, Near, Strength, Flash, Blur, Rays, RayX, RayY, Tear, TintR, TintG, TintB;
+uniform float Time, Fear, Near, Strength, Flash, Blur, Rays, RayX, RayY, Tear, TintR, TintG, TintB, Cone, Crush, Vhs, Glitch;
 out vec4 fragColor;
 
 float rand(vec2 c) { return fract(sin(dot(c, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -15,6 +15,27 @@ vec3 tap(vec2 uv, vec2 d, float ca) {
 
 void main() {
     vec2 uv = texCoord;
+    // ---- кассета: дорожки, рывки, срыв кадра ----
+    if (Vhs > 0.01) {
+        float row = floor(uv.y * OutSize.y / 2.0);
+        // мягкая полоса трекинга: живёт в нижней трети, меняет высоту, тащит строки вбок
+        float trk = 0.04 + pow(fract(Time * 0.037), 1.7) * 0.4;
+        float bh = 0.02 + 0.03 * rand(vec2(floor(Time * 0.5), 3.0));
+        float band = smoothstep(bh, 0.0, abs(uv.y - trk)) * (0.4 + 0.6 * Glitch + 0.25);
+        uv.x += (rand(vec2(row, floor(Time * 30.0))) - 0.3) * 0.012 * band * Vhs;
+        // «переключение головок»: нижние строки кадра всегда дёргаются
+        float hs = smoothstep(0.035, 0.0, uv.y);
+        uv.x += (0.012 + rand(vec2(row, floor(Time * 25.0))) * 0.02) * hs * Vhs;
+        // срыв строк при близости твари / низком рассудке
+        float tearOn = step(1.0 - Glitch * 0.35, rand(vec2(floor(uv.y * 40.0), floor(Time * 12.0))));
+        uv.x += tearOn * (rand(vec2(row, Time)) - 0.5) * 0.08 * Glitch;
+        // редкий «прокат» кадра по вертикали
+        float roll = step(0.985 - Glitch * 0.05, rand(vec2(floor(Time * 2.0), 7.0)));
+        uv.y = fract(uv.y + roll * fract(Time * 3.0) * 0.3 * (0.3 + Glitch));
+        // низкое разрешение плёнки
+        vec2 res = OutSize * mix(1.0, 0.42, Vhs);
+        uv = (floor(uv * res) + 0.5) / res;
+    }
     vec2 d = uv - 0.5;
     float r = length(d);
     float s = Strength;
@@ -63,6 +84,49 @@ void main() {
         float halo = exp(-dist * 22.0) * 0.35;
         col = mix(col, col * vec3(0.6, 0.45, 0.5), halo * Tear);
         col += vec3(1.0, 0.55, 0.35) * (core * 1.8 + halo * 0.5) * Tear;
+    }
+    // конус фонаря: вне пятна света — почти ничего не видно
+    if (Cone > 0.01) {
+        vec2 e = (texCoord - vec2(0.5, 0.47)) * vec2(1.0, 1.35);
+        float spot = smoothstep(0.48, 0.12, length(e));
+        col *= mix(1.0, 0.08 + 0.92 * spot, Cone);
+    }
+    // «киношная» тьма: продавленные чёрные, холодная бирюза, мало цвета
+    if (Crush > 0.01) {
+        float lum = dot(col, vec3(0.299, 0.587, 0.114));
+        col = mix(col, vec3(lum), 0.45 * Crush);
+        col = max(col - 0.035 * Crush, 0.0) / (1.0 - 0.035 * Crush);
+        col = pow(col, vec3(1.0 + 0.35 * Crush));
+        col *= mix(vec3(1.0), vec3(0.86, 1.0, 1.04), Crush);
+    }
+    if (Vhs > 0.01) {
+        // цветовой «расплыв» по горизонтали и сдвиг хромы
+        vec2 px = vec2(1.0 / OutSize.x, 0.0);
+        vec3 bleed = vec3(0.0);
+        for (int i = -3; i <= 3; i++) bleed += texture(DiffuseSampler, uv + px * float(i) * 2.5).rgb;
+        bleed /= 7.0;
+        float y = dot(col, vec3(0.299, 0.587, 0.114));
+        vec3 chroma = bleed - dot(bleed, vec3(0.299, 0.587, 0.114));
+        col = mix(col, vec3(y) + chroma * 0.85 + vec3(texture(DiffuseSampler, uv + px * 3.0).r - bleed.r, 0.0, texture(DiffuseSampler, uv - px * 3.0).b - bleed.b) * 0.35, Vhs);
+        // строчная развёртка и плёночный шум
+        if (mod(gl_FragCoord.y, 2.0) < 1.0) col *= 1.0 - 0.07 * Vhs;
+        // шум в полосе трекинга и внизу кадра: редкие яркие мазки по горизонтали, цветная кайма, мягкие края
+        float trk2 = 0.04 + pow(fract(Time * 0.037), 1.7) * 0.4;
+        float bh2 = 0.02 + 0.03 * rand(vec2(floor(Time * 0.5), 3.0));
+        float dz = (uv.y - trk2) / bh2;
+        float zone = exp(-dz * dz * 2.0) * (0.45 + 0.7 * Glitch) + smoothstep(0.03, 0.0, uv.y) * 0.7;
+        float line = floor(uv.y * OutSize.y / 2.0);
+        float start = rand(vec2(line, floor(Time * 20.0)));
+        float len = 0.05 + 0.25 * rand(vec2(line + 3.0, floor(Time * 20.0)));
+        float sx = uv.x - start;
+        float streak = step(0.0, sx) * step(sx, len) * step(0.82, rand(vec2(line * 0.37, floor(Time * 20.0) + 1.0)));
+        float nz = streak * zone * (1.0 - sx / max(len, 0.001));
+        col += vec3(0.95, 0.85, 1.0) * nz * 0.55 * Vhs;
+        col += vec3(0.06, -0.02, 0.07) * zone * Vhs;
+        // выпадение: целая полоса серого «снега»
+        float drop = step(1.0 - Glitch * 0.025, rand(vec2(floor(uv.y * 18.0), floor(Time * 8.0)))) * step(0.5, Vhs);
+        col = mix(col, vec3(rand(uv * Time)) * 0.6, drop * Vhs);
+        col *= 1.0 - 0.12 * Vhs;
     }
     // зерно плёнки и виньетка
     float g = rand(uv * OutSize + fract(Time * 7.13) * 91.0) - 0.5;

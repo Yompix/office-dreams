@@ -2,7 +2,6 @@ package com.yompix.glukhoman.client;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
-import com.yompix.glukhoman.client.screen.ChoiceScreen;
 import com.yompix.glukhoman.client.screen.DifficultyScreen;
 import com.yompix.glukhoman.client.screen.SettingsScreen;
 import com.yompix.glukhoman.entity.PoleEntity;
@@ -46,7 +45,7 @@ public class GlukhomanClient implements ClientModInitializer {
     // ---- состояние, присланное сервером ----
     public static boolean inWorld;
     public static int chapter, difficulty = 1;
-    public static String title = "", objective = "", step = "", ending = "";
+    public static String title = "", objective = "", step = "", ending = "", tape = "";
     public static float sanity = 100, shownSanity = 100;
     public static boolean lightOn, chase;
     public static long objectiveChanged;
@@ -61,7 +60,7 @@ public class GlukhomanClient implements ClientModInitializer {
     // ---- туман (читает FogMixin) ----
     public static float fogStart = 30, fogEnd = 90, fogR = 0.3f, fogG = 0.32f, fogB = 0.38f;
 
-    static KeyBinding FLASH, HINT;
+    static KeyBinding FLASH, HINT, IR;
     static int stepsArmed, stepsToPlay, stepsDelay, heartT, halluCd = 600, halluLife;
     static PoleEntity hallu;
     static boolean wasMoving, askedChoose;
@@ -78,6 +77,7 @@ public class GlukhomanClient implements ClientModInitializer {
                 GContent.BLOOD, GContent.POSTER, GContent.SCRATCHES, GContent.PHOTO, GContent.DOLL, GContent.REMAINS);
         FLASH = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.flashlight", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.glukhoman"));
         HINT = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.hint", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.categories.glukhoman"));
+        IR = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.ir", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.categories.glukhoman"));
         ClientPlayNetworking.registerGlobalReceiver(Net.S2C.ID, (p, ctx) -> ctx.client().execute(() -> onMessage(p.data())));
         HudRenderCallback.EVENT.register(Hud::render);
         ClientTickEvents.END_CLIENT_TICK.register(GlukhomanClient::tick);
@@ -104,6 +104,7 @@ public class GlukhomanClient implements ClientModInitializer {
         c.execute(() -> {
             Cine.stop();
             FearFx.reset();
+            Viewfinder.reset();
         });
         inWorld = false;
         askedChoose = false;
@@ -157,6 +158,7 @@ public class GlukhomanClient implements ClientModInitializer {
                 objective = obj;
                 step = m.getString("step");
                 ending = m.getString("ending");
+                tape = m.getString("tape");
             }
             case "sanity" -> sanity = m.getFloat("v");
             case "difficulty" -> difficulty = m.getInt("d");
@@ -169,7 +171,7 @@ public class GlukhomanClient implements ClientModInitializer {
             }
             case "voice" -> {
                 SoundEvent e = m.getString("id").isEmpty() ? null : sound("voice." + m.getString("id"));
-                if (e != null) {
+                if (e != null && c.getSoundManager().get(e.getId()) != null) {
                     if (m.getBoolean("global") || !m.contains("x"))
                         c.getSoundManager().play(PositionedSoundInstance.master(e, 1f, 1f));
                     else
@@ -197,14 +199,30 @@ public class GlukhomanClient implements ClientModInitializer {
                 askedChoose = true;
                 c.setScreen(new DifficultyScreen());
             }
-            case "choice" -> c.setScreen(new ChoiceScreen());
+            case "cam" -> {
+                Viewfinder.up = m.getBoolean("up");
+                Viewfinder.ir = m.getBoolean("ir");
+            }
+            case "ask" -> {
+                List<String> o = new ArrayList<>();
+                NbtList l = m.getList("opts", 8);
+                for (int i = 0; i < l.size(); i++) o.add(l.getString(i));
+                c.setScreen(new com.yompix.glukhoman.client.screen.AskScreen(m.getString("id"), m.getString("title"), o));
+            }
+            case "tapes" -> c.setScreen(new com.yompix.glukhoman.client.screen.TapeScreen(m.getList("list", 10)));
+            case "playback" -> {
+                List<String> o = new ArrayList<>();
+                NbtList l = m.getList("lines", 8);
+                for (int i = 0; i < l.size(); i++) o.add(l.getString(i));
+                c.setScreen(new com.yompix.glukhoman.client.screen.PlaybackScreen(m.getString("title"), o));
+            }
             case "credits" -> creditsT = 0;
             case "hint" -> {
                 hint = new Vec3d(m.getInt("x") + 0.5, m.getInt("y"), m.getInt("z") + 0.5);
                 hintT = 100;
             }
             case "fx" -> fx(m.getString("k"), m.getInt("t"));
-            case "cut" -> Cine.play(m.getString("id"));
+            case "cut" -> Cine.play(m.getString("id"), m.getCompound("args"));
             case "cutend" -> Cine.stop();
             case "hush" -> hushT = m.getInt("t");
             case "jumpscare" -> Jumpscare.start(m.getString("k"));
@@ -245,6 +263,14 @@ public class GlukhomanClient implements ClientModInitializer {
     static void tick(MinecraftClient c) {
         if (c.player == null || c.world == null) return;
         while (FLASH.wasPressed()) if (inWorld) send(Net.msg("light"));
+        while (IR.wasPressed()) {
+            if (inWorld && Viewfinder.up) {
+                NbtCompound m = Net.msg("ir");
+                m.putBoolean("on", !Viewfinder.ir);
+                send(m);
+            } else if (inWorld) c.player.sendMessage(Text.literal("ИК-режим — только с камерой у глаза"), true);
+        }
+        Viewfinder.tick(c);
         while (HINT.wasPressed()) {
             if (inWorld && GConfig.get().hints) send(Net.msg("hint"));
             else if (inWorld) c.player.sendMessage(Text.literal("Подсказки выключены в настройках"), true);
@@ -259,7 +285,8 @@ public class GlukhomanClient implements ClientModInitializer {
         if (chapter > 0) askedChoose = false;
         // тёмные ночи: своя яркость на время игры в Глухомани
         double g = new double[]{0.0, 0.35, 0.7}[Math.max(0, Math.min(2, GConfig.get().brightness))];
-        if (Cine.active) g = Math.max(g, 0.8);   // «экспозиция» кино: в кадре видно, но темнота остаётся
+        if (Cine.active) g = Math.max(g, 1.0);   // «экспозиция» кино: в кадре видно, но темнота остаётся
+        else if (Viewfinder.up) g = Math.max(g, 1.0);   // автоусиление камеры: в видоискателе светлее, но зернистее
         if (savedGamma < 0) savedGamma = c.options.getGamma().getValue();
         if (Math.abs(c.options.getGamma().getValue() - g) > 0.001) c.options.getGamma().setValue(g);
 
@@ -279,7 +306,6 @@ public class GlukhomanClient implements ClientModInitializer {
         ambience(c);
         heartbeat(c);
         mimicSteps(c);
-        hallucinate(c);
     }
 
     static void fog(MinecraftClient c) {
@@ -290,11 +316,11 @@ public class GlukhomanClient implements ClientModInitializer {
         else if (ending.equals("B")) { s = 8; e = 48; r = 0.12f; gg = 0.05f; b = 0.05f; }
         else if (y < 52) { s = 2; e = 22; r = 0.01f; gg = 0.01f; b = 0.012f; }
         else switch (chapter) {
-            case 0, 1 -> { s = night ? 10 : 22; e = night ? 52 : 80; r = night ? 0.06f : 0.30f; gg = night ? 0.07f : 0.30f; b = night ? 0.10f : 0.36f; }
-            case 2 -> { s = 8; e = 46; r = 0.04f; gg = 0.05f; b = 0.08f; }
-            case 3 -> { boolean st = Terrain.zone((int) c.player.getX(), (int) c.player.getZ()).equals("Метеостанция"); s = st ? 6 : 2; e = st ? 48 : 28; r = 0.16f; gg = 0.17f; b = 0.19f; }
-            case 5 -> { s = 6; e = 40; r = 0.07f; gg = 0.03f; b = 0.09f; }
-            default -> { s = 6; e = 38; r = 0.05f; gg = 0.05f; b = 0.06f; }
+            default -> {   // ночь — туман из тайги к самому перрону; утро — серое, сырое
+                boolean line = Terrain.zone((int) c.player.getX(), (int) c.player.getZ()).equals("Линия");
+                s = night ? (line ? 1 : 3) : 10; e = night ? (line ? 18 : 30) : 64;
+                r = night ? 0.055f : 0.30f; gg = night ? 0.062f : 0.32f; b = night ? 0.075f : 0.35f;
+            }
         }
         if (chase) { s *= 0.7f; e *= 0.8f; }
         if (lostT > 0) { s = 0.5f; e = 10; r = 0.55f; gg = 0.57f; b = 0.6f; }
@@ -337,7 +363,7 @@ public class GlukhomanClient implements ClientModInitializer {
             if (y < 52) want.put(x > -2 && x < 30 && z < -240 && z > -282 ? "amb.bunker" : "amb.mine", 0.8f);
             else {
                 String zone = Terrain.zone((int) x, (int) z);
-                want.put(zone.equals("Посёлок") ? "amb.village" : zone.equals("Метеостанция") ? "amb.station" : "amb.forest", 0.7f);
+                want.put(zone.equals("Посёлок") ? "amb.village" : "amb.forest", 0.7f);
             }
             if (chase) want.put("amb.chase", 0.75f);
             if (sanity < 45) want.put("amb.dread", (45 - sanity) / 45f * 0.8f);

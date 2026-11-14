@@ -61,6 +61,18 @@ public final class Texts {
         return w == null ? "" : w.getAsString();
     }
 
+    /** Имя для списка «кто в кадре»: житель, игрок (player:Ник), перрон, поезд… */
+    public String whoName(String key) {
+        if (key.startsWith("player:")) return key.substring(7);
+        var n = root.getAsJsonObject("names");
+        if (n != null && n.has(key)) return n.get(key).getAsString();
+        return key;
+    }
+
+    public String lineWhoName(String key) {
+        return whoName(key);
+    }
+
     public List<String> sequence(String id) {
         List<String> out = new ArrayList<>();
         JsonArray a = root.getAsJsonObject("sequences").getAsJsonArray(id);

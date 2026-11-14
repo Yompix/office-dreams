@@ -53,9 +53,17 @@ public final class FearFx {
             fx.setUniforms("RayX", Cine.rayX);
             fx.setUniforms("RayY", Cine.rayY);
             fx.setUniforms("Tear", Cine.active ? Cine.tear : 0);
-            fx.setUniforms("TintR", Cine.active ? Cine.tintR : 1);
-            fx.setUniforms("TintG", Cine.active ? Cine.tintG : 1);
-            fx.setUniforms("TintB", Cine.active ? Cine.tintB : 1);
+            boolean ir = !Cine.active && Viewfinder.up && Viewfinder.ir;   // ИК: зелёный монохром
+            fx.setUniforms("TintR", Cine.active ? Cine.tintR : ir ? 0.55f : 1);
+            fx.setUniforms("TintG", Cine.active ? Cine.tintG : ir ? 1.2f : 1);
+            fx.setUniforms("TintB", Cine.active ? Cine.tintB : ir ? 0.6f : 1);
+            fx.setUniforms("Cone", Cine.active ? Cine.cone : 0);
+            // видоискатель — полная плёнка; глазами — лёгкий плёночный фильтр (настройка) или чисто
+            float vhs = Viewfinder.view() ? 1f : GConfig.get().vhs ? 0.3f : 0f;
+            fx.setUniforms("Vhs", vhs);
+            float g = Cine.active ? Cine.glitch : Math.max(near, (float) Math.pow(Math.max(0, 1 - GlukhomanClient.shownSanity / 60f), 2));
+            fx.setUniforms("Glitch", (GConfig.get().noFlashing ? 0.4f : 1f) * Math.min(1f, g));
+            fx.setUniforms("Crush", Cine.active ? Cine.crush : Viewfinder.up ? 0.3f : 0.45f);
             fx.render(tickDelta);
             mc.getFramebuffer().beginWrite(false);
         } catch (Exception e) {

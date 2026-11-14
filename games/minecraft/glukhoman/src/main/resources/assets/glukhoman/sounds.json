@@ -389,252 +389,66 @@
    }
   ]
  },
- "voice.r_uaz_1": {
+ "crossing_bell": {
   "sounds": [
    {
-    "name": "glukhoman:voice/r_uaz_1",
-    "stream": true
+    "name": "glukhoman:crossing_bell",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.glukhoman.crossing_bell"
+ },
+ "cam_motor": {
+  "sounds": [
+   {
+    "name": "glukhoman:cam_motor",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.glukhoman.cam_motor"
+ },
+ "relay": {
+  "sounds": [
+   {
+    "name": "glukhoman:relay",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.glukhoman.relay"
+ },
+ "loudspeaker": {
+  "sounds": [
+   {
+    "name": "glukhoman:loudspeaker",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.glukhoman.loudspeaker"
+ },
+ "rewind": {
+  "sounds": [
+   {
+    "name": "glukhoman:rewind",
+    "stream": false
    }
   ]
  },
- "voice.r_uaz_2": {
+ "motor": {
   "sounds": [
    {
-    "name": "glukhoman:voice/r_uaz_2",
-    "stream": true
+    "name": "glukhoman:motor",
+    "stream": false
    }
-  ]
+  ],
+  "subtitle": "subtitles.glukhoman.motor"
  },
- "voice.anna_1": {
+ "joints": {
   "sounds": [
    {
-    "name": "glukhoman:voice/anna_1",
-    "stream": true
+    "name": "glukhoman:joints",
+    "stream": false
    }
-  ]
- },
- "voice.anna_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/anna_2",
-    "stream": true
-   }
-  ]
- },
- "voice.anna_3": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/anna_3",
-    "stream": true
-   }
-  ]
- },
- "voice.anna_4": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/anna_4",
-    "stream": true
-   }
-  ]
- },
- "voice.knock_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/knock_1",
-    "stream": true
-   }
-  ]
- },
- "voice.knock_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/knock_2",
-    "stream": true
-   }
-  ]
- },
- "voice.knock_3": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/knock_3",
-    "stream": true
-   }
-  ]
- },
- "voice.num_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/num_1",
-    "stream": true
-   }
-  ]
- },
- "voice.call_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/call_1",
-    "stream": true
-   }
-  ]
- },
- "voice.council_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/council_1",
-    "stream": true
-   }
-  ]
- },
- "voice.council_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/council_2",
-    "stream": true
-   }
-  ]
- },
- "voice.tape1_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape1_1",
-    "stream": true
-   }
-  ]
- },
- "voice.tape1_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape1_2",
-    "stream": true
-   }
-  ]
- },
- "voice.tape2_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape2_1",
-    "stream": true
-   }
-  ]
- },
- "voice.tape2_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape2_2",
-    "stream": true
-   }
-  ]
- },
- "voice.tape3_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape3_1",
-    "stream": true
-   }
-  ]
- },
- "voice.tape3_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape3_2",
-    "stream": true
-   }
-  ]
- },
- "voice.tape3_3": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/tape3_3",
-    "stream": true
-   }
-  ]
- },
- "voice.choir_mine": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/choir_mine",
-    "stream": true
-   }
-  ]
- },
- "voice.final_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/final_1",
-    "stream": true
-   }
-  ]
- },
- "voice.final_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/final_2",
-    "stream": true
-   }
-  ]
- },
- "voice.epi_a": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/epi_a",
-    "stream": true
-   }
-  ]
- },
- "voice.epi_b": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/epi_b",
-    "stream": true
-   }
-  ]
- },
- "voice.whisper_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/whisper_1",
-    "stream": true
-   }
-  ]
- },
- "voice.whisper_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/whisper_2",
-    "stream": true
-   }
-  ]
- },
- "voice.whisper_3": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/whisper_3",
-    "stream": true
-   }
-  ]
- },
- "voice.whisper_4": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/whisper_4",
-    "stream": true
-   }
-  ]
- },
- "voice.mimic_1": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/mimic_1",
-    "stream": true
-   }
-  ]
- },
- "voice.mimic_2": {
-  "sounds": [
-   {
-    "name": "glukhoman:voice/mimic_2",
-    "stream": true
-   }
-  ]
+  ],
+  "subtitle": "subtitles.glukhoman.joints"
  }
 }

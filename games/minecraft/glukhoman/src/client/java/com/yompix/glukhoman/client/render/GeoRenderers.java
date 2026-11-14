@@ -2,7 +2,8 @@ package com.yompix.glukhoman.client.render;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
-import com.yompix.glukhoman.entity.AnnaEntity;
+import com.yompix.glukhoman.entity.ResidentEntity;
+import com.yompix.glukhoman.entity.TrainEntity;
 import com.yompix.glukhoman.entity.DoppelEntity;
 import com.yompix.glukhoman.entity.HorrorMob;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -37,7 +38,10 @@ public final class GeoRenderers {
         public Identifier getTextureResource(T e) {
             if (e instanceof DoppelEntity d) {
                 String m = d.mimic();
-                if (m.equals("@anna")) return id("textures/entity/anna.png");
+                if (m.equals("@anna")) {   // Двойник Анны: моргает медленно и не вовремя
+                    long t = d.getWorld().getTime() + d.getId() * 13L;
+                    return id(t % 97 < 16 ? "textures/entity/anna_double_blink.png" : "textures/entity/anna_double.png");
+                }
                 SkinTextures s = skin(m);
                 if (s != null) return s.texture();
                 return id("textures/entity/doppel.png");
@@ -64,36 +68,44 @@ public final class GeoRenderers {
         }
     }
 
-    /** Анна: моргает, на испуге — другое лицо, в кат-сцене «говорит» (рот), голова следит за камерой. */
-    static class AnnaModel extends GeoModel<AnnaEntity> {
+    /** Жители: скин по имени, моргают, «говорят» в кат-сцене; Вика — ниже ростом. */
+    static class ResidentModel extends GeoModel<ResidentEntity> {
         @Override
-        public Identifier getModelResource(AnnaEntity e) {
-            return id("geo/human_slim.geo.json");
+        public Identifier getModelResource(ResidentEntity e) {
+            String w = e.who();
+            return id("geo/" + (w.equals("vika") || w.equals("zina") || w.equals("polya") || w.equals("nyura") || w.equals("lyuba") || w.equals("mitya") ? "human_slim" : "human") + ".geo.json");
         }
 
         @Override
-        public Identifier getTextureResource(AnnaEntity e) {
+        public Identifier getTextureResource(ResidentEntity e) {
             long t = e.getWorld().getTime() + e.getId() * 7L;
-            if (e.act().equals("upset")) return id("textures/entity/anna_fear.png");
-            if (e.talking && (t / 3) % 2 == 0) return id("textures/entity/anna_talk.png");
-            if (t % 80 < 3) return id("textures/entity/anna_blink.png");
-            return id("textures/entity/anna.png");
+            String base = "textures/entity/res_" + e.who();
+            if (e.talking && (t / 3) % 2 == 0) return id(base + "_talk.png");
+            if (!e.sleepwalking() && t % 80 < 3) return id(base + "_blink.png");
+            if (e.sleepwalking() && t % 300 < 120) return id(base + "_blink.png");   // идёт с закрытыми глазами
+            return id(base + ".png");
         }
 
         @Override
-        public Identifier getAnimationResource(AnnaEntity e) {
+        public Identifier getAnimationResource(ResidentEntity e) {
             return id("animations/human.animation.json");
         }
+    }
+
+    static class TrainModel extends GeoModel<TrainEntity> {
+        @Override
+        public Identifier getModelResource(TrainEntity e) {
+            return id("geo/train.geo.json");
+        }
 
         @Override
-        public void setCustomAnimations(AnnaEntity e, long instanceId, AnimationState<AnnaEntity> state) {
-            if (!com.yompix.glukhoman.client.Cine.active || !e.talking) return;
-            GeoBone head = getAnimationProcessor().getBone("head");
-            if (head == null) return;
-            var c = MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
-            double dx = c.x - e.getX(), dz = c.z - e.getZ();
-            float want = (float) (Math.atan2(dx, dz)) - (float) Math.toRadians(-e.bodyYaw);
-            head.setRotY(head.getRotY() + Math.max(-0.9f, Math.min(0.9f, (float) Math.atan2(Math.sin(want), Math.cos(want)))) * 0.6f);
+        public Identifier getTextureResource(TrainEntity e) {
+            return id("textures/entity/train.png");
+        }
+
+        @Override
+        public Identifier getAnimationResource(TrainEntity e) {
+            return id("animations/train.animation.json");
         }
     }
 
@@ -108,7 +120,23 @@ public final class GeoRenderers {
         EntityRendererRegistry.register(GContent.LISTENER, ctx -> mob(ctx, 0.6f, false));
         EntityRendererRegistry.register(GContent.CHOIR, ctx -> mob(ctx, 1.2f, true));
         EntityRendererRegistry.register(GContent.DOPPEL, ctx -> mob(ctx, 0.5f, false));
-        EntityRendererRegistry.register(GContent.ANNA, ctx -> new GeoEntityRenderer<>(ctx, new AnnaModel()));
+        EntityRendererRegistry.register(GContent.RESIDENT, ctx -> {
+            GeoEntityRenderer<ResidentEntity> r = new GeoEntityRenderer<>(ctx, new ResidentModel()) {
+                @Override
+                public void scaleModelForRender(float widthScale, float heightScale, net.minecraft.client.util.math.MatrixStack poseStack, ResidentEntity animatable,
+                                                software.bernie.geckolib.cache.object.BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
+                    float k = animatable.who().equals("vika") ? 0.86f : animatable.who().equals("mitya") ? 0.74f : 1f;
+                    super.scaleModelForRender(widthScale * k, heightScale * k, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
+                }
+            };
+            return r;
+        });
+        EntityRendererRegistry.register(GContent.TRAIN, ctx -> {
+            GeoEntityRenderer<TrainEntity> r = new GeoEntityRenderer<>(ctx, new TrainModel());
+            r.addRenderLayer(new AutoGlowingGeoLayer<>(r));
+            return r;
+        });
+        EntityRendererRegistry.register(GContent.WATCHER, ctx -> mob(ctx, 0.4f, true));
         EntityRendererRegistry.register(GContent.PEBBLE_ENTITY, net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
     }
 }

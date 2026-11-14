@@ -36,6 +36,7 @@ public class SettingsScreen extends Screen {
         }).dimensions(width / 2 - 110, y + 144, 220, 20).build());
         toggle(y + 168, "Ложный вылет игры в финале", () -> c.fakeCrash, v -> c.fakeCrash = v);
         toggle(y + 192, "Без крови на экране", () -> c.noBlood, v -> c.noBlood = v);
+        toggle(y - 24, "Плёнка и глазами (лёгкий VHS)", () -> c.vhs, v -> c.vhs = v);
         addDrawableChild(ButtonWidget.builder(Text.literal("Жестокость: " + (c.goreReduced ? "меньше" : "полная (18+)")), b -> {
             c.goreReduced = !c.goreReduced;
             c.save();

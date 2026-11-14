@@ -65,6 +65,31 @@ foreach ($dir in @($GD) + $(if ($tl) { @($MC) } else { @() })) {
     }
 }
 
+# 2б. Шейдеры (по желанию): Iris + пакет скачиваются с modrinth.com прямо сейчас, проверка sha512. Сами мы их не распространяем.
+$SH = @(
+@@SHADERS@@
+)
+Write-Host ''
+Write-Host 'Шейдеры: настоящая тьма, тени и туман. 1 — лёгкие (MakeUp Ultra Fast, для слабых ноутбуков), 2 — красивые (Complementary), N — без шейдеров'
+$pick = (Read-Host 'Выбор [1/2/N]').Trim().ToUpper()
+if ($pick -in @('1', '2')) {
+    $want = @('iris') + $(if ($pick -eq '1') { @('makeup') } else { @('complementary') })
+    foreach ($s in $SH | Where-Object { $want -contains $_.name }) {
+        $dir = Join-Path $GD $s.dir
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        $dst = Join-Path $dir $s.file
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+            Invoke-WebRequest -UseBasicParsing -Uri $s.url -OutFile $dst
+            $h = (Get-FileHash -Algorithm SHA512 $dst).Hash.ToLower()
+            if ($h -ne $s.sha) { Remove-Item $dst -Force; Write-Host ('    контрольная сумма не совпала: ' + $s.file) -ForegroundColor Yellow }
+            else { Write-Host ('    ' + $s.file) }
+        } catch { Write-Host ('    не скачалось: ' + $s.file + ' (нет интернета?) — можно без шейдеров') -ForegroundColor Yellow }
+    }
+    $pack = ($SH | Where-Object { $want[1] -eq $_.name }).file
+    [IO.File]::WriteAllText((Join-Path $GD 'config\iris.properties'), "enableShaders=true`r`nshaderPack=$pack`r`n", $utf8)
+}
+
 # 3. Память для игры — по объёму оперативной памяти
 Write-Host '[3/4] Память...'
 $ram = 8

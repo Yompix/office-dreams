@@ -14,5 +14,6 @@ public class FovMixin {
     @Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
     private void glukhoman$fov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> cir) {
         if (Cine.active && changingFov) cir.setReturnValue((double) (Cine.fov * Cine.fovScale));
+        else if (!Cine.active && com.yompix.glukhoman.client.Viewfinder.up) cir.setReturnValue(cir.getReturnValueD() * 0.72);   // объектив: узкий кадр
     }
 }

@@ -2,6 +2,7 @@ package com.yompix.glukhoman.world;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
+import com.yompix.glukhoman.block.DecorBlock;
 import com.yompix.glukhoman.block.LampBlock;
 import com.yompix.glukhoman.story.StoryState;
 import net.minecraft.block.Block;
@@ -19,9 +20,10 @@ import net.minecraft.util.math.Direction;
 import static com.yompix.glukhoman.world.Terrain.G;
 
 /**
- * Строит все сюжетные места один раз, при первом запуске мира «Глухомань»:
- * старт у моста, посёлок (дом Анны, магазин, сельсовет, школа, гараж, подстанция), кладбище, избушку охотника,
- * метеостанцию с мачтой и бункером, шахту с копром, лифтом и штольнями. Регистрирует точки и интерактивные вещи в StoryState.
+ * «Порожняк» (0.4): строит мир один раз при первом запуске — мёртвую узкоколейку «Ветка 41» на насыпи (рельсы до 62-го метра,
+ * дальше голые шпалы и босые следы в лес), станцию Еловый (перрон, вокзальчик с дежуркой и табло рельсовых цепей, ящик для кассет,
+ * громкоговоритель, колокол), переезд со звонком и красными огнями, две стрелки и обгонный путь с пустым вагоном,
+ * и посёлок (дома бабы Поли, Петровича и Зины, Вики). Регистрирует точки и интерактивные вещи в StoryState.
  */
 public final class MapBuilder {
     private MapBuilder() {}
@@ -34,150 +36,219 @@ public final class MapBuilder {
     static final BlockState PANE = Blocks.GLASS_PANE.getDefaultState();
     static final BlockState AIR = Blocks.AIR.getDefaultState();
 
+    public static final int LZ = 16;   // ось главного пути
+    public static final int LOOPZ = 10; // ось обгонного пути
+    public static final int RAIL_END = 62;
+
     public static void build(ServerWorld world, StoryState st) {
         long t0 = System.currentTimeMillis();
-        // прогружаем чанки площадок, чтобы ставить блоки
         for (int[] s : Terrain.SITES)
             for (int x = s[0] - s[2] - 16; x <= s[0] + s[2] + 16; x += 16)
                 for (int z = s[1] - s[3] - 16; z <= s[1] + s[3] + 16; z += 16) world.getChunk(x >> 4, z >> 4);
-        for (int x = -150; x <= -70; x += 16) for (int z = -240; z <= -130; z += 16) world.getChunk(x >> 4, z >> 4);
+        for (int x = -96; x <= 430; x += 16) for (int z = 0; z <= 32; z += 16) world.getChunk(x >> 4, z >> 4);
         B b = new B(world, st);
-        start(b);
+        line(b);
+        station(b);
+        crossing(b);
         village(b);
         cemetery(b);
-        hunter(b);
-        station(b);
-        bunker(b);
-        mine(b);
-        decor(world, st);
+        houses(b);
+        st.set("v2");
         st.built = true;
         st.markDirty();
         Glukhoman.LOG.info("Глухомань: карта построена за {} мс, точек {}, вещей {}", System.currentTimeMillis() - t0, st.points.size(), st.interact.size());
     }
 
-    // ================= история без слов (0.2): плакаты, царапины, куклы, фото =================
-    public static void decor(ServerWorld world, StoryState st) {
-        B b = new B(world, st);
-        int[][] posters = {{-8, 66, 113, 3}, {-8, 66, 99, 3}, {8, 66, 113, 2}, {8, 66, 96, 2}, {-8, 66, 77, 3}, {-4, 66, 35, 0}, {-6, 66, -213, 0}, {5, 66, 145, 2}};
-        int[][] scratches = {{-14, 66, 84, 3}, {-14, 66, 78, 3}, {-5, 66, -243, 0}, {-120, 26, -172, 1}, {-111, 26, -196, 3}, {-13, 66, 125, 0}};
-        int[][] dolls = {{-11, 65, 125, 0}, {-20, 65, 74, 0}, {-12, 65, 112, 1}, {-44, 65, 78, 0}, {-130, 25, -201, 3}, {-108, 25, -226, 1}};
-        int[][] photos = {{-16, 67, 127, 3}, {-16, 67, 114, 3}, {16, 67, 114, 2}, {-7, 67, -247, 3}};
-        Direction[] D = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
-        for (int[][] set : new int[][][]{posters, scratches, dolls, photos}) for (int[] q : set) world.getChunk(q[0] >> 4, q[2] >> 4);
-        for (int i = 0; i < posters.length; i++) {
-            int[] q = posters[i];
-            if (b.get(q[0], q[1], q[2]).isAir()) b.set(q[0], q[1], q[2], GContent.POSTER.getDefaultState().with(net.minecraft.block.HorizontalFacingBlock.FACING, D[q[3]])
-                    .with(com.yompix.glukhoman.block.DecorBlock.VARIANT, i % 3));
+    // ================= линия: насыпь, шпалы, рельсы, обгонный путь, тупик =================
+    static void line(B b) {
+        for (int x = -70; x <= 420; x++) {
+            for (int z = LZ - 2; z <= LZ + 2; z++) {
+                int top = Terrain.surface(x, z);
+                for (int y = top + 1; y <= G; y++) b.set(x, y, z, Blocks.GRAVEL);       // насыпь не проваливается в низинах
+                boolean bed = Math.abs(z - LZ) <= 1;
+                b.set(x, G + 1, z, bed ? Blocks.GRAVEL.getDefaultState() : (b.chance(0.5) ? Blocks.COARSE_DIRT.getDefaultState() : Blocks.GRAVEL.getDefaultState()));
+                for (int y = G + 2; y <= G + 5; y++) if (!b.get(x, y, z).isAir() && x > 60) b.set(x, y, z, Blocks.AIR);
+                // голые шпалы там, где рельсы срезаны: тонкие доски поперёк пути через блок, часть сгнила или пропала
+                if (bed && x > RAIL_END && (x & 1) == 0 && !b.chance(0.08))
+                    b.set(x, G + 2, z, (b.chance(0.25) ? Blocks.DARK_OAK_TRAPDOOR : Blocks.SPRUCE_TRAPDOOR).getDefaultState()
+                            .with(TrapdoorBlock.HALF, BlockHalf.BOTTOM).with(TrapdoorBlock.FACING, Direction.NORTH));
+            }
+            if (x >= -66 && x <= RAIL_END && !(x > RAIL_END - 3 && b.chance(0.5)))
+                b.set(x, G + 2, LZ, Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, RailShape.EAST_WEST));
         }
-        for (int[] q : scratches) if (b.get(q[0], q[1], q[2]).isAir()) b.prop(q[0], q[1], q[2], GContent.SCRATCHES, D[q[3]]);
-        for (int[] q : dolls) if (b.get(q[0], q[1], q[2]).isAir() || b.get(q[0], q[1], q[2]).isReplaceable()) {
-            b.prop(q[0], q[1], q[2], GContent.DOLL, D[q[3]]);
-            st.lamp("doll", new net.minecraft.util.math.BlockPos(q[0], q[1], q[2]));
-        }
-        for (int[] q : photos) if (b.get(q[0], q[1], q[2]).isAir()) {
-            b.prop(q[0], q[1], q[2], GContent.PHOTO, D[q[3]]);
-            st.lamp("photo", new net.minecraft.util.math.BlockPos(q[0], q[1], q[2]));
-        }
-        st.set("decor2");
-        blood(world, st);
-        st.markDirty();
-    }
-
-    /** Кровь (0.3): изба охотника, радиорубка, сельсовет и следы волочения из посёлка в лес. */
-    public static void blood(ServerWorld world, StoryState st) {
-        B b = new B(world, st);
-        int[][] marks = {{-12, 65, -93, 1}, {-10, 65, -94, 0}, {-13, 65, -246, 1}, {-11, 65, -247, 0}, {-14, 65, -248, 0},
-                {14, 65, 98, 0}, {-110, 25, -205, 0}, {-119, 25, -173, 1}};
-        for (int[] q : marks) world.getChunk(q[0] >> 4, q[2] >> 4);
-        for (int[] q : marks) if (b.get(q[0], q[1], q[2]).isAir())
-            b.set(q[0], q[1], q[2], GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, q[3]));
-        // следы волочения: от брошенной избы на западе в лес
-        for (int i = 0; i < 18; i++) {
-            int x = -18 - i, z = 112 + (i % 3 == 0 ? 1 : 0);
-            world.getChunk(x >> 4, z >> 4);
-            int y = Terrain.surface(x, z) + 1;
-            if (b.get(x, y, z).isAir() || b.get(x, y, z).isReplaceable())
-                b.set(x, y, z, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 2)
-                        .with(net.minecraft.block.HorizontalFacingBlock.FACING, Direction.EAST));
-        }
-        // 18+: останки охотника в избе, радиста в рубке, рука на просеке, у шахты
-        int[][] remains = {{-11, 65, -93, 0}, {-10, 65, -92, 2}, {-9, 65, -94, 1}, {-11, 65, -246, 0}, {-12, 65, -247, 2}, {-118, 25, -174, 1}};
-        for (int[] q : remains) {
-            world.getChunk(q[0] >> 4, q[2] >> 4);
-            if (b.get(q[0], q[1], q[2]).isAir() || b.get(q[0], q[1], q[2]).isOf(GContent.BLOOD))
-                b.set(q[0], q[1], q[2], GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, q[3]));
-        }
-        int ax = -1, az = -110;
-        world.getChunk(ax >> 4, az >> 4);
-        b.set(ax, Terrain.surface(ax, az) + 1, az, GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1));
-        st.set("decor3");
-        st.markDirty();
-    }
-
-    // ================= старт: УАЗ у закрытого моста =================
-    static void start(B b) {
-        // мост через реку: доски, середина обрушена
-        for (int z = 249; z <= 268; z++) {
-            boolean broken = z >= 255 && z <= 261;
-            for (int x = -2; x <= 2; x++) {
-                if (!broken || (x == -2 && z == 255) || (x == 2 && z == 261)) b.set(x, G, z, PLANK);
-                if (!broken && (x == -2 || x == 2)) b.set(x, G + 1, z, Blocks.SPRUCE_FENCE.getDefaultState());
+        // обрезки рельсов у обрыва и босые следы на шпалах — много, все в лес
+        b.set(RAIL_END + 2, G + 2, LZ + 2, Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, RailShape.NORTH_SOUTH));
+        for (int x = RAIL_END + 1; x <= 118; x++) for (int z = LZ - 1; z <= LZ + 1; z++)
+            if ((x & 1) == 1 && b.chance(0.45)) b.set(x, G + 2, z, GContent.FOOTPRINTS.getDefaultState().with(DecorBlock.VARIANT, b.rnd.nextInt(3))
+                    .with(net.minecraft.block.HorizontalFacingBlock.FACING, Direction.EAST));
+        // пикеты: столбики с цифрами (дальше в тумане — «58»)
+        for (int[] pk : new int[][]{{96, 57}, {124, 58}, {152, 59}}) {
+            int x = pk[0];
+            b.set(x, G + 1, LZ + 3, Blocks.GRAVEL);
+            b.set(x, G + 2, LZ + 3, Blocks.STRIPPED_SPRUCE_LOG);
+            b.set(x, G + 3, LZ + 3, Blocks.SPRUCE_SIGN.getDefaultState().with(net.minecraft.block.SignBlock.ROTATION, 4));
+            if (b.w.getBlockEntity(new net.minecraft.util.math.BlockPos(x, G + 3, LZ + 3)) instanceof net.minecraft.block.entity.SignBlockEntity sb) {
+                net.minecraft.text.Text n = net.minecraft.text.Text.literal(Integer.toString(pk[1]));
+                sb.setText(new net.minecraft.block.entity.SignText().withMessage(1, n), true);
+                sb.setText(new net.minecraft.block.entity.SignText().withMessage(1, n), false);
             }
         }
-        for (int x = -2; x <= 2; x += 4) for (int y = G - 6; y < G; y++) {
-            b.set(x, y, 252, DLOG);
-            b.set(x, y, 264, DLOG);
+        // тупик: упор
+        b.set(-67, G + 2, LZ, Blocks.RED_TERRACOTTA);
+        b.set(-67, G + 3, LZ, Blocks.SPRUCE_FENCE);
+        b.set(-67, G + 2, LZ - 1, Blocks.SPRUCE_FENCE);
+        b.set(-67, G + 2, LZ + 1, Blocks.SPRUCE_FENCE);
+        // обгонный путь: x -24…62, у восточного края — пустой вагон в тупичке
+        for (int x = -26; x <= 64; x++) for (int z = LOOPZ - 1; z <= LOOPZ + 1; z++) {
+            int top = Terrain.surface(x, z);
+            for (int y = top + 1; y <= G; y++) b.set(x, y, z, Blocks.GRAVEL);
+            b.set(x, G + 1, z, Blocks.GRAVEL.getDefaultState());
+            if (z == LOOPZ && x >= -20 && x <= 62) b.set(x, G + 2, z, Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, RailShape.EAST_WEST));
         }
-        // шлагбаум «Мост закрыт»
-        for (int x = -3; x <= 3; x++) b.set(x, G + 1, 247, (x & 1) == 0 ? Blocks.RED_WOOL.getDefaultState() : Blocks.WHITE_WOOL.getDefaultState());
-        b.set(-4, G + 1, 247, Blocks.SPRUCE_FENCE.getDefaultState());
-        b.set(4, G + 1, 247, Blocks.SPRUCE_FENCE.getDefaultState());
-        // УАЗ-«буханка»: зелёный кузов, окна, колёса
-        int x0 = 4, z0 = 236;
-        b.fill(x0, G + 1, z0, x0 + 2, G + 3, z0 + 5, Blocks.GREEN_TERRACOTTA);
-        b.fill(x0, G + 2, z0, x0 + 2, G + 2, z0, Blocks.GLASS_PANE);
-        b.fill(x0, G + 2, z0 + 1, x0, G + 2, z0 + 4, Blocks.GLASS_PANE);
-        b.fill(x0 + 2, G + 2, z0 + 1, x0 + 2, G + 2, z0 + 4, Blocks.GLASS_PANE);
-        b.fill(x0 + 1, G + 1, z0 + 1, x0 + 1, G + 2, z0 + 4, Blocks.AIR);
-        for (int[] wh : new int[][]{{x0 - 1, z0 + 1}, {x0 + 3, z0 + 1}, {x0 - 1, z0 + 4}, {x0 + 3, z0 + 4}})
-            b.set(wh[0], G + 1, wh[1], Blocks.BLACK_CONCRETE);
-        b.set(x0 + 1, G + 1, z0 + 5, Blocks.AIR);
-        b.set(x0 + 1, G + 2, z0 + 5, Blocks.AIR);
-        b.use(x0 + 1, G + 1, z0 + 1, GContent.RADIO, Direction.SOUTH, "radio_uaz");
-        b.point("start", 0, G + 1, 238);
-        b.point("cp1", 0, G + 1, 238);
-        b.point("uaz", x0 + 1, G + 1, z0 + 1);
-        // кривой столб и несколько ящиков рядом
-        b.use(-5, G + 1, 238, GContent.CRATE, Direction.EAST, "crate_start");
+        for (int i = 0; i < 5; i++) {   // съезды к главному пути (без рельсов — гравий)
+            b.set(-21 - i, G + 1, LOOPZ + 1 + i, Blocks.GRAVEL);
+            b.set(47 + i, G + 1, LOOPZ + 1 + i, Blocks.GRAVEL);
+        }
+        wagon(b, 52, LOOPZ);
+        b.zone("wagon", 52, G + 1, LOOPZ - 1, 60, G + 6, LOOPZ + 1);
     }
 
-    // ================= посёлок =================
+    /** Пустая теплушка на тупичке: щели в досках, сдвинутая дверь. Прятаться в ней — нарушить правило. */
+    static void wagon(B b, int x0, int z) {
+        for (int x = x0; x <= x0 + 8; x++) for (int dz = -1; dz <= 1; dz++) {
+            b.set(x, G + 3, z + dz, Blocks.DARK_OAK_PLANKS);
+            b.set(x, G + 7, z + dz, Blocks.DARK_OAK_SLAB);
+            for (int y = G + 4; y <= G + 6; y++) {
+                boolean wall = Math.abs(dz) == 1 || x == x0 || x == x0 + 8;
+                boolean door = dz == 1 && x >= x0 + 3 && x <= x0 + 5 && y <= G + 5;
+                boolean gap = wall && b.chance(0.08);
+                b.set(x, y, z + dz, wall && !door && !gap ? Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState() : AIR);
+            }
+        }
+        for (int x : new int[]{x0 + 1, x0 + 7}) for (int dz : new int[]{-1, 1}) b.set(x, G + 2, z + dz, Blocks.POLISHED_BLACKSTONE);
+        b.set(x0 + 4, G + 3, z + 2, Blocks.DARK_OAK_STAIRS.getDefaultState());
+    }
+
+    // ================= станция Еловый =================
+    static void station(B b) {
+        // перрон: x -12…22, z 18…20, на уровне насыпи
+        for (int x = -12; x <= 22; x++) for (int z = 18; z <= 20; z++) {
+            int top = Terrain.surface(x, z);
+            for (int y = top + 1; y <= G; y++) b.set(x, y, z, Blocks.STONE);
+            b.set(x, G + 1, z, z == 18 ? Blocks.STONE_BRICK_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP)
+                    : b.chance(0.25) ? Blocks.CRACKED_STONE_BRICKS.getDefaultState() : Blocks.STONE_BRICKS.getDefaultState());
+            for (int y = G + 2; y <= G + 6; y++) b.set(x, y, z, AIR);
+        }
+        for (int z = 18; z <= 20; z++) {   // спуски с перрона
+            b.stairs(-13, G + 1, z, Blocks.STONE_BRICK_STAIRS, Direction.EAST, false);
+            b.stairs(23, G + 1, z, Blocks.STONE_BRICK_STAIRS, Direction.WEST, false);
+        }
+        b.zone("platform", -12, G + 1, 17, 22, G + 6, 21);
+        b.point("start", 0, G + 2, 19);
+        b.point("cp_platform", 0, G + 2, 19);
+        b.point("t_platform", 4, G + 2, 19);
+        b.point("board_pt", 6, G + 2, 18);
+        b.point("w_post", -11, G + 2, 19);
+        // вокзальчик: x -10…6, z 21…29; дежурка на западе, зал на востоке
+        int x0 = -10, z0 = 21, x1 = 6, z1 = 29;
+        b.ground(x0 - 1, z0, x1 + 1, z1 + 1, G, Blocks.COARSE_DIRT.getDefaultState(), 8);
+        b.fill(x0, G + 1, z0, x1, G + 1, z1, PLANK);
+        b.walls(x0, G + 2, z0, x1, G + 4, z1, WALL);
+        for (int y = G + 2; y <= G + 4; y++) for (int[] c : new int[][]{{x0, z0}, {x1, z0}, {x0, z1}, {x1, z1}}) b.set(c[0], y, c[1], LOG);
+        b.fill(x0 - 1, G + 5, z0 - 1, x1 + 1, G + 5, z1 + 1, Blocks.DARK_OAK_SLAB);
+        b.fill(x0, G + 5, z0, x1, G + 5, z1, DPLANK);
+        b.fill(x0 + 2, G + 6, z0 + 2, x1 - 2, G + 6, z1 - 2, Blocks.DARK_OAK_SLAB);
+        b.fill(-3, G + 2, z0 + 1, -3, G + 4, z1 - 1, WALL);                    // перегородка
+        b.door(-3, G + 2, 25, Direction.EAST, Blocks.SPRUCE_DOOR, false);
+        b.door(-6, G + 2, z0, Direction.SOUTH, Blocks.SPRUCE_DOOR, false);   // дежурка → перрон
+        b.door(2, G + 2, z0, Direction.SOUTH, Blocks.SPRUCE_DOOR, false);    // зал → перрон
+        b.door(2, G + 2, z1, Direction.NORTH, Blocks.SPRUCE_DOOR, false);    // зал → посёлок
+        for (int x : new int[]{-8, 4}) b.set(x, G + 3, z0, PANE);
+        b.set(-10, G + 3, 26, PANE);
+        b.set(6, G + 3, 25, PANE);
+        // дежурка: табло на западной стене, рация, стул, лампа
+        int i = 0;
+        for (int row = 1; row >= 0; row--) for (int z = 23; z <= 27; z++) {
+            b.set(-9, G + 3 + row, z, GContent.BOARD_LAMP.getDefaultState().with(LampBlock.LIT, false));
+            b.st.lamp("board", new net.minecraft.util.math.BlockPos(-9, G + 3 + row, z));
+            b.st.bind(new net.minecraft.util.math.BlockPos(-9, G + 3 + row, z), "board");
+            i++;
+        }
+        b.set(-9, G + 2, 23, Blocks.DARK_OAK_PLANKS);
+        b.set(-9, G + 2, 27, Blocks.DARK_OAK_PLANKS);
+        b.fill(-9, G + 2, 24, -9, G + 2, 26, Blocks.DARK_OAK_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+        b.set(-8, G + 2, 28, Blocks.SPRUCE_PLANKS);
+        b.use(-8, G + 3, 28, GContent.RADIO, Direction.NORTH, "radio");
+        b.stairs(-6, G + 2, 26, Blocks.SPRUCE_STAIRS, Direction.SOUTH, false);
+        b.st.bind(new net.minecraft.util.math.BlockPos(-6, G + 2, 26), "wait");
+        b.lamp(-6, G + 4, 25, "dispatch", true);
+        b.zone("dispatch", -9, G + 1, 22, -4, G + 5, 28);
+        b.point("cp_dispatch", -6, G + 2, 24);
+        b.point("zakhar_day", -5, G + 2, 23);
+        // зал: лавки
+        for (int x = 0; x <= 4; x += 2) b.stairs(x, G + 2, 28, Blocks.SPRUCE_STAIRS, Direction.NORTH, false);
+        b.lamp(2, G + 4, 25, "station", false);
+        // ящик для кассет у стены на перроне, громкоговоритель на столбе, колокол
+        b.use(4, G + 2, 20, GContent.BOX, Direction.NORTH, "box");
+        for (int y = G + 2; y <= G + 5; y++) b.set(14, y, 20, Blocks.SPRUCE_FENCE);
+        b.prop(14, G + 6, 20, GContent.LOUDSPEAKER, Direction.NORTH);
+        b.point("loudspeaker", 14, G + 6, 20);
+        b.set(8, G + 2, 20, Blocks.BELL.getDefaultState().with(net.minecraft.block.BellBlock.ATTACHMENT, net.minecraft.block.enums.Attachment.FLOOR)
+                .with(net.minecraft.block.BellBlock.FACING, Direction.EAST));
+        b.st.bind(new net.minecraft.util.math.BlockPos(8, G + 2, 20), "bell");
+        b.point("bell", 8, G + 2, 20);
+        b.stairs(-1, G + 2, 20, Blocks.SPRUCE_STAIRS, Direction.SOUTH, false);  // лавка
+        b.stairs(0, G + 2, 20, Blocks.SPRUCE_STAIRS, Direction.SOUTH, false);
+        b.point("vika_day", -1, G + 2, 19);
+        // фонари перрона (тусклые) и вывеска
+        for (int x : new int[]{-8, 18}) {
+            for (int y = G + 2; y <= G + 4; y++) b.set(x, y, 20, Blocks.SPRUCE_FENCE);
+            b.set(x, G + 5, 20, GContent.STREET_LAMP.getDefaultState().with(LampBlock.LIT, false));
+            b.st.lamp("station", new net.minecraft.util.math.BlockPos(x, G + 5, 20));
+        }
+        // стрелки: рычаги у пути
+        b.set(-20, G + 1, 18, Blocks.COBBLESTONE);
+        b.set(-20, G + 2, 18, Blocks.LEVER.getDefaultState().with(net.minecraft.block.LeverBlock.FACE, net.minecraft.block.enums.BlockFace.FLOOR)
+                .with(net.minecraft.block.LeverBlock.FACING, Direction.EAST));
+        b.st.bind(new net.minecraft.util.math.BlockPos(-20, G + 2, 18), "switch_w");
+        b.point("t_switch", -20, G + 2, 17);
+        b.set(46, G + 1, 18, Blocks.COBBLESTONE);
+        b.set(46, G + 2, 18, Blocks.LEVER.getDefaultState().with(net.minecraft.block.LeverBlock.FACE, net.minecraft.block.enums.BlockFace.FLOOR)
+                .with(net.minecraft.block.LeverBlock.FACING, Direction.EAST));
+        b.st.bind(new net.minecraft.util.math.BlockPos(46, G + 2, 18), "switch_e");
+        b.point("switch_e", 46, G + 2, 18);
+        // водокачка у тупика
+        waterTower(b, -34, 24);
+    }
+
+    // ================= переезд: дорога, огни, звонок, лавка =================
+    static void crossing(B b) {
+        for (int z = 12; z <= 20; z++) for (int x = 30; x <= 32; x++) b.set(x, G + 1, z, z >= 15 && z <= 17 ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.COARSE_DIRT.getDefaultState());
+        for (int[] p : new int[][]{{28, 19}, {34, 13}}) {
+            for (int y = G + 1; y <= G + 3; y++) b.set(p[0], y, p[1], Blocks.IRON_BARS);
+            b.set(p[0], G + 4, p[1], GContent.SIGNAL.getDefaultState().with(LampBlock.LIT, false));
+            b.st.lamp("signal", new net.minecraft.util.math.BlockPos(p[0], G + 4, p[1]));
+        }
+        b.point("crossing", 29, G + 4, 19);
+        b.point("t_crossing", 31, G + 2, 16);
+        b.stairs(35, G + 1, 21, Blocks.SPRUCE_STAIRS, Direction.SOUTH, false);
+        b.stairs(36, G + 1, 21, Blocks.SPRUCE_STAIRS, Direction.SOUTH, false);
+        b.point("petrovich_day", 35, G + 1, 21);
+        b.zone("east", RAIL_END - 4, G - 10, -20, 460, G + 30, 50);
+    }
+
+    // ================= посёлок (старые улицы 0.3 без сюжетных вещей) =================
     static void village(B b) {
-        // улица: плиты-фонари, забор по краю
         for (int z = 40; z <= 160; z += 16) streetLamp(b, 3, z);
         for (int z = 34; z <= 165; z++) {
             if (b.chance(0.82) && Math.abs(z - 72) > 2) b.set(-28, G + 1, z, Blocks.SPRUCE_FENCE.getDefaultState());
             if (b.chance(0.82)) b.set(28, G + 1, z, Blocks.SPRUCE_FENCE.getDefaultState());
         }
         b.zone("village", -30, G - 5, 30, 30, G + 20, 168);
-        b.zone("village_in", -30, G - 5, 30, 30, G + 20, 156);
-
-        // дом Анны (Лесная, 7) — запад
-        izba(b, -17, 124, 9, 9, Direction.EAST, 0);
-        b.zone("anna_house", -17, G, 124, -9, G + 6, 132);
-        b.point("safe_anna", -13, G + 1, 128);
-        b.point("cp2", -12, G + 1, 128);
-        b.point("anna_door", -9, G + 1, 128);
-        b.use(-15, G + 2, 126, GContent.RADIO, Direction.EAST, "radio_anna");
-        b.use(-16, G + 2, 126, GContent.NOTE, Direction.EAST, "note:anna_note");
-        b.use(-10, G + 1, 131, GContent.CRATE, Direction.WEST, "crate_anna");
-        b.use(-16, G + 1, 129, Blocks.FURNACE, Direction.EAST, "stove_anna");
-        b.set(-16, G + 2, 129, Blocks.BRICKS);
-        b.set(-16, G + 3, 129, Blocks.BRICKS);
-
-        // магазин «Продукты» — восток
+        izba(b, -17, 124, 9, 9, Direction.EAST, 0);   // Вика с бабушкой
+        b.point("vika_home", -13, G + 1, 128);
+        b.point("vika_door", -7, G + 1, 128);
         brickShop(b, 9, 138);
-        // дома
         izba(b, -17, 110, 9, 9, Direction.EAST, 1);
         izba(b, 9, 110, 9, 9, Direction.WEST, 2);
         izba(b, -17, 96, 9, 9, Direction.EAST, 2);
@@ -186,20 +257,47 @@ public final class MapBuilder {
         council(b, 9, 92);
         school(b, -24, 72);
         garage(b, 9, 62);
-        substation(b, -20, 48);
-        waterTower(b, 20, 50);
-        // ворота на просеку: забор поперёк и решётка с замком
-        for (int x = -28; x <= 28; x++) {
-            if (Math.abs(x) <= 1) continue;
-            b.set(x, G + 1, 34, LOG);
-            b.set(x, G + 2, 34, Blocks.SPRUCE_FENCE.getDefaultState());
-        }
-        b.fill(-1, G + 1, 34, 1, G + 3, 34, Blocks.IRON_BARS);
-        b.set(-2, G + 3, 34, LOG);
-        b.set(2, G + 3, 34, LOG);
-        b.use(2, G + 2, 35, GContent.LOCK, Direction.SOUTH, "lock_gate");
-        b.point("gate", 0, G + 1, 35);
-        b.point("cp3", 0, G + 1, 28);
+        substation(b, -20, 52);
+        waterTower(b, 22, 52);
+    }
+
+    /** Дома у станции: баба Поля (окно на перрон), Петрович с Зиной. */
+    static void houses(B b) {
+        izba(b, 14, 36, 9, 9, Direction.WEST, 0);
+        b.point("polya_window", 18, G + 1, 37);
+        b.point("polya_door", 14, G + 1, 40);
+        b.zone("polya_yard", 6, G - 2, 30, 26, G + 8, 47);
+        b.point("zina_day", 10, G + 1, 34);
+        izba(b, -22, 36, 9, 9, Direction.EAST, 0);
+        b.point("petrovich_home", -18, G + 1, 40);
+        b.point("zina_home", -19, G + 1, 42);
+        b.point("petrovich_door", -12, G + 1, 40);
+        // фото бабы Поли и расписание её рукой — на стене (видно в окно)
+        b.prop(21, G + 3, 39, GContent.PHOTO, Direction.WEST);
+        b.st.lamp("photo", new net.minecraft.util.math.BlockPos(21, G + 3, 39));
+    }
+
+    /** Утро после пролога: дом бабы Поли заколочен «лет пять как» — серые доски, паутина, свет не горит. */
+    public static void boardUp(ServerWorld world, StoryState st) {
+        B b = new B(world, st);
+        BlockState board = Blocks.STRIPPED_SPRUCE_LOG.getDefaultState().with(PillarBlock.AXIS, Direction.Axis.Z);
+        b.set(14, G + 1, 40, board);
+        b.set(14, G + 2, 40, board);
+        b.set(14, G + 3, 39, Blocks.SPRUCE_SLAB);
+        for (int[] w : new int[][]{{18, 36}, {14, 38}, {14, 42}, {22, 38}, {22, 42}, {18, 44}})
+            b.set(w[0], G + 2, w[1], Blocks.DARK_OAK_PLANKS);
+        b.set(18, G + 3, 40, Blocks.COBWEB);
+        b.set(16, G + 3, 42, Blocks.COBWEB);
+        b.set(21, G + 3, 39, AIR);
+        for (var e : st.lamps.entrySet()) e.getValue().removeIf(l -> {
+            var q = net.minecraft.util.math.BlockPos.fromLong(l);
+            if (q.getX() >= 14 && q.getX() <= 22 && q.getZ() >= 36 && q.getZ() <= 44) {
+                world.setBlockState(q, AIR, 3);
+                return true;
+            }
+            return false;
+        });
+        st.markDirty();
     }
 
     static void streetLamp(B b, int x, int z) {
@@ -271,10 +369,9 @@ public final class MapBuilder {
         // прилавок и полки
         for (int z = z0 + 2; z <= z1 - 2; z++) b.set(x0 + 4, G + 1, z, Blocks.STRIPPED_OAK_LOG.getDefaultState());
         for (int z = z0 + 1; z <= z1 - 1; z++) for (int y = G + 1; y <= G + 3; y++) b.set(x1 - 1, y, z, (z + y) % 3 == 0 ? Blocks.BARREL.getDefaultState() : Blocks.SPRUCE_SLAB.getDefaultState());
-        b.use(x0 + 4, G + 2, z0 + 5, GContent.CRATE, Direction.WEST, "crate_shop");
-        b.use(x1 - 2, G + 1, z1 - 1, GContent.CRATE, Direction.WEST, "crate_shop2");
+        b.prop(x0 + 4, G + 2, z0 + 5, GContent.CRATE, Direction.WEST);
+        b.prop(x1 - 2, G + 1, z1 - 1, GContent.CRATE, Direction.WEST);
         b.lamp(x0 + 5, G + 4, z0 + 5, "houses", false);
-        b.point("shop", x0 + 3, G + 1, z0 + 5);
     }
 
     static void council(B b, int x0, int z0) {
@@ -288,19 +385,18 @@ public final class MapBuilder {
         // перегородка: приёмная и кабинет
         b.fill(x0 + 6, G + 1, z0 + 1, x0 + 6, G + 4, z1 - 1, PLANK);
         b.door(x0 + 6, G + 1, z0 + 5, Direction.EAST, Blocks.SPRUCE_DOOR, false);
-        b.use(x0 + 8, G + 2, z0 + 2, GContent.RADIO, Direction.SOUTH, "radio_council");
+        b.prop(x0 + 8, G + 2, z0 + 2, GContent.RADIO, Direction.SOUTH);
         b.set(x0 + 8, G + 1, z0 + 2, Blocks.SPRUCE_PLANKS);
-        b.use(x0 + 3, G + 2, z0 + 2, GContent.NOTE, Direction.SOUTH, "note:council_note");
+        b.prop(x0 + 3, G + 2, z0 + 2, GContent.NOTE, Direction.SOUTH);
         b.set(x0 + 3, G + 1, z0 + 2, Blocks.SPRUCE_PLANKS);
-        b.use(x1 - 1, G + 1, z1 - 1, GContent.CRATE, Direction.WEST, "crate_council_fuse");
-        b.use(x1 - 1, G + 1, z0 + 1, Blocks.IRON_BLOCK, Direction.WEST, "crate_council_safe");
+        b.prop(x1 - 1, G + 1, z1 - 1, GContent.CRATE, Direction.WEST);
+        b.prop(x1 - 1, G + 1, z0 + 1, Blocks.IRON_BLOCK, Direction.WEST);
         b.set(x1 - 1, G + 2, z0 + 1, Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE.getDefaultState());
         b.lamp(x0 + 3, G + 4, z0 + 5, "houses", false);
         b.lamp(x0 + 9, G + 4, z0 + 5, "houses", false);
         // флаг и вывеска
         for (int y = G + 1; y <= G + 8; y++) b.set(x0 - 2, y, z0 + 2, Blocks.IRON_BARS.getDefaultState());
         b.set(x0 - 2, G + 8, z0 + 3, Blocks.RED_WOOL);
-        b.point("council", x0 + 2, G + 1, z0 + 5);
     }
 
     static void school(B b, int x0, int z0) {
@@ -311,7 +407,7 @@ public final class MapBuilder {
         b.fill(x0, G + 5, z0, x1, G + 5, z1, Blocks.SPRUCE_SLAB.getDefaultState());
         for (int z = z0 + 2; z <= z1 - 2; z += 3) b.fill(x0, G + 2, z, x0, G + 3, z, PANE);
         b.door(x1, G + 1, z0 + 9, Direction.WEST, Blocks.SPRUCE_DOOR, false);
-        b.use(x1 + 1, G + 2, z0 + 11, GContent.NOTE, Direction.EAST, "note:school_note");
+        b.prop(x1 + 1, G + 2, z0 + 11, GContent.NOTE, Direction.EAST);
         b.set(x1 + 1, G + 1, z0 + 11, Blocks.SPRUCE_FENCE.getDefaultState());
         // коридор вдоль восточной стены, два класса
         int cw = x0 + 9;
@@ -325,13 +421,11 @@ public final class MapBuilder {
             b.set(x0 + 2 + c * 3, G + 1, z0 + 11 + r * 2, Blocks.SPRUCE_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
         }
         b.fill(x0 + 1, G + 2, z0 + 1, x0 + 1, G + 3, z0 + 3, Blocks.BLACK_CONCRETE); // доска
-        b.use(x0 + 1, G + 1, z1 - 1, GContent.CRATE, Direction.EAST, "crate_school_fuse");
-        b.use(x0 + 2, G + 1, z0 + 1, GContent.CRATE, Direction.EAST, "crate_school");
+        b.prop(x0 + 1, G + 1, z1 - 1, GContent.CRATE, Direction.EAST);
+        b.prop(x0 + 2, G + 1, z0 + 1, GContent.CRATE, Direction.EAST);
         for (int i = 0; i < 10; i++) b.set(x0 + 1 + b.rnd.nextInt(14), G + 4, z0 + 1 + b.rnd.nextInt(17), Blocks.COBWEB);
         b.lamp(x0 + 12, G + 4, z0 + 5, "school", false);
         b.lamp(x0 + 12, G + 4, z0 + 13, "school", false);
-        b.point("school_listener", x0 + 12, G + 1, z0 + 9);
-        b.point("school", x1, G + 1, z0 + 9);
     }
 
     static void garage(B b, int x0, int z0) {
@@ -350,10 +444,9 @@ public final class MapBuilder {
             b.set(x0 + 7, G + 1, z, Blocks.BLACK_CONCRETE);
         }
         b.fill(x1 - 1, G + 1, z0 + 1, x1 - 1, G + 1, z1 - 1, Blocks.SMITHING_TABLE);
-        b.use(x1 - 1, G + 2, z1 - 2, GContent.CRATE, Direction.WEST, "crate_garage_fuse");
-        b.use(x1 - 1, G + 2, z0 + 2, GContent.CRATE, Direction.WEST, "crate_garage");
+        b.prop(x1 - 1, G + 2, z1 - 2, GContent.CRATE, Direction.WEST);
+        b.prop(x1 - 1, G + 2, z0 + 2, GContent.CRATE, Direction.WEST);
         b.lamp(x0 + 6, G + 5, z0 + 6, "houses", false);
-        b.point("garage", x0 - 1, G + 1, z0 + 6);
     }
 
     static void substation(B b, int x0, int z0) {
@@ -370,10 +463,9 @@ public final class MapBuilder {
             b.set(t[0] + 1, G + 3, t[1] + 1, Blocks.LIGHTNING_ROD.getDefaultState());
         }
         b.fill(x1, G + 1, z0 + 5, x1, G + 2, z0 + 5, Blocks.AIR);
-        b.use(x1 + 1, G + 2, z0 + 3, GContent.FUSE_BOX, Direction.EAST, "fusebox");
+        b.prop(x1 + 1, G + 2, z0 + 3, GContent.FUSE_BOX, Direction.EAST);
         b.set(x1 + 1, G + 1, z0 + 3, Blocks.SPRUCE_FENCE.getDefaultState());
         b.set(x1 + 1, G + 3, z0 + 3, Blocks.SPRUCE_SLAB.getDefaultState());
-        b.point("fusebox", x1 + 2, G + 1, z0 + 3);
         // провода на столбах к улице
         for (int y = G + 1; y <= G + 7; y++) b.set(x1 + 1, y, z0 + 8, LOG);
     }
@@ -414,275 +506,4 @@ public final class MapBuilder {
         b.point("cemetery", -40, G + 1, 72);
     }
 
-    // ================= избушка охотника =================
-    static void hunter(B b) {
-        int x0 = -14, z0 = -96, x1 = -8, z1 = -90;
-        b.ground(x0 - 1, z0 - 1, x1 + 1, z1 + 1, G, Blocks.PODZOL.getDefaultState(), 9);
-        b.fill(x0, G, z0, x1, G, z1, PLANK);
-        b.walls(x0, G + 1, z0, x1, G + 3, z1, LOG);
-        b.fill(x0, G + 4, z0, x1, G + 4, z1, Blocks.SPRUCE_SLAB.getDefaultState());
-        b.set(x0, G + 2, z0 + 3, PANE);
-        b.door(x1, G + 1, z0 + 3, Direction.WEST, Blocks.SPRUCE_DOOR, false);
-        b.use(x0 + 1, G + 1, z0 + 1, GContent.CRATE, Direction.EAST, "crate_hunter_kit");
-        b.use(x0 + 1, G + 1, z1 - 1, GContent.CRATE, Direction.EAST, "crate_hunter_can");
-        b.use(x0 + 3, G + 2, z1 - 1, GContent.NOTE, Direction.NORTH, "note:hunter_note");
-        b.set(x0 + 3, G + 1, z1 - 1, Blocks.SPRUCE_FENCE.getDefaultState());
-        b.set(x0 + 4, G + 1, z0 + 1, Blocks.FURNACE.getDefaultState());
-        b.lantern(x0 + 3, G + 3, z0 + 3, true);
-        b.bed(x0 + 1, G + 1, z0 + 3, Direction.SOUTH, Blocks.GREEN_BED);
-        b.point("safe_hunter", x0 + 3, G + 1, z0 + 3);
-        b.point("hunter", x1 + 1, G + 1, z0 + 3);
-    }
-
-    // ================= метеостанция «Полынь-17» =================
-    static void station(B b) {
-        int fx0 = -30, fz0 = -262, fx1 = 30, fz1 = -214;
-        b.ground(fx0, fz0, fx1, fz1, G, Blocks.GRAVEL.getDefaultState(), 12);
-        for (int x = fx0; x <= fx1; x++) for (int z = fz0; z <= fz1; z++) {
-            boolean edge = x == fx0 || x == fx1 || z == fz0 || z == fz1;
-            if (!edge) continue;
-            if (z == fz1 && Math.abs(x) <= 2) continue;          // южные ворота (просека)
-            if (x == fx0 && z >= -240 && z <= -236) continue;    // западные ворота (узкоколейка)
-            b.set(x, G + 1, z, Blocks.IRON_BARS.getDefaultState());
-            b.set(x, G + 2, z, Blocks.IRON_BARS.getDefaultState());
-            if ((x + z) % 6 == 0) b.set(x, G + 3, z, Blocks.IRON_BARS.getDefaultState());
-        }
-        b.zone("station", fx0, G - 3, fz0, fx1, G + 30, fz1);
-        b.point("cp5", 0, G + 1, -218);
-        b.point("station_gate", 0, G + 1, -214);
-        // главное здание
-        int x0 = -16, z0 = -250, x1 = 4, z1 = -238;
-        b.fill(x0, G, z0, x1, G, z1, Blocks.POLISHED_ANDESITE);
-        b.walls(x0, G + 1, z0, x1, G + 5, z1, Blocks.WHITE_TERRACOTTA.getDefaultState());
-        b.fill(x0, G + 1, z0, x1, G + 1, z0, Blocks.STONE_BRICKS);
-        b.fill(x0, G + 1, z1, x1, G + 1, z1, Blocks.STONE_BRICKS);
-        b.fill(x0, G + 6, z0, x1, G + 6, z1, Blocks.GRAY_CONCRETE);
-        for (int x = x0 + 2; x <= x1 - 2; x += 3) {
-            b.fill(x, G + 3, z0, x, G + 4, z0, PANE);
-            b.fill(x, G + 3, z1, x, G + 4, z1, PANE);
-        }
-        b.door(-6, G + 1, z1, Direction.NORTH, Blocks.IRON_DOOR, true);
-        // перегородки: радиорубка (запад), кабинет Шумова (восток), коридор
-        b.fill(x0 + 1, G + 1, -244, x1 - 1, G + 5, -244, Blocks.WHITE_CONCRETE);
-        b.fill(-8, G + 1, z0 + 1, -8, G + 5, -245, Blocks.WHITE_CONCRETE);
-        b.door(-11, G + 1, -244, Direction.NORTH, Blocks.SPRUCE_DOOR, true);
-        b.door(-1, G + 1, -244, Direction.NORTH, Blocks.SPRUCE_DOOR, false);
-        // радиорубка
-        b.fill(-15, G + 1, -249, -9, G + 1, -249, Blocks.STRIPPED_SPRUCE_LOG.getDefaultState().with(PillarBlock.AXIS, Direction.Axis.X));
-        b.use(-14, G + 2, -249, GContent.RADIO, Direction.SOUTH, "radio_station");
-        b.use(-12, G + 2, -249, GContent.NOTE, Direction.SOUTH, "note:anna_log");
-        b.use(-10, G + 2, -249, GContent.TAPE_PLAYER, Direction.SOUTH, "tape_1");
-        b.use(-15, G + 1, -246, GContent.TAPE_PLAYER, Direction.EAST, "tape_2");
-        b.use(-9, G + 1, -246, GContent.CRATE, Direction.WEST, "crate_station");
-        b.lamp(-12, G + 5, -247, "station", false);
-        b.zone("radio_room", -15, G, -249, -9, G + 5, -245);
-        b.point("safe_station", -12, G + 1, -246);
-        b.point("anna_station", -13, G + 1, -246);
-        // кабинет Шумова
-        b.fill(-6, G + 1, -249, -2, G + 1, -249, Blocks.DARK_OAK_PLANKS);
-        b.use(-4, G + 2, -249, GContent.NOTE, Direction.SOUTH, "note:shumov_note");
-        b.use(-2, G + 2, -249, GContent.TAPE_PLAYER, Direction.SOUTH, "tape_3");
-        b.use(2, G + 1, -249, Blocks.IRON_BLOCK, Direction.SOUTH, "crate_shumov");
-        b.fill(3, G + 1, -248, 3, G + 3, -246, Blocks.BOOKSHELF);
-        b.lamp(-3, G + 5, -247, "station", false);
-        b.point("shumov", -4, G + 1, -246);
-        // коридор
-        b.lamp(-10, G + 5, -241, "station", false);
-        b.lamp(0, G + 5, -241, "station", false);
-        b.point("station_hall", -6, G + 1, -241);
-        b.point("station_pole", -14, G + 1, -241);
-        // генераторная
-        b.fill(10, G, -232, 16, G, -226, Blocks.STONE);
-        b.walls(10, G + 1, -232, 16, G + 4, -226, Blocks.GRAY_TERRACOTTA.getDefaultState());
-        b.fill(10, G + 5, -232, 16, G + 5, -226, Blocks.IRON_BLOCK);
-        b.fill(10, G + 1, -230, 10, G + 2, -228, Blocks.AIR);
-        b.use(14, G + 1, -229, GContent.GENERATOR, Direction.WEST, "generator");
-        b.lamp(13, G + 4, -229, "station", false);
-        b.point("generator", 9, G + 1, -229);
-        // будка-психрометр
-        for (int[] l : new int[][]{{0, 0}, {1, 0}, {0, 1}, {1, 1}}) b.set(-22 + l[0], G + 1, -228 + l[1], Blocks.BIRCH_FENCE.getDefaultState());
-        b.fill(-22, G + 2, -228, -21, G + 3, -227, Blocks.WHITE_CONCRETE);
-        // мачта
-        int mx = 18, mz = -250;
-        for (int y = G + 1; y <= G + 36; y++) for (int[] l : new int[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) b.set(mx + l[0], y, mz + l[1], Blocks.IRON_BARS.getDefaultState());
-        for (int y = G + 4; y <= G + 36; y += 4) b.fill(mx - 1, y, mz - 1, mx + 1, y, mz + 1, Blocks.IRON_BARS);
-        b.set(mx, G + 37, mz, Blocks.LIGHTNING_ROD.getDefaultState());
-        b.lamp(mx, G + 36, mz, "mast", false);
-        // люк в бункер у подножия мачты
-        b.fill(13, G - 1, -247, 15, G, -245, Blocks.STONE_BRICKS);
-        b.set(14, G, -246, Blocks.IRON_TRAPDOOR.getDefaultState().with(TrapdoorBlock.OPEN, true).with(TrapdoorBlock.HALF, BlockHalf.TOP));
-        b.point("hatch", 14, G + 1, -244);
-        // ящики во дворе
-        b.set(-24, G + 1, -220, Blocks.BARREL.getDefaultState());
-        b.set(-23, G + 1, -220, Blocks.BARREL.getDefaultState());
-        b.point("station_l1", -20, G + 1, -224);
-        b.point("station_l2", 20, G + 1, -222);
-        // рельсы узкоколейки от западных ворот к шахте
-        int[] r = Terrain.ROADS[2];
-        for (int i = 0; i < (r.length - 1) / 2 - 1; i++) {
-            int ax = r[i * 2], az = r[i * 2 + 1], bx = r[i * 2 + 2], bz = r[i * 2 + 3];
-            int n = Math.max(Math.abs(bx - ax), Math.abs(bz - az));
-            boolean alongX = Math.abs(bx - ax) >= Math.abs(bz - az);
-            for (int k = 0; k <= n; k++) {
-                int x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
-                if (b.chance(0.12)) continue;
-                int y = Terrain.surface(x, z) + 1;
-                b.set(x, y, z, Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, alongX ? RailShape.EAST_WEST : RailShape.NORTH_SOUTH));
-            }
-        }
-    }
-
-    // ================= бункер под мачтой =================
-    static void bunker(B b) {
-        int fy = G - 23; // пол
-        // коридор на север к залу, потом шахта люка с лестницей
-        b.fill(12, fy, -252, 16, fy + 4, -246, Blocks.STONE_BRICKS);
-        b.air(13, fy + 1, -252, 15, fy + 3, -246);
-        b.walls(13, fy + 4, -247, 15, G - 1, -245, Blocks.STONE_BRICKS.getDefaultState());
-        b.air(14, fy + 1, -246, 14, G - 1, -246);
-        for (int y = fy + 1; y < G; y++) b.set(14, y, -246, Blocks.LADDER.getDefaultState().with(net.minecraft.block.LadderBlock.FACING, Direction.NORTH));
-        b.door(14, fy + 1, -252, Direction.NORTH, Blocks.IRON_DOOR, true);
-        b.lamp(14, fy + 3, -249, "bunker", true);
-        // зал
-        int x0 = 0, z0 = -278, x1 = 28, z1 = -252;
-        b.fill(x0 - 1, fy - 1, z0 - 1, x1 + 1, fy + 8, z1, Blocks.DEEPSLATE_TILES);
-        b.air(x0, fy + 1, z0, x1, fy + 7, z1 - 1);
-        b.fill(x0, fy, z0, x1, fy, z1 - 1, Blocks.POLISHED_DEEPSLATE);
-        b.air(13, fy + 1, z1, 15, fy + 3, z1);
-        b.door(14, fy + 1, z1 - 0, Direction.NORTH, Blocks.IRON_DOOR, true);
-        for (int x = x0 + 5; x <= x1 - 5; x += 6) for (int z = z0 + 5; z <= z1 - 5; z += 6) {
-            if (Math.abs(x - 14) < 3 && z < z0 + 8) continue;
-            b.fill(x, fy + 1, z, x + 1, fy + 7, z + 1, Blocks.DEEPSLATE_BRICKS);
-        }
-        // трубы и кабели под потолком
-        for (int x = x0; x <= x1; x += 2) b.set(x, fy + 7, z0 + 2, Blocks.IRON_BARS.getDefaultState());
-        for (int z = z0; z < z1; z += 3) b.set(x0, fy + 6, z, Blocks.CHAIN.getDefaultState());
-        // усилители и передатчик
-        b.use(x0 + 2, fy + 1, z0 + 2, GContent.AMPLIFIER, Direction.SOUTH, "amp_1");
-        b.use(x1 - 2, fy + 1, z0 + 2, GContent.AMPLIFIER, Direction.SOUTH, "amp_2");
-        b.use(x0 + 2, fy + 1, z1 - 3, GContent.AMPLIFIER, Direction.EAST, "amp_3");
-        b.fill(12, fy + 1, z0, 16, fy + 1, z0 + 3, Blocks.POLISHED_DEEPSLATE);
-        b.use(14, fy + 2, z0 + 1, GContent.TRANSMITTER, Direction.SOUTH, "transmitter");
-        b.set(13, fy + 2, z0 + 1, Blocks.IRON_BLOCK);
-        b.set(15, fy + 2, z0 + 1, Blocks.IRON_BLOCK);
-        for (int x = x0 + 4; x <= x1 - 4; x += 8) for (int z = z0 + 4; z <= z1 - 4; z += 8) b.lamp(x, fy + 7, z, "bunker", b.chance(0.4));
-        b.use(x1 - 2, fy + 1, z1 - 3, GContent.CRATE, Direction.WEST, "crate_bunker");
-        b.zone("bunker", x0 - 2, fy - 2, z0 - 2, x1 + 2, fy + 9, -244);
-        b.point("bunker_in", 14, fy + 1, -250);
-        b.point("choir_bunker", 14, fy + 1, -268);
-        b.point("amp_1", x0 + 2, fy + 1, z0 + 3);
-        b.point("amp_2", x1 - 2, fy + 1, z0 + 3);
-        b.point("amp_3", x0 + 3, fy + 1, z1 - 3);
-        b.point("transmitter", 14, fy + 1, z0 + 4);
-    }
-
-    // ================= шахта «Глубокая» =================
-    static final int MY = 24; // пол штолен
-
-    static void mine(B b) {
-        int x0 = -142, z0 = -182, x1 = -120, z1 = -164;
-        b.ground(x0 - 2, z0 - 2, x1 + 2, z1 + 2, G, Blocks.GRAVEL.getDefaultState(), 30);
-        // здание над стволом
-        b.fill(x0, G, z0, x1, G, z1, Blocks.STONE);
-        b.walls(x0, G + 1, z0, x1, G + 6, z1, Blocks.DARK_OAK_PLANKS.getDefaultState());
-        for (int y = G + 1; y <= G + 6; y++) for (int[] c : new int[][]{{x0, z0}, {x1, z0}, {x0, z1}, {x1, z1}}) b.set(c[0], y, c[1], DLOG);
-        b.fill(x0, G + 7, z0, x1, G + 7, z1, Blocks.DARK_OAK_SLAB.getDefaultState());
-        b.fill(x1, G + 1, -175, x1, G + 4, -171, Blocks.AIR);  // ворота с востока
-        for (int z = z0 + 3; z < z1; z += 4) b.set(x0, G + 3, z, PANE);
-        // копёр
-        int sx = -134, sz = -173;
-        for (int y = G + 8; y <= G + 26; y++) {
-            b.set(sx - 2, y, sz - 2, DLOG);
-            b.set(sx + 2, y, sz - 2, DLOG);
-            b.set(sx - 2, y, sz + 2, DLOG);
-            b.set(sx + 2, y, sz + 2, DLOG);
-        }
-        b.fill(sx - 2, G + 26, sz - 2, sx + 2, G + 26, sz + 2, DPLANK);
-        for (int d = -2; d <= 2; d++) {
-            b.set(sx + d, G + 27, sz, Blocks.IRON_BARS.getDefaultState());
-            b.set(sx, G + 27 + Math.abs(d) * 0 + (2 - Math.abs(d)), sz, Blocks.IRON_BARS.getDefaultState());
-        }
-        // ствол и клеть
-        b.walls(sx - 2, MY, sz - 2, sx + 1, G - 1, sz + 1, Blocks.STONE_BRICKS.getDefaultState());
-        b.air(sx - 1, MY + 1, sz - 1, sx, G - 1, sz);
-        b.fill(sx - 1, G, sz - 1, sx, G, sz, Blocks.IRON_TRAPDOOR.getDefaultState());
-        b.fill(sx - 1, MY, sz - 1, sx, MY, sz, Blocks.SPRUCE_PLANKS);
-        b.set(sx + 1, G + 1, sz + 2, Blocks.STONE_BRICKS);
-        b.use(sx + 1, G + 2, sz + 2, GContent.FUSE_BOX, Direction.SOUTH, "lift_top");
-        b.lamp(sx + 4, G + 6, sz, "mine_top", true);
-        b.zone("mine_top", x0 - 4, G - 3, z0 - 4, x1 + 8, G + 20, z1 + 4);
-        b.point("lift_top", sx + 2, G + 1, sz + 1);
-        b.point("cp4top", sx + 4, G + 1, sz + 1);
-        b.use(-126, G + 1, -166, GContent.CRATE, Direction.NORTH, "crate_minetop");
-
-        // штольни
-        tunnel(b, sx + 1, sz - 1, -80, sz + 1, true);             // главная на восток
-        tunnel(b, -111, -215, -109, sz - 2, false);              // ветка А на север
-        tunnel(b, -96, sz + 2, -94, -140, false);                // ветка Б на юг
-        tunnel(b, -140, -202, -112, -200, true);                 // тупик на запад
-        b.use(sx + 1, MY + 2, sz + 2, GContent.FUSE_BOX, Direction.SOUTH, "lift_bottom");
-        b.set(sx + 1, MY + 1, sz + 2, Blocks.STONE_BRICKS);
-        b.point("lift_bottom", sx + 2, MY + 1, sz);
-        b.point("cp4", sx + 3, MY + 1, sz);
-        b.zone("mine", -145, MY - 3, -232, -75, MY + 8, -135);
-        // метки Анны
-        b.use(-118, MY + 2, sz - 2, GContent.CHALK_MARK, Direction.SOUTH, "mark_1");
-        b.use(-108, MY + 2, -192, GContent.CHALK_MARK, Direction.WEST, "mark_2");
-        b.use(-108, MY + 2, -208, GContent.CHALK_MARK, Direction.WEST, "mark_3");
-        b.point("mark_1", -118, MY + 1, sz);
-        b.point("mark_2", -110, MY + 1, -192);
-        b.point("mark_3", -110, MY + 1, -208);
-        // убежище № 3
-        b.fill(-117, MY, -228, -103, MY + 5, -215, Blocks.STONE_BRICKS);
-        b.air(-116, MY + 1, -227, -104, MY + 4, -216);
-        b.fill(-116, MY, -227, -104, MY, -216, Blocks.SPRUCE_PLANKS);
-        b.door(-110, MY + 1, -215, Direction.SOUTH, Blocks.IRON_DOOR, false);
-        b.point("shelter_door", -110, MY + 1, -215);
-        b.bed(-115, MY + 1, -226, Direction.SOUTH, Blocks.WHITE_BED);
-        for (int x = -114; x <= -106; x += 4) b.set(x, MY + 1, -226, Blocks.CANDLE.getDefaultState().with(net.minecraft.block.CandleBlock.LIT, true));
-        b.lantern(-110, MY + 4, -221, true);
-        b.use(-105, MY + 1, -226, GContent.CRATE, Direction.WEST, "crate_shelter");
-        b.point("anna_mine", -110, MY + 1, -222);
-        b.point("safe_shelter", -110, MY + 1, -221);
-        b.zone("shelter", -117, MY, -228, -103, MY + 5, -215);
-        // существа и находки
-        b.point("mine_l1", -100, MY + 1, sz);
-        b.point("mine_l2", -110, MY + 1, -200);
-        b.point("mine_l3", -95, MY + 1, -150);
-        b.point("choir_mine", -84, MY + 1, sz);
-        b.use(-95, MY + 1, -141, GContent.CRATE, Direction.NORTH, "crate_mine");
-        b.use(-139, MY + 1, -201, GContent.CRATE, Direction.EAST, "crate_mine2");
-    }
-
-    /** Штольня шириной 3, высотой 3, с крепью через 5 блоков. alongX — ось. */
-    static void tunnel(B b, int xa, int za, int xb, int zb, boolean alongX) {
-        int x0 = Math.min(xa, xb), x1 = Math.max(xa, xb), z0 = Math.min(za, zb), z1 = Math.max(za, zb);
-        for (int x = x0; x <= x1; x++) for (int z = z0; z <= z1; z++) {
-            b.set(x, MY, z, b.chance(0.15) ? Blocks.GRAVEL.getDefaultState() : Blocks.STONE.getDefaultState());
-            for (int y = MY + 1; y <= MY + 3; y++) b.set(x, y, z, AIR);
-            b.set(x, MY + 4, z, Blocks.STONE.getDefaultState());
-        }
-        int len = alongX ? x1 - x0 : z1 - z0;
-        for (int i = 0; i <= len; i += 5) {
-            int x = alongX ? x0 + i : x0, z = alongX ? z0 : z0 + i;
-            if (alongX) {
-                for (int y = MY + 1; y <= MY + 2; y++) {
-                    b.set(x, y, z0, LOG);
-                    b.set(x, y, z1, LOG);
-                }
-                b.fill(x, MY + 3, z0, x, MY + 3, z1, PLANK);
-            } else {
-                for (int y = MY + 1; y <= MY + 2; y++) {
-                    b.set(x0, y, z, LOG);
-                    b.set(x1, y, z, LOG);
-                }
-                b.fill(x0, MY + 3, z, x1, MY + 3, z, PLANK);
-            }
-            if (b.chance(0.25)) b.set(alongX ? x : (x0 + x1) / 2, MY + 3, alongX ? (z0 + z1) / 2 : z,
-                    Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
-            if (b.chance(0.3)) b.set(alongX ? x + 2 : x0 + 1, MY + 3, alongX ? z0 + 1 : z + 2, Blocks.COBWEB);
-        }
-        if (alongX) for (int x = x0; x <= x1; x++) if (b.chance(0.85))
-            b.set(x, MY + 1, (z0 + z1) / 2, Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, RailShape.EAST_WEST));
-    }
 }

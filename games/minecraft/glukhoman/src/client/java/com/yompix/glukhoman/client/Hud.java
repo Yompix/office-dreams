@@ -51,9 +51,53 @@ public final class Hud {
         }
     }
 
+    /**
+     * Видоискатель: мигающий красный ● REC, батарея (садится — мигает), кассета и номер сюжета, ИК, уголки кадра,
+     * дата 14.10.1996 и время по сюжетным часам. При пересмотре кассеты — ▶ PLAY и счётчик ленты вместо REC.
+     */
+    public static void rec(DrawContext ctx, TextRenderer tr, int w, int h, long time) {
+        MinecraftClient c = MinecraftClient.getInstance();
+        long tod = (c.world.getTimeOfDay() + 6000) % 24000;
+        int hh = (int) (tod / 1000), mm = (int) (tod % 1000 * 60 / 1000), ss = (int) (time / 20 % 60);
+        int m = 14, L = 16, col = 0xC0E8E8E8;
+        // уголки кадра
+        ctx.fill(m, m, m + L, m + 1, col); ctx.fill(m, m, m + 1, m + L, col);
+        ctx.fill(w - m - L, m, w - m, m + 1, col); ctx.fill(w - m - 1, m, w - m, m + L, col);
+        ctx.fill(m, h - m - 1, m + L, h - m, col); ctx.fill(m, h - m - L, m + 1, h - m, col);
+        ctx.fill(w - m - L, h - m - 1, w - m, h - m, col); ctx.fill(w - m - 1, h - m - L, w - m, h - m, col);
+        if (Cine.active && Cine.replay) {
+            ctx.drawTextWithShadow(tr, "▶ PLAY", m + 8, m + 6, 0xFFE8E8E8);
+            ctx.drawTextWithShadow(tr, String.format("0:%02d:%02d", (int) (Cine.time() / 60) + 41, (int) Cine.time() % 60), w - m - 60, m + 6, 0xD0E0E0E0);
+        } else {
+            if ((time / 12) % 2 == 0) ctx.drawTextWithShadow(tr, "●", w - m - 52, m + 6, 0xFFE02424);
+            ctx.drawTextWithShadow(tr, "REC", w - m - 40, m + 6, 0xE8E8E8E8);
+            // батарея: корпус, контакт, 4 деления; меньше четверти — мигает
+            float bat = Cine.active ? 0.62f : Viewfinder.battery();
+            int bx = m + 8, by = m + 7;
+            boolean low = bat < 0.25f;
+            if (!low || (time / 8) % 2 == 0) {
+                int bc = low ? 0xFFE04040 : 0xE0E8E8E8;
+                ctx.fill(bx, by, bx + 20, by + 1, bc); ctx.fill(bx, by + 8, bx + 20, by + 9, bc);
+                ctx.fill(bx, by, bx + 1, by + 9, bc); ctx.fill(bx + 19, by, bx + 20, by + 9, bc);
+                ctx.fill(bx + 20, by + 3, bx + 22, by + 6, bc);
+                int bars = (int) Math.ceil(bat * 4);
+                for (int i = 0; i < bars; i++) ctx.fill(bx + 2 + i * 4, by + 2, bx + 5 + i * 4, by + 7, bc);
+            }
+            if (Viewfinder.ir && !Cine.active) ctx.drawTextWithShadow(tr, "ИК", bx + 28, by + 1, 0xFF9CE89C);
+            if (!tape.isEmpty() && !Cine.active) ctx.drawTextWithShadow(tr, "▭ " + tape, m + 8, m + 20, 0xB0D8D8D0);
+        }
+        ctx.drawTextWithShadow(tr, String.format("14.10.1996  %02d:%02d:%02d", hh, mm, ss), w - m - 118, h - m - 14, 0xD0D8D8D0);
+        ctx.drawTextWithShadow(tr, "SP", m + 8, h - m - 14, 0xA0D8D8D0);
+    }
+
     public static void render(DrawContext ctx, RenderTickCounter counter) {
         MinecraftClient c = MinecraftClient.getInstance();
-        if (!inWorld || c.player == null || c.options.hudHidden) return;
+        if (!inWorld || c.player == null) return;
+        if (Cine.active) {   // в кат-сцене — только рамка видоискателя, если сцена «в камере»
+            if (Cine.vf) rec(ctx, c.textRenderer, ctx.getScaledWindowWidth(), ctx.getScaledWindowHeight(), c.world.getTime());
+            return;
+        }
+        if (c.options.hudHidden) return;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
         if (crashT >= 0) {
             fakeCrash(ctx, c, w, h);
@@ -77,13 +121,19 @@ public final class Hud {
         ctx.setShaderColor(1f, 1f, 1f, 1f);
         if (joltT > 0) ctx.fill(0, 0, w, h, ((int) (joltT / 8f * 120) << 24) | 0xE8E8E8);
 
+        if (Viewfinder.view()) rec(ctx, tr, w, h, time);
+
         // цель
         if (chapter > 0 && !objective.isEmpty() && creditsT < 0) {
             long since = time - objectiveChanged;
             int col = since < 80 ? 0xFFE8D9A8 : 0xB0A0A0A0;
-            String head = (ending.isEmpty() ? "Глава " + new String[]{"", "I", "II", "III", "IV", "V"}[Math.min(5, chapter)] + " · " + title : "Эпилог");
-            ctx.drawTextWithShadow(tr, head, 8, 8, 0x80909090);
-            ctx.drawTextWithShadow(tr, "▸ " + objective, 8, 20, col);
+            String head = title;
+            int oy = Viewfinder.view() ? 44 : 8;
+            ctx.drawTextWithShadow(tr, head, 8, oy, 0x80909090);
+            for (var ln : tr.wrapLines(net.minecraft.text.Text.literal("▸ " + objective), Math.min(300, w / 2))) {
+                ctx.drawTextWithShadow(tr, ln, 8, oy + 12, col);
+                oy += 10;
+            }
             if (lightOn) ctx.drawTextWithShadow(tr, "◉", w - 14, 8, 0xFFE0D070);
         }
 

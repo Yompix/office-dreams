@@ -29,6 +29,8 @@ public final class Autotest {
     static int idx, timer;
 
     public static void init() {
+        String mode = System.getProperty("glukhoman.autotest", "");
+        if (mode.equals("shots") || mode.equals("trailer") || mode.equals("models")) System.setProperty("glukhoman.freeze", "true");
         if ("watch".equals(System.getProperty("glukhoman.autotest"))) {
             watch();
             return;
@@ -45,58 +47,87 @@ public final class Autotest {
             models();
             return;
         }
-        if ("shots2".equals(System.getProperty("glukhoman.autotest"))) {
-            shots2();
-            return;
-        }
         if (!"shots".equals(System.getProperty("glukhoman.autotest"))) return;
-        STEPS.add(new Step(100, c -> {
-            var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
-                    net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
-            var info = new net.minecraft.world.level.LevelInfo("GlkShots" + System.currentTimeMillis() % 100000, net.minecraft.world.GameMode.ADVENTURE, false,
-                    net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
-            var key = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, Glukhoman.id("taiga"));
-            c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
-                    drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(key).createDimensionsRegistryHolder(),
-                    new net.minecraft.client.gui.screen.TitleScreen());
-        }));
-        wait(c -> c.player != null && c.currentScreen != null, 1200);
+        shots();
+    }
+
+    static void cam(MinecraftClient c, boolean up) {
+        server(c, s -> {
+            ServerPlayerEntity p = pl(s);
+            if (!p.getMainHandStack().isOf(GContent.CAMCORDER)) {
+                p.getInventory().selectedSlot = 0;
+                p.getInventory().setStack(0, new net.minecraft.item.ItemStack(GContent.CAMCORDER));
+            }
+            if (up && !com.yompix.glukhoman.story.Cam.up(p)) com.yompix.glukhoman.story.Cam.raise(p);
+            if (!up) com.yompix.glukhoman.story.Cam.lower(p, false);
+        });
+    }
+
+    /** 0.4 «Порожняк»: снимки ключевых мест и механик (видоискатель / глаза). */
+    static void shots() {
+        newWorld();
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
         STEPS.add(new Step(60, c -> shot(c, "00_difficulty")));
         STEPS.add(new Step(5, c -> {
             c.setScreen(null);
             server(c, s -> Story.chooseDifficulty(pl(s), 1));
         }));
-        STEPS.add(new Step(40, c -> shot(c, "01_title_card")));
-        // старт: УАЗ на закате, взгляд на север
-        STEPS.add(new Step(160, c -> look(c, 180, 4)));
-        STEPS.add(new Step(40, c -> shot(c, "02_start_dusk")));
-        // посёлок, ночь, глава 2: улица и школа
+        wait(Autotest::ready, 4000);
+        STEPS.add(new Step(160, c -> shot(c, "01_prologue_viewfinder")));
+        STEPS.add(new Step(5, c -> server(c, s -> tp(s, 10, 66, 19, 160, -4))));
+        STEPS.add(new Step(80, c -> shot(c, "02_polya_window")));
+        STEPS.add(new Step(5, c -> { cam(c, false); server(c, s -> tp(s, 61, 66, 16, -90, 12)); }));
+        wait(Autotest::ready, 4000);
+        STEPS.add(new Step(100, c -> shot(c, "03_rails_end_eye")));
+        STEPS.add(new Step(5, c -> cam(c, true)));
+        STEPS.add(new Step(60, c -> shot(c, "04_rails_end_camera")));
+        // поезд у перрона: в камере есть, глазами — пусто
+        STEPS.add(new Step(5, c -> server(c, s -> {
+            var tr = spawnRet(s, GContent.TRAIN, 8, 66, 16);
+            if (tr != null) tr.setYaw(90);
+            tp(s, 24, 66, 21, 112, 4);
+        })));
+        wait(Autotest::ready, 4000);
+        STEPS.add(new Step(80, c -> shot(c, "05_train_viewfinder")));
+        STEPS.add(new Step(5, c -> cam(c, false)));
+        STEPS.add(new Step(30, c -> shot(c, "06_train_eye_empty")));
+        // Обходчик на краю перрона: глазами есть, в камере нет
+        STEPS.add(new Step(5, c -> server(c, s -> {
+            for (var e : s.getOverworld().getEntitiesByClass(com.yompix.glukhoman.entity.TrainEntity.class, new net.minecraft.util.math.Box(BlockPos.ORIGIN).expand(600), x -> true)) e.discard();
+            var w = (com.yompix.glukhoman.entity.WatcherEntity) spawnRet(s, GContent.WATCHER, -11, 66, 19);
+            if (w != null) { w.posted = true; w.setYaw(-90); w.setHeadYaw(-90); }
+            tp(s, -2, 66, 19, 90, -6);
+        })));
+        STEPS.add(new Step(100, c -> shot(c, "07_watcher_eye")));
+        STEPS.add(new Step(5, c -> cam(c, true)));
+        STEPS.add(new Step(40, c -> shot(c, "08_watcher_not_in_frame")));
+        STEPS.add(new Step(5, c -> { cam(c, false); server(c, s -> tp(s, -7, 66, 19.3, 90, -18)); }));
+        STEPS.add(new Step(60, c -> shot(c, "09_watcher_close")));
+        // табло в дежурке
+        STEPS.add(new Step(5, c -> server(c, s -> {
+            var st = StoryState.get(s.getOverworld());
+            int i = 0;
+            for (long l : st.lamps.get("board")) {
+                var q = BlockPos.fromLong(l);
+                var bs = s.getOverworld().getBlockState(q);
+                s.getOverworld().setBlockState(q, bs.with(com.yompix.glukhoman.block.LampBlock.LIT, i == 2 || i == 3 || i == 7), 3);
+                i++;
+            }
+            tp(s, -5, 66, 25, 90, 8);
+        })));
+        STEPS.add(new Step(80, c -> shot(c, "10_board")));
+        // утро: дом бабы Поли заколочен, жители
         STEPS.add(new Step(5, c -> server(c, s -> Story.jump(2))));
-        STEPS.add(new Step(100, c -> server(c, s -> tp(s, 0, 66, 112, 0, 0))));
-        STEPS.add(new Step(140, c -> shot(c, "03_village_night")));
-        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, -12, 65, 88, 180, 8); spawnAt(s, GContent.LISTENER, -12, 65, 79); })));
-        STEPS.add(new Step(120, c -> lightOn(c)));
-        STEPS.add(new Step(40, c -> shot(c, "04_school_listener")));
-        // свет в посёлке
-        STEPS.add(new Step(5, c -> server(c, s -> { var st = StoryState.get(s.getOverworld()); for (String k : new String[]{"crate_council_fuse", "crate_school_fuse", "crate_garage_fuse"}) Story.interact(pl(s), st.find(k), k); Story.interact(pl(s), st.find("fusebox"), "fusebox"); tp(s, 2, 66, 60, 0, 6); })));
-        STEPS.add(new Step(160, c -> shot(c, "05_village_power")));
-        // просека в тумане, Жердь
-        STEPS.add(new Step(5, c -> server(c, s -> Story.jump(3))));
-        STEPS.add(new Step(60, c -> server(c, s -> { clearPoles(s); tp(s, 3, 66, -60, 180, -2); spawnAt(s, GContent.POLE, 1, 0, -69); })));
-        STEPS.add(new Step(160, c -> shot(c, "06_forest_pole")));
-        STEPS.add(new Step(5, c -> server(c, s -> { clearPoles(s); tp(s, -4, 65, -226, 160, -8); })));
-        STEPS.add(new Step(160, c -> shot(c, "07_station")));
-        // шахта
-        STEPS.add(new Step(5, c -> server(c, s -> { Story.jump(4); })));
-        STEPS.add(new Step(40, c -> server(c, s -> { var st = StoryState.get(s.getOverworld()); Story.interact(pl(s), st.find("lift_top"), "lift_top"); })));
-        STEPS.add(new Step(140, c -> server(c, s -> { tp(s, -122, 25, -173, -90, 0); spawnAt(s, GContent.LISTENER, -112, 25, -173); })));
-        STEPS.add(new Step(60, c -> lightOn(c)));
-        STEPS.add(new Step(100, c -> shot(c, "08_mine_listener")));
-        // бункер и Хор
-        STEPS.add(new Step(5, c -> server(c, s -> Story.jump(5))));
-        STEPS.add(new Step(60, c -> server(c, s -> { tp(s, 14, 42, -252, 180, 0); var st = StoryState.get(s.getOverworld()); })));
-        STEPS.add(new Step(60, c -> server(c, s -> spawnAt(s, GContent.CHOIR, 14, 42, -262))));
-        STEPS.add(new Step(120, c -> shot(c, "09_bunker_choir")));
+        STEPS.add(new Step(80, c -> server(c, s -> tp(s, 8, 65, 40, -90, 0))));
+        wait(Autotest::ready, 4000);
+        STEPS.add(new Step(60, c -> shot(c, "11_morning_boarded")));
+        STEPS.add(new Step(5, c -> server(c, s -> tp(s, 4, 66, 19, 120, 6))));
+        STEPS.add(new Step(60, c -> shot(c, "12_platform_day_residents")));
+        STEPS.add(new Step(5, c -> server(c, s -> com.yompix.glukhoman.story.Tapes.open(pl(s)))));
+        STEPS.add(new Step(30, c -> shot(c, "13_tapes")));
+        STEPS.add(new Step(5, c -> { c.setScreen(null); server(c, s -> Story.interact(pl(s), StoryState.get(s.getOverworld()).find("box"), "box")); }));
+        STEPS.add(new Step(30, c -> shot(c, "14_box_choice")));
+        STEPS.add(new Step(5, c -> c.setScreen(null)));
         STEPS.add(new Step(40, c -> c.scheduleStop()));
         ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
     }
@@ -119,31 +150,34 @@ public final class Autotest {
             Glukhoman.LOG.info("AUTOTEST сеть: кат-сцена идёт = {}, хозяин пропускает", Cine.active);
             GlukhomanClient.send(com.yompix.glukhoman.net.Net.msg("skip"));
         }));
-        STEPS.add(new Step(20, c -> Glukhoman.LOG.info("AUTOTEST сеть: после пропуска кат-сцена идёт = {}", Cine.active)));
-        STEPS.add(new Step(220, c -> {
-            Glukhoman.LOG.info("AUTOTEST сеть: глава {} «{}», цель «{}»", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective);
-            shot(c, "11_mp_start");
-            c.player.networkHandler.sendChatCommand("tp @s 0 65 118");
-        }));
-        STEPS.add(new Step(40, c -> c.player.networkHandler.sendChatCommand("tp @s -12 65 128 90 10")));
-        STEPS.add(new Step(40, c -> {
-            Glukhoman.LOG.info("AUTOTEST сеть: цель после входа в дом «{}»", GlukhomanClient.objective);
-            c.interactionManager.interactBlock(c.player, net.minecraft.util.Hand.MAIN_HAND,
-                    new net.minecraft.util.hit.BlockHitResult(new net.minecraft.util.math.Vec3d(-14.5, 66.3, 126.5), net.minecraft.util.math.Direction.EAST, new BlockPos(-15, 66, 126), false));
-        }));
-        STEPS.add(new Step(100, c -> {
-            Glukhoman.LOG.info("AUTOTEST сеть: субтитры {}", GlukhomanClient.SUBS.isEmpty() ? "нет" : GlukhomanClient.SUBS.get(GlukhomanClient.SUBS.size() - 1)[1]);
-            shot(c, "12_mp_anna_radio");
-        }));
-        STEPS.add(new Step(500, c -> {
-            Glukhoman.LOG.info("AUTOTEST сеть: цель после рации «{}», рассудок {}", GlukhomanClient.objective, GlukhomanClient.sanity);
-            c.player.networkHandler.sendChatCommand("glukhoman chapter 3");
+        STEPS.add(new Step(200, c -> {
+            Glukhoman.LOG.info("AUTOTEST сеть: глава {} «{}», цель «{}», камера у глаза = {}", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective, Viewfinder.up);
+            shot(c, "11_mp_prologue");
+            c.player.networkHandler.sendChatCommand("glukhoman chapter 2");
         }));
         STEPS.add(new Step(200, c -> {
-            Glukhoman.LOG.info("AUTOTEST сеть: глава {} «{}»", GlukhomanClient.chapter, GlukhomanClient.title);
-            c.player.networkHandler.sendChatCommand("glukhoman scare");
+            Glukhoman.LOG.info("AUTOTEST сеть: глава {} «{}», цель «{}»", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective);
+            c.player.networkHandler.sendChatCommand("tp @s 4 66 21 0 30");
         }));
-        STEPS.add(new Step(60, c -> shot(c, "13_mp_forest")));
+        STEPS.add(new Step(40, c -> c.interactionManager.interactBlock(c.player, net.minecraft.util.Hand.MAIN_HAND,
+                new net.minecraft.util.hit.BlockHitResult(new net.minecraft.util.math.Vec3d(4.5, 66.5, 20.5), net.minecraft.util.math.Direction.NORTH, new BlockPos(4, 66, 20), false))));
+        STEPS.add(new Step(40, c -> {
+            Glukhoman.LOG.info("AUTOTEST сеть: ящик → экран выбора = {}", c.currentScreen instanceof com.yompix.glukhoman.client.screen.AskScreen);
+            shot(c, "12_mp_box");
+            var m = com.yompix.glukhoman.net.Net.msg("answer");
+            m.putString("id", "box");
+            m.putInt("i", 1);
+            GlukhomanClient.send(m);
+            c.setScreen(null);
+        }));
+        STEPS.add(new Step(200, c -> {
+            Glukhoman.LOG.info("AUTOTEST сеть: после ящика цель «{}», субтитры {}", GlukhomanClient.objective, GlukhomanClient.SUBS.isEmpty() ? "нет" : GlukhomanClient.SUBS.get(GlukhomanClient.SUBS.size() - 1)[1]);
+            c.player.networkHandler.sendChatCommand("glukhoman night");
+        }));
+        STEPS.add(new Step(300, c -> {
+            Glukhoman.LOG.info("AUTOTEST сеть: ночь — шаг {}, цель «{}»", GlukhomanClient.step, GlukhomanClient.objective);
+            shot(c, "13_mp_night");
+        }));
         STEPS.add(new Step(20, c -> {
             Glukhoman.LOG.info("AUTOTEST сеть: готово");
             c.world.disconnect();
@@ -163,15 +197,15 @@ public final class Autotest {
             Glukhoman.LOG.info("AUTOTEST друг: глава {} «{}», цель «{}», кат-сцена идёт = {}", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective, Cine.active);
             shot(c, "20_friend_start");
         }));
-        wait(c -> GlukhomanClient.objective.contains("батарейки"), 1500);
+        wait(c -> GlukhomanClient.chapter == 2, 2500);
         STEPS.add(new Step(20, c -> {
             Glukhoman.LOG.info("AUTOTEST друг: цель обновилась «{}»", GlukhomanClient.objective);
             shot(c, "21_friend_sync");
         }));
-        wait(c -> GlukhomanClient.chapter == 3, 1500);
+        wait(c -> GlukhomanClient.step.startsWith("n2"), 2500);
         STEPS.add(new Step(80, c -> {
             Glukhoman.LOG.info("AUTOTEST друг: глава {} «{}», цель «{}»", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective);
-            shot(c, "22_friend_ch3");
+            shot(c, "22_friend_night");
             c.world.disconnect();
             c.scheduleStop();
         }));
@@ -202,59 +236,6 @@ public final class Autotest {
         ScreenshotRecorder.saveScreenshot(c.runDirectory, "g2_" + name + ".png", c.getFramebuffer(), t -> Glukhoman.LOG.info("AUTOTEST снимок {}", name));
     }
 
-    static void shots2() {
-        STEPS.add(new Step(100, c -> {
-            var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
-                    net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
-            var info = new net.minecraft.world.level.LevelInfo("GlkShots2", net.minecraft.world.GameMode.ADVENTURE, false,
-                    net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
-            var key = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, Glukhoman.id("taiga"));
-            c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
-                    drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(key).createDimensionsRegistryHolder(),
-                    new net.minecraft.client.gui.screen.TitleScreen());
-        }));
-        wait(c -> c.player != null && c.currentScreen != null, 1500);
-        STEPS.add(new Step(40, c -> shot2(c, "00_start_screen")));
-        STEPS.add(new Step(5, c -> {
-            c.setScreen(null);
-            server(c, s -> Story.chooseDifficulty(pl(s), 1));
-        }));
-        STEPS.add(new Step(110, c -> shot2(c, "01_intro_cutscene")));
-        STEPS.add(new Step(200, c -> Cine.stop()));
-        scene("knock", -12, 65, 129, 18000, 175, "02_knock_headturn", 200);
-        scene("village", 0, 65, 120, 18000, 150, "03_village_onetake", 0);
-        scene("corridor", -4, 65, 246 * -1, 18000, 105, "04_corridor_run", 160);
-        scene("anna", -110, 25, -219, 18000, 110, "06_anna", 0);
-        scene("bunker", 14, 42, -252, 18000, 90, "07_bunker_choir", 0);
-        scene("endA", 0, 65, -218, 1000, 80, "08_end_silence", 0);
-        scene("endB", -12, 65, 130, 6000, 190, "09_end_echo", 0);
-        // скример отдельно
-        STEPS.add(new Step(10, c -> server(c, s -> { tp(s, -12, 25, -173, -90, 0); s.getOverworld().setTimeOfDay(18000); })));
-        STEPS.add(new Step(60, c -> Jumpscare.start("listener")));
-        STEPS.add(new Step(5, c -> shot2(c, "05_jumpscare_listener")));
-        // крупные планы в игре
-        STEPS.add(new Step(40, c -> server(c, s -> { Story.jump(3); })));
-        STEPS.add(new Step(60, c -> server(c, s -> { clearPoles(s); tp(s, 3, 0, -60, 180, -12); var p = (com.yompix.glukhoman.entity.PoleEntity) spawnRet(s, GContent.POLE, 3, 0, -65); })));
-        STEPS.add(new Step(190, c -> { GConfig.get().brightness = 1; GlukhomanClient.sanity = 25; shot2(c, "10_pole_closeup"); }));
-        STEPS.add(new Step(5, c -> server(c, s -> { clearPoles(s); tp(s, -12, 65, 88, 180, 15); spawnAt(s, GContent.LISTENER, -12, 65, 84); })));
-        STEPS.add(new Step(80, c -> shot2(c, "11_listener_closeup")));
-        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, 6, 0, 108, 180, 0); var d = (com.yompix.glukhoman.entity.DoppelEntity) spawnRet(s, GContent.DOPPEL, 2, 0, 96); if (d != null) d.setMimic("@anna"); })));
-        STEPS.add(new Step(60, c -> { GlukhomanClient.sanity = 60; shot2(c, "12_doppel_anna"); }));
-        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, -11, 65, 128, 90, 12); })));
-        STEPS.add(new Step(60, c -> shot2(c, "13_photo_doll")));
-        STEPS.add(new Step(5, c -> server(c, s -> { Story.jump(5); })));
-        STEPS.add(new Step(60, c -> server(c, s -> { tp(s, 14, 42, -254, 180, -8); spawnAt(s, GContent.CHOIR, 14, 42, -266); })));
-        STEPS.add(new Step(55, c -> { GlukhomanClient.sanity = 20; shot2(c, "14_choir_closeup"); }));
-        STEPS.add(new Step(40, c -> c.scheduleStop()));
-        ClientTickEvents.END_CLIENT_TICK.register(c -> {
-            if (rec >= 0 && recLeft-- > 0) {
-                ScreenshotRecorder.saveScreenshot(c.runDirectory, String.format("rec_%s_%04d.png", recName, rec++), c.getFramebuffer(), t -> {});
-                if (recLeft == 0) rec = -1;
-            }
-        });
-        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
-    }
-
     /** Проверка моделей: облёт и крупный план каждого существа днём. */
     static void models() {
         newWorld();
@@ -263,9 +244,9 @@ public final class Autotest {
             c.setScreen(null);
             GlukhomanClient.askedChoose = false;   // сюжет не запускаем — только смотрим модели
         }));
-        String only = System.getProperty("glukhoman.models", "pole,listener,choir");
+        String only = System.getProperty("glukhoman.models", "watcher");
         for (String n : only.split(",")) {
-            STEPS.add(new Step(10, c -> server(c, s -> { tp(s, 0, 65, -218, 180, 0); s.getOverworld().setTimeOfDay(6000); })));
+            STEPS.add(new Step(10, c -> server(c, s -> { tp(s, 40, 0, 26, 180, 0); s.getOverworld().setTimeOfDay(6000); })));
             STEPS.add(new Step(80, c -> Cine.play("tt_" + n)));
             for (int[] k : new int[][]{{20, 0}, {40, 1}, {40, 2}, {50, 3}, {70, 4}, {40, 5}, {10, 6}}) {
                 final int idx = k[1];
@@ -280,7 +261,7 @@ public final class Autotest {
     /** Съёмка трейлера: каждая сцена — отдельный клип в /tmp/claude-0/glukhoman-trailer/clips/. */
     static void trailer() {
         boolean vert = Boolean.getBoolean("glukhoman.vertical");
-        String dir = "/tmp/claude-0/glukhoman-trailer/clips/" + (vert ? "v_" : "h_");
+        String dir = "/tmp/claude-0/glukhoman-trailer3/clips/";
         newWorld();
         wait(c -> c.player != null && c.currentScreen != null, 1500);
         STEPS.add(new Step(10, c -> {
@@ -290,24 +271,39 @@ public final class Autotest {
             Cine.fovScale = vert ? 1.45f : 1f;
             net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> Recorder.frame());
         }));
-        Object[][] shots = vert ? new Object[][]{
-                {"tr_scare", 2, 65, -241, 18000L, 4.0}, {"knock", -3, 65, 125, 18000L, 10.0}, {"village", 0, 65, 120, 18000L, 8.0},
-                {"corridor", 2, 65, -241, 18000L, 6.7}, {"tr_listener", -120, 25, -173, 18000L, 4.6}, {"tr_doppel", 1, 65, 100, 18000L, 5.0},
-                {"bunker", 14, 42, -252, 18000L, 7.0}}
-                : new Object[][]{
-                {"intro", 0, 65, 238, 12800L, 7.0}, {"village", 0, 65, 120, 18000L, 11.0}, {"tr_radio", -12, 65, 128, 18000L, 5.0},
-                {"knock", -3, 65, 125, 18000L, 10.0}, {"tr_path", 1, 0, -60, 15000L, 5.0}, {"corridor", 2, 65, -241, 18000L, 6.7},
-                {"tr_listener", -120, 25, -173, 18000L, 4.6}, {"anna", -110, 25, -219, 18000L, 7.0}, {"tr_doppel", 1, 65, 100, 18000L, 5.0},
-                {"bunker", 14, 42, -252, 18000L, 7.0}, {"tr_scare", 2, 65, -241, 18000L, 4.0},
-                {"tr_gore", -9, 65, -93, 18000L, 6.0}, {"death_pole", 1, 0, -60, 15000L, 3.6}};
+        Object[][] shots = {
+                {"t3_rails", 0, 66, 19, 18000L, 6.5}, {"t3_cut", 58, 66, 16, 18000L, 5.0}, {"t3_bell", 24, 66, 22, 18000L, 6.0},
+                {"t3_train", 40, 66, 20, 18000L, 8.0}, {"t3_updown", 14, 66, 20, 18000L, 5.5}, {"t3_vanish", 8, 66, 20, 18000L, 4.5},
+                {"t3_board", -5, 66, 25, 18000L, 5.0}, {"t3_rewind", 2, 66, 20, 18000L, 6.2}, {"t3_rollcall", 2, 66, 20, 18000L, 5.0},
+                {"t3_draisine", 112, 66, 16, 18000L, 4.5}, {"t3_look", 20, 66, 21, 18000L, 4.5}, {"t3_stop", 4, 66, 19, 18000L, 3.2},
+                {"t3_house", 8, 65, 40, 1000L, 5.0}};
         String only = System.getProperty("glukhoman.only", "");
         for (Object[] sh : shots) {
             String id = (String) sh[0];
             if (!only.isEmpty() && !java.util.Arrays.asList(only.split(",")).contains(id)) continue;
             double limit = (Double) sh[5];
-            STEPS.add(new Step(10, c -> server(c, s -> { tp(s, (Integer) sh[1], (Integer) sh[2], (Integer) sh[3], 0, 0); s.getOverworld().setTimeOfDay((Long) sh[4]); })));
+            STEPS.add(new Step(10, c -> server(c, s -> {
+                tp(s, (Integer) sh[1], (Integer) sh[2], (Integer) sh[3], 0, 0);
+                s.getOverworld().setTimeOfDay((Long) sh[4]);
+                var st = StoryState.get(s.getOverworld());
+                Story.clearResidents();
+                for (String g : new String[]{"station", "dispatch"}) {
+                    var l = st.lamps.get(g);
+                    if (l != null) for (long q : l) {
+                        var bp = BlockPos.fromLong(q);
+                        var bs = s.getOverworld().getBlockState(bp);
+                        if (bs.getBlock() instanceof com.yompix.glukhoman.block.LampBlock)
+                            s.getOverworld().setBlockState(bp, bs.with(com.yompix.glukhoman.block.LampBlock.LIT, (Long) sh[4] > 12000), 3);
+                    }
+                }
+                if (id.equals("t3_house") && !st.flag("boarded")) {
+                    st.set("boarded");
+                    com.yompix.glukhoman.world.MapBuilder.boardUp(s.getOverworld(), st);
+                }
+            })));
             STEPS.add(new Step(140, c -> {}));
-            wait(Autotest::ready, 6000);   // ждём, пока чанки вокруг придут и построятся
+            wait(Autotest::ready, 900);   // ждём, пока чанки вокруг придут и построятся (не дольше 45 с)
+            STEPS.add(new Step(200, c -> {}));
             STEPS.add(new Step(40, c -> {
                 Recorder.start(dir + id + ".mp4", 30);
                 Cine.play(id);

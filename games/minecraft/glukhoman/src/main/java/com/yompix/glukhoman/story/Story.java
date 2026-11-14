@@ -3,28 +3,23 @@ package com.yompix.glukhoman.story;
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
 import com.yompix.glukhoman.block.LampBlock;
-import com.yompix.glukhoman.entity.AnnaEntity;
 import com.yompix.glukhoman.entity.ChoirEntity;
 import com.yompix.glukhoman.entity.ListenerEntity;
 import com.yompix.glukhoman.entity.PoleEntity;
+import com.yompix.glukhoman.entity.ResidentEntity;
+import com.yompix.glukhoman.entity.TrainEntity;
+import com.yompix.glukhoman.entity.WatcherEntity;
 import com.yompix.glukhoman.horror.Director;
-import com.yompix.glukhoman.horror.Light;
 import com.yompix.glukhoman.horror.Noise;
 import com.yompix.glukhoman.horror.Sanity;
 import com.yompix.glukhoman.horror.Sched;
 import com.yompix.glukhoman.net.Net;
+import com.yompix.glukhoman.world.MapBuilder;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
@@ -32,7 +27,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -47,8 +41,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Сюжет Глухомани: пять глав, шаги с целями, сцены, чекпоинты, концовки. Всё состояние — на сервере (StoryState),
- * общее для всех игроков: любой может двигать историю, остальные видят то же самое.
+ * «Порожняк», часть 1 (0.4): пролог «Проверка записи» (ночь 1) и глава I «Еловый» (день, вечер с правилами, ночь 2 на перроне,
+ * утренний пересмотр плёнки). Всё состояние — на сервере (StoryState), общее для всех игроков: кооператив видит одну историю.
+ * Глава 1 = пролог, глава 2 = «Еловый», глава 3 = конец первой части (свободная игра до продолжения).
  */
 public final class Story {
     private Story() {}
@@ -56,6 +51,10 @@ public final class Story {
     private static MinecraftServer server;
     private static int sceneLock;
     private static final Map<UUID, Integer> LOST = new HashMap<>();
+    /** Автотест: «игрок-призрак» без клиента. */
+    public static ServerPlayerEntity testPlayer;
+    static int prologueT;
+    static boolean announcing;
 
     public static boolean sceneRunning() {
         return sceneLock > 0;
@@ -69,10 +68,16 @@ public final class Story {
         return server.getOverworld();
     }
 
-    static List<ServerPlayerEntity> players() {
+    public static List<ServerPlayerEntity> players() {
         List<ServerPlayerEntity> l = new ArrayList<>();
+        if (server == null) return l;
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) if (!p.isSpectator()) l.add(p);
+        if (testPlayer != null) l.add(testPlayer);
         return l;
+    }
+
+    static int difficulty() {
+        return st().difficulty;
     }
 
     // ===================== запуск =====================
@@ -81,12 +86,12 @@ public final class Story {
         server = s;
         Sched.clear();
         Noise.clear();
+        Cam.clear();
+        Night.reset();
         sceneLock = 0;
         StoryState st = st();
         if (!isOurWorld()) return;
-        if (!st.built) com.yompix.glukhoman.world.MapBuilder.build(w(), st);
-        if (st.built && !st.flag("decor2")) com.yompix.glukhoman.world.MapBuilder.decor(w(), st);
-        else if (st.built && !st.flag("decor3")) com.yompix.glukhoman.world.MapBuilder.blood(w(), st);
+        if (!st.built) MapBuilder.build(w(), st);
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);
@@ -99,11 +104,24 @@ public final class Story {
         r.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, s);
         BlockPos sp = st.point("start");
         if (sp != null) w().setSpawnPos(sp, 0);
-        w().getWorldBorder().setCenter(0, -10);
-        w().getWorldBorder().setSize(1000);
-        if (st.chapter == 0) w().setTimeOfDay(12600);
-        // после перезапуска возвращаем существ текущего шага
-        if (st.chapter > 0 && st.ending.isEmpty()) Sched.after(40, () -> respawnCreatures(st));
+        w().getWorldBorder().setCenter(60, 60);
+        w().getWorldBorder().setSize(900);
+        if (st.chapter == 0) w().setTimeOfDay(20850);
+        if (st.chapter > 0) Sched.after(40, () -> resume(st));
+    }
+
+    /** Перезапуск посреди истории: пролог — заново, ночь — с вечера, днём — жители на местах. */
+    static void resume(StoryState st) {
+        clearResidents();
+        if (st.step.startsWith("p_")) {
+            startPrologue();
+            return;
+        }
+        if (st.step.startsWith("n2")) {
+            setStep("c1_wait");
+            w().setTimeOfDay(16000);
+        }
+        if (st.chapter == 2) dayResidents();
     }
 
     public static boolean isOurWorld() {
@@ -122,34 +140,31 @@ public final class Story {
             } else if (st.chapter > 0 && st.set("joined:" + p.getUuid())) {
                 BlockPos cp = checkpoint();
                 if (cp != null) p.teleport(w(), cp.getX() + 0.5, cp.getY(), cp.getZ() + 0.5, p.getYaw(), p.getPitch());
-                if (st.chapter >= 2 && !has(p, GContent.FLASHLIGHT)) {
-                    give(p, new ItemStack(GContent.FLASHLIGHT));
-                    give(p, new ItemStack(GContent.BATTERY, 2));
-                }
-                title(p, st.chapter);
+                kit(p, false);
+                msg(p, "Ты — в бригаде сторожей. Камера одна на всех: попроси у того, кто держит.");
             }
         });
         if (st.chapter == 0) st.set("joined:" + p.getUuid());
+    }
+
+    public static void leave(ServerPlayerEntity p) {
+        Cam.lower(p, true);
+        Cam.forget(p);
     }
 
     public static void chooseDifficulty(ServerPlayerEntity p, int d) {
         chooseDifficulty(p, d, false);
     }
 
-    /** force — команда хозяина мира; иначе сложность выбирается только до начала истории. */
     public static void chooseDifficulty(ServerPlayerEntity p, int d, boolean force) {
         StoryState st = st();
-        if (st.chapter != 0) {
-            if (!force) return;
-            st.difficulty = Math.max(0, Math.min(2, d));
-            st.markDirty();
-            Net.all(server, diffMsg());
-            return;
-        }
+        if (st.chapter != 0 && !force) return;
         st.difficulty = Math.max(0, Math.min(2, d));
-        st.set("asked");
+        st.markDirty();
         Net.all(server, diffMsg());
-        startChapter(1);
+        if (st.chapter != 0) return;
+        st.set("asked");
+        startPrologue();
     }
 
     static NbtCompound diffMsg() {
@@ -162,108 +177,437 @@ public final class Story {
         Net.send(p, diffMsg());
     }
 
-    // ===================== главы =====================
+    /** Камера — одна на бригаду (у первого), у остальных фонарь и батарейка. */
+    static void kit(ServerPlayerEntity p, boolean camera) {
+        if (camera && !has(p, GContent.CAMCORDER)) {
+            p.getInventory().selectedSlot = 0;
+            ItemStack old = p.getInventory().getStack(0);
+            p.getInventory().setStack(0, new ItemStack(GContent.CAMCORDER));
+            if (!old.isEmpty()) give(p, old);
+        }
+        if (!has(p, GContent.FLASHLIGHT)) give(p, new ItemStack(GContent.FLASHLIGHT));
+        if (!camera) give(p, new ItemStack(GContent.BATTERY, 1));
+    }
 
-    public static void startChapter(int n) {
+    // ===================== пролог: «Проверка записи» =====================
+
+    static void startPrologue() {
         StoryState st = st();
-        st.chapter = n;
+        st.chapter = 1;
         st.markDirty();
-        clearCreatures(n >= 4 && n < 5);
-        Director.calm(server, 600);
-        ServerWorld w = w();
-        switch (n) {
-            case 1 -> {
-                w.setTimeOfDay(12600);
-                tpSpread(st.point("start"));
-                for (ServerPlayerEntity p : players()) {
-                    p.setYaw(180);
-                    Sanity.set(p, 100);
+        clearCreatures();
+        Director.calm(server, 20 * 60 * 30);
+        w().setTimeOfDay(20850);   // 02:51
+        if (Tapes.list(st).isEmpty()) Tapes.newTape(st);
+        tpSpread(st.point("start"));
+        List<ServerPlayerEntity> ps = players();
+        for (int i = 0; i < ps.size(); i++) {
+            ServerPlayerEntity p = ps.get(i);
+            p.teleport(w(), p.getX(), p.getY(), p.getZ(), -90, 4);   // лицом вдоль перрона, к переезду (поворот уходит клиенту только телепортом)
+            Sanity.set(p, 100);
+            kit(p, i == 0);
+            if (i == 0) {
+                if (!has(p, GContent.CASSETTE)) Tapes.give(p);
+                give(p, new ItemStack(GContent.BATTERY, 2));
+            }
+            p.setSpawnPoint(w().getRegistryKey(), st.point("cp_platform"), -90, true, false);
+        }
+        lamps("station", true);
+        ResidentEntity polya = spawnResident("polya", st.point("polya_window"));
+        if (polya != null) {
+            polya.setYaw(180);
+            polya.act("slowwave");
+        }
+        ResidentEntity pet = spawnResident("petrovich", st.point("petrovich_day"));
+        if (pet != null) pet.setYaw(180);
+        prologueT = 0;
+        setStep("p_rec");
+        for (ServerPlayerEntity p : ps) if (has(p, GContent.CAMCORDER)) Sched.after(30, () -> Cam.raise(p));
+        Sched.after(60, () -> seq("p_gena", st.find("radio"), true));
+    }
+
+    static void prologueTick(StoryState st) {
+        if (Boolean.getBoolean("glukhoman.freeze")) return;   // автотест-съёмка: пролог стоит на месте
+        prologueT += 10;
+        if (st.step.equals("p_rec")) {
+            int n = 0;
+            for (String t : new String[]{"t_platform", "t_switch", "t_crossing"}) {
+                if (!st.flag("rec_" + t)) for (ServerPlayerEntity p : players()) if (Cam.up(p) && Cam.session(p).getOrDefault(t, 0) >= 30) {
+                    st.set("rec_" + t);
+                    msg(p, "Есть: " + Texts.get().objective("rec_" + t));
+                    hudAll();
                 }
-                setStep("c1_road");
-                scene("intro", () -> {
-                    titleAll(1, true);
-                    seq("uaz", st.point("uaz"), false);
+                if (st.flag("rec_" + t)) n++;
+            }
+            if (n == 3 || prologueT > 20 * 75) {
+                setStep("p_east");
+                seq("p_gena2", st.find("radio"), true);
+            }
+        } else if (st.step.equals("p_east")) {
+            for (ServerPlayerEntity p : players()) if (inZone(p, "east")) bell();
+            if (prologueT > 20 * 100) bell();   // крючок — не позже двух минут
+        } else if (st.step.equals("p_bell") && !st.flag("p_scene")) {
+            boolean raised = false;
+            for (ServerPlayerEntity p : players()) raised |= Cam.up(p);
+            if ((raised && prologueT > st.count("p_bell_t") + 60) || prologueT > st.count("p_bell_t") + 20 * 10) {
+                st.set("p_scene");
+                for (ServerPlayerEntity p : players()) Cam.lower(p, true);
+                Tapes.commit(st, "prologue", "rec", titleOf("prologue"), Map.of("polya", 400, "train", 300));
+                scene("pr_train", () -> {
+                    clearResidents();
+                    scene("pr_board", Story::morning);
                 });
-                Sched.after(900, () -> {
-                    for (ServerPlayerEntity p : players()) Director.apparition(p, false);
-                });
-            }
-            case 2 -> {
-                w.setTimeOfDay(18000);
-                setStep("c2_fuses");
-                spawn(GContent.LISTENER, st.point("school_listener"));
-                scene("village", () -> {
-                    titleAll(2, false);
-                    seq("numbers", null, true);
-                });
-            }
-            case 3 -> {
-                w.setTimeOfDay(18000);
-                setStep("c3_path");
-                titleAll(3, false);
-                Sched.after(400, () -> spawnPole());
-            }
-            case 4 -> {
-                setStep("c4_lift");
-                titleAll(4, false);
-            }
-            case 5 -> {
-                w.setTimeOfDay(18000);
-                tpSpread(st.point("cp5"));
-                AnnaEntity a = spawn(GContent.ANNA, st.point("anna_station"));
-                setStep("c5_bunker");
-                titleAll(5, false);
-                powerStation(true);
             }
         }
-        for (ServerPlayerEntity p : players()) p.setSpawnPoint(w.getRegistryKey(), checkpoint(), 0, true, false);
     }
 
-    static void respawnCreatures(StoryState st) {
-        if (st.chapter == 2 && !st.flag("power")) ensure(GContent.LISTENER, st.point("school_listener"), 1);
-        if (st.chapter == 3 && !st.step.equals("c3_path")) ensurePole();
-        if (st.chapter == 3 && st.step.equals("c3_path")) Sched.after(200, Story::spawnPole);
-        if (st.chapter == 4) {
-            for (String m : new String[]{"mine_l1", "mine_l2", "mine_l3"}) ensure(GContent.LISTENER, st.point(m), 0);
-            if (st.flag("anna_found") || st.step.equals("c4_anna")) ensure(GContent.ANNA, st.point("anna_mine"), 1);
-            if (st.step.equals("c4_escape")) spawnChoir(st.point("choir_mine"), true);
-        }
-        if (st.chapter == 5) {
-            ensure(GContent.ANNA, st.point("anna_station"), 1);
-            powerStation(true);
-            if (!st.step.equals("c5_bunker")) spawnChoir(st.point("choir_bunker"), false);
-        }
-        if (st.chapter >= 2 && st.flag("power")) powerVillage(false);
-    }
-
-    static void ensure(net.minecraft.entity.EntityType<? extends LivingEntity> type, BlockPos at, int max) {
-        if (at == null) return;
-        int have = w().getEntitiesByType(type, new Box(at).expand(60), e -> true).size();
-        if (max == 0 ? have == 0 || have < 1 : have < max) spawn(type, at);
-    }
-
-    static void ensurePole() {
-        if (w().getEntitiesByClass(PoleEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> !e.isApparition()).isEmpty()) spawnPole();
-    }
-
-    static void spawnPole() {
+    /** На мёртвой линии звонит переезд. Мигают красные. Глазами — ничего. */
+    static void bell() {
         StoryState st = st();
-        if (st.chapter != 3) return;
-        ServerPlayerEntity p = players().isEmpty() ? null : players().get(0);
-        BlockPos at = st.point("gate");
-        if (p != null) at = p.getBlockPos().add(0, 0, 30);
-        int y = w().getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, at.getX(), at.getZ());
-        spawn(GContent.POLE, new BlockPos(at.getX(), y, at.getZ()));
+        if (!st.step.equals("p_east")) return;
+        setStep("p_bell");
+        st.counters.put("p_bell_t", prologueT);
+        st.markDirty();
+        for (int i = 0; i < 12; i++) {
+            final int k = i;
+            Sched.after(i * 40, () -> {
+                sound(st.point("crossing"), "crossing_bell", 2.4f, 1f);
+                for (BlockPos q : lampsOf("signal")) lampSet(q, k % 2 == 0);
+            });
+            Sched.after(i * 40 + 20, () -> {
+                for (BlockPos q : lampsOf("signal")) lampSet(q, k % 2 != 0);
+            });
+        }
+        Sched.after(12 * 40 + 2, () -> {
+            for (BlockPos q : lampsOf("signal")) lampSet(q, false);
+        });
+        msgAll("Звонит переезд. Ветку закрыли пять лет назад. Подними камеру.");
+        voice("p_bell", st.point("crossing"), true);
     }
 
-    static ChoirEntity spawnChoir(BlockPos at, boolean chase) {
-        for (ChoirEntity c : w().getEntitiesByClass(ChoirEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> true)) c.discard();
-        ChoirEntity c = spawn(GContent.CHOIR, at);
-        if (c != null) c.chase = chase;
-        return c;
+    // ===================== глава I «Еловый» =====================
+
+    static void morning() {
+        StoryState st = st();
+        st.chapter = 2;
+        st.set("taken:polya");
+        st.markDirty();
+        w().setTimeOfDay(700);
+        MapBuilder.boardUp(w(), st);
+        lamps("station", false);
+        for (BlockPos q : lampsOf("signal")) lampSet(q, false);
+        tpSpread(new BlockPos(12, 66, 19));   // восточный конец перрона: видно дом бабы Поли
+        for (ServerPlayerEntity p : players()) {
+            p.teleport(w(), p.getX(), p.getY(), p.getZ(), -16, 6);   // утро: лицом к дому бабы Поли
+            p.setSpawnPoint(w().getRegistryKey(), st.point("cp_platform"), 0, true, false);
+        }
+        fxAll("fade", 60);
+        dayResidents();
+        setStep("c1_house");
+        Sched.after(80, () -> seq("c1_gena_morning", st.find("radio"), true));
     }
 
-    @SuppressWarnings("unchecked")
+    static void dayResidents() {
+        StoryState st = st();
+        clearResidents();
+        for (String who : new String[]{"zakhar", "vika", "petrovich", "zina"}) {
+            if (st.flag("taken:" + who)) continue;
+            ResidentEntity r = spawnResident(who, st.point(who + "_day"));
+            if (r != null) r.setYaw(who.equals("zina") || who.equals("petrovich") ? 180 : 0);
+        }
+    }
+
+    static void houseVisited() {
+        StoryState st = st();
+        if (!st.step.equals("c1_house")) return;
+        setStep("c1_zina");
+        int d = seq("c1_zina", st.point("zina_day"), true);
+        Sched.after(d + 20, () -> {
+            titleAll("", "ГЛУХОМАНЬ", "Еловый. 14 октября 1996-го. Помнит только кассета.");
+            Sched.after(140, () -> {
+                setStep("c1_box");
+                seq("c1_gena_box", st.find("radio"), true);
+            });
+        });
+    }
+
+    static void boxChoice(ServerPlayerEntity p) {
+        StoryState st = st();
+        if (st.chapter != 2 || st.flag("box_day1")) {
+            msg(p, st.flag("box_day1") ? "Ящик пустой и холодный. Сегодня уже решили." : "Старый почтовый ящик лагпункта. Щель для писем.");
+            return;
+        }
+        NbtCompound t = Tapes.current(st);
+        if (t == null) {
+            msg(p, "Сдавать нечего.");
+            return;
+        }
+        ask(p, "box", "Кассета №" + t.getInt("n") + ". На ней: " + subjText(Tapes.weight(st, false)),
+                "Сдать в ящик (Гена привезёт батарейки и новую кассету)", "Оставить себе (всё, что на ней, останется с тобой)");
+    }
+
+    public static void answer(ServerPlayerEntity p, String id, int i) {
+        StoryState st = st();
+        if (!id.equals("box") || st.flag("box_day1")) return;
+        st.set("box_day1");
+        if (i == 0) {
+            int n = Tapes.deposit(st, p);
+            st.set("deposited1");
+            st.inc("deposits");
+            sound(st.find("box"), "tape_click", 1f, 0.7f);
+            msg(p, "Кассета №" + n + " упала на дно ящика. Глухо, как в колодец.");
+            List<BlockPos> b = lampsOf("board");
+            if (!b.isEmpty()) sound(b.get(0), "relay", 0.6f, 1.3f);
+            Sched.after(200, () -> {
+                sound(st.point("start"), "motor", 2f, 1f);
+                Sched.after(100, () -> {
+                    for (ServerPlayerEntity q : players()) give(q, new ItemStack(GContent.BATTERY, q == p ? 3 : 1));
+                    Tapes.newTape(st);
+                    Tapes.give(p);
+                    hudAll();
+                    seq("c1_gena_paid", st.find("radio"), true);
+                    msgAll("Мотовоз привёз батарейки и новую кассету. Всё честно.");
+                });
+            });
+        } else {
+            st.set("kept1");
+            seq("c1_gena_angry", st.find("radio"), true);
+        }
+        hudAll();
+        Sched.after(60, () -> {
+            if (st.step.equals("c1_box")) setStep("c1_zakhar");
+        });
+    }
+
+    /** Житель: днём — разговор; поднятая камера — интервью (это сюжет на плёнке, «якорь»). Ночью лунатика — будить. */
+    public static void resident(ServerPlayerEntity p, ResidentEntity r) {
+        StoryState st = st();
+        String who = r.who();
+        if (r.sleepwalking()) {
+            Night.wake(p, r);
+            return;
+        }
+        if (st.chapter == 2 && who.equals("zakhar") && st.step.equals("c1_zakhar")) {
+            int d = seq("c1_zakhar", r.getBlockPos(), false);
+            if (st.flag("kept1") && st.set("zakhar_battery")) Sched.after(d, () -> {
+                give(p, new ItemStack(GContent.BATTERY, 1));
+                msg(p, "Захар Ильич сунул тебе батарейку из ящика стола. «Только Гене не говори».");
+            });
+            Sched.after(d + 10, () -> setStep("c1_evening"));
+            return;
+        }
+        if (Cam.up(p) && st.chapter == 2 && !st.flag("int_" + who) && !Texts.get().sequence("int_" + who).isEmpty()) {
+            st.set("int_" + who);
+            st.inc("interviews");
+            int d = seq("int_" + who, r.getBlockPos(), false);
+            Sched.after(d, () -> {
+                Map<String, Integer> s = new HashMap<>(Cam.session(p));
+                s.merge(who, 200, Integer::sum);
+                String m = Tapes.commit(st, "interview", "int_" + who, "Интервью: " + Texts.get().whoName(who), s);
+                Cam.session(p).clear();
+                msg(p, m != null ? m : "Интервью на плёнке. " + Texts.get().whoName(who) + " теперь на кассете.");
+                hudAll();
+            });
+            return;
+        }
+        String id = "talk_" + who + "_" + st.step;
+        seq(Texts.get().sequence(id).isEmpty() ? "talk_" + who : id, r.getBlockPos(), false);
+    }
+
+    /** Стул в дежурке: ждать вечера / ночи. */
+    static void waitChair(ServerPlayerEntity p) {
+        StoryState st = st();
+        switch (st.step) {
+            case "c1_evening" -> evening();
+            case "c1_wait" -> {
+                fxAll("fade", 80);
+                setStep("n2_wait");
+                Sched.after(40, Night::start);
+            }
+            case "c1_box", "c1_zakhar", "c1_house", "c1_zina" -> msg(p, "Рано. Сначала: " + objectiveText());
+            default -> msg(p, "Стул скрипит. Сидеть некогда.");
+        }
+    }
+
+    /** 22:00 — Захар объявляет правила ночи по громкоговорителю. Одно правило — ложное: его говорит линия его голосом. */
+    static void evening() {
+        StoryState st = st();
+        fxAll("fade", 60);
+        w().setTimeOfDay(16000);
+        lamps("station", true);
+        setStep("c1_announce");
+        st.data.putString("false_rule", "rule_n2_4");
+        BlockPos ls = st.point("loudspeaker");
+        Sched.after(80, () -> {
+            announcing = true;
+            sound(ls, "loudspeaker", 2.5f, 1f);
+            int d = seq("rules_n2", ls, true);
+            Sched.after(d + 20, () -> {
+                for (ServerPlayerEntity p : players()) if (Cam.up(p)) {
+                    Cam.lower(p, true);
+                    Cam.raise(p);
+                }
+                announcing = false;
+                int d2 = seq("vika_rule", st.point("vika_day"), true);
+                Sched.after(d2 + 20, () -> {
+                    setStep("c1_wait");
+                    clearResidents();
+                });
+            });
+        });
+    }
+
+    public static void nightOver() {
+        StoryState st = st();
+        w().setTimeOfDay(1000);
+        lamps("station", false);
+        fxAll("fade", 80);
+        tpSpread(st.point("cp_platform"));
+        dayResidents();
+        setStep("c1_replay");
+        String called = st.data.getString("n2_called");
+        int taken = 0;
+        for (String x : called.split(",")) if (!x.isEmpty() && st.flag("taken:" + x)) taken++;
+        Glukhoman.LOG.info("Глухомань: ночь 2 окончена, позвали {}, забрал {}", called, taken);
+        final int tk = taken;
+        Sched.after(60, () -> seq(tk > 0 ? "c1_morning_lost" : "c1_morning_saved", st.point("cp_platform"), true));
+    }
+
+    /** Пересмотр сюжета: клиент разыгрывает «запись» как VHS-сцену или как плёнку с субтитрами. */
+    public static void replay(ServerPlayerEntity p, NbtCompound slot) {
+        StoryState st = st();
+        String kind = slot.getString("kind");
+        sound(p.getBlockPos(), "rewind", 0.7f, 1f);
+        switch (kind) {
+            case "prologue" -> sceneFor(p, "pr_board", null);
+            case "night", "death" -> {
+                NbtCompound a = new NbtCompound();
+                Vec3d at = Night.wakeAt != null ? Night.wakeAt : Vec3d.ofBottomCenter(st.point("t_platform"));
+                a.putDouble("x", at.x);
+                a.putDouble("y", at.y);
+                a.putDouble("z", at.z);
+                a.putString("who", Night.wakeWho);
+                a.putString("me", p.getName().getString());
+                sceneFor(p, "rp_night", a);
+                if (st.step.equals("c1_replay") && st.set("replayed")) Sched.after(Scenes.ticks("rp_night") + 30, Story::endPart1);
+            }
+            default -> {
+                NbtCompound m = Net.msg("playback");
+                m.putString("title", slot.getString("title"));
+                NbtList lines = new NbtList();
+                String ctx = slot.getString("ctx");
+                if (kind.equals("interview") || kind.equals("announce")) {
+                    for (String l : Texts.get().sequence(kind.equals("announce") ? "rules_n2" : ctx)) {
+                        String text = Texts.get().lineText(l);
+                        if (l.equals(st.data.getString("false_rule"))) text = "[тишина. На плёнке громкоговоритель молчит — а ты помнишь голос.]";
+                        lines.add(NbtString.of(Texts.get().lineWho(l) + ": " + text));
+                    }
+                } else lines.add(NbtString.of("В кадре: " + subjText(slot.getCompound("subj"))));
+                m.put("lines", lines);
+                Net.send(p, m);
+            }
+        }
+    }
+
+    static void endPart1() {
+        StoryState st = st();
+        if (st.chapter >= 3) return;
+        st.chapter = 3;
+        st.ending = "1";
+        st.markDirty();
+        setStep("end1");
+        int d = seq("end1", st.find("radio"), true);
+        Sched.after(d + 20, () -> {
+            titleAll("Конец первой части", "ПОРОЖНЯК", "Продолжение — глава II: табло горит без тока");
+            Glukhoman.LOG.info("Глухомань: часть 1 пройдена. Сдано кассет {}, интервью {}, забрал поезд {}", st.count("deposits"), st.count("interviews"), st.count("taken"));
+        });
+    }
+
+    /** Стёрли сюжет: всё, что держала эта запись, больше ничто не держит. */
+    static void erased(NbtCompound old) {
+        Glukhoman.LOG.info("Глухомань: стёрт сюжет «{}»", old.getString("title"));
+    }
+
+    // ===================== «что пишет камера» =====================
+    public static String recKind() {
+        StoryState st = st();
+        if (st.step.startsWith("p_")) return "prologue";
+        if (announcing) return "announce";
+        if (Night.running) return "night";
+        return "footage";
+    }
+
+    public static String recCtx() {
+        return switch (recKind()) {
+            case "prologue" -> "rec";
+            case "announce" -> "rules_n2";
+            case "night" -> "n2";
+            default -> st().step + ":" + st().count("foot");
+        };
+    }
+
+    public static String recTitle() {
+        return titleOf(recKind());
+    }
+
+    public static String titleOf(String kind) {
+        return switch (kind) {
+            case "prologue" -> "Проверка записи. 14.10, 02:51";
+            case "announce" -> "Объявление Захара, 22:00";
+            case "night" -> "Перрон, ночь на 15.10";
+            default -> {
+                StoryState st = st();
+                st.inc("foot");
+                yield "Сюжет " + st.count("foot") + " (" + (st.chapter == 2 && !st.step.startsWith("n2") ? "день" : "ночь") + ")";
+            }
+        };
+    }
+
+    static void camRaised(ServerPlayerEntity p) {
+        if (announcing) st().data.putBoolean("rules_filmed", true);
+    }
+
+    public static String subjText(NbtCompound subj) {
+        Map<String, Integer> m = new HashMap<>();
+        for (String k : subj.getKeys()) m.put(k, subj.getInt(k));
+        return subjText(m);
+    }
+
+    public static String subjText(Map<String, Integer> m) {
+        List<Map.Entry<String, Integer>> l = new ArrayList<>(m.entrySet());
+        l.sort((a, b) -> b.getValue() - a.getValue());
+        StringBuilder b = new StringBuilder();
+        for (var e : l) {
+            if (e.getValue() < 10) continue;
+            if (b.length() > 0) b.append(", ");
+            b.append(Texts.get().whoName(e.getKey()));
+            if (b.length() > 90) break;
+        }
+        return b.length() == 0 ? "никого" : b.toString();
+    }
+
+    // ===================== жители и существа =====================
+    public static ResidentEntity spawnResident(String who, BlockPos at) {
+        ResidentEntity r = spawn(GContent.RESIDENT, at);
+        if (r != null) {
+            r.who(who);
+            r.setCustomName(Text.literal(Texts.get().whoName(who)));
+            r.setCustomNameVisible(false);
+        }
+        return r;
+    }
+
+    public static void clearResidents() {
+        for (Entity e : w().getEntitiesByClass(ResidentEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> true)) e.discard();
+    }
+
+    static void clearCreatures() {
+        for (Entity e : w().getEntitiesByClass(LivingEntity.class, new Box(BlockPos.ORIGIN).expand(700),
+                e -> e instanceof PoleEntity || e instanceof ListenerEntity || e instanceof ChoirEntity || e instanceof WatcherEntity || e instanceof ResidentEntity))
+            e.discard();
+        for (Entity e : w().getEntitiesByClass(TrainEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> true)) e.discard();
+    }
+
     static <T extends Entity> T spawn(net.minecraft.entity.EntityType<T> type, BlockPos at) {
         if (at == null) return null;
         T e = type.create(w());
@@ -273,18 +617,11 @@ public final class Story {
         return e;
     }
 
-    static void clearCreatures(boolean keepAnna) {
-        for (Entity e : w().getEntitiesByClass(LivingEntity.class, new Box(BlockPos.ORIGIN).expand(700),
-                e -> e instanceof PoleEntity || e instanceof ListenerEntity || e instanceof ChoirEntity || (!keepAnna && e instanceof AnnaEntity)))
-            e.discard();
-    }
-
     // ===================== кат-сцены =====================
     private static int sceneSeq;
     private static Runnable sceneAfter;
     private static final java.util.Set<UUID> SKIPPED = new java.util.HashSet<>();
 
-    /** Кат-сцена у всех игроков сразу (клиент сам играет камеру и актёров); after — что делать после неё. */
     public static void scene(String id, Runnable after) {
         int len = Scenes.ticks(id);
         int token = ++sceneSeq;
@@ -300,6 +637,15 @@ public final class Story {
         });
     }
 
+    /** Сцена только для одного игрока (пересмотр кассеты); сюжет её не ждёт. */
+    static void sceneFor(ServerPlayerEntity p, String id, NbtCompound args) {
+        NbtCompound m = Net.msg("cut");
+        m.putString("id", id);
+        if (args != null) m.put("args", args);
+        m.putBoolean("solo", true);
+        Net.send(p, m);
+    }
+
     static void finishScene() {
         sceneSeq++;
         sceneLock = 0;
@@ -309,7 +655,6 @@ public final class Story {
         if (r != null) r.run();
     }
 
-    /** Пропуск: хозяин (первый в списке) пропускает за всех, иначе — когда пропустили все. */
     public static void skip(ServerPlayerEntity p) {
         if (sceneAfter == null && sceneLock == 0) return;
         SKIPPED.add(p.getUuid());
@@ -319,46 +664,6 @@ public final class Story {
         else msg(p, "Ждём, пока пропустят остальные…");
     }
 
-    // ===================== расправа (18+) =====================
-    private static final java.util.Set<UUID> EXECUTING = new java.util.HashSet<>();
-
-    /** Последний удар существа: игрок видит свою смерть (кат-сцена), потом брызги, куски, кровь и следы волочения. */
-    public static void execute(ServerPlayerEntity p, com.yompix.glukhoman.entity.HorrorMob mob) {
-        if (!EXECUTING.add(p.getUuid())) return;
-        p.setInvulnerable(true);
-        p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 9, false, false));
-        mob.hold = 75;
-        mob.act("attack", 20);
-        NbtCompound m = Net.msg("cut");
-        m.putString("id", "death_" + mob.geoName());
-        Net.send(p, m);
-        Sched.after(60, () -> {
-            ServerWorld w = p.getServerWorld();
-            Vec3d at = p.getPos();
-            w.spawnParticles(new net.minecraft.particle.ItemStackParticleEffect(net.minecraft.particle.ParticleTypes.ITEM, new ItemStack(GContent.GORE_CHUNK)),
-                    at.x, at.y + 1, at.z, 40, 0.4, 0.5, 0.4, 0.18);
-            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 2f), at.x, at.y + 1, at.z, 60, 0.6, 0.6, 0.6, 0.1);
-            BlockPos q = p.getBlockPos();
-            if (w.getBlockState(q).isAir()) w.setBlockState(q, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1), 3);
-            if (mob instanceof ChoirEntity) {   // Хор рвёт на части — остаются куски
-                BlockPos r = q.east();
-                if (w.getBlockState(r).isAir()) w.setBlockState(r, GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1), 3);
-            } else if (mob instanceof PoleEntity) {   // Жердь утаскивает тело в лес — след волочения
-                Vec3d dir = at.subtract(mob.getPos()).multiply(-1, 0, -1).normalize();
-                for (int i = 1; i < 9; i++) {
-                    BlockPos t = BlockPos.ofFloored(at.add(dir.multiply(i)));
-                    int y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, t.getX(), t.getZ());
-                    BlockPos tp2 = new BlockPos(t.getX(), y, t.getZ());
-                    if (w.getBlockState(tp2).isAir()) w.setBlockState(tp2, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 2), 3);
-                }
-            }
-            w.playSound(null, q, GContent.sound("choir_hurt"), SoundCategory.HOSTILE, 1.2f, 0.6f);
-            p.setInvulnerable(false);
-            EXECUTING.remove(p.getUuid());
-            p.damage(mob.getDamageSources().mobAttack(mob), 1000f);
-        });
-    }
-
     // ===================== шаги и HUD =====================
 
     public static void setStep(String id) {
@@ -366,16 +671,24 @@ public final class Story {
         st.step = id;
         st.markDirty();
         Glukhoman.LOG.info("Глухомань: шаг {} (глава {})", id, st.chapter);
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) sendHud(p);
+        hudAll();
     }
 
     static String objectiveText() {
         StoryState st = st();
         String t = Texts.get().objective(st.step);
         return switch (st.step) {
-            case "c2_fuses", "c2_power" -> t + " (найдено " + st.count("fuses_found") + "/3, в щите " + st.count("fuses_in") + "/3)";
-            case "c4_marks" -> t + " (" + st.count("marks") + "/3)";
-            case "c5_amps" -> t + " (" + st.count("amps") + "/3)";
+            case "p_rec" -> {
+                int n = 0;
+                for (String x : new String[]{"t_platform", "t_switch", "t_crossing"}) if (st.flag("rec_" + x)) n++;
+                yield t + " (" + n + "/3)";
+            }
+            case "c1_box", "c1_zakhar" -> t + (st.count("interviews") > 0 ? " · интервью: " + st.count("interviews") : "");
+            case "n2_night" -> {
+                int left = 0;
+                for (ResidentEntity r : Night.walkersList()) if (r.sleepwalking()) left++;
+                yield t + (left > 0 ? " · идут к поезду: " + left : "");
+            }
             default -> t;
         };
     }
@@ -388,6 +701,8 @@ public final class Story {
         m.putString("obj", st.chapter == 0 ? "" : objectiveText());
         m.putString("step", st.step);
         m.putString("ending", st.ending);
+        NbtCompound t = Tapes.current(st);
+        m.putString("tape", t == null ? "нет кассеты" : "№" + t.getInt("n") + " " + Tapes.slots(t).size() + "/" + Tapes.SLOTS);
         Net.send(p, m);
     }
 
@@ -395,46 +710,37 @@ public final class Story {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) sendHud(p);
     }
 
-    static void titleAll(int ch, boolean big) {
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) title(p, ch);
+    static void titleAll(String a, String b, String c) {
+        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            NbtCompound m = Net.msg("title");
+            m.putString("a", a);
+            m.putString("b", b);
+            m.putString("c", c);
+            Net.send(p, m);
+        }
         for (ServerPlayerEntity p : players()) w().playSound(null, p.getBlockPos(), GContent.sound("title_hit"), SoundCategory.MASTER, 1f, 1f);
-    }
-
-    static void title(ServerPlayerEntity p, int ch) {
-        NbtCompound m = Net.msg("title");
-        m.putString("a", "Глава " + roman(ch));
-        m.putString("b", Texts.get().chapterTitle(ch));
-        m.putString("c", Texts.get().chapterSub(ch));
-        Net.send(p, m);
-    }
-
-    static String roman(int n) {
-        return new String[]{"", "I", "II", "III", "IV", "V"}[Math.max(0, Math.min(5, n))];
     }
 
     public static BlockPos checkpoint() {
         StoryState st = st();
-        return switch (st.chapter) {
-            case 1 -> st.step.equals("c1_road") ? st.point("cp1") : st.point("cp2");
-            case 2 -> st.point("cp2");
-            case 3 -> st.step.equals("c3_path") ? st.point("cp3") : st.point("cp5");
-            case 4 -> st.step.equals("c4_lift") ? st.point("cp4top") : st.point("cp4");
-            case 5 -> st.point("cp5");
-            default -> st.point("start");
-        };
+        if (st.step.startsWith("n2") || st.step.equals("c1_wait")) return st.point("cp_dispatch");
+        return st.point("cp_platform");
     }
 
-    // ===================== реплики, записки, звуки =====================
+    // ===================== реплики, звуки, вещи =====================
 
-    /** Проиграть последовательность реплик: в точке (рация/плёнка) для тех, кто рядом, или всем (global). */
     public static int seq(String id, BlockPos at, boolean global) {
         int t = 0;
         for (String line : Texts.get().sequence(id)) {
             final String l = line;
             Sched.after(t + 1, () -> voice(l, at, global));
-            t += (int) (Texts.get().lineText(line).length() / 13.0 * 20) + 30;
+            t += dur(line);
         }
         return t;
+    }
+
+    static int dur(String line) {
+        return (int) (Texts.get().lineText(line).length() / 13.0 * 20) + 30;
     }
 
     public static void voice(String line, BlockPos at, boolean global) {
@@ -442,7 +748,7 @@ public final class Story {
         m.putString("id", line);
         m.putString("who", Texts.get().lineWho(line));
         m.putString("text", Texts.get().lineText(line));
-        m.putInt("dur", (int) (Texts.get().lineText(line).length() / 13.0 * 20) + 30);
+        m.putInt("dur", dur(line));
         if (at != null) {
             m.putInt("x", at.getX());
             m.putInt("y", at.getY());
@@ -453,28 +759,7 @@ public final class Story {
             if (global || at == null || p.getBlockPos().getSquaredDistance(at) < 40 * 40) Net.send(p, m);
     }
 
-    static void note(ServerPlayerEntity p, String id) {
-        NbtCompound m = Net.msg("note");
-        m.putString("title", Texts.get().noteTitle(id));
-        NbtList pages = new NbtList();
-        for (String s : Texts.get().notePages(id)) pages.add(NbtString.of(s));
-        m.put("pages", pages);
-        Net.send(p, m);
-        StoryState st = st();
-        if (st.set("book:" + id + ":" + p.getUuid())) give(p, book(id));
-    }
-
-    static ItemStack book(String id) {
-        ItemStack b = new ItemStack(Items.WRITTEN_BOOK);
-        List<RawFilteredPair<Text>> pages = new ArrayList<>();
-        for (String s : Texts.get().notePages(id)) pages.add(RawFilteredPair.of(Text.literal(s)));
-        String author = Texts.get().noteAuthor(id);
-        b.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, new WrittenBookContentComponent(RawFilteredPair.of(Texts.get().noteTitle(id)),
-                author.isEmpty() ? "—" : author, 0, pages, true));
-        return b;
-    }
-
-    static void msg(ServerPlayerEntity p, String text) {
+    public static void msg(ServerPlayerEntity p, String text) {
         p.sendMessage(Text.literal(text).formatted(Formatting.GRAY), true);
     }
 
@@ -494,7 +779,17 @@ public final class Story {
     }
 
     static void sound(BlockPos at, String id, float vol, float pitch) {
-        if (at != null) w().playSound(null, at, GContent.sound(id), SoundCategory.AMBIENT, vol, pitch);
+        if (at != null && GContent.sound(id) != null) w().playSound(null, at, GContent.sound(id), SoundCategory.AMBIENT, vol, pitch);
+    }
+
+    static void ask(ServerPlayerEntity p, String id, String title, String... options) {
+        NbtCompound m = Net.msg("ask");
+        m.putString("id", id);
+        m.putString("title", title);
+        NbtList l = new NbtList();
+        for (String o : options) l.add(NbtString.of(o));
+        m.put("opts", l);
+        Net.send(p, m);
     }
 
     static boolean has(ServerPlayerEntity p, Item it) {
@@ -516,23 +811,38 @@ public final class Story {
     }
 
     static void give(ServerPlayerEntity p, ItemStack s) {
-        if (s.isOf(GContent.FLASHLIGHT) || s.isOf(GContent.OIL_LAMP)) s.setDamage(s.getMaxDamage());
+        if (s.isOf(GContent.FLASHLIGHT) || s.isOf(GContent.OIL_LAMP)) s.setDamage(s.getMaxDamage() / 3);
         if (!p.getInventory().insertStack(s)) p.dropItem(s, false);
     }
 
-    /** Всех игроков — к точке, но рядом друг с другом, а не в одном блоке. */
     static void tpSpread(BlockPos at) {
         if (at == null) return;
         int i = 0;
         for (ServerPlayerEntity p : players()) {
-            int dx = new int[]{0, 1, -1, 0, 1}[i % 5], dz = new int[]{0, 0, 0, 1, 1}[i % 5];
-            tp(p, at.add(dx, 0, dz));
+            int dx = new int[]{0, 1, -1, 2, -2}[i % 5];
+            tp(p, at.add(dx, 0, 0));
             i++;
         }
     }
 
     static void tp(ServerPlayerEntity p, BlockPos at) {
         if (at != null) p.teleport(w(), at.getX() + 0.5, at.getY(), at.getZ() + 0.5, p.getYaw(), p.getPitch());
+    }
+
+    static List<BlockPos> lampsOf(String group) {
+        List<BlockPos> out = new ArrayList<>();
+        List<Long> l = st().lamps.get(group);
+        if (l != null) for (long x : l) out.add(BlockPos.fromLong(x));
+        return out;
+    }
+
+    static void lampSet(BlockPos q, boolean lit) {
+        BlockState s = w().getBlockState(q);
+        if (s.getBlock() instanceof LampBlock && s.get(LampBlock.LIT) != lit) w().setBlockState(q, s.with(LampBlock.LIT, lit), 3);
+    }
+
+    static void lamps(String group, boolean lit) {
+        for (BlockPos q : lampsOf(group)) lampSet(q, lit);
     }
 
     // ===================== зоны =====================
@@ -545,17 +855,8 @@ public final class Story {
         return q.getX() >= a.getX() && q.getX() <= b.getX() && q.getY() >= a.getY() && q.getY() <= b.getY() && q.getZ() >= a.getZ() && q.getZ() <= b.getZ();
     }
 
-    /** Безопасные комнаты: дом Анны (кроме сцены со стуком), избушка, радиорубка (если есть свет), убежище. */
     public static boolean inSafe(ServerPlayerEntity p) {
-        StoryState st = StoryState.get(p.getServerWorld());
-        if (st.step.equals("c1_knock")) return false;
-        for (String s : new String[]{"safe_anna", "safe_hunter", "safe_station", "safe_shelter"}) {
-            BlockPos q = st.point(s);
-            if (q == null) continue;
-            if (s.equals("safe_station") && !st.flag("station_power")) continue;
-            if (q.getSquaredDistance(p.getPos()) < 5.5 * 5.5) return true;
-        }
-        return false;
+        return !Night.running && inZone(p, "dispatch");
     }
 
     // ===================== такт =====================
@@ -565,80 +866,41 @@ public final class Story {
         if (!isOurWorld()) return;
         long t = s.getTicks();
         Sched.tick(t);
+        Cam.tick(s);
+        Night.tick();
         StoryState st = st();
         if (sceneLock > 0) sceneLock--;
         if (st.chapter == 0) return;
         if (t % 5 == 0) for (ServerPlayerEntity p : players()) Noise.playerStep(p);
         if (t % 10 != 0) return;
+        if (st.chapter == 1) prologueTick(st);
         for (ServerPlayerEntity p : players()) area(p, st);
         if (t % 20 == 0 && st.ending.isEmpty()) for (ServerPlayerEntity p : players()) bounds(p, st);
-        if (st.step.equals("c1_knock") && !st.flag("door_opened")) {
-            BlockPos d = st.point("anna_door");
-            BlockState ds = d == null ? null : w().getBlockState(d);
-            if (ds != null && ds.getBlock() instanceof DoorBlock && ds.get(DoorBlock.OPEN)) doorOpened(d);
-        }
+        if (t % 40 == 0 && st.step.equals("n2_night")) hudAll();
+        if (t % 100 == 0 && Night.running) for (ServerPlayerEntity p : players()) if (p.getVelocity().horizontalLengthSquared() < 0.001) Night.heat(p, 1);
     }
 
     static void area(ServerPlayerEntity p, StoryState st) {
-        switch (st.step) {
-            case "c1_road" -> {
-                if (inZone(p, "village_in")) setStep("c1_house");
-            }
-            case "c1_house" -> {
-                if (inZone(p, "anna_house")) {
-                    setStep("c1_radio");
-                    msg(p, "Здесь пахнет печью и холодом. Рация на столе.");
-                }
-            }
-            case "c3_path" -> {
-                if (inZone(p, "station")) {
-                    setStep(has(p, GContent.CANISTER) || st.flag("canister") ? "c3_power" : "c3_power");
-                    Director.calm(server, 300);
-                }
-            }
-            case "c3_run" -> {
-                if (inZone(p, "mine_top")) {
-                    for (ListenerEntity l : w().getEntitiesByClass(ListenerEntity.class, new Box(p.getBlockPos()).expand(300), e -> true)) l.discard();
-                    fxAll("chase_end", 0);
-                    Director.calm(server, 600);
-                    startChapter(4);
-                }
-            }
-            case "c5_bunker" -> {
-                if (inZone(p, "bunker")) {
-                    setStep("c5_amps");
-                    scene("bunker", () -> {
-                        spawnChoir(st.point("choir_bunker"), false);
-                        voice("final_2", st.point("choir_bunker"), true);
-                    });
-                }
-            }
-            default -> {
-            }
+        if (st.step.equals("c1_house") && inZone(p, "polya_yard")) houseVisited();
+        if (Night.running && inZone(p, "wagon") && st.set("wagon_hid")) {
+            msg(p, "В вагоне пахнет мокрыми досками. Снаружи кто-то останавливается.");
+            Night.heat(p, 6);
         }
     }
 
-    /** Мягкая граница главы: «лес не отпускает». */
     static void bounds(ServerPlayerEntity p, StoryState st) {
         if (p.isCreative()) return;
         BlockPos q = p.getBlockPos();
-        boolean ok;
-        switch (st.chapter) {
-            case 1, 2 -> ok = q.getZ() > 22 && q.getZ() < 254 && Math.abs(q.getX()) < 90;
-            case 3 -> ok = (q.getZ() > -275 && q.getZ() < 254 && Math.abs(q.getX()) < 70) || (q.getX() > -160 && q.getX() < 0 && q.getZ() > -265 && q.getZ() < -140);
-            default -> ok = q.getZ() > -290 && q.getZ() < 254 && q.getX() > -170 && q.getX() < 80;
-        }
+        boolean ok = q.getX() > -90 && q.getX() < 140 && q.getZ() > -16 && q.getZ() < 172;
         int n = ok ? 0 : LOST.getOrDefault(p.getUuid(), 0) + 1;
         LOST.put(p.getUuid(), n);
         if (n == 3) {
-            msg(p, "Лес не отпускает. Тропа пропала…");
+            msg(p, "Шпалы уходят в темноту. Дальше — 41-й километр. Не сейчас.");
             fx(p, "lost", 200);
-            Director.far(p, "voice.whisper_2", 0.8f, 2);
         }
         if (n >= 10) {
             LOST.put(p.getUuid(), 0);
             fx(p, "fade", 60);
-            Sanity.add(p, -10);
             Sched.after(30, () -> {
                 tp(p, checkpoint());
                 msg(p, "Ты не помнишь, как вернулся.");
@@ -655,114 +917,18 @@ public final class Story {
             Net.send(p, Net.msg("choose"));
             return true;
         }
-        Noise.emit(p.getServerWorld(), Vec3d.ofCenter(pos), 6, p);
-        if (key.startsWith("note:")) {
-            String id = key.substring(5);
-            note(p, id);
-            if (id.equals("anna_log") && st.step.equals("c3_log")) {
-                st.set("log_read");
-                setStep("c3_key");
-                msg(p, "На полях журнала: «сейф Шумова — 0917».");
-            }
-            return true;
-        }
-        if (key.startsWith("crate")) return crate(p, pos, key, st);
-        if (key.startsWith("mark_")) return mark(p, key, st);
-        if (key.startsWith("amp_")) return amp(p, pos, key, st);
         switch (key) {
-            case "radio_uaz" -> seq("uaz", pos, false);
-            case "radio_anna" -> {
-                if (st.step.equals("c1_radio")) {
-                    int d = seq("anna_last", pos, false);
-                    sceneLock = d;
-                    Sched.after(d + 20, () -> {
-                        if (st.step.equals("c1_radio")) setStep(st.flag("batteries") ? "c1_night" : "c1_battery");
-                    });
-                } else radioStatic(pos);
+            case "box" -> boxChoice(p);
+            case "radio" -> {
+                sound(pos, "radio_static", 0.6f, 1f);
+                String line = "radio_" + st.step;
+                if (!Texts.get().sequence(line).isEmpty()) seq(line, pos, false);
+                else msg(p, "Рация шипит. Гена выходит на связь утром и вечером.");
             }
-            case "radio_council" -> {
-                if (st.step.equals("c2_call")) {
-                    int d = seq("council", pos, false);
-                    sceneLock = d;
-                    Sched.after(d + 20, () -> {
-                        st.set("called");
-                        setStep("c2_key");
-                    });
-                } else radioStatic(pos);
-            }
-            case "radio_station" -> {
-                if (st.flag("station_power")) seq("numbers", pos, false);
-                else msg(p, "Рация мертва — нет питания.");
-            }
-            case "tape_1", "tape_2", "tape_3" -> {
-                if (!st.flag("station_power")) {
-                    msg(p, "Магнитофон не работает — нет питания.");
-                    return true;
-                }
-                sound(pos, "tape_click", 1f, 1f);
-                seq("tape" + key.charAt(5), pos, false);
-            }
-            case "stove_anna" -> stove(p, st);
-            case "fusebox" -> fusebox(p, pos, st);
-            case "lock_gate" -> {
-                if (st.chapter == 2 && has(p, GContent.GATE_KEY)) {
-                    take(p, GContent.GATE_KEY, 1);
-                    BlockPos g = st.point("gate");
-                    for (int x = -1; x <= 1; x++) for (int y = 0; y <= 2; y++) w().setBlockState(new BlockPos(x, g.getY() + y, g.getZ() - 1), Blocks.AIR.getDefaultState());
-                    sound(pos, "door_creak", 1.2f, 0.6f);
-                    startChapter(3);
-                } else msg(p, st.chapter >= 3 ? "Ворота открыты." : "Тяжёлый замок. Нужен ключ от ворот просеки.");
-            }
-            case "generator" -> {
-                if (st.flag("station_power")) {
-                    msg(p, "Генератор тарахтит.");
-                } else if (has(p, GContent.CANISTER)) {
-                    take(p, GContent.CANISTER, 1);
-                    sound(pos, "generator", 1.4f, 1f);
-                    powerStation(true);
-                    Director.calm(server, 400);
-                    if (st.step.equals("c3_power")) setStep("c3_log");
-                } else msg(p, "Бак пустой. Нужна канистра (избушка охотника на просеке).");
-            }
-            case "lift_top" -> {
-                if (st.chapter < 4) {
-                    msg(p, "Лифт обесточен. Сначала разберись на станции.");
-                } else if (st.step.equals("c4_lift")) {
-                    sceneLock = 120;
-                    sound(pos, "lift", 1.5f, 1f);
-                    fxAll("fade", 80);
-                    fxAll("shake", 70);
-                    Sched.after(50, () -> {
-                        tpSpread(st.point("cp4"));
-                        for (String m : new String[]{"mine_l1", "mine_l2", "mine_l3"}) spawn(GContent.LISTENER, st.point(m));
-                        setStep("c4_marks");
-                        for (ServerPlayerEntity q : players()) q.setSpawnPoint(w().getRegistryKey(), st.point("cp4"), 0, true, false);
-                    });
-                } else {
-                    sound(pos, "lift", 1f, 1f);
-                    fx(p, "fade", 50);
-                    Sched.after(30, () -> tp(p, st.point("cp4")));
-                }
-            }
-            case "lift_bottom" -> {
-                if (st.step.equals("c4_escape")) {
-                    sceneLock = 160;
-                    sound(pos, "lift", 1.5f, 1f);
-                    fxAll("fade", 120);
-                    fxAll("shake", 60);
-                    Sched.after(60, () -> {
-                        for (ChoirEntity c : w().getEntitiesByClass(ChoirEntity.class, new Box(pos).expand(200), e -> true)) c.discard();
-                        fxAll("chase_end", 0);
-                        startChapter(5);
-                    });
-                } else if (st.chapter >= 4) {
-                    sound(pos, "lift", 1f, 1f);
-                    fx(p, "fade", 50);
-                    Sched.after(30, () -> tp(p, st.point("cp4top")));
-                }
-            }
-            case "anna" -> anna(p, st);
-            case "transmitter" -> transmitter(p, st);
+            case "board" -> msg(p, Night.running ? Night.readout() : "Табло рельсовых цепей. Тока нет. Лампочки тёплые.");
+            case "wait" -> waitChair(p);
+            case "bell" -> Night.bell(p);
+            case "switch_w", "switch_e" -> Night.lever(p, key);
             default -> {
                 return false;
             }
@@ -770,471 +936,51 @@ public final class Story {
         return true;
     }
 
-    static void radioStatic(BlockPos pos) {
-        sound(pos, "radio_static", 1f, 1f);
-    }
-
-    /** Ящики: личные вещи — каждому игроку свои, сюжетные — один раз на всех. */
-    static boolean crate(ServerPlayerEntity p, BlockPos pos, String key, StoryState st) {
-        record Loot(boolean personal, ItemStack... items) {}
-        Loot loot = switch (key) {
-            case "crate_start" -> new Loot(true, new ItemStack(GContent.PEBBLE, 4), new ItemStack(Items.BREAD, 3));
-            case "crate_anna" -> new Loot(true, new ItemStack(GContent.FLASHLIGHT), new ItemStack(GContent.PEBBLE, 3));
-            case "crate_shop", "crate_shop2" -> new Loot(true, new ItemStack(GContent.BATTERY, 3), new ItemStack(Items.BREAD, 2));
-            case "crate_council_fuse", "crate_school_fuse", "crate_garage_fuse" -> new Loot(false, new ItemStack(GContent.FUSE));
-            case "crate_council_safe" -> new Loot(false, new ItemStack(GContent.GATE_KEY));
-            case "crate_school", "crate_garage" -> new Loot(true, new ItemStack(GContent.BATTERY, 1), new ItemStack(GContent.PEBBLE, 3));
-            case "crate_hunter_kit" -> new Loot(true, new ItemStack(GContent.OIL_LAMP), new ItemStack(GContent.OIL, 2), new ItemStack(GContent.BATTERY, 2));
-            case "crate_hunter_can" -> new Loot(false, new ItemStack(GContent.CANISTER));
-            case "crate_shumov" -> new Loot(false, new ItemStack(GContent.MINE_KEY));
-            default -> new Loot(true, new ItemStack(GContent.BATTERY, 2), new ItemStack(GContent.OIL, 1), new ItemStack(GContent.PEBBLE, 2));
-        };
-        if (key.equals("crate_council_safe") && !st.flag("called")) {
-            msg(p, "Сейф заперт. На дверце: «ключ от просеки — по связи с базой».");
-            return true;
-        }
-        if (key.equals("crate_shumov") && !st.flag("log_read")) {
-            msg(p, "Кодовый сейф. Четыре цифры. Код где-то записан…");
-            return true;
-        }
-        if (key.endsWith("_fuse") && st.chapter < 2) {
-            msg(p, "Ящик с хламом. Днём тут делать нечего.");
-            return true;
-        }
-        String flag = loot.personal ? key + ":" + p.getUuid() : key;
-        if (!st.set(flag)) {
-            msg(p, "Пусто.");
-            return true;
-        }
-        for (ItemStack s : loot.items) give(p, s.copy());
-        sound(pos, "door_creak", 0.5f, 1.6f);
-        StringBuilder sb = new StringBuilder("Найдено: ");
-        for (int i = 0; i < loot.items.length; i++) sb.append(i > 0 ? ", " : "").append(loot.items[i].getName().getString()).append(loot.items[i].getCount() > 1 ? " ×" + loot.items[i].getCount() : "");
-        msg(p, sb.toString());
-        switch (key) {
-            case "crate_shop", "crate_shop2" -> {
-                if (st.set("batteries") && st.step.equals("c1_battery")) nightFalls();
-            }
-            case "crate_council_fuse", "crate_school_fuse", "crate_garage_fuse" -> {
-                st.inc("fuses_found");
-                if (st.count("fuses_found") >= 3 && st.step.equals("c2_fuses")) setStep("c2_power");
-                else hudAll();
-            }
-            case "crate_council_safe" -> setStep("c2_gate");
-            case "crate_hunter_can" -> st.set("canister");
-            case "crate_shumov" -> chase();
-            default -> {
-            }
-        }
-        return true;
-    }
-
-    // ---------- глава 1: ночь и стук ----------
-    static void nightFalls() {
-        setStep("c1_night");
-        sceneLock = 200;
-        for (int i = 1; i <= 20; i++) {
-            final int k = i;
-            Sched.after(i * 6, () -> w().setTimeOfDay(12600 + k * 270L));
-        }
-        msgAll("Темнеет. Быстро, как будто кто-то задёрнул небо.");
-        for (ServerPlayerEntity p : players()) Director.far(p, "distant_scream", 0.8f, 60);
-    }
-
-    static void stove(ServerPlayerEntity p, StoryState st) {
-        if (!st.step.equals("c1_night")) {
-            Sanity.add(p, 15);
-            msg(p, "Печь ещё тёплая. Становится спокойнее.");
-            return;
-        }
-        for (ServerPlayerEntity q : players()) if (!inZone(q, "anna_house")) {
-            msg(p, "Нужно, чтобы все были в доме: " + q.getName().getString() + " снаружи.");
-            return;
-        }
-        knockScene();
-    }
-
-    static void knockScene() {
-        StoryState st = st();
-        setStep("c1_knock");
-        BlockPos door = st.point("anna_door");
-        BlockState ds = w().getBlockState(door);
-        if (ds.getBlock() instanceof DoorBlock && ds.get(DoorBlock.OPEN)) closeDoor(door);
-        scene("knock", Story::knockRest);
-    }
-
-    static void knockRest() {
-        StoryState st = st();
-        BlockPos door = st.point("anna_door");
-        sceneLock = 1000;
-        List<BlockPos> lamps = lamps("anna");
-        Sched.after(40, () -> Director.setLamps(w(), lamps, false));
-        Sched.after(41, () -> sound(lamps.isEmpty() ? door : lamps.get(0), "lamp_buzz", 1f, 0.7f));
-        BlockPos out = door.east();
-        int[] at = {120, 260, 420};
-        String[] lines = {"knock_1", "knock_2", "knock_3"};
-        for (int i = 0; i < 3; i++) {
-            final int k = i;
-            Sched.after(at[i], () -> {
-                if (st.flag("door_opened")) return;
-                sound(door, "knock", 1.2f + k * 0.2f, 1f - k * 0.1f);
-                Sched.after(30, () -> {
-                    if (!st.flag("door_opened")) voice(lines[k], out, false);
-                });
-            });
-        }
-        Sched.after(620, () -> {
-            if (!st.flag("door_opened")) {
-                sound(door, "knock", 1.8f, 0.6f);
-                for (ServerPlayerEntity p : players()) if (inZone(p, "anna_house")) Sanity.add(p, -10);
-            }
-        });
-        Sched.after(760, Story::endChapter1);
-    }
-
-    static void doorOpened(BlockPos door) {
-        StoryState st = st();
-        st.set("door_opened");
-        BlockPos out = door.east(2);
-        PoleEntity pole = spawn(GContent.POLE, out);
-        if (pole != null) {
-            pole.makeApparition(null);
-            for (ServerPlayerEntity p : players()) if (p.squaredDistanceTo(Vec3d.ofCenter(out)) < 400) pole.lookAtPlayer(p);
-        }
-        for (ServerPlayerEntity p : players()) {
-            if (p.squaredDistanceTo(Vec3d.ofCenter(door)) > 20 * 20) continue;
-            boolean soft = Director.NO_SCARES.contains(p.getUuid());
-            w().playSound(null, p.getBlockPos(), GContent.sound(soft ? "stinger_soft" : "stinger"), SoundCategory.HOSTILE, 1.2f, 1f);
-            fx(p, soft ? "shake" : "jolt", 20);
-            Sanity.add(p, -35);
-        }
-        Sched.after(25, () -> {
-            closeDoor(door);
-            sound(door, "door_creak", 1.4f, 0.5f);
-            for (PoleEntity e : w().getEntitiesByClass(PoleEntity.class, new Box(door).expand(8), e -> true)) e.vanish();
-        });
-        Sched.after(80, () -> voice("whisper_3", door, false));
-        Sched.after(200, Story::endChapter1);
-    }
-
-    static void closeDoor(BlockPos d) {
-        BlockState s = w().getBlockState(d);
-        if (s.getBlock() instanceof DoorBlock) {
-            w().setBlockState(d, s.with(DoorBlock.OPEN, false), 10);
-            BlockState u = w().getBlockState(d.up());
-            if (u.getBlock() instanceof DoorBlock) w().setBlockState(d.up(), u.with(DoorBlock.OPEN, false), 10);
-        }
-    }
-
-    static void endChapter1() {
-        StoryState st = st();
-        if (st.chapter != 1) return;
-        fxAll("fade", 140);
-        Sched.after(70, () -> {
-            Director.setLamps(w(), lamps("anna"), true);
-            for (ServerPlayerEntity p : players()) {
-                tp(p, st.point("cp2"));
-                if (!has(p, GContent.FLASHLIGHT)) give(p, new ItemStack(GContent.FLASHLIGHT));
-            }
-            msgAll("Ты проснулся. Часы показывают 4:10. За окном — ночь. Утро не наступило.");
-            startChapter(2);
-        });
-    }
-
-    // ---------- глава 2: подстанция ----------
-    static void fusebox(ServerPlayerEntity p, BlockPos pos, StoryState st) {
-        if (st.flag("power")) {
-            msg(p, "Щит гудит. Свет есть.");
-            return;
-        }
-        if (st.chapter < 2) {
-            msg(p, "Щит подстанции. Трёх предохранителей не хватает.");
-            return;
-        }
-        int n = take(p, GContent.FUSE, 3);
-        if (n == 0) {
-            msg(p, "Пустые гнёзда. Нужны предохранители (" + st.count("fuses_in") + "/3 на месте).");
-            return;
-        }
-        for (int i = 0; i < n; i++) st.inc("fuses_in");
-        sound(pos, "fuse", 1f, 1f);
-        Noise.emit(w(), Vec3d.ofCenter(pos), 16, p);
-        if (st.count("fuses_in") >= 3) {
-            st.set("power");
-            sceneLock = 120;
-            sound(pos, "power_on", 2f, 1f);
-            Sched.after(20, () -> powerVillage(true));
-            for (ServerPlayerEntity q : players()) Sanity.add(q, 25);
-            Director.calm(server, 500);
-            Sched.after(60, () -> setStep("c2_call"));
-            msgAll("Свет! В посёлке загораются фонари.");
-        } else hudAll();
-    }
-
-    static void powerVillage(boolean flickerIn) {
-        ServerWorld w = w();
-        List<BlockPos> l = new ArrayList<>(lamps("village"));
-        l.addAll(lamps("houses"));
-        l.addAll(lamps("school"));
-        if (flickerIn) Director.flicker(w, l, 10);
-        else Director.setLamps(w, l, true);
-        for (ListenerEntity e : w.getEntitiesByClass(ListenerEntity.class, new Box(new BlockPos(0, 64, 90)).expand(80), e -> true)) e.discard();
-    }
-
-    static List<BlockPos> lamps(String group) {
-        List<BlockPos> out = new ArrayList<>();
-        for (long l : st().lamps.getOrDefault(group, List.of())) out.add(BlockPos.fromLong(l));
-        return out;
-    }
-
-    // ---------- глава 3: станция и погоня ----------
-    static void powerStation(boolean on) {
-        st().set("station_power");
-        List<BlockPos> l = new ArrayList<>(lamps("station"));
-        l.addAll(lamps("mast"));
-        Director.setLamps(w(), l, on);
-    }
-
-    static void chase() {
-        setStep("c3_run");
-        Director.setLamps(w(), lamps("station"), false);
-        scene("corridor", Story::chaseRest);
-    }
-
-    static void chaseRest() {
-        StoryState st = st();
-        sceneLock = 100;
-        Director.setLamps(w(), lamps("station"), false);
-        sound(st.point("station_hall"), "power_on", 1.5f, 0.5f);
-        fxAll("chase", 0);
-        PoleEntity pole = spawn(GContent.POLE, st.point("station_pole"));
-        for (PoleEntity e : w().getEntitiesByClass(PoleEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> !e.isApparition() && e != pole)) e.discard();
-        spawn(GContent.LISTENER, st.point("station_l1"));
-        spawn(GContent.LISTENER, st.point("station_l2"));
-        for (ServerPlayerEntity p : players()) Noise.emit(w(), p.getPos(), 40, p);
-        msgAll("Свет гаснет. В коридоре кто-то стоит.");
-        Sched.after(400, () -> powerStation(true));
-    }
-
-    // ---------- глава 4: шахта ----------
-    static boolean mark(ServerPlayerEntity p, String key, StoryState st) {
-        note(p, key);
-        if (st.chapter == 4 && st.set(key)) {
-            st.inc("marks");
-            hudAll();
-            if (st.count("marks") >= 3 && st.step.equals("c4_marks")) {
-                setStep("c4_anna");
-                BlockPos d = st.point("shelter_door");
-                BlockState s = w().getBlockState(d);
-                if (s.getBlock() instanceof DoorBlock) {
-                    w().setBlockState(d, s.with(DoorBlock.OPEN, true), 10);
-                    BlockState u = w().getBlockState(d.up());
-                    if (u.getBlock() instanceof DoorBlock) w().setBlockState(d.up(), u.with(DoorBlock.OPEN, true), 10);
-                }
-                sound(d, "door_creak", 1.5f, 0.7f);
-                ensure(GContent.ANNA, st.point("anna_mine"), 1);
-                msgAll("Где-то впереди скрипнула железная дверь.");
-            }
-        }
-        return true;
-    }
-
-    static void anna(ServerPlayerEntity p, StoryState st) {
-        if (st.step.equals("c4_anna")) {
-            st.set("anna_found");
-            for (ServerPlayerEntity q : players()) if (q.squaredDistanceTo(p) < 100) note(q, "anna_meet");
-            give(p, new ItemStack(GContent.TUNING_FORK));
-            msgAll(p.getName().getString() + " получил камертон Шумова.");
-            setStep("c4_escape");
-            scene("anna", () -> {
-                fxAll("shake", 60);
-                fxAll("chase", 0);
-                voice("choir_mine", null, true);
-                spawnChoir(st.point("choir_mine"), true);
-                for (AnnaEntity a : w().getEntitiesByClass(AnnaEntity.class, new Box(p.getBlockPos()).expand(40), e -> true)) a.discard();
-                msgAll("Анна уходит другим ходом. Бегите к лифту!");
-            });
-        } else if (st.chapter == 5) {
-            note(p, "anna_meet");
-        } else msg(p, "Анна смотрит на тебя и показывает на уши: не слышу.");
-    }
-
-    // ---------- глава 5: бункер ----------
-    static boolean amp(ServerPlayerEntity p, BlockPos pos, String key, StoryState st) {
-        if (!st.step.equals("c5_amps")) {
-            msg(p, st.chapter == 5 ? "Усилитель «Тишина-3». Включать — по журналу Шумова." : "Мёртвый железный шкаф.");
-            return true;
-        }
-        if (st.flag(key)) {
-            msg(p, "Этот уже работает.");
-            return true;
-        }
-        if (st.flag("warming:" + key)) return true;
-        st.set("warming:" + key);
-        msg(p, "Усилитель греется… Будь рядом 5 секунд. Хор идёт на шум!");
-        for (int i = 0; i < 5; i++) Sched.after(i * 20 + 1, () -> {
-            sound(pos, "generator", 1.2f, 1.4f);
-            Noise.emit(w(), Vec3d.ofCenter(pos), 48, p);
-        });
-        Sched.after(100, () -> {
-            st.flags.remove("warming:" + key);
-            if (p.isAlive() && p.squaredDistanceTo(Vec3d.ofCenter(pos)) < 5 * 5) {
-                st.set(key);
-                st.inc("amps");
-                sound(pos, "power_on", 1.6f, 1.2f);
-                Director.setLamps(w(), lamps("bunker"), true);
-                if (st.count("amps") >= 3) setStep("c5_tx");
-                else hudAll();
-            } else msg(p, "Усилитель остыл. Нужно стоять рядом.");
-        });
-        return true;
-    }
-
-    static void transmitter(ServerPlayerEntity p, StoryState st) {
-        if (!st.step.equals("c5_tx")) {
-            msg(p, st.chapter == 5 ? "Передатчик. Сначала усилители." : "Передатчик молчит.");
-            return;
-        }
-        if (!has(p, GContent.TUNING_FORK)) {
-            msg(p, "Нужен камертон. Он у того, кто говорил с Анной.");
-            return;
-        }
-        if (!st.set("choosing")) return;
-        sceneLock = 400;
-        for (ChoirEntity c : w().getEntitiesByClass(ChoirEntity.class, new Box(p.getBlockPos()).expand(80), e -> true)) {
-            c.stun(p);
-        }
-        int d = seq("final", p.getBlockPos(), true);
-        Sched.after(d - 20, () -> Net.all(server, Net.msg("fakecrash")));
-        Sched.after(d + 110, () -> {
-            Net.send(p, Net.msg("choice"));
-            for (ServerPlayerEntity q : players()) if (q != p) msg(q, p.getName().getString() + " держит камертон над передатчиком…");
-        });
-    }
-
-    public static void choose(ServerPlayerEntity p, String c) {
-        StoryState st = st();
-        if (!st.step.equals("c5_tx") || !st.flag("choosing") || !st.ending.isEmpty()) return;
-        take(p, GContent.TUNING_FORK, 1);
-        ending(c.equals("B") ? "B" : "A");
-    }
-
-    static void ending(String e) {
-        StoryState st = st();
-        st.ending = e;
-        st.markDirty();
-        setStep("end");
-        sceneLock = 2000;
-        fxAll(e.equals("A") ? "white" : "black", 140);
-        fxAll("chase_end", 0);
-        ServerWorld w = w();
-        for (ChoirEntity c : w.getEntitiesByClass(ChoirEntity.class, new Box(BlockPos.ORIGIN).expand(700), x -> true)) {
-            w.spawnParticles(net.minecraft.particle.ParticleTypes.SCULK_SOUL, c.getX(), c.getY() + 1.5, c.getZ(), 80, 1, 1.5, 1, 0.05);
-            c.discard();
-        }
-        Sched.after(60, () -> {
-            clearCreatures(true);
-            w.setTimeOfDay(e.equals("A") ? 1000 : 6000);
-            for (ServerPlayerEntity p : players()) {
-                tp(p, st.point(e.equals("A") ? "cp5" : "cp2"));
-                Sanity.set(p, 100);
-                Light.off(p);
-                p.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0, false, false));
-            }
-            NbtCompound m = Net.msg("title");
-            m.putString("a", "Концовка");
-            m.putString("b", e.equals("A") ? "Тишина" : "Эхо");
-            m.putString("c", e.equals("A") ? "Хор замолчал." : "Ты ответил.");
-            Net.all(server, m);
-            Sched.after(40, () -> scene(e.equals("A") ? "endA" : "endB", null));
-        });
-        Sched.after(240, () -> voice(e.equals("A") ? "epi_a" : "epi_b", null, true));
-        Sched.after(460, () -> {
-            for (ServerPlayerEntity p : players()) note(p, e.equals("A") ? "epilogue_a" : "epilogue_b");
-        });
-        Sched.after(520, () -> Net.all(server, Net.msg("credits")));
-    }
-
-    // ===================== команды и подсказки =====================
-
     public static BlockPos hintTarget(ServerPlayerEntity p) {
         StoryState st = st();
         return switch (st.step) {
-            case "c1_road", "c1_house", "c1_night", "c1_knock" -> st.point("anna_door");
-            case "c1_radio" -> st.find("radio_anna");
-            case "c1_battery" -> st.point("shop");
-            case "c2_fuses" -> !st.flag("crate_council_fuse") ? st.point("council") : !st.flag("crate_school_fuse") ? st.point("school") : st.point("garage");
-            case "c2_power" -> st.point("fusebox");
-            case "c2_call", "c2_key" -> st.point("council");
-            case "c2_gate" -> st.point("gate");
-            case "c3_path" -> st.point("station_gate");
-            case "c3_power" -> st.flag("canister") ? st.point("generator") : st.point("hunter");
-            case "c3_log" -> st.point("safe_station");
-            case "c3_key" -> st.point("shumov");
-            case "c3_run", "c4_lift" -> st.point("lift_top");
-            case "c4_marks" -> !st.flag("mark_1") ? st.point("mark_1") : !st.flag("mark_2") ? st.point("mark_2") : st.point("mark_3");
-            case "c4_anna" -> st.point("anna_mine");
-            case "c4_escape" -> st.point("lift_bottom");
-            case "c5_bunker" -> st.point("hatch");
-            case "c5_amps" -> !st.flag("amp_1") ? st.point("amp_1") : !st.flag("amp_2") ? st.point("amp_2") : st.point("amp_3");
-            case "c5_tx" -> st.point("transmitter");
+            case "p_rec" -> !st.flag("rec_t_platform") ? st.point("t_platform") : !st.flag("rec_t_switch") ? st.point("t_switch") : st.point("t_crossing");
+            case "p_east", "p_bell" -> new BlockPos(64, 66, 16);
+            case "c1_house", "c1_zina" -> st.point("polya_door");
+            case "c1_box" -> st.find("box");
+            case "c1_zakhar" -> st.point("zakhar_day");
+            case "c1_evening", "c1_wait" -> st.find("wait");
+            case "n2_wait", "n2_night" -> st.point("t_platform");
             default -> null;
         };
     }
 
-    /** Перепрыгнуть на главу (для отладки и если что-то сломалось): выставляет нужные флаги. */
     public static void jump(int ch) {
         StoryState st = st();
-        Sched.clear();
-        sceneLock = 0;
-        st.ending = "";
-        if (ch >= 2) {
-            st.set("batteries");
-            for (ServerPlayerEntity p : players()) if (!has(p, GContent.FLASHLIGHT)) {
-                give(p, new ItemStack(GContent.FLASHLIGHT));
-                give(p, new ItemStack(GContent.BATTERY, 3));
-            }
+        st.set("asked");
+        if (ch <= 1) startPrologue();
+        else {
+            if (Tapes.list(st).isEmpty()) Tapes.newTape(st);
+            List<ServerPlayerEntity> ps = players();
+            for (int i = 0; i < ps.size(); i++) kit(ps.get(i), i == 0);
+            morning();
         }
-        if (ch >= 3) {
-            st.set("power");
-            st.set("called");
-            powerVillage(false);
-            BlockPos g = st.point("gate");
-            for (int x = -1; x <= 1; x++) for (int y = 0; y <= 2; y++) w().setBlockState(new BlockPos(x, g.getY() + y, g.getZ() - 1), Blocks.AIR.getDefaultState());
-        }
-        if (ch >= 4) {
-            st.set("log_read");
-            st.set("canister");
-            powerStation(true);
-        }
-        if (ch >= 5) {
-            st.set("anna_found");
-            for (ServerPlayerEntity p : players()) if (!has(p, GContent.TUNING_FORK)) give(p, new ItemStack(GContent.TUNING_FORK));
-        }
-        startChapter(ch);
-        if (ch == 4) for (ServerPlayerEntity p : players()) tp(p, st.point("cp4top"));
-        if (ch == 3) for (ServerPlayerEntity p : players()) tp(p, st.point("cp3"));
-        if (ch == 2) for (ServerPlayerEntity p : players()) tp(p, st.point("cp2"));
     }
 
     public static void reset() {
         StoryState st = st();
-        Sched.clear();
-        sceneLock = 0;
-        clearCreatures(false);
-        st.flags.clear();
-        st.counters.clear();
-        st.sanity.clear();
         st.chapter = 0;
         st.step = "";
         st.ending = "";
+        st.flags.removeIf(f -> !f.equals("v2"));
+        st.counters.clear();
+        st.data = new NbtCompound();
         st.markDirty();
-        hudAll();
+        Sched.clear();
+        Night.reset();
+        Cam.clear();
+        announcing = false;
+        clearCreatures();
     }
 
     public static String status() {
         StoryState st = st();
-        return "Глава " + st.chapter + ", шаг " + st.step + ", сложность " + st.difficulty + ", концовка '" + st.ending + "', флагов " + st.flags.size()
-                + ", точек " + st.points.size() + ", вещей " + st.interact.size();
+        return "глава " + st.chapter + ", шаг " + st.step + ", сложность " + st.difficulty + (st.ending.isEmpty() ? "" : ", конец " + st.ending)
+                + ", кассет " + Tapes.list(st).size() + " (у себя " + Tapes.held(st) + ")";
     }
 }

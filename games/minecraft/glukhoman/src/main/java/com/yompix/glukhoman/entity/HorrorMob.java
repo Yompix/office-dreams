@@ -155,11 +155,6 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
     /** Удар по игроку: брызги крови (стилизованные частицы). */
     @Override
     public boolean tryAttack(net.minecraft.entity.Entity target) {
-        if (target instanceof net.minecraft.server.network.ServerPlayerEntity p && !p.isCreative()
-                && p.getHealth() <= getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE) * 1.6) {
-            com.yompix.glukhoman.story.Story.execute(p, this);   // последний удар — расправа с кат-сценой
-            return true;
-        }
         boolean hit = super.tryAttack(target);
         if (hit && getWorld() instanceof ServerWorld w)
             w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 1.4f),

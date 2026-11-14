@@ -17,12 +17,14 @@ loom {
         server {
             runDir 'run/server'
             if (project.hasProperty('servertest')) vmArg '-Dglukhoman.servertest=true'
+            if (project.hasProperty('servertest') && project.property('servertest') == 'board') vmArg '-Dglukhoman.stboard=true'
             if (project.hasProperty('devop')) vmArg '-Dglukhoman.devop=true'
         }
         client {
             runDir 'run/client'
             if (project.hasProperty('autotest')) vmArg "-Dglukhoman.autotest=${project.property('autotest')}"
             if (project.hasProperty('only')) vmArg "-Dglukhoman.only=${project.property('only')}"
+            if (project.hasProperty('proof')) vmArg "-Dglukhoman.proof=true"
             if (project.hasProperty('vertical')) vmArg "-Dglukhoman.vertical=true"
             if (project.hasProperty('models')) vmArg "-Dglukhoman.models=${project.property('models')}"
         }

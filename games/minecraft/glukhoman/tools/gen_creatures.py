@@ -165,19 +165,19 @@ def bloody(base_mat, low=6.0, high=None, amount=0.75):
 
 
 MATS = {
-    'bark': material((146, 136, 118), crack=0.12, dirt=0.55, scale=0.3),
-    'bark_d': material((104, 96, 84), crack=0.15, dirt=0.6, scale=0.3),
-    'bone': material((214, 206, 188), dirt=0.2, scale=0.5, edge=0.85),
-    'skull': material((206, 198, 182), dirt=0.0, scale=0.45, edge=0.82),
-    'twig': material((70, 62, 54), crack=0.2, dirt=0.0),
-    'skin': material((176, 170, 166), vein=0.03, dirt=0.55, scale=0.4),
-    'skin_d': material((132, 124, 122), vein=0.03, dirt=0.6, scale=0.4),
-    'ear': material((190, 150, 148), vein=0.05, dirt=0.0, scale=0.5, edge=0.7),
+    'bark': material((62, 58, 54), crack=0.14, dirt=0.4, sheen=0.05, scale=0.3),
+    'bark_d': material((44, 41, 39), crack=0.15, dirt=0.4, sheen=0.04, scale=0.3),
+    'bone': material((84, 78, 72), dirt=0.2, sheen=0.07, scale=0.5, edge=0.8),
+    'skull': material((78, 72, 68), dirt=0.0, sheen=0.1, vein=0.03, scale=0.45, edge=0.75),
+    'twig': material((34, 31, 29), crack=0.2, dirt=0.0),
+    'skin': material((82, 78, 77), vein=0.04, dirt=0.4, sheen=0.06, scale=0.4),
+    'skin_d': material((58, 54, 54), vein=0.04, dirt=0.4, sheen=0.05, scale=0.4),
+    'ear': material((70, 56, 56), vein=0.06, dirt=0.0, sheen=0.05, scale=0.5, edge=0.7),
     'mouth': material((40, 12, 14), dirt=0.0, edge=0.9),
-    'teeth': material((222, 214, 190), dirt=0.0, edge=1.0),
+    'teeth': material((96, 88, 70), dirt=0.0, edge=1.0),
     'tar': material((40, 33, 44), sheen=0.08, dirt=0.3, scale=0.35),
     'tar2': material((58, 44, 60), sheen=0.06, dirt=0.3, scale=0.35),
-    'mask': material((214, 204, 194), dirt=0.0, scale=0.5, edge=0.9),
+    'mask': material((86, 80, 78), dirt=0.0, sheen=0.08, vein=0.03, scale=0.5, edge=0.8),
     'nail': material((60, 56, 50), dirt=0.0, edge=1.0),
 }
 MATS['finger_b'] = bloody(MATS['skin_d'], low=14.0)              # пальцы Жерди — в крови к кончикам
@@ -197,23 +197,17 @@ def put(px, x, y, c):
 
 
 def front_pole(px, gx, x0, y0, w_, h_):
-    """Лицевая пластина Жерди: глубокие глазницы с огоньком в глубине, тени, складки."""
+    """Лицо Жерди: гладкая, вытянутая, мокрая кожа без рта — только две тусклые точки глаз в глубоких тенях."""
     for y in range(h_):
         for x in range(w_):
-            if y > h_ * 0.7:
-                c = px[x0 + x, y0 + y]
-                put(px, x0 + x, y0 + y, shade(c[:3], 0.85))
+            c = px[x0 + x, y0 + y]
+            k = 0.8 + 0.25 * (1 - abs(x - w_ / 2) / (w_ / 2))
+            if int(h_ * 0.2) <= y <= int(h_ * 0.42) and (abs(x - w_ // 4) <= 1 or abs(x - (w_ - 1 - w_ // 4)) <= 1):
+                k *= 0.45
+            put(px, x0 + x, y0 + y, shade(c[:3], k))
     for cx in (w_ // 4, w_ - 1 - w_ // 4):
-        for y in range(int(h_ * 0.18), int(h_ * 0.42)):
-            for x in range(cx - 1, cx + 1):
-                put(px, x0 + x, y0 + y, (8, 7, 7, 255))
-        gy = int(h_ * 0.3)
-        put(px, x0 + cx - (0 if cx < w_ / 2 else 1), y0 + gy, (255, 240, 200, 255))
-        put(gx, x0 + cx - (0 if cx < w_ / 2 else 1), y0 + gy, (255, 240, 200, 255))
-        for x in range(cx - 2, cx + 2):             # тёмные «синяки» вокруг глазниц
-            put(px, x0 + x, y0 + int(h_ * 0.43), (90, 82, 76, 255))
-    for x in range(w_ // 2 - 1, w_ // 2 + 1):        # нос — две щели
-        put(px, x0 + x, y0 + int(h_ * 0.55), (40, 30, 30, 255))
+        put(px, x0 + cx, y0 + int(h_ * 0.32), (150, 132, 96, 255))
+        put(gx, x0 + cx, y0 + int(h_ * 0.32), (120, 104, 70, 255))
 
 
 def front_listener(px, gx, x0, y0, w_, h_):
@@ -226,18 +220,16 @@ def front_listener(px, gx, x0, y0, w_, h_):
 
 
 def front_mask(px, gx, x0, y0, w_, h_):
-    """Лицо в теле Хора: закрытые или пустые глаза, рот-провал; у части — свет в глубине глаз."""
-    lit = rnd.random() < 0.6
+    """Лицо, вдавленное в массу Хора: тёмная мокрая кожа, впадины глаз, сжатый шов рта; у некоторых — тусклая точка."""
+    lit = rnd.random() < 0.4
     for cx in (w_ // 3 - 1, w_ - w_ // 3):
         for y in range(int(h_ * 0.3), int(h_ * 0.42)):
-            put(px, x0 + cx, y0 + y, (14, 10, 12, 255))
-            put(px, x0 + cx + 1, y0 + y, (14, 10, 12, 255))
+            put(px, x0 + cx, y0 + y, (16, 12, 12, 255))
         if lit:
-            put(px, x0 + cx, y0 + int(h_ * 0.36), (255, 214, 140, 255))
-            put(gx, x0 + cx, y0 + int(h_ * 0.36), (255, 214, 140, 255))
-    for y in range(int(h_ * 0.62), h_ - 1):
-        for x in range(w_ // 3, w_ - w_ // 3):
-            put(px, x0 + x, y0 + y, (30, 10, 12, 255))
+            put(px, x0 + cx, y0 + int(h_ * 0.36), (140, 110, 70, 255))
+            put(gx, x0 + cx, y0 + int(h_ * 0.36), (110, 86, 50, 255))
+    for x in range(w_ // 3, w_ - w_ // 3):
+        put(px, x0 + x, y0 + int(h_ * 0.72), (22, 10, 12, 255))
 
 
 FRONT = {'pole': front_pole, 'listener': front_listener, 'mask': front_mask}
@@ -316,15 +308,10 @@ def pole():
     m.cube('head', [-2.3, 59.4, -2.9], [4.6, 0.9, 1.0], 'skull')                   # надбровье
     for s in (-1, 1):
         m.cube('head', [1.4 if s > 0 else -2.4, 56.4, -2.4], [1.0, 1.6, 1.4], 'skull')   # скулы
-    for i in range(5):                                                             # верхние зубы
-        m.cube('head', [-1.55 + i * 0.7, 53.6, -2.55], [0.45, 0.8, 0.4], 'teeth')
     for (x, z, rz, rx, ln) in ((-1.8, 0.5, 25, -10, 6), (1.6, 0.0, -30, 5, 7), (0.2, 1.4, 5, -25, 5), (-0.8, -0.4, 40, 0, 4), (1.0, 1.0, -12, 15, 4.5)):
         m.cube('head', [x - 0.25, 61.6, z - 0.25], [0.5, ln, 0.5], 'twig', rot=[rx, 0, rz], pivot=[x, 61.6, z])  # сучья
     m.bone('jaw', 'head', [0, 55.4, -1.6])
     m.cube('jaw', [-1.6, 50.6, -2.5], [3.2, 4.8, 1.3], 'jaw_b')
-    m.cube('jaw', [-1.3, 51.2, -1.2], [2.6, 3.8, 0.6], 'mouth')
-    for i in range(4):
-        m.cube('jaw', [-1.3 + i * 0.7, 55.0, -2.45], [0.4, 0.7, 0.4], 'teeth_b')
     for s, n in ((1, 'left'), (-1, 'right')):
         sx = 4.4 * s
         m.seg(f'{n}_arm', 'chest', [sx, 46.6, 0.3], [sx + 0.9 * s, 33.0, -0.6], 1.5, 'bark')
@@ -387,8 +374,7 @@ def pole():
                                   'head': {'rotation': [26, 0, 22]}, 'spine': {'rotation': [10, 0, 0]}}, 2)
     A_['jumpscare'] = anim(lambda t: merge(fingers(t * 3, 30), {
         'head': {'rotation': [-8 + wob(t, 9, 7), wob(t, 11, 10), wob(t, 7, 14)], 'position': [0, 0, -min(5, t * 14)]},
-        'jaw': {'rotation': [min(80, t * 260), 0, 0]}, 'left_arm': {'rotation': [-115, 0, -55]}, 'right_arm': {'rotation': [-115, 0, 55]},
-        'left_forearm': {'rotation': [-25, 0, 0]}, 'right_forearm': {'rotation': [-25, 0, 0]},
+        'jaw': {'rotation': [min(80, t * 260), 0, 0]}, 'left_arm': {'rotation': [-10, 0, -6]}, 'right_arm': {'rotation': [-10, 0, 6]},
         'neck1': {'rotation': [-30, 0, 0], 'position': [0, 0, -min(3, t * 8)]}}), 1.2, loop=False, fps=20)
     m.save(5, A_)
 

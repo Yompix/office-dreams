@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "lit=true": {
+   "model": "glukhoman:block/board_lamp_on"
+  },
+  "lit=false": {
+   "model": "glukhoman:block/board_lamp"
+  }
+ }
+}
