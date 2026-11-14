@@ -29,7 +29,7 @@ import net.minecraft.world.World;
  * Хор. Говорит голосами забранных. Не убивается. Идёт на шум и на близких. Луч фонаря оглушает на пару секунд.
  * chase — режим погони в шахте: всегда идёт за ближайшим.
  */
-public class ChoirEntity extends HostileEntity {
+public class ChoirEntity extends HorrorMob {
     private static final TrackedData<Integer> STUN = DataTracker.registerData(ChoirEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private final ServerBossBar bar = new ServerBossBar(Text.literal("Хор"), BossBar.Color.PURPLE, BossBar.Style.NOTCHED_10);
     public boolean chase;
@@ -39,7 +39,6 @@ public class ChoirEntity extends HostileEntity {
 
     public ChoirEntity(EntityType<? extends HostileEntity> type, World world) {
         super(type, world);
-        setPersistent();
         bar.setDarkenSky(true);
         bar.setThickenFog(true);
     }
@@ -48,6 +47,25 @@ public class ChoirEntity extends HostileEntity {
         return HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 300).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25)
                 .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 9).add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 1)
                 .add(EntityAttributes.GENERIC_STEP_HEIGHT, 1.1);
+    }
+
+    @Override
+    public String geoName() {
+        return "choir";
+    }
+
+    @Override
+    protected String baseAnim() {
+        if (stunTicks() > 0) return "stunned";
+        double v = getVelocity().horizontalLengthSquared();
+        if (v > 0.02) return "run";
+        if (v > 0.002) return "walk";
+        return "idle";
+    }
+
+    @Override
+    protected int spawnActTicks() {
+        return 40;
     }
 
     @Override
@@ -78,7 +96,7 @@ public class ChoirEntity extends HostileEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!(getWorld() instanceof ServerWorld w)) return;
+        if (!(getWorld() instanceof ServerWorld w) || vanishing() || isRemoved()) return;
         if (home == null) home = getBlockPos();
         for (ServerPlayerEntity p : w.getPlayers()) {
             if (p.squaredDistanceTo(this) < 48 * 48) bar.addPlayer(p);
@@ -87,6 +105,10 @@ public class ChoirEntity extends HostileEntity {
         if (stunCd > 0) stunCd--;
         if (attackCd > 0) attackCd--;
         int s = stunTicks();
+        if (age < 40) {
+            getNavigation().stop();
+            return;
+        }
         if (s > 0) {
             dataTracker.set(STUN, s - 1);
             setVelocity(0, getVelocity().y, 0);
@@ -120,9 +142,11 @@ public class ChoirEntity extends HostileEntity {
         }
         if (near != null && nd < 2.6 * 2.6 && attackCd == 0) {
             tryAttack(near);
+            act("attack", 16);
             Sanity.add(near, -20);
             attackCd = 30;
         }
+        if (age < 40) return; // поднимается из пола
         if (age % 100 == 0) w.playSound(null, getBlockPos(), GContent.sound(random.nextInt(3) == 0 ? "choir_roar" : "choir_hum"), SoundCategory.HOSTILE, 1.6f, 0.9f + random.nextFloat() * 0.2f);
     }
 
@@ -148,15 +172,7 @@ public class ChoirEntity extends HostileEntity {
         bar.removePlayer(p);
     }
 
-    @Override
-    public boolean canImmediatelyDespawn(double d) {
-        return false;
-    }
 
-    @Override
-    protected boolean isDisallowedInPeaceful() {
-        return false;
-    }
 
     @Override
     public boolean isPushable() {

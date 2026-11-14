@@ -2,7 +2,6 @@ package com.yompix.glukhoman.client;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
-import com.yompix.glukhoman.client.render.Renderers;
 import com.yompix.glukhoman.client.screen.ChoiceScreen;
 import com.yompix.glukhoman.client.screen.DifficultyScreen;
 import com.yompix.glukhoman.client.screen.SettingsScreen;
@@ -57,7 +56,7 @@ public class GlukhomanClient implements ClientModInitializer {
     public static final List<String[]> SUBS = new ArrayList<>(); // who, text, ticksLeft
     public static int fadeT, fadeTotal, fadeColor;
     public static float shake;
-    public static int joltT, lostT, creditsT = -1, hintT;
+    public static int joltT, lostT, creditsT = -1, hintT, hushT, crashT = -1;
     public static Vec3d hint;
     // ---- туман (читает FogMixin) ----
     public static float fogStart = 30, fogEnd = 90, fogR = 0.3f, fogG = 0.32f, fogB = 0.38f;
@@ -73,7 +72,8 @@ public class GlukhomanClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        Renderers.init();
+        com.yompix.glukhoman.client.render.GeoRenderers.init();
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> FearFx.render(ctx.tickCounter().getTickDelta(false)));
         net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(net.minecraft.client.render.RenderLayer.getCutout(), GContent.NOTE, GContent.CHALK_MARK);
         FLASH = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.flashlight", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.glukhoman"));
         HINT = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.hint", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.categories.glukhoman"));
@@ -91,6 +91,10 @@ public class GlukhomanClient implements ClientModInitializer {
     }
 
     static void leave(MinecraftClient c) {
+        c.execute(() -> {
+            Cine.stop();
+            FearFx.reset();
+        });
         inWorld = false;
         askedChoose = false;
         chapter = 0;
@@ -143,7 +147,7 @@ public class GlukhomanClient implements ClientModInitializer {
                 cardT = 160;
             }
             case "voice" -> {
-                SoundEvent e = sound("voice." + m.getString("id"));
+                SoundEvent e = m.getString("id").isEmpty() ? null : sound("voice." + m.getString("id"));
                 if (e != null) {
                     if (m.getBoolean("global") || !m.contains("x"))
                         c.getSoundManager().play(PositionedSoundInstance.master(e, 1f, 1f));
@@ -179,6 +183,13 @@ public class GlukhomanClient implements ClientModInitializer {
                 hintT = 100;
             }
             case "fx" -> fx(m.getString("k"), m.getInt("t"));
+            case "cut" -> Cine.play(m.getString("id"));
+            case "cutend" -> Cine.stop();
+            case "hush" -> hushT = m.getInt("t");
+            case "jumpscare" -> Jumpscare.start(m.getString("k"));
+            case "fakecrash" -> {
+                if (GConfig.get().fakeCrash && !GConfig.get().fewerScares) crashT = 0;
+            }
             default -> {
             }
         }
@@ -217,6 +228,7 @@ public class GlukhomanClient implements ClientModInitializer {
             if (inWorld && GConfig.get().hints) send(Net.msg("hint"));
             else if (inWorld) c.player.sendMessage(Text.literal("Подсказки выключены в настройках"), true);
         }
+        if (Cine.active) Cine.clockTicks++;
         if (!inWorld) return;
         // закрыл выбор сложности, а история не началась — через 5 с спросим снова
         if (askedChoose && chapter == 0 && c.currentScreen == null && ++chooseT > 100) {
@@ -226,6 +238,7 @@ public class GlukhomanClient implements ClientModInitializer {
         if (chapter > 0) askedChoose = false;
         // тёмные ночи: своя яркость на время игры в Глухомани
         double g = new double[]{0.0, 0.35, 0.7}[Math.max(0, Math.min(2, GConfig.get().brightness))];
+        if (Cine.active) g = Math.max(g, 0.8);   // «экспозиция» кино: в кадре видно, но темнота остаётся
         if (savedGamma < 0) savedGamma = c.options.getGamma().getValue();
         if (Math.abs(c.options.getGamma().getValue() - g) > 0.001) c.options.getGamma().setValue(g);
 
@@ -235,6 +248,8 @@ public class GlukhomanClient implements ClientModInitializer {
         if (joltT > 0) joltT--;
         if (lostT > 0) lostT--;
         if (hintT > 0) hintT--;
+        if (hushT > 0) hushT--;
+        if (crashT >= 0 && ++crashT > 130) crashT = -1;
         shake *= 0.9f;
         if (creditsT >= 0 && ++creditsT > 900) creditsT = -1;
         for (String[] s : SUBS) s[2] = Integer.toString(Integer.parseInt(s[2]) - 1);
@@ -305,6 +320,7 @@ public class GlukhomanClient implements ClientModInitializer {
             if (chase) want.put("amb.chase", 0.75f);
             if (sanity < 45) want.put("amb.dread", (45 - sanity) / 45f * 0.8f);
         }
+        if (hushT > 0 || crashT >= 0) want.replaceAll((k, v) -> 0.001f);   // тишина перед скримером
         for (var e : want.entrySet()) {
             Loop l = LOOPS.get(e.getKey());
             if (l == null || l.isDone()) {

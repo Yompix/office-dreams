@@ -37,6 +37,10 @@ public final class Autotest {
             join();
             return;
         }
+        if ("shots2".equals(System.getProperty("glukhoman.autotest"))) {
+            shots2();
+            return;
+        }
         if (!"shots".equals(System.getProperty("glukhoman.autotest"))) return;
         STEPS.add(new Step(100, c -> {
             var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
@@ -103,6 +107,11 @@ public final class Autotest {
             GlukhomanClient.send(m);
             c.setScreen(null);
         }));
+        STEPS.add(new Step(60, c -> {
+            Glukhoman.LOG.info("AUTOTEST сеть: кат-сцена идёт = {}, хозяин пропускает", Cine.active);
+            GlukhomanClient.send(com.yompix.glukhoman.net.Net.msg("skip"));
+        }));
+        STEPS.add(new Step(20, c -> Glukhoman.LOG.info("AUTOTEST сеть: после пропуска кат-сцена идёт = {}", Cine.active)));
         STEPS.add(new Step(220, c -> {
             Glukhoman.LOG.info("AUTOTEST сеть: глава {} «{}», цель «{}»", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective);
             shot(c, "11_mp_start");
@@ -143,7 +152,7 @@ public final class Autotest {
         wait(c -> c.player != null && GlukhomanClient.chapter > 0, 2000);
         STEPS.add(new Step(60, c -> {
             if (c.currentScreen != null) c.setScreen(null);
-            Glukhoman.LOG.info("AUTOTEST друг: глава {} «{}», цель «{}»", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective);
+            Glukhoman.LOG.info("AUTOTEST друг: глава {} «{}», цель «{}», кат-сцена идёт = {}", GlukhomanClient.chapter, GlukhomanClient.title, GlukhomanClient.objective, Cine.active);
             shot(c, "20_friend_start");
         }));
         wait(c -> GlukhomanClient.objective.contains("батарейки"), 1500);
@@ -159,6 +168,92 @@ public final class Autotest {
             c.scheduleStop();
         }));
         ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    // ======================= 0.2: кат-сцены, крупные планы, видео =======================
+    static int rec = -1, recLeft;
+    static String recName;
+
+    static void record(String name, int frames) {
+        recName = name;
+        rec = 0;
+        recLeft = frames;
+    }
+
+    static void scene(String id, double x, double y, double z, long time, int shotTick, String shot, int recFrames) {
+        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, x, y, z, 0, 0); s.getOverworld().setTimeOfDay(time); })));
+        STEPS.add(new Step(80, c -> {
+            Cine.play(id);
+            if (recFrames > 0) record(id, recFrames);
+        }));
+        STEPS.add(new Step(shotTick, c -> shot2(c, shot)));
+        STEPS.add(new Step(Math.max(10, com.yompix.glukhoman.story.Scenes.ticks(id) - shotTick + 10), c -> Cine.stop()));
+    }
+
+    static void shot2(MinecraftClient c, String name) {
+        ScreenshotRecorder.saveScreenshot(c.runDirectory, "g2_" + name + ".png", c.getFramebuffer(), t -> Glukhoman.LOG.info("AUTOTEST снимок {}", name));
+    }
+
+    static void shots2() {
+        STEPS.add(new Step(100, c -> {
+            var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                    net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+            var info = new net.minecraft.world.level.LevelInfo("GlkShots2", net.minecraft.world.GameMode.ADVENTURE, false,
+                    net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
+            var key = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, Glukhoman.id("taiga"));
+            c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
+                    drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(key).createDimensionsRegistryHolder(),
+                    new net.minecraft.client.gui.screen.TitleScreen());
+        }));
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
+        STEPS.add(new Step(40, c -> shot2(c, "00_start_screen")));
+        STEPS.add(new Step(5, c -> {
+            c.setScreen(null);
+            server(c, s -> Story.chooseDifficulty(pl(s), 1));
+        }));
+        STEPS.add(new Step(110, c -> shot2(c, "01_intro_cutscene")));
+        STEPS.add(new Step(200, c -> Cine.stop()));
+        scene("knock", -12, 65, 129, 18000, 175, "02_knock_headturn", 200);
+        scene("village", 0, 65, 120, 18000, 150, "03_village_onetake", 0);
+        scene("corridor", -4, 65, 246 * -1, 18000, 105, "04_corridor_run", 160);
+        scene("anna", -110, 25, -219, 18000, 110, "06_anna", 0);
+        scene("bunker", 14, 42, -252, 18000, 90, "07_bunker_choir", 0);
+        scene("endA", 0, 65, -218, 1000, 80, "08_end_silence", 0);
+        scene("endB", -12, 65, 130, 6000, 190, "09_end_echo", 0);
+        // скример отдельно
+        STEPS.add(new Step(10, c -> server(c, s -> { tp(s, -12, 25, -173, -90, 0); s.getOverworld().setTimeOfDay(18000); })));
+        STEPS.add(new Step(60, c -> Jumpscare.start("listener")));
+        STEPS.add(new Step(5, c -> shot2(c, "05_jumpscare_listener")));
+        // крупные планы в игре
+        STEPS.add(new Step(40, c -> server(c, s -> { Story.jump(3); })));
+        STEPS.add(new Step(60, c -> server(c, s -> { clearPoles(s); tp(s, 3, 0, -60, 180, -12); var p = (com.yompix.glukhoman.entity.PoleEntity) spawnRet(s, GContent.POLE, 3, 0, -65); })));
+        STEPS.add(new Step(190, c -> { GConfig.get().brightness = 1; GlukhomanClient.sanity = 25; shot2(c, "10_pole_closeup"); }));
+        STEPS.add(new Step(5, c -> server(c, s -> { clearPoles(s); tp(s, -12, 65, 88, 180, 15); spawnAt(s, GContent.LISTENER, -12, 65, 84); })));
+        STEPS.add(new Step(80, c -> shot2(c, "11_listener_closeup")));
+        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, 6, 0, 108, 180, 0); var d = (com.yompix.glukhoman.entity.DoppelEntity) spawnRet(s, GContent.DOPPEL, 2, 0, 96); if (d != null) d.setMimic("@anna"); })));
+        STEPS.add(new Step(60, c -> { GlukhomanClient.sanity = 60; shot2(c, "12_doppel_anna"); }));
+        STEPS.add(new Step(5, c -> server(c, s -> { tp(s, -11, 65, 128, 90, 12); })));
+        STEPS.add(new Step(60, c -> shot2(c, "13_photo_doll")));
+        STEPS.add(new Step(5, c -> server(c, s -> { Story.jump(5); })));
+        STEPS.add(new Step(60, c -> server(c, s -> { tp(s, 14, 42, -254, 180, -8); spawnAt(s, GContent.CHOIR, 14, 42, -266); })));
+        STEPS.add(new Step(55, c -> { GlukhomanClient.sanity = 20; shot2(c, "14_choir_closeup"); }));
+        STEPS.add(new Step(40, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(c -> {
+            if (rec >= 0 && recLeft-- > 0) {
+                ScreenshotRecorder.saveScreenshot(c.runDirectory, String.format("rec_%s_%04d.png", recName, rec++), c.getFramebuffer(), t -> {});
+                if (recLeft == 0) rec = -1;
+            }
+        });
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    static Entity spawnRet(MinecraftServer s, net.minecraft.entity.EntityType<? extends Entity> t, int x, int y, int z) {
+        Entity e = t.create(s.getOverworld());
+        if (e == null) return null;
+        if (y == 0) y = s.getOverworld().getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+        e.refreshPositionAndAngles(x + 0.5, y, z + 0.5, 0, 0);
+        s.getOverworld().spawnEntity(e);
+        return e;
     }
 
     static void wait(java.util.function.Predicate<MinecraftClient> cond, int max) {

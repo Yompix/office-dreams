@@ -135,6 +135,10 @@ public final class Light {
 
     /** Луч оглушает Хора, если бьёт в него. */
     static void stun(ServerPlayerEntity p, Vec3d eye, Vec3d dir) {
+        for (com.yompix.glukhoman.entity.PoleEntity c : p.getServerWorld().getEntitiesByClass(com.yompix.glukhoman.entity.PoleEntity.class, new Box(p.getBlockPos()).expand(24), e -> true)) {
+            Vec3d to = c.getPos().add(0, 2.6, 0).subtract(eye);
+            if (to.length() < 24 && to.normalize().dotProduct(dir) > 0.96 && c.canSee(p)) c.lit(p);
+        }
         for (ChoirEntity c : p.getServerWorld().getEntitiesByClass(ChoirEntity.class, new Box(p.getBlockPos()).expand(20), e -> true)) {
             Vec3d to = c.getPos().add(0, 1.6, 0).subtract(eye);
             if (to.length() < 20 && to.normalize().dotProduct(dir) > 0.94 && c.canSee(p)) c.stun(p);

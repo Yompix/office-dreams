@@ -22,19 +22,26 @@ public class SettingsScreen extends Screen {
     @Override
     protected void init() {
         GConfig c = GConfig.get();
-        int y = height / 4;
+        int y = height / 4 - 30;
         toggle(y, "Меньше скримеров", () -> c.fewerScares, v -> c.fewerScares = v);
         toggle(y + 24, "Без вспышек и мигания", () -> c.noFlashing, v -> c.noFlashing = v);
         toggle(y + 48, "Субтитры", () -> c.subtitles, v -> c.subtitles = v);
         toggle(y + 72, "Сердцебиение", () -> c.heartbeat, v -> c.heartbeat = v);
         toggle(y + 96, "Подсказка направления (H)", () -> c.hints, v -> c.hints = v);
+        String[] fxn = {"выкл", "слабо", "полностью"};
+        addDrawableChild(ButtonWidget.builder(Text.literal("Эффекты экрана: " + fxn[c.screenFx]), b -> {
+            c.screenFx = (c.screenFx + 1) % 3;
+            b.setMessage(Text.literal("Эффекты экрана: " + fxn[c.screenFx]));
+            c.save();
+        }).dimensions(width / 2 - 110, y + 144, 220, 20).build());
+        toggle(y + 168, "Ложный вылет игры в финале", () -> c.fakeCrash, v -> c.fakeCrash = v);
         String[] br = {"Темно (как задумано)", "Обычно", "Светлее"};
         addDrawableChild(ButtonWidget.builder(Text.literal("Яркость: " + br[c.brightness]), b -> {
             c.brightness = (c.brightness + 1) % 3;
             b.setMessage(Text.literal("Яркость: " + br[c.brightness]));
             c.save();
         }).dimensions(width / 2 - 110, y + 120, 220, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 156, 120, 20).build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 196, 120, 20).build());
     }
 
     void toggle(int y, String name, Supplier<Boolean> get, Consumer<Boolean> set) {

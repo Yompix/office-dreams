@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ShakeMixin {
     @Inject(method = "tiltViewWhenHurt", at = @At("TAIL"))
     private void glukhoman$shake(MatrixStack m, float tickDelta, CallbackInfo ci) {
+        if (com.yompix.glukhoman.client.Cine.active && com.yompix.glukhoman.client.Cine.roll != 0)
+            m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(com.yompix.glukhoman.client.Cine.roll));
         float s = GlukhomanClient.shake;
         if (s < 0.02f) return;
         MinecraftClient c = MinecraftClient.getInstance();

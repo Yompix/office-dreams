@@ -24,7 +24,7 @@ import net.minecraft.world.World;
  * Слухач. Слепой, ползает, живёт звуком. Идёт на шум (бег, прыжки, двери, камешки), прислушивается и щёлкает.
  * Крадущегося игрока замечает только вплотную. Иногда повторяет голоса, которые слышал.
  */
-public class ListenerEntity extends HostileEntity {
+public class ListenerEntity extends HorrorMob {
     private static final TrackedData<Integer> MODE = DataTracker.registerData(ListenerEntity.class, TrackedDataHandlerRegistry.INTEGER);
     public static final int IDLE = 0, HUNT = 1, LISTEN = 2;
     private Vec3d goal;
@@ -33,12 +33,25 @@ public class ListenerEntity extends HostileEntity {
 
     public ListenerEntity(EntityType<? extends HostileEntity> type, World world) {
         super(type, world);
-        setPersistent();
     }
 
     public static DefaultAttributeContainer.Builder attributes() {
         return HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 40).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.24)
                 .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 40).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5).add(EntityAttributes.GENERIC_ARMOR, 6);
+    }
+
+    @Override
+    public String geoName() {
+        return "listener";
+    }
+
+    @Override
+    protected String baseAnim() {
+        if (mode() == LISTEN) return "listen";
+        double v = getVelocity().horizontalLengthSquared();
+        if (v > 0.012) return "sprint";
+        if (v > 0.0015) return "crawl";
+        return "idle";
     }
 
     @Override
@@ -54,7 +67,7 @@ public class ListenerEntity extends HostileEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!(getWorld() instanceof ServerWorld w)) return;
+        if (!(getWorld() instanceof ServerWorld w) || vanishing() || isRemoved()) return;
         if (home == null) home = getBlockPos();
         if (attackCd > 0) attackCd--;
         int diff = StoryState.get(w).difficulty;
@@ -76,6 +89,7 @@ public class ListenerEntity extends HostileEntity {
                 dataTracker.set(MODE, HUNT);
                 if (d < 1.7 && attackCd == 0) {
                     tryAttack(p);
+                    act("attack", 14);
                     Sanity.add(p, -15);
                     attackCd = 24;
                 }
@@ -88,6 +102,7 @@ public class ListenerEntity extends HostileEntity {
                 if (goal.squaredDistanceTo(getPos()) < 2.5 || getNavigation().isIdle() && age % 20 == 0) {
                     dataTracker.set(MODE, LISTEN);
                     listenTicks = 60 + random.nextInt(40);
+                    if (random.nextInt(3) == 0) act("turn180", 24);
                     getNavigation().stop();
                 }
             }
@@ -104,6 +119,7 @@ public class ListenerEntity extends HostileEntity {
                     BlockPos t = home.add(random.nextInt(13) - 6, 0, random.nextInt(13) - 6);
                     getNavigation().startMovingTo(t.getX() + 0.5, t.getY(), t.getZ() + 0.5, 0.7);
                 }
+                if (random.nextInt(500) == 0 && act().isEmpty()) act("twitch", 30);
                 if (random.nextInt(900) == 0) w.playSound(null, getBlockPos(), GContent.sound("voice.mimic_2"), SoundCategory.HOSTILE, 0.8f, 0.85f);
             }
         }
@@ -139,13 +155,5 @@ public class ListenerEntity extends HostileEntity {
         return r;
     }
 
-    @Override
-    public boolean canImmediatelyDespawn(double d) {
-        return false;
-    }
 
-    @Override
-    protected boolean isDisallowedInPeaceful() {
-        return false;
-    }
 }

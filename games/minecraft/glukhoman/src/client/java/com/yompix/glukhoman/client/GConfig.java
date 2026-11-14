@@ -14,7 +14,9 @@ public class GConfig {
     public boolean subtitles = true;
     public boolean heartbeat = true;
     public boolean hints = true;          // H — направление к цели
-    public int brightness = 0;            // 0 — темно (как задумано), 1 — обычно, 2 — светлее
+    public int brightness = 0;
+    public int screenFx = 2;            // 0 — без пост-эффектов, 1 — слабо, 2 — полностью
+    public boolean fakeCrash = true;    // ложный «вылет игры» в финале            // 0 — темно (как задумано), 1 — обычно, 2 — светлее
 
     private static GConfig INSTANCE;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

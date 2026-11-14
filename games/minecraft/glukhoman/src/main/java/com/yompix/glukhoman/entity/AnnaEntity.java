@@ -16,7 +16,48 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
 /** Анна Ветрова. Не слышит (воск в ушах), общается записками. ПКМ — прочитать её записку. */
-public class AnnaEntity extends PathAwareEntity {
+public class AnnaEntity extends PathAwareEntity implements software.bernie.geckolib.animatable.GeoEntity {
+    private static final net.minecraft.entity.data.TrackedData<String> ACT = net.minecraft.entity.data.DataTracker.registerData(AnnaEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.STRING);
+    private final software.bernie.geckolib.animatable.instance.AnimatableInstanceCache geo = software.bernie.geckolib.util.GeckoLibUtil.createInstanceCache(this);
+    /** Клиент: говорит (лицо с открытым ртом) и куда смотреть головой — для кат-сцен. */
+    public boolean talking;
+
+    @Override
+    protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder b) {
+        super.initDataTracker(b);
+        b.add(ACT, "");
+    }
+
+    public String act() {
+        return dataTracker.get(ACT);
+    }
+
+    public void act(String a) {
+        dataTracker.set(ACT, a);
+    }
+
+    @Override
+    public void registerControllers(software.bernie.geckolib.animation.AnimatableManager.ControllerRegistrar c) {
+        c.add(new software.bernie.geckolib.animation.AnimationController<>(this, "main", 4, state -> {
+            String a = act();
+            if (a.isEmpty()) a = getVelocity().horizontalLengthSquared() > 0.002 ? "walk" : "idle";
+            return state.setAndContinue(HorrorMob.raw("animation.human." + a));
+        }));
+    }
+
+    /** Клиентские «куклы» кат-сцен: своё время анимации (в тиках) — для замедленной съёмки. */
+    public double animClock = -1;
+
+    @Override
+    public double getTick(Object o) {
+        return animClock >= 0 ? animClock : age;
+    }
+
+    @Override
+    public software.bernie.geckolib.animatable.instance.AnimatableInstanceCache getAnimatableInstanceCache() {
+        return geo;
+    }
+
     public AnnaEntity(EntityType<? extends PathAwareEntity> type, World world) {
         super(type, world);
         setPersistent();

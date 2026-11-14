@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/poster_side",
+  "top": "glukhoman:block/poster_top",
+  "front": "glukhoman:block/poster_2",
+  "particle": "glukhoman:block/poster_side"
+ },
+ "elements": [
+  {
+   "from": [
+    1,
+    2,
+    0
+   ],
+   "to": [
+    15,
+    15,
+    0.5
+   ],
+   "faces": {
+    "north": {
+     "texture": "#front"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#front"
+    },
+    "west": {
+     "texture": "#front"
+    },
+    "up": {
+     "texture": "#front"
+    },
+    "down": {
+     "texture": "#front"
+    }
+   }
+  }
+ ]
+}

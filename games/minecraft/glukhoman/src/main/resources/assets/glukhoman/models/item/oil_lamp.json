@@ -2,5 +2,41 @@
  "parent": "minecraft:item/handheld",
  "textures": {
   "layer0": "glukhoman:item/oil_lamp"
+ },
+ "display": {
+  "firstperson_righthand": {
+   "rotation": [
+    0,
+    -90,
+    35
+   ],
+   "translation": [
+    1.5,
+    3.5,
+    -2
+   ],
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    0,
+    90,
+    -35
+   ],
+   "translation": [
+    1.5,
+    3.5,
+    -2
+   ],
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  }
  }
 }

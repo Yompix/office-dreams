@@ -75,6 +75,7 @@ public final class Director {
             if (r < 0.3f) far(p, "branch_snap", 0.5f, 14);
             else if (r < 0.55f) far(p, "choir_hum", 0.7f, 30);
             else if (r < 0.75f) steps(p);
+            else if (r < 0.85f && unseenDecor(p)) return;
             else if (san < 60) whisper(p);
             else far(p, "steps_far", 0.8f, 20);
             return;
@@ -88,6 +89,12 @@ public final class Director {
             return;
         }
         // главы 2, 3, 5 на поверхности
+        if (r < 0.1f && unseenDecor(p)) return;
+        if (r < 0.2f && big && ch != 3 && doppel(p)) {
+            LAST_BIG.put(p.getUuid(), (long) p.getServer().getTicks());
+            return;
+        }
+        if (r < 0.28f && friendCall(p)) return;
         if (r < 0.15f) far(p, "branch_snap", 1f, 20);
         else if (r < 0.27f) steps(p);
         else if (r < 0.39f && doorBehind(p)) return;
@@ -95,7 +102,11 @@ public final class Director {
         else if (r < 0.6f) knock(p);
         else if (r < 0.7f) mimic(p);
         else if (r < 0.8f && san < 55) whisper(p);
-        else if (big && ch != 3 && apparition(p, san < 35 && !NO_SCARES.contains(p.getUuid()) && st.difficulty > 0)) LAST_BIG.put(p.getUuid(), (long) p.getServer().getTicks());
+        else if (big && ch != 3 && san < 35 && !NO_SCARES.contains(p.getUuid()) && st.difficulty > 0) {
+            LAST_BIG.put(p.getUuid(), (long) p.getServer().getTicks());
+            hush(p, 60);  // тишина… и только потом
+            Sched.after(60, () -> apparition(p, true));
+        } else if (big && ch != 3 && apparition(p, false)) LAST_BIG.put(p.getUuid(), (long) p.getServer().getTicks());
         else far(p, "distant_scream", 0.5f, 70);
     }
 
@@ -216,6 +227,88 @@ public final class Director {
         }
     }
 
+    /** Тишина перед скримером: фон глохнет. */
+    public static void hush(ServerPlayerEntity p, int ticks) {
+        NbtCompound m = Net.msg("hush");
+        m.putInt("t", ticks);
+        Net.send(p, m);
+    }
+
+    /** Полноэкранный скример — модель крупным планом (если игрок их не отключил). */
+    public static void jumpscare(ServerPlayerEntity p, String kind) {
+        NbtCompound m = Net.msg("jumpscare");
+        m.putString("k", kind);
+        Net.send(p, m);
+    }
+
+    /** Голос друга: из леса зовёт голосом и с ником другого игрока, который сейчас далеко. */
+    static boolean friendCall(ServerPlayerEntity p) {
+        var others = p.getServer().getPlayerManager().getPlayerList().stream().filter(o -> o != p && !o.isSpectator() && o.squaredDistanceTo(p) > 25 * 25).toList();
+        if (others.isEmpty()) return false;
+        ServerPlayerEntity f = others.get(R.nextInt(others.size()));
+        Vec3d look = p.getRotationVec(1f).multiply(1, 0, 1).normalize();
+        Vec3d at = p.getPos().subtract(look.multiply(26)).add(0, 1, 0);
+        snd(p, R.nextBoolean() ? "voice.mimic_1" : "voice.mimic_2", at, 1f, 0.8f);
+        NbtCompound m = Net.msg("voice");
+        m.putString("id", "");
+        m.putString("who", f.getName().getString());
+        m.putString("text", R.nextBoolean() ? "Эй! Сюда! Я нашёл…" : "Помоги… я здесь, за деревьями…");
+        m.putInt("dur", 60);
+        m.putBoolean("global", true);
+        Net.send(p, m);
+        return true;
+    }
+
+    /** Двойник: облик друга (в кооперативе) или Анны стоит вдали и машет. */
+    static boolean doppel(ServerPlayerEntity p) {
+        ServerWorld w = p.getServerWorld();
+        if (!w.getEntitiesByClass(com.yompix.glukhoman.entity.DoppelEntity.class, new Box(p.getBlockPos()).expand(90), e -> true).isEmpty()) return false;
+        var others = p.getServer().getPlayerManager().getPlayerList().stream().filter(o -> o != p && !o.isSpectator()).toList();
+        Vec3d look = p.getRotationVec(1f).multiply(1, 0, 1).normalize();
+        for (int i = 0; i < 10; i++) {
+            double ang = Math.toRadians(R.nextInt(50) - 25);
+            Vec3d dir = new Vec3d(look.x * Math.cos(ang) - look.z * Math.sin(ang), 0, look.x * Math.sin(ang) + look.z * Math.cos(ang));
+            Vec3d at = p.getPos().add(dir.multiply(22 + R.nextInt(10)));
+            int x = MathHelper.floor(at.x), z = MathHelper.floor(at.z);
+            int y = w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+            if (Math.abs(y - p.getBlockY()) > 5) continue;
+            var d = GContent.DOPPEL.create(w);
+            if (d == null) return false;
+            d.refreshPositionAndAngles(x + 0.5, y, z + 0.5, 0, 0);
+            if (!p.canSee(d)) continue;
+            d.setMimic(others.isEmpty() ? "@anna" : others.get(R.nextInt(others.size())).getName().getString());
+            w.spawnEntity(d);
+            return true;
+        }
+        return false;
+    }
+
+    /** Кукла поворачивается к тебе, фото меняется — пока никто не смотрит. */
+    static boolean unseenDecor(ServerPlayerEntity p) {
+        ServerWorld w = p.getServerWorld();
+        StoryState st = StoryState.get(w);
+        for (String g : new String[]{"doll", "photo"}) {
+            for (long l : st.lamps.getOrDefault(g, java.util.List.of())) {
+                BlockPos q = BlockPos.fromLong(l);
+                if (q.getSquaredDistance(p.getPos()) > 16 * 16) continue;
+                Vec3d to = Vec3d.ofCenter(q).subtract(p.getEyePos());
+                if (to.normalize().dotProduct(p.getRotationVec(1f)) > 0.3 || seenByOthers(p, Vec3d.ofCenter(q))) continue;
+                BlockState s = w.getBlockState(q);
+                if (!(s.getBlock() instanceof com.yompix.glukhoman.block.DecorBlock)) continue;
+                if (g.equals("doll")) {
+                    net.minecraft.util.math.Direction face = net.minecraft.util.math.Direction.getFacing(-to.x, 0, -to.z);
+                    w.setBlockState(q, s.with(net.minecraft.block.HorizontalFacingBlock.FACING, face), 3);
+                } else {
+                    int v = s.get(com.yompix.glukhoman.block.DecorBlock.VARIANT);
+                    if (v >= 2) continue;
+                    w.setBlockState(q, s.with(com.yompix.glukhoman.block.DecorBlock.VARIANT, v + 1), 3);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Жердь-видение у кромки леса: исчезает, когда на неё смотрят. jump — скример вплотную за спиной. */
     public static boolean apparition(ServerPlayerEntity p, boolean jump) {
         ServerWorld w = p.getServerWorld();
@@ -239,6 +332,18 @@ public final class Director {
             if (e == null) return false;
             e.refreshPositionAndAngles(x + 0.5, y, z + 0.5, 0, 0);
             if (!jump && !p.canSee(e)) continue;
+            if (!jump) {   // ищем ствол рядом: встанет за ним и выглянет
+                BlockPos log = null;
+                for (BlockPos q : BlockPos.iterateOutwards(new BlockPos(x, y + 1, z), 4, 1, 4))
+                    if (w.getBlockState(q).isIn(net.minecraft.registry.tag.BlockTags.LOGS)) { log = q.toImmutable(); break; }
+                if (log != null) {
+                    Vec3d away = Vec3d.ofCenter(log).subtract(p.getPos()).multiply(1, 0, 1).normalize();
+                    Vec3d side = new Vec3d(-away.z, 0, away.x).multiply(R.nextBoolean() ? 0.9 : -0.9);
+                    Vec3d spot = Vec3d.ofCenter(log).add(away.multiply(1.1)).add(side);
+                    e.refreshPositionAndAngles(spot.x, w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MathHelper.floor(spot.x), MathHelper.floor(spot.z)), spot.z, 0, 0);
+                    e.setPeek(true);
+                }
+            }
             e.makeApparition(jump ? p.getUuid() : null);
             e.lookAtPlayer(p);
             w.spawnEntity(e);

@@ -32,15 +32,17 @@ import java.util.UUID;
  * Жердь. Высокая фигура в коре с пустым лицом. Двигается, только когда на неё никто не смотрит.
  * Видение (главы 1–2): стоит у кромки леса и исчезает от взгляда. Охотник (глава 3): подбирается, пока ты отвернулся.
  */
-public class PoleEntity extends HostileEntity {
+public class PoleEntity extends HorrorMob {
+    private static final TrackedData<Boolean> APPARITION = DataTracker.registerData(PoleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Boolean> PEEK = DataTracker.registerData(PoleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Boolean> FROZEN = DataTracker.registerData(PoleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private boolean apparition;
     private UUID jumpFor;
-    private int life, seenTicks, unseenTicks, cooldown, stepTick;
+    private int life, seenTicks, unseenTicks, cooldown, stepTick, stareTicks, followTicks, fleeCd;
+    private boolean hunting;
 
     public PoleEntity(EntityType<? extends HostileEntity> type, World world) {
         super(type, world);
-        setPersistent();
         experiencePoints = 0;
     }
 
@@ -51,7 +53,40 @@ public class PoleEntity extends HostileEntity {
     }
 
     @Override
+    public String geoName() {
+        return "pole";
+    }
+
+    @Override
+    protected String baseAnim() {
+        if (apparitionClient()) return peeking() ? "peek" : "still";
+        double v = getVelocity().horizontalLengthSquared();
+        if (v > 0.03) return "run";
+        if (v > 0.002) return "walk";
+        return isFrozen() ? "still" : "idle";
+    }
+
+    @Override
+    protected int spawnActTicks() {
+        return 0;
+    }
+
+    private boolean apparitionClient() {
+        return dataTracker.get(APPARITION);
+    }
+
+    public boolean peeking() {
+        return dataTracker.get(PEEK);
+    }
+
+    public void setPeek(boolean p) {
+        dataTracker.set(PEEK, p);
+    }
+
+    @Override
     protected void initDataTracker(DataTracker.Builder b) {
+        b.add(APPARITION, false);
+        b.add(PEEK, false);
         super.initDataTracker(b);
         b.add(FROZEN, true);
     }
@@ -61,11 +96,12 @@ public class PoleEntity extends HostileEntity {
     }
 
     public boolean isApparition() {
-        return apparition;
+        return apparition || apparitionClient();
     }
 
     public void makeApparition(UUID jump) {
         apparition = true;
+        dataTracker.set(APPARITION, true);
         jumpFor = jump;
     }
 
@@ -85,14 +121,9 @@ public class PoleEntity extends HostileEntity {
     }
 
     @Override
-    public boolean canImmediatelyDespawn(double d) {
-        return false;
-    }
-
-    @Override
     public void tick() {
         super.tick();
-        if (!(getWorld() instanceof ServerWorld w)) return;
+        if (!(getWorld() instanceof ServerWorld w) || vanishing() || isRemoved()) return;
         life++;
         ServerPlayerEntity seer = Watch.observer(w, this, 72, 0.62);
         if (apparition) {
@@ -114,6 +145,10 @@ public class PoleEntity extends HostileEntity {
         ServerPlayerEntity target = nearestTarget(w);
         boolean frozen = seer != null || target == null;
         dataTracker.set(FROZEN, frozen);
+        if (fleeCd > 0) fleeCd--;
+        if (seer != null && seer.distanceTo(this) < 12) {
+            if (++stareTicks == 50 && act().isEmpty()) act("tilt", 44);
+        } else stareTicks = 0;
         if (frozen) {
             getNavigation().stop();
             setVelocity(0, getVelocity().y, 0);
@@ -134,6 +169,22 @@ public class PoleEntity extends HostileEntity {
             cooldown = 60;
             return;
         }
+        // сначала только следует на расстоянии; охотится, когда игрок один или долго не оборачивается
+        if (!hunting) {
+            boolean alone = w.getPlayers().stream().noneMatch(o -> o != target && Watch.playable(o) && o.squaredDistanceTo(target) < 14 * 14);
+            if (++followTicks > (alone ? 500 : 900) / (diff + 1)) hunting = true;
+            if (dist < 16) {
+                getNavigation().stop();
+                lookAtPlayer(target);
+                if (random.nextInt(60) == 0 && act().isEmpty()) act("twitch", 40);
+                return;
+            }
+            if (dist < 26) {
+                getNavigation().stop();
+                return;
+            }
+            speed *= 0.8;
+        }
         getNavigation().startMovingTo(target, speed);
         if (++stepTick % 12 == 0) w.playSound(null, getBlockPos(), GContent.sound("pole_step"), SoundCategory.HOSTILE, 0.7f, 0.8f + random.nextFloat() * 0.2f);
         if (dist < 1.9 && cooldown == 0) {
@@ -141,9 +192,28 @@ public class PoleEntity extends HostileEntity {
             target.damage(getDamageSources().mobAttack(this), dmg);
             Sanity.add(target, -30);
             jumpScare(target);
+            act("attack", 16);
             teleportNear(w, target, 34);
             cooldown = 200;
+            hunting = false;
+            followTicks = 0;
         }
+    }
+
+    /** Луч фонаря: видение исчезает, охотник отступает в лес. */
+    public void lit(ServerPlayerEntity by) {
+        if (!(getWorld() instanceof ServerWorld w) || vanishing()) return;
+        if (isApparition()) {
+            vanish();
+            return;
+        }
+        if (fleeCd > 0) return;
+        fleeCd = 220;
+        hunting = false;
+        followTicks = 0;
+        w.spawnParticles(ParticleTypes.SMOKE, getX(), getY() + 1.8, getZ(), 20, 0.3, 1.2, 0.3, 0.01);
+        w.playSound(null, getBlockPos(), GContent.sound("pole_vanish"), SoundCategory.HOSTILE, 0.9f, 0.8f);
+        teleportNear(w, by, 32);
     }
 
     ServerPlayerEntity nearestTarget(ServerWorld w) {
@@ -163,9 +233,12 @@ public class PoleEntity extends HostileEntity {
     void jumpScare(ServerPlayerEntity p) {
         boolean soft = Director.NO_SCARES.contains(p.getUuid());
         getWorld().playSound(null, p.getBlockPos(), GContent.sound(soft ? "stinger_soft" : "stinger"), SoundCategory.HOSTILE, soft ? 0.6f : 1.2f, 1f);
-        NbtCompound fx = Net.msg("fx");
-        fx.putString("k", "jolt");
-        Net.send(p, fx);
+        if (!soft) Director.jumpscare(p, "pole");
+        else {
+            NbtCompound fx = Net.msg("fx");
+            fx.putString("k", "shake");
+            Net.send(p, fx);
+        }
         Sanity.add(p, -12);
     }
 
@@ -191,7 +264,7 @@ public class PoleEntity extends HostileEntity {
             w.spawnParticles(ParticleTypes.SMOKE, getX(), getY() + 1.8, getZ(), 30, 0.3, 1.2, 0.3, 0.01);
             w.playSound(null, getBlockPos(), GContent.sound("pole_vanish"), SoundCategory.HOSTILE, 0.8f, 1f);
         }
-        discard();
+        fade();
     }
 
     @Override
@@ -209,11 +282,6 @@ public class PoleEntity extends HostileEntity {
 
     @Override
     public boolean isPushable() {
-        return false;
-    }
-
-    @Override
-    protected boolean isDisallowedInPeaceful() {
         return false;
     }
 }
