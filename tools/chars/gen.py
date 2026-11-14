@@ -110,13 +110,13 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
 # 1а) мужская грудь — плоско (WHAT THE LAKE KEEPS, C['chest_flat'] — сколько выпуклости оставить): тело и всё, что на нём
 #     спереди, — до своей одежды (она шьётся по уже ровному телу)
 if C.get('chest_flat') is not None:
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../games/what-the-lake-keeps/tools'))   # garments.py (игра с 9 ноя в games/; было ../lake)
     import garments
     garments.flatten_chest(float(C['chest_flat']), top=float(C.get('chest_flat_top', 0.0)))
 # 1б) своя одежда (WHAT THE LAKE KEEPS): куртки, худи с капюшоном, жилет, шапка — оболочкой по телу (games/what-the-lake-keeps/tools/garments.py).
 #     Шьётся до масок: тело под одеждой MakeHuman ещё целое (иначе у куртки нет туловища)
 if C.get('garments'):
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../games/what-the-lake-keeps/tools'))   # garments.py (игра с 9 ноя в games/; было ../lake)
     import garments
     garments.build(C['garments'])
 for o in [o for o in bpy.data.objects if o.type == 'MESH']:

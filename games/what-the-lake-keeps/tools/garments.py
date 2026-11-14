@@ -6,9 +6,10 @@
 Виды (C['garments'] в tools/chars.json):
   jacket — торс и рукава до запястий, воротник; off — насколько велика (у Ноя отцовская — не по размеру), hem — низ от таза
   vest   — то же без рукавов
-  hood   — капюшон на голове с вырезом для лица (с jacket — худи); down: true — опущенный: мешком на спине, валиком вокруг шеи
+  hood   — капюшон на голове с вырезом для лица (с jacket — худи); down: true — опущенный (_hood_down): своя сетка — валик
+           вокруг шеи поверх ворота и мешок на спине, по внешней поверхности куртки; волосы ложатся поверх (_hair_out)
   beanie — шапка от макушки до бровей, с отворотом
-  scarf  — шарф: валик вокруг шеи поверх воротника и конец на груди
+  scarf  — шарф (_scarf): своя сетка — толстый валик вокруг шеи поверх воротника и два конца на груди, висят по ткани
 """
 import bpy, bmesh, os, math, bisect
 from mathutils import Vector
@@ -1345,7 +1346,7 @@ def _smooth_boundary(bm, iters=8):
             v.co = c
 
 
-def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, drape=None, nsmooth=4, sim=None, pin_fn=None, grow_fn=None, grow_max=0.0, tailor=None, drop=0.0, self_col=True, neck=None, inset=0.0, frames=48, quilt=None, edge_smooth=0):
+def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, drape=None, nsmooth=4, sim=None, pin_fn=None, grow_fn=None, grow_max=0.0, tailor=None, drop=0.0, self_col=True, neck=None, inset=0.0, frames=48, quilt=None, edge_smooth=0, ext_thigh=0.3):
     me = body.data.copy()
     me.name = name
     ob = bpy.data.objects.new(name, me)
@@ -1395,7 +1396,7 @@ def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, dra
         if drop > 0.0:
             vgs = ob.vertex_groups
             nb = len(bm.verts)
-            _extend(bm, body.matrix_world, tailor['co'], vgs['thigh_l'].index, vgs['thigh_r'].index, drop, arms_w=[a + h for a, h in zip(tailor['w_arms'], tailor['w_hands'])])
+            _extend(bm, body.matrix_world, tailor['co'], vgs['thigh_l'].index, vgs['thigh_r'].index, drop, arms_w=[a + h for a, h in zip(tailor['w_arms'], tailor['w_hands'])], thigh=ext_thigh)
             if os.environ.get('LAKE_SIMDBG'):
                 print('SHELLDBG', name, 'до подола', nb, 'после', len(bm.verts))
     elif drape:
@@ -1578,23 +1579,22 @@ def build(specs):
                 tl = dict(co=co, w_torso=w_torso, w_arms=w_arms, w_head=w_head, w_hands=w_hands, arm=_arm(), **tc)
             ob = _shell(body, name, keep, g.get('off', 0.018), g.get('thick', 0.005), smooth=g.get('smooth', 6), drape=(w_torso, w_arms, w_head, g.get('slope', 0.12), g.get('band', 0.5)), nsmooth=8,
                         sim=g.get('sim'), pin_fn=pin_top, grow_fn=grow_mid, grow_max=g.get('grow', 0.1), tailor=tl, drop=g.get('drop', 0.0), self_col=g.get('self_col', False),
-                        neck=g.get('neck'), inset=g.get('inset', 0.0), frames=g.get('frames', 48), quilt=g.get('quilt'))
+                        neck=g.get('neck'), inset=g.get('inset', 0.0), frames=g.get('frames', 48), quilt=g.get('quilt'),
+                        ext_thigh=g.get('ext_thigh', 0.3))   # доля бёдер в весах подола ниже бёдер (короткой куртке — 0: сидя не мнётся о бёдра)
             ob.data.materials.append(_material(name + '_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
             _trims(ob, g, name, neck, hem)
             print('GARMENT', name, kind, len(ob.data.vertices))
             hide |= _interior(body, keep, 1)
-            covers.append((hem, kind == 'jacket', g.get('collar', True), set(i for i, k in enumerate(keep) if k)))
+            covers.append((hem, kind == 'jacket', g.get('collar', True), set(i for i, k in enumerate(keep) if k), hem - g.get('drop', 0.0), g.get('tuck', 0.10)))
             continue
         elif kind == 'hood' and g.get('down'):
-            a = _arm()
-            nb = a.matrix_world @ a.data.bones['neck_01'].head_local   # основание шеи
-            keep = []
-            for i in range(len(co)):
-                d = co[i] - nb
-                ring = -0.03 < d.z < 0.045 and math.hypot(d.x, d.y) < 0.12          # валик вокруг шеи
-                pouch = d.y > -0.01 and -0.19 < d.z < 0.045 and abs(d.x) < 0.12     # мешок капюшона на спине (лицо — в −Y)
-                keep.append(skin[i] and (w_torso[i] + w_head[i]) > 0.5 and w_headonly[i] < 0.25 and w_arms[i] < 0.3 and (ring or pouch))
-            ob = _shell(body, name, keep, g.get('off', 0.034), g.get('thick', 0.007), smooth=8, center=nb + Vector((0.0, -0.03, -0.1)), back=g.get('back', 0.03))
+            # 14 ноя: раньше — оболочка участка тела (кожа шеи и спины, отодвинутая наружу): мешок почти сливался с худи,
+            # край шёл лесенкой по граням тела, у Зои валик уходил под ворот парки, а волосы — сквозь капюшон.
+            # Теперь своя сетка по внешней поверхности уже сшитой куртки (_hood_down)
+            ob = _hood_down(body, g, skin, w_headonly, name)
+            ob.data.materials.append(_material(name + '_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
+            print('GARMENT', name, kind, len(ob.data.vertices))
+            continue
         elif kind == 'hood':
             keep = []
             for i in range(len(co)):
@@ -1603,16 +1603,13 @@ def build(specs):
                 face = fwd > 0.12 and co[i].z < brow + 0.05   # вырез для лица — шире, капюшон не «шлем»
                 keep.append(skin[i] and w_head[i] > 0.5 and co[i].z > neck - 0.04 and not face)
             ob = _shell(body, name, keep, g.get('off', 0.035), g.get('thick', 0.006), smooth=5, center=center, back=g.get('back', 0.05))
-        elif kind == 'scarf':   # шарф: плотный валик вокруг шеи поверх воротника, один конец — на груди
-            a = _arm()
-            nb = a.matrix_world @ a.data.bones['neck_01'].head_local
-            keep = []
-            for i in range(len(co)):
-                d = co[i] - nb
-                ring = -0.025 < d.z < 0.06 and math.hypot(d.x, d.y) < 0.12
-                tail = d.y < -0.02 and -0.24 < d.z < -0.01 and 0.01 < d.x < 0.075   # конец свисает спереди (лицо — в −Y)
-                keep.append(skin[i] and (w_torso[i] + w_head[i]) > 0.5 and w_headonly[i] < 0.3 and w_arms[i] < 0.3 and (ring or tail))
-            ob = _shell(body, name, keep, g.get('off', 0.05), g.get('thick', 0.01), smooth=7, center=nb + Vector((0.0, 0.0, -0.06)), edge_smooth=10)
+        elif kind == 'scarf':
+            # 14 ноя: раньше — оболочка кожи шеи: спереди валик уходил под воротник пальто, конец — рваной лентой
+            # с зазубринами. Теперь своя сетка (_scarf): валик поверх воротника и два ровных конца, висят по пальто
+            ob = _scarf(body, g, skin, w_headonly, name)
+            ob.data.materials.append(_material(name + '_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
+            print('GARMENT', name, kind, len(ob.data.vertices))
+            continue
         elif kind == 'beanie':
             cut = brow - g.get('low', 0.0)
             keep = [skin[i] and w_headonly[i] > 0.5 and co[i].z > cut for i in range(len(co))]
@@ -1627,6 +1624,333 @@ def build(specs):
         print('GARMENT', name, kind, len(ob.data.vertices))
     _hide_skin(body, hide)
     _hide_under(body, covers, w_torso, w_arms, w_head, w_headonly, neck)
+
+
+# ---------- опущенный капюшон и шарф — своими сетками (14 ноя) ----------
+# Оболочка участка кожи (как у курток) для них не годилась: валик капюшона и шарфа спереди уходил под воротник, край шёл
+# лесенкой по граням тела, мешок капюшона почти сливался с худи, волосы проходили сквозь. Здесь деталь строится
+# по ВНЕШНЕЙ поверхности уже одетого героя (кожа, одежда MakeHuman, своя куртка): лучи снаружи к оси шеи, радиусы
+# сглажены без ухода внутрь, веса костей — от ближайшей вершины своей куртки (деталь двигается вместе с её воротником).
+_SKIP_T = ('Hair', 'Eyes', 'Eyebrows', 'Eyelashes', 'Teeth', 'Tongue', 'Basemesh')
+
+
+def _layers_bvh(body, skin, w_headonly):
+    """внешняя поверхность героя: кожа без головы и служебной геометрии + вся одежда (без очков) — и своя куртка (источник весов)"""
+    M = body.matrix_world
+    verts = [M @ v.co for v in body.data.vertices]
+    polys = [list(p.vertices) for p in body.data.polygons if all(skin[i] and w_headonly[i] < 0.5 for i in p.vertices)]
+    src = None
+    for o in bpy.data.objects:
+        if o.type != 'MESH' or o is body or _otype(o) in _SKIP_T or 'glasses' in o.name.lower():
+            continue
+        off = len(verts)
+        mw = o.matrix_world
+        verts += [mw @ v.co for v in o.data.vertices]
+        polys += [[off + i for i in p.vertices] for p in o.data.polygons]
+        if o.data.attributes.get('src') is not None and (src is None or len(o.data.vertices) > len(src.data.vertices)):
+            src = o   # своя куртка/пальто/худи (сшита из копии тела — у неё есть слой src)
+    return BVHTree.FromPolygons(verts, polys), src
+
+
+def _dir(t):   # угол вокруг шеи: 0 — перед (лицо MakeHuman смотрит в −Y), π — спина
+    return Vector((math.sin(t), -math.cos(t), 0.0))
+
+
+def _outer_r(bvh, ax, z, t, far=0.5):
+    """расстояние от оси шеи до самой внешней поверхности героя по направлению t на высоте z (луч снаружи внутрь)"""
+    d = _dir(t)
+    hit = bvh.ray_cast(Vector((ax.x, ax.y, z)) + d * far, -d, far)
+    return None if hit[0] is None else far - hit[3]
+
+
+def _fill(rs):
+    ok = [i for i, r in enumerate(rs) if r is not None]
+    if not ok:
+        return [0.08] * len(rs)
+    return [r if r is not None else rs[min(ok, key=lambda j: abs(j - i))] for i, r in enumerate(rs)]
+
+
+def _smooth_keep(rs, it=6, closed=False):
+    """сгладить ряд радиусов, но не меньше исходных (деталь не уходит внутрь куртки на складках и лацканах)"""
+    raw = list(rs)
+    n = len(rs)
+    for _ in range(it):
+        nr = []
+        for i in range(n):
+            a = rs[i - 1] if (closed or i > 0) else rs[i]
+            b = rs[(i + 1) % n] if (closed or i < n - 1) else rs[i]
+            nr.append(max(raw[i], 0.25 * a + 0.5 * rs[i] + 0.25 * b))
+        rs = nr
+    return rs
+
+
+def _grid_obj(body, name, P, uvs, outward):
+    """сетка из сетки точек P[i][j] (мир), развёртка uvs[i][j]; грани — наружу (outward(i, j) — вектор «наружу»)"""
+    nu, nv = len(P), len(P[0])
+    vs = [p for col in P for p in col]
+    faces = [(i * nv + j, (i + 1) * nv + j, (i + 1) * nv + j + 1, i * nv + j + 1) for i in range(nu - 1) for j in range(nv - 1)]
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(vs, [], faces)
+    me.update()
+    uvl = me.uv_layers.new(name='UVMap')
+    for poly in me.polygons:
+        poly.use_smooth = True
+        for li in poly.loop_indices:
+            vi = me.loops[li].vertex_index
+            uvl.data[li].uv = uvs[vi // nv][vi % nv]
+    i0, j0 = nu // 2, nv // 2
+    f0 = me.polygons[min(len(me.polygons) - 1, i0 * (nv - 1) + j0)]
+    if f0.normal.dot(outward(i0, j0)) < 0.0:
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
+        bm.to_mesh(me)
+        bm.free()
+    me.update()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.parent = body.parent
+    ob.matrix_world = body.matrix_world.copy()
+    mi = ob.matrix_world.inverted()
+    for v in me.vertices:
+        v.co = mi @ v.co
+    return ob
+
+
+def _finish(ob, src, body, thick=0.0):
+    """толщина (с кромкой), веса костей — от своей куртки (или тела), модификатор скелета"""
+    if thick > 0.0:
+        for o in bpy.context.selected_objects:
+            o.select_set(False)
+        bpy.context.view_layer.objects.active = ob
+        ob.select_set(True)
+        sol = ob.modifiers.new('solid', 'SOLIDIFY')
+        sol.thickness = thick
+        sol.offset = 1.0
+        sol.use_rim = True
+        bpy.ops.object.modifier_apply(modifier='solid')
+    s = src or body
+    vs = [s.matrix_world @ v.co for v in s.data.vertices]
+    kd = KDTree(len(vs))
+    for i, p in enumerate(vs):
+        kd.insert(p, i)
+    kd.balance()
+    _weights_from(ob, s, kd, vs)
+
+
+def _join(obs, name):
+    for o in bpy.context.selected_objects:
+        o.select_set(False)
+    for o in obs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = obs[0]
+    if len(obs) > 1:
+        bpy.ops.object.join()
+    ob = obs[0]
+    ob.name = name
+    ob.data.name = name
+    ob.modifiers.new('arm', 'ARMATURE').object = _arm()
+    return ob
+
+
+def _hair_out(ob, clear, zmax):
+    """волосы поверх новой детали (длинные пряди Зои лежат на капюшоне, а не уходят в него): вершины причёски ниже zmax,
+    оказавшиеся под поверхностью детали или ближе clear к ней, выносятся наружу по нормали; соседи по пряди — мягче
+    (без изломов). Те же сдвиги — во всех формах причёски"""
+    from bl_ext.user_default.mpfb.services import ObjectService
+    hair = next((o for o in bpy.data.objects if o.type == 'MESH' and ObjectService.get_object_type(o) == 'Hair'), None)
+    if hair is None:
+        return
+    bvh, _ = _world_bvh(ob)
+    me = hair.data
+    mw = hair.matrix_world
+    inv = mw.inverted().to_3x3()
+    nbr = [[] for _ in me.vertices]
+    for e in me.edges:
+        a, b = e.vertices
+        nbr[a].append(b)
+        nbr[b].append(a)
+    push = [None] * len(me.vertices)
+    for v in me.vertices:
+        w = mw @ v.co
+        if w.z > zmax:
+            continue
+        loc, n, _, dist = bvh.find_nearest(w)
+        if loc is None or dist > 0.09:
+            continue
+        s = (w - loc).dot(n)
+        if ((w - loc) - n * s).length > 0.012 or s < -0.07 or s >= clear:
+            continue
+        push[v.index] = n * (clear - s)
+    for _ in range(3):
+        new = list(push)
+        for i in range(len(push)):
+            if push[i] is None:
+                acc = [push[j] for j in nbr[i] if push[j] is not None]
+                if acc:
+                    new[i] = sum(acc, Vector()) * (0.6 / len(acc))
+        push = new
+    keys = me.shape_keys.key_blocks if me.shape_keys else []
+    moved = 0
+    for i, dv in enumerate(push):
+        if dv is None:
+            continue
+        dl = inv @ dv
+        me.vertices[i].co += dl
+        for kb in keys:
+            kb.data[i].co += dl
+        moved += 1
+    print('HAIROUT', hair.name, ob.name, moved, 'of', len(me.vertices))
+
+
+def _hood_down(body, g, skin, w_headonly, name):
+    """опущенный капюшон: по краю — валик вокруг шеи поверх ворота (горловина капюшона), на спине — мешок (сложенная ткань
+    капюшона) с округлым низом; край мешка ложится на куртку. Ключи в g (м и градусы): top — верх валика над основанием шеи
+    сзади, band — ширина валика, pouch — длина мешка под ним, width — половина ширины мешка (град. вокруг шеи), open —
+    половина просвета спереди (у худи края почти сходятся, у парки капюшон пришит по бокам ворота), bulge — объём мешка,
+    roll — объём валика, gap — зазор до куртки, thick — толщина ткани"""
+    a = _arm()
+    nb = a.matrix_world @ a.data.bones['neck_01'].head_local
+    bvh, src = _layers_bvh(body, skin, w_headonly)
+    top, band, pouch = g.get('top', 0.035), g.get('band', 0.05), g.get('pouch', 0.16)
+    W, op = math.radians(g.get('width', 75)), math.radians(g.get('open', 15))
+    bulge, roll, gap, thick = g.get('bulge', 0.03), g.get('roll', 0.012), g.get('gap', 0.006), g.get('thick', 0.007)
+    NU, NV = 72, 20
+    angs = [op + (2 * math.pi - 2 * op) * i / (NU - 1) for i in range(NU)]
+    backf = lambda t: math.cos(min(1.0, abs(t - math.pi) / W) * math.pi / 2) ** 2
+    frontf = lambda t: max(0.0, math.cos(t)) ** 2
+    Z = []
+    for t in angs:
+        D = band * (1.0 - 0.45 * frontf(t)) + pouch * backf(t) ** 0.8   # спереди — только подвёрнутый край горловины
+        zt = nb.z + top - g.get('dip', 0.03) * frontf(t)
+        Z.append([zt - D * j / (NV - 1) for j in range(NV)])
+    # радиусы — лучами снаружи к оси шеи (горизонтально) и сильно сглажены: ткань капюшона не повторяет складки
+    # и простёжку куртки (раньше на скате плеча — лесенка и рябь бликов); зазор до куртки держит проход push() ниже
+    def e_of(i, j):
+        return _dir(angs[i])
+    R = [[None] * NV for _ in range(NU)]
+    for j in range(NV):
+        row = _fill([_outer_r(bvh, nb, Z[i][j], angs[i]) for i in range(NU)])
+        for i in range(NU):
+            R[i][j] = row[i]
+    for _ in range(20):
+        R2 = [list(c) for c in R]
+        for i in range(NU):
+            for j in range(NV):
+                nb4 = [R[i2][j2] for i2, j2 in ((i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)) if 0 <= i2 < NU and 0 <= j2 < NV]
+                R2[i][j] = 0.5 * R[i][j] + 0.5 * sum(nb4) / len(nb4)
+        R = R2
+    P, UV = [], []
+    uvpm = _uv_density(src) if src else None
+    uvpm = uvpm or 1.0
+    for i, t in enumerate(angs):
+        bf = backf(t)
+        col = []
+        for j in range(NV):
+            v = j / (NV - 1)
+            h = gap + (roll * math.sin(math.pi * v / 0.3) if v < 0.3 else 0.0) + bulge * bf * math.sin(math.pi * v) ** 0.8
+            col.append(Vector((nb.x, nb.y, Z[i][j])) + e_of(i, j) * (R[i][j] + h))
+        P.append(col)
+    # над плечами поверхность куртки почти горизонтальна: отступ по горизонтали там не даёт зазора, и куртка проступала
+    # сквозь капюшон пятнами. Поэтому — проход «не ближе clear к куртке по нормали» + лёгкое сглаживание, 6 раз
+    clear = gap + 0.004
+
+    def push():
+        for i in range(NU):
+            for j in range(NV):
+                p = P[i][j]
+                loc, n, _, dist = bvh.find_nearest(p)
+                if loc is None:
+                    continue
+                if n.dot(_dir(angs[i]) + Vector((0.0, 0.0, 0.35))) < 0.0:
+                    n = -n
+                c = (p - loc).dot(n)
+                if c < clear:
+                    P[i][j] = p + n * (clear - c)
+    for _ in range(16):   # ткань ровная, не повторяет складки и простёжку куртки (иначе на плечах — рябь бликов)
+        push()
+        Q = [list(col) for col in P]
+        for i in range(NU):
+            for j in range(NV):
+                nb4 = [P[i2][j2] for i2, j2 in ((i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)) if 0 <= i2 < NU and 0 <= j2 < NV]
+                avg = sum(nb4, Vector()) / len(nb4)
+                Q[i][j] = P[i][j] * 0.4 + avg * 0.6 if 0 < j < NV - 1 else P[i][j] * 0.7 + avg * 0.3
+        P[:] = Q
+    push()
+    for i in range(NU):
+        acc, colv = 0.0, []
+        for j in range(NV):
+            if j:
+                acc += (P[i][j] - P[i][j - 1]).length
+            colv.append(acc)
+        UV.append([((angs[i] - math.pi) * 0.1 * uvpm, c * uvpm) for c in colv])
+    ob = _grid_obj(body, name, P, UV, lambda i, j: _dir(angs[i]))
+    _hair_out(ob, thick + 0.004, nb.z + top + 0.03)
+    _finish(ob, src, body, thick)
+    return _join([ob], name)
+
+
+def _scarf(body, g, skin, w_headonly, name):
+    """шарф: толстый валик (трубка, сечение — эллипс roll_w × roll_h) вокруг шеи поверх воротника, спереди опущен на dip;
+    два конца (tails: [x центра, длина]) свисают по пальто: от валика вниз и к груди не круче slope, не ближе lift к ткани"""
+    a = _arm()
+    nb = a.matrix_world @ a.data.bones['neck_01'].head_local
+    bvh, src = _layers_bvh(body, skin, w_headonly)
+    rw, rh = g.get('roll_w', 0.018), g.get('roll_h', 0.026)
+    zr, dip, gap = g.get('z', 0.03), g.get('dip', 0.04), g.get('gap', 0.004)
+    frontf = lambda t: max(0.0, math.cos(t)) ** 2
+    zc = lambda t: nb.z + zr - dip * frontf(t)
+    NU, NV = 64, 14
+    angs = [2 * math.pi * i / (NU - 1) for i in range(NU)]   # шов — спереди, под концами
+    raw = []
+    for t in angs[:-1]:
+        hs = [_outer_r(bvh, nb, zc(t) + rh * k / 2.0, t) for k in (-2, -1, 0, 1, 2)]
+        hs = [h for h in hs if h is not None]
+        raw.append(max(hs) if hs else None)
+    rr = _smooth_keep(_fill(raw), 24, closed=True)
+    rr.append(rr[0])
+    uvpm = _uv_density(body) or 1.0
+    P, UV = [], []
+    for i, t in enumerate(angs):
+        d = _dir(t)
+        c = Vector((nb.x, nb.y, zc(t))) + d * (rr[i] + gap + rw)
+        P.append([c + d * (rw * math.cos(2 * math.pi * j / (NV - 1) + math.pi)) + Vector((0, 0, rh * math.sin(2 * math.pi * j / (NV - 1) + math.pi)))
+                  for j in range(NV)])
+        UV.append([(t * (rr[i] + rw) * uvpm, j / (NV - 1) * 2 * math.pi * (rw + rh) * 0.5 * uvpm) for j in range(NV)])
+    cen = lambda i: Vector((nb.x, nb.y, zc(angs[i]))) + _dir(angs[i]) * (rr[i] + gap + rw)
+    ring = _grid_obj(body, name + '_ring', P, UV, lambda i, j: P[i][j] - cen(i))
+    parts = [ring]
+    width, lift, slope, step = g.get('width', 0.075), g.get('lift', 0.006), g.get('slope', 0.5), 0.012
+    r0 = rr[0] + gap + rw
+    for k, (cx, L) in enumerate(g.get('tails', [[0.045, 0.34], [-0.03, 0.28]])):
+        z0 = zc(0.0) - rh * 0.3
+        n = max(2, int(L / step) + 1)
+        P, UV = [], []
+        for c in range(5):
+            x = cx + width * (c / 4.0 - 0.5)
+            dx = x - nb.x
+            y = nb.y - math.sqrt(max(r0 * r0 - dx * dx, 0.0))   # из валика спереди
+            col = []
+            for r in range(n):
+                z = z0 - L * r / (n - 1)
+                hit = bvh.ray_cast(Vector((x, nb.y - 0.6, z)), Vector((0.0, 1.0, 0.0)), 1.2)
+                ys = hit[0].y - lift if hit[0] is not None else y
+                if r:
+                    y = min(ys, y + slope * L / (n - 1))
+                col.append(Vector((x, y - 0.004 * k, z)))   # второй конец — чуть поверх первого
+            P.append(col)
+        for c in range(5):
+            acc, cv = 0.0, []
+            for r in range(n):
+                if r:
+                    acc += (P[c][r] - P[c][r - 1]).length
+                cv.append(acc)
+            UV.append([(width * c / 4.0 * uvpm, a_ * uvpm) for a_ in cv])
+        parts.append(_grid_obj(body, '%s_tail%d' % (name, k), P, UV, lambda i, j: Vector((0.0, -1.0, 0.0))))
+    _hair_out(ring, 0.004, nb.z + zr + rh + 0.02)
+    for o in parts:
+        _finish(o, src, body, 0.0 if o is ring else g.get('thick', 0.009))
+    return _join(parts, name)
 
 
 def _hat_hair(body, co, skin, w_headonly, cut, off):
@@ -1714,8 +2038,9 @@ def _hide_under(body, covers, w_torso, w_arms, w_head, w_headonly, neck):
         for v in o.data.vertices:
             p = o.matrix_world @ v.co
             _, idx, dist = kd.find(p)
-            for hem, sleeves, collar, cov in covers:
-                if v.index in light and hem - 0.10 < p.z <= hem + 0.012 and w_torso[idx] > 0.3:   # край рубашки под подолом — заправлен
+            for hem, sleeves, collar, cov, bot, tuck in covers:
+                # край рубашки под подолом — заправлен: от низа куртки (с подолом ниже бёдер — drop) ещё на tuck вниз
+                if v.index in light and bot - tuck < p.z <= hem + 0.012 and w_torso[idx] > 0.3:
                     under.add(v.index)
                     break
                 # у жилета (без рукавов) — только там, где он и правда лежит: раньше рубашку срезало по весу туловища,

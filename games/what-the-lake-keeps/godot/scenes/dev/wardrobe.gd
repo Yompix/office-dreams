@@ -1,6 +1,6 @@
 extends Node3D
 ## Гардероб: одежда героя крупно — для проверки ткани, складок, посадки и проникновений. В сборку не входит (scenes/dev/*).
-##   gd_pc --path godot res://scenes/dev/wardrobe.tscn -- --who noah --out ПАПКА [--light studio|night|warm] [--poses Idle,Walk,…]
+##   gd_pc --path godot res://scenes/dev/wardrobe.tscn -- --who noah --out ПАПКА [--light studio|night|warm] [--poses Idle,Walk,Walk@0.1,…]
 ## Кадры: <поза>_<камера>.png; камеры: close (грудь и руки), front (в рост, 3/4), back (в рост сзади), side (сбоку).
 
 const POSES := {"Idle": 0.6, "Walk": 0.35, "Jog_Fwd": 0.25, "Rk_SitIdle": 3.0, "Crouch_Idle": 0.8, "PickUp_Table": 0.45, "Idle_FoldArms": 0.8}
@@ -118,8 +118,10 @@ func _process(_d: float) -> void:
 	var ci := step % CAMS.size()
 	var pose: String = poses[pi]
 	if ci == 0:
-		(get_node("Seat") as Node3D).visible = pose == "Rk_SitIdle"
-		a.play(pose, float(POSES.get(pose, 0.5)), 0.0)
+		var pn: String = pose.get_slice("@", 0)   # «Walk@0.1» — тот же клип в другой момент (движение: 3 момента шага)
+		var pt: float = float(pose.get_slice("@", 1)) if "@" in pose else float(POSES.get(pn, 0.5))
+		(get_node("Seat") as Node3D).visible = pn == "Rk_SitIdle"
+		a.play(pn, pt, 0.0)
 		a.ap.pause()
 		a.placed()
 		wait = 24   # волосы, ткань и слои успевают встать

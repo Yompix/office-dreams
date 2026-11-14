@@ -7,7 +7,8 @@ signal chosen(i: int)
 signal menu_pick(id: String)     # главное меню и пауза: "new", "cont", "settings", "quit", "resume", "menu"
 signal settings_changed(key: String, value: Variant)   # экран настроек: что поменяли (игра применяет сразу)
 signal settings_closed
-signal tree_closed(cp: String)   # дерево выборов закрыто: "" — назад, иначе — переиграть с этой контрольной точки
+signal tree_closed(cp: String)
+signal credits_closed           # экран «Авторы» закрыт (кнопка «Назад», Esc / B или титры доехали до конца)   # дерево выборов закрыто: "" — назад, иначе — переиграть с этой контрольной точки
 var lang := "ru"
 var sub_name: Label
 var sub_text: Label
@@ -36,6 +37,12 @@ var map_panel: Control      # карта главы
 var menu_panel: Control     # главное меню / пауза
 var settings_panel: Control # экран настроек (поверх меню или паузы)
 var tree_panel: Control     # дерево выборов
+var credits_panel: Control  # экран «Авторы» (титры и лицензии)
+var _credits_sc: ScrollContainer
+var _credits_box: VBoxContainer
+var _credits_roll := false  # титры едут сами (после концовки)
+var _credits_y := 0.0
+var _credits_end_t := 0.0
 var _tree_data: Array = []
 var _tree_body: ScrollContainer
 var _tree_tabs: HBoxContainer
@@ -500,6 +507,7 @@ func show_menu(has_save: bool) -> void:
 	items.append(["new", "Новая игра" if ru else "New game"])
 	items.append(["tree", "Дерево выборов" if ru else "Choice tree"])
 	items.append(["settings", "Настройки" if ru else "Settings"])
+	items.append(["credits", "Авторы" if ru else "Credits"])
 	if not phone:   # на телефоне выходят кнопкой «Домой» — «Выход» не нужен
 		items.append(["quit", "Выход" if ru else "Quit"])
 	_menu_buttons(items, 0.07, 0.39 if phone else 0.52)
@@ -792,6 +800,7 @@ func show_toast(text: String, dur := 3.0) -> void:
 
 func _process(delta: float) -> void:
 	_ht += delta
+	_credits_tick(delta)
 	scrim.modulate.a = move_toward(scrim.modulate.a, 1.0 if (sub_text.text != "" or note.text != "") else 0.0, delta * 2.5)
 	hum = move_toward(hum, hum_to, delta * 0.35)
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", hum)
@@ -1102,9 +1111,25 @@ func _unhandled_input(e: InputEvent) -> void:
 				(_tree_tabs.get_child(i) as Control).grab_focus()
 			get_viewport().set_input_as_handled()
 			return
+	if credits_open() and not e.is_echo():   # титры: ↑ ↓ — листать (и останавливают «самоход»), Esc / B — назад
+		var dy := 0.0
+		if e.is_action_pressed("ui_down"):
+			dy = 80.0
+		elif e.is_action_pressed("ui_up"):
+			dy = -80.0
+		elif e is InputEventMouseButton and (e as InputEventMouseButton).pressed and (e as InputEventMouseButton).button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			_credits_roll = false   # колесо прокручивает само (ScrollContainer), самоход — стоп
+		if dy != 0.0:
+			_credits_roll = false
+			_credits_sc.scroll_vertical += int(dy)
+			get_viewport().set_input_as_handled()
+			return
 	if not e.is_action_pressed("ui_cancel"):
 		return
-	if tree_open():
+	if credits_open():
+		close_credits()
+		get_viewport().set_input_as_handled()
+	elif tree_open():
 		close_tree("")
 		get_viewport().set_input_as_handled()
 	elif settings_open():
@@ -1117,6 +1142,149 @@ func _unhandled_input(e: InputEvent) -> void:
 		menu_pick.emit("back")
 		get_viewport().set_input_as_handled()
 
+
+
+func credits_open() -> bool:
+	return is_instance_valid(credits_panel)
+
+
+## Экран «Авторы»: из главного меню и после концовки (roll = true — титры едут сами и закрываются в конце; любое
+## листание — вручную). Текст — res://credits/credits.json (RU и EN), полный текст лицензий — res://credits/LICENSES.txt
+## (кнопка «Лицензии»): оба делает tools/licenses_txt.py из docs/LICENSES.md, в сборку идут на всех платформах.
+func show_credits(roll := false) -> void:
+	if credits_open():
+		credits_panel.queue_free()
+	var ru := lang == "ru"
+	var p := ColorRect.new()
+	p.color = Color(0.012, 0.016, 0.024, 0.97)
+	p.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(p)
+	credits_panel = p
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.anchor_left = 0.04 if phone else 0.12
+	sc.anchor_right = 0.96 if phone else 0.88
+	sc.anchor_top = 0.05
+	sc.anchor_bottom = 0.84
+	p.add_child(sc)
+	_credits_sc = sc
+	sc.gui_input.connect(func(ev: InputEvent):   # колесо или палец по титрам — дальше вручную
+		if ev is InputEventMouseButton or ev is InputEventScreenDrag:
+			_credits_roll = false)
+	var bar := HBoxContainer.new()   # кнопки внизу: «Лицензии» и «Назад»
+	bar.anchor_left = sc.anchor_left
+	bar.anchor_right = sc.anchor_right
+	bar.anchor_top = 0.87
+	bar.anchor_bottom = 0.96
+	bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	bar.add_theme_constant_override("separation", 40)
+	p.add_child(bar)
+	var lic := _credits_button(bar, "Лицензии" if ru else "Licenses")
+	var back := _credits_button(bar, "Назад" if ru else "Back")
+	lic.pressed.connect(func():
+		_credits_roll = false
+		_credits_fill(true)
+		lic.visible = false
+		back.grab_focus())
+	back.pressed.connect(close_credits)
+	_credits_roll = roll
+	_credits_y = 0.0
+	_credits_end_t = 0.0
+	_credits_fill(false)
+	if not phone:
+		back.grab_focus.call_deferred()
+
+
+func _credits_button(parent: Control, text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.add_theme_font_override("font", font_b)
+	b.add_theme_font_size_override("font_size", 34)
+	var sb := _phone_box() if phone else StyleBoxFlat.new()
+	if not phone:
+		sb.bg_color = Color(1, 1, 1, 0.06)
+		sb.content_margin_left = 24
+		sb.content_margin_right = 24
+		sb.content_margin_top = 8
+		sb.content_margin_bottom = 8
+	b.add_theme_stylebox_override("normal", sb)
+	var sbh := sb.duplicate() as StyleBoxFlat
+	sbh.bg_color = Color(1, 1, 1, 0.14)
+	sbh.border_color = Color(1, 0.88, 0.7, 0.9)
+	sbh.border_width_bottom = 3
+	for k in ["hover", "pressed", "focus"]:
+		b.add_theme_stylebox_override(k, sbh)
+	b.add_theme_color_override("font_color", Color(0.86, 0.88, 0.92))
+	b.add_theme_color_override("font_hover_color", Color(1.0, 0.92, 0.78))
+	b.add_theme_color_override("font_focus_color", Color(1.0, 0.92, 0.78))
+	parent.add_child(b)
+	return b
+
+
+## full = false — титры (первая строка — название крупно), true — полный текст LICENSES.txt
+func _credits_fill(full: bool) -> void:
+	if is_instance_valid(_credits_box):
+		_credits_box.queue_free()
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 6)
+	_credits_sc.add_child(box)
+	_credits_box = box
+	_credits_sc.scroll_vertical = 0
+	_credits_y = 0.0
+	var vh := get_viewport().get_visible_rect().size.y
+	if full:
+		var t := _label(box, 44, font_b, Color.WHITE)
+		t.text = "Лицензии" if lang == "ru" else "Licenses"
+		var body := _label(box, 22 if phone else 18, font, Color(0.8, 0.83, 0.88))
+		body.remove_theme_constant_override("outline_size")
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var path := "res://credits/LICENSES.txt"
+		body.text = FileAccess.get_file_as_string(path).replace("\r", "") if FileAccess.file_exists(path) else path
+		return
+	var lines: Array = []
+	var j: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://credits/credits.json")) if FileAccess.file_exists("res://credits/credits.json") else null
+	if j is Dictionary:
+		lines = j.get(lang, j.get("en", []))
+	if _credits_roll:   # самоход: начинается с пустого экрана и уезжает в пустоту
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, vh * 0.75)
+		box.add_child(gap)
+	for i in lines.size():
+		var s := String(lines[i])
+		var l := _label(box, 72 if i == 0 else (30 if phone else 27), font_b if i == 0 else font, Color.WHITE if i == 0 else Color(0.82, 0.85, 0.9))
+		l.text = s if s != "" else " "
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if _credits_roll:
+		var gap2 := Control.new()
+		gap2.custom_minimum_size = Vector2(0, vh * 0.9)
+		box.add_child(gap2)
+
+
+func _credits_tick(delta: float) -> void:
+	if not credits_open() or not _credits_roll:
+		return
+	var mx := _credits_sc.get_v_scroll_bar().max_value - _credits_sc.size.y
+	if mx <= 0.0:
+		return
+	_credits_y = minf(_credits_y + delta * (70.0 if not phone else 60.0), mx)
+	_credits_sc.scroll_vertical = int(_credits_y)
+	if _credits_y >= mx:
+		_credits_end_t += delta
+		if _credits_end_t > 1.0:
+			close_credits()
+
+
+func close_credits() -> void:
+	if not credits_open():
+		return
+	credits_panel.queue_free()
+	credits_panel = null
+	_credits_roll = false
+	credits_closed.emit()
 
 
 func tree_open() -> bool:
