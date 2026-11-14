@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/amplifier",
+  "front": "glukhoman:block/amplifier_front",
+  "top": "glukhoman:block/amplifier_top",
+  "particle": "glukhoman:block/amplifier"
+ },
+ "elements": [
+  {
+   "from": [
+    1,
+    0,
+    1
+   ],
+   "to": [
+    15,
+    16,
+    15
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

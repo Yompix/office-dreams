@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/fuse_box",
+  "front": "glukhoman:block/fuse_box_front",
+  "top": "glukhoman:block/fuse_box_top",
+  "particle": "glukhoman:block/fuse_box"
+ },
+ "elements": [
+  {
+   "from": [
+    2,
+    1,
+    0
+   ],
+   "to": [
+    14,
+    15,
+    4
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

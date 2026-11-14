@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/lock",
+  "front": "glukhoman:block/lock_front",
+  "top": "glukhoman:block/lock_top",
+  "particle": "glukhoman:block/lock"
+ },
+ "elements": [
+  {
+   "from": [
+    5,
+    4,
+    0
+   ],
+   "to": [
+    11,
+    12,
+    4
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}
