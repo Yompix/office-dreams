@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/chalk_mark",
+  "front": "glukhoman:block/chalk_mark_front",
+  "top": "glukhoman:block/chalk_mark_top",
+  "particle": "glukhoman:block/chalk_mark"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    16,
+    0.5
+   ],
+   "faces": {
+    "north": {
+     "texture": "#front"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#front"
+    },
+    "west": {
+     "texture": "#front"
+    },
+    "up": {
+     "texture": "#front"
+    },
+    "down": {
+     "texture": "#front"
+    }
+   }
+  }
+ ]
+}

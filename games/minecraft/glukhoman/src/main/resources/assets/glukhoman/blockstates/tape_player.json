@@ -1,0 +1,20 @@
+{
+ "variants": {
+  "facing=south": {
+   "model": "glukhoman:block/tape_player",
+   "y": 0
+  },
+  "facing=west": {
+   "model": "glukhoman:block/tape_player",
+   "y": 90
+  },
+  "facing=north": {
+   "model": "glukhoman:block/tape_player",
+   "y": 180
+  },
+  "facing=east": {
+   "model": "glukhoman:block/tape_player",
+   "y": 270
+  }
+ }
+}

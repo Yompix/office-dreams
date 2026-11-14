@@ -1,0 +1,105 @@
+{
+ "textures": {
+  "side": "glukhoman:block/lamp_shade",
+  "bulb": "glukhoman:block/bulb_on",
+  "particle": "glukhoman:block/lamp_shade"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    10,
+    3
+   ],
+   "to": [
+    13,
+    14,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#side"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  },
+  {
+   "from": [
+    5,
+    8,
+    5
+   ],
+   "to": [
+    11,
+    10,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#bulb"
+    },
+    "south": {
+     "texture": "#bulb"
+    },
+    "east": {
+     "texture": "#bulb"
+    },
+    "west": {
+     "texture": "#bulb"
+    },
+    "up": {
+     "texture": "#bulb"
+    },
+    "down": {
+     "texture": "#bulb"
+    }
+   }
+  },
+  {
+   "from": [
+    7,
+    14,
+    7
+   ],
+   "to": [
+    9,
+    16,
+    9
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#side"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

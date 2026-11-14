@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "glukhoman",
+  "version": "${version}",
+  "name": "Глухомань",
+  "description": "Хоррор с сюжетом от Yompix Games: таёжный посёлок, закрытая метеостанция и то, что говорит чужими голосами. Соло и кооператив. Не связано с Mojang.",
+  "authors": ["Yompix"],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/glukhoman/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.yompix.glukhoman.Glukhoman"],
+    "client": ["com.yompix.glukhoman.client.GlukhomanClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "mixins": [
+    {"config": "glukhoman.client.mixins.json", "environment": "client"}
+  ]
+}

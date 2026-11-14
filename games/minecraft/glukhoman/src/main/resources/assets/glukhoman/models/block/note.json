@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/note",
+  "front": "glukhoman:block/note_front",
+  "top": "glukhoman:block/note_top",
+  "particle": "glukhoman:block/note"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    0,
+    3
+   ],
+   "to": [
+    13,
+    0.5,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#top"
+    },
+    "south": {
+     "texture": "#top"
+    },
+    "east": {
+     "texture": "#top"
+    },
+    "west": {
+     "texture": "#top"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  }
+ ]
+}
