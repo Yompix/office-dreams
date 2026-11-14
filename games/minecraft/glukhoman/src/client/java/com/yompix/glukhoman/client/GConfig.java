@@ -20,6 +20,7 @@ public class GConfig {
     public boolean vhs = true;           // лёгкий плёночный фильтр и без камеры (в видоискателе VHS всегда)
     public boolean noBlood = false;      // убрать кровь с экрана скримера
     public boolean goreReduced = false;  // 18+: «меньше жестокости» — останки заменены кровью
+    public int handSway = 70;            // «Покачивание камеры» в руках, % (0 — неподвижная)
     public boolean ageAck = false;       // предупреждение 18+ уже показано    // ложный «вылет игры» в финале            // 0 — темно (как задумано), 1 — обычно, 2 — светлее
 
     private static GConfig INSTANCE;

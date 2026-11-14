@@ -162,6 +162,20 @@ def blocks():
     w(f'{RP}/assets/{NS}/blockstates/remains.json', {'variants': {k: {'model': f'{NS}:block/blood_1', 'y': v['y']} for k, v in variants.items()}})
     w(f'{RP}/assets/{NS}/models/item/gore_chunk.json', {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/blood_drop'}})
     for it in ITEMS:
+        if it == 'camcorder':   # объёмная камера: корпус, объектив вперёд, ремешок, окуляр видоискателя
+            def bx(a, b_, t, front='l'):
+                return {'from': a, 'to': b_, 'faces': {f: {'texture': '#' + (front if f == 'north' else t)} for f in ('north', 'south', 'east', 'west', 'up', 'down')}}
+            els = [bx([5, 4, 3], [11, 10, 14], 'b', 'b'), bx([6, 5, 0], [10, 9, 3], 'b'), bx([6.5, 10, 9], [9.5, 11.5, 13], 'b', 'b'),
+                   bx([4, 6, 11], [5, 9, 15], 'b', 'b'), bx([11, 4.5, 5], [11.5, 9.5, 12], 'b', 'b')]
+            w(f'{A}/models/item/camcorder.json', {'textures': {'b': f'{NS}:item/camcorder_body', 'l': f'{NS}:item/camcorder_lens', 'particle': f'{NS}:item/camcorder_body'},
+                'elements': els, 'display': {
+                    'firstperson_righthand': {'rotation': [0, 180, 0], 'translation': [-1, 3, -1], 'scale': [0.75, 0.75, 0.75]},
+                    'firstperson_lefthand': {'rotation': [0, 180, 0], 'translation': [-1, 3, -1], 'scale': [0.75, 0.75, 0.75]},
+                    'thirdperson_righthand': {'rotation': [-80, 180, 0], 'translation': [0, 1, -2], 'scale': [0.6, 0.6, 0.6]},
+                    'thirdperson_lefthand': {'rotation': [-80, 180, 0], 'translation': [0, 1, -2], 'scale': [0.6, 0.6, 0.6]},
+                    'gui': {'rotation': [25, 135, 0], 'translation': [0, 0, 0], 'scale': [0.9, 0.9, 0.9]},
+                    'ground': {'scale': [0.5, 0.5, 0.5]}, 'fixed': {'scale': [0.8, 0.8, 0.8]}}})
+            continue
         if it in ('flashlight', 'oil_lamp'):
             w(f'{A}/models/item/{it}.json', {'parent': 'minecraft:item/handheld', 'textures': {'layer0': f'{NS}:item/{it}'},
                 'display': {'firstperson_righthand': {'rotation': [0, -90, 35], 'translation': [1.5, 3.5, -2], 'scale': [0.9, 0.9, 0.9]},

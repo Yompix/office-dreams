@@ -158,7 +158,7 @@ def lufs(path):
 
 # ======================= основной трейлер 70 с =======================
 MAIN = [('play', 0, 4.0), ('t3_rails', 0.3, 6.0), ('tape', 0, 0.12), ('t3_cut', 0.2, 4.6), ('tape', 0, 0.1), ('t3_bell', 0.3, 5.5),
-        ('t3_train', 0.0, 7.6), ('tape', 0, 0.12), ('t3_updown', 0.0, 5.5), ('tape', 0, 0.14), ('t3_house', 0.0, 4.8), ('tape', 0, 0.1),
+        ('t3_train', 0.0, 7.6), ('t3_bogie', 0.3, 3.2), ('tape', 0, 0.12), ('t3_updown', 0.0, 5.5), ('tape', 0, 0.14), ('t3_house', 0.0, 4.8), ('tape', 0, 0.1),
         ('t3_board', 0.2, 4.6), ('tape', 0, 0.1), ('t3_rewind', 0.0, 6.0), ('tape', 0, 0.12), ('t3_rollcall', 0.2, 4.6), ('tape', 0, 0.1),
         ('t3_draisine', 0.2, 4.2), ('tape', 0, 0.1), ('t3_look', 0.0, 4.4), ('black', 0, 3.2), ('t3_stop', 0.0, 3.0)]
 
@@ -214,7 +214,7 @@ def main_sound(times, total):
         place(a, S('step'), k, 0.35)
     bell = S('crossing_bell')
     b0 = st['t3_bell'][0]
-    t1 = st['t3_train'][1]
+    t1 = st['t3_bogie'][1]
     for k in np.arange(b0 + 0.3, t1, 4.0):
         place(a, bell, k, 0.55)
     u0, u1 = st['t3_updown']
@@ -332,7 +332,7 @@ def make_main():
     print(f'ok trailer_70s.mp4 {tt:.1f} с, {i} LUFS, пик {p} dBFS')
     st = {s: (x, y) for s, x, y in times}
     stills(f'{OUT}/trailer_70s.mp4', [('1_rails', st['t3_rails'][0] + 4.5), ('2_cut', st['t3_cut'][0] + 3.5), ('3_bell', st['t3_bell'][0] + 2.5),
-                                       ('4_train', st['t3_train'][0] + 5.8), ('5_updown_eye', st['t3_updown'][0] + 2.6), ('6_house', st['t3_house'][0] + 3.5),
+                                       ('4_train', st['t3_train'][0] + 5.8), ('4b_bogie', st['t3_bogie'][0] + 1.6), ('5_updown_eye', st['t3_updown'][0] + 2.6), ('6_house', st['t3_house'][0] + 3.5),
                                        ('7_board', st['t3_board'][0] + 3.6), ('8_rewind', st['t3_rewind'][0] + 3.5), ('9_rollcall', st['t3_rollcall'][0] + 2.5),
                                        ('10_look', st['t3_look'][0] + 3.6), ('11_title', st['black'][0] + 2.0)], 'main_')
     # превью 1280×720: поезд в видоискателе + название

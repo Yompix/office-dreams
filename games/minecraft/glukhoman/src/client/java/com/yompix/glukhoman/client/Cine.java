@@ -154,6 +154,7 @@ public final class Cine {
         double lb = Math.min(1, Math.min(t / 0.8, (len - t) / 0.8));
         letter = (float) MathHelper.clamp(lb, 0, 1);
         scene.frame(t);
+        if (MinecraftClient.getInstance().world != null) Viewfinder.flicker(MinecraftClient.getInstance().world, t);
     }
 
     // ======================= инструменты =======================
@@ -317,6 +318,11 @@ public final class Cine {
         tintR = 0.9f; tintG = 1.0f; tintB = 1.05f;
     }
 
+    /** Куда повернуться, чтобы смотреть из from на to (градусы, как yaw сущности). */
+    static float yawTo(Vec3d from, Vec3d to) {
+        return (float) Math.toDegrees(Math.atan2(-(to.x - from.x), to.z - from.z));
+    }
+
     static Vec3d dirOf(float yaw, float pitch) {
         return Vec3d.fromPolar(pitch, yaw);
     }
@@ -392,7 +398,7 @@ public final class Cine {
         public void start(ClientWorld w) {
             this.w = w;
             vf = true;
-            tr = puppet(w, GContent.TRAIN, 160, 66, 16.5, 90);
+            tr = puppet(w, GContent.TRAIN, 160, TrainEntity.Y, 16.5, 90);
             Viewfinder.ghostRails(w, true);
         }
 
@@ -411,7 +417,7 @@ public final class Cine {
             crossing(w, t, 0);
             motor(t);
             act(tr, "idle", t);
-            place(tr, tx, 66, 16.5, 90);
+            place(tr, tx, TrainEntity.Y, 16.5, 90);
             if (Math.abs(tx - 60.5) < 30) key(w, (int) Math.floor(tx), 68, 18, 7);
         }
     }
@@ -425,7 +431,7 @@ public final class Cine {
         public void start(ClientWorld w) {
             this.w = w;
             vf = true;
-            tr = puppet(w, GContent.TRAIN, 8, 66, 16.5, 90);
+            tr = puppet(w, GContent.TRAIN, 8, TrainEntity.Y, 16.5, 90);
             polya = resident(w, "polya", 13.5, 65, 32, 180);
             Viewfinder.ghostRails(w, true);
             key(w, 11, 68, 18, 9);
@@ -436,31 +442,47 @@ public final class Cine {
             cone = 0;
             crush = 0.4f;
             fog(2f, 40f, 0.05f, 0.06f, 0.07f);
-            // путь: от калитки к краю перрона, шаг в вагон, поворот
-            Vec3d a = v(13.5, 65, 32), b = v(12.8, 66, 21.2), c = v(12.6, 66, 18.7), d = v(12.6, 66.2, 17.6);
+            // идёт к краю перрона → медлит → оборачивается и смотрит в объектив → отворачивается и шагает в вагон
+            Vec3d a = v(13.5, 65, 32), b = v(12.8, 66, 21.2), c = v(12.6, 66, 18.7), d = v(12.6, TrainEntity.Y + 0.15, 17.4);
+            Vec3d camP = v(25.5, 67.7, 21.8);
+            float toLens = yawTo(c, camP);
             Vec3d pos;
             float yaw;
-            if (t < 7) {
-                pos = rail(t / 7, a, v(13.2, 65, 26), b, c);
-                yaw = 180;
+            if (t < 6.2) {
+                double u = ease(seg(t, 0, 6.2)) * 0.85 + seg(t, 0, 6.2) * 0.15;
+                pos = rail(u, a, v(13.2, 65, 26), b, c);
+                Vec3d ahead = rail(Math.min(1, u + 0.03), a, v(13.2, 65, 26), b, c);
+                yaw = ahead.squaredDistanceTo(pos) > 1e-6 ? yawTo(pos, ahead) : 180;
                 act(polya, "walk", t);
-            } else if (t < 8.2) {
-                pos = c.lerp(d, ease(seg(t, 7, 8.2)));
+            } else if (t < 7.6) {
+                pos = c;
                 yaw = 180;
-                act(polya, "walk", t);
+                act(polya, "hesitate", t - 6.2);
+            } else if (t < 11.2) {
+                pos = c;
+                yaw = MathHelper.lerpAngleDegrees((float) ease(seg(t, 7.6, 8.9)), 180, toLens);
+                act(polya, "idle", t - 7.6);
+                if (polya != null) polya.talking = false;
+            } else if (t < 12.0) {
+                pos = c;
+                yaw = MathHelper.lerpAngleDegrees((float) ease(seg(t, 11.2, 12.0)), toLens, 180);
+                act(polya, "idle", t - 7.6);
             } else {
-                pos = d;
-                yaw = (float) MathHelper.lerp(ease(seg(t, 8.4, 10.2)), 180, 290);   // к камере (оборачивается через плечо)
-                act(polya, "still", t - 8.4);
+                pos = c.lerp(d, ease(seg(t, 12.0, 13.0)));
+                yaw = 180;
+                act(polya, "walk", t - 12);
             }
             if (polya != null) place(polya, pos.x, pos.y, pos.z, yaw);
-            place(tr, 8, 66, 16.5, 90);
+            place(tr, 8, TrainEntity.Y, 16.5, 90);
             act(tr, "idle", t);
-            Vec3d face = pos.add(0, 1.6, 0);
-            Vec3d p = v(25.5, 67.7, 21.8).add(hand(t, 0));
-            cam(p, t < 9 ? v(MathHelper.lerp(seg(t, 0, 9), 11, 12.6), 67.2, MathHelper.lerp(seg(t, 0, 9), 26, 18.5)) : face);
-            fov = t < 9.5 ? 46 : (float) MathHelper.lerp(ease(seg(t, 9.5, 12.8)), 46, 14);   // наезд на лицо
-            glitch = (float) (0.1 + (t > 11 ? 0.3 * seg(t, 11, 13.2) : 0));
+            Vec3d face = c.add(0, 1.62, 0);
+            Vec3d p = camP.add(hand(t, 0));
+            Vec3d track = pos.add(0, 1.3, 0);
+            Vec3d look = t < 8.6 ? track : track.lerp(face, ease(seg(t, 8.6, 9.3)));
+            if (t >= 11.6) look = face.lerp(d.add(0, 1.4, 0), ease(seg(t, 11.6, 12.8)));
+            cam(p, look);
+            fov = t < 9.0 ? 46 : t < 11.6 ? (float) MathHelper.lerp(ease(seg(t, 9.0, 11.2)), 46, 15) : (float) MathHelper.lerp(ease(seg(t, 11.6, 12.4)), 15, 30);
+            glitch = (float) (0.1 + (t > 10 && t < 11.6 ? 0.25 * seg(t, 10, 11.2) : 0) + (t > 12.6 ? 0.3 : 0));
             crossing(w, t, 0);
             motor(t);
             if (t > 13.4) {   // обрыв плёнки
@@ -508,11 +530,12 @@ public final class Cine {
                 place(me, at.x, at.y, at.z, res != null ? -90 : 180);
             }
             if (res != null) {
-                act(res, "still", t);
+                act(res, "idle_shift", t);
                 place(res, at.x + 1.1, at.y, at.z - 0.2, 90);
             }
-            act(watcher, t < 10.5 ? "still" : "lean", t < 10.5 ? t : t - 10.5);
-            place(watcher, at.x - 1.0, at.y, at.z - 0.55, -90 + (float) (t > 10.5 ? -35 * seg(t, 10.5, 13) : 0));
+            act(watcher, t < 10.5 ? "idle" : "lean", t < 10.5 ? t : t - 10.5);
+            Vec3d wpos = v(at.x - 1.0, at.y, at.z - 0.55);
+            place(watcher, wpos.x, wpos.y, wpos.z, MathHelper.lerpAngleDegrees((float) ease(seg(t, 10.5, 12.5)), -90, yawTo(wpos, p)));
             if (t > 14.3) {
                 glitch = 1f;
                 tintR = tintG = tintB = 0.05f;

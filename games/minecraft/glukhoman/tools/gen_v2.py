@@ -112,7 +112,17 @@ def watcher():
         'left_arm': {'rotation': [-wob(t, 0.45, 6), 0, 0]}, 'right_arm': {'rotation': [wob(t, 0.45, 6), 0, 0]},
         'head': {'rotation': [2, wob(t, 0.22, 5), 22 + wob(t, 0.9, 3)]}, 'pelvis': {'position': [0, abs(wob(t, 0.45, 0.5)), 0]},
         'lantern': {'rotation': [wob(t, 0.45, 12, 1), 0, 0]}}), 2.222)
+    # слишком длинный шаг с рывками: замирает на полшага и снова идёт
+    A_['walk'] = anim(lambda t: merge(legs(t, 0.36, 38), {
+        'left_arm': {'rotation': [-wob(t, 0.36, 4), 0, 0]}, 'right_arm': {'rotation': [wob(t, 0.36, 4), 0, 0]},
+        'spine': {'rotation': [6, 0, wob(t, 0.36, 4)]}, 'pelvis': {'position': [0, abs(wob(t, 0.36, 1.1)), 0]},
+        'lantern': {'rotation': [wob(t, 0.36, 14, 1), 0, 0]}, 'jaw': {'rotation': [34, 0, 0]}}), 2.778, jerk=True, fps=5)
     A_['run'] = A_['walk']
+    # согнулся почти пополам и идёт так — когда подходит близко
+    A_['stalk'] = anim(lambda t: merge(legs(t, 0.3, 22), {
+        'spine': {'rotation': [38, 0, wob(t, 0.3, 3)]}, 'chest': {'rotation': [26, 0, 0]}, 'neck': {'rotation': [-30, 0, 0]},
+        'left_arm': {'rotation': [-28 + wob(t, 0.3, 6), 0, 0]}, 'right_arm': {'rotation': [-24 - wob(t, 0.3, 6), 0, 0]},
+        'pelvis': {'position': [0, -2, 0]}, 'jaw': {'rotation': [38, 0, 0]}}), 3.333, jerk=True, fps=6)
     # наклон в объектив: медленно, потом рывок головы к камере (для «записанного» кадра)
     A_['lean'] = anim(lambda t: {'spine': {'rotation': [min(30, t * 12), 0, 0]}, 'chest': {'rotation': [min(26, t * 10), 0, 0]},
                                  'neck': {'rotation': [min(20, t * 9), 0, 0]}, 'head': {'rotation': [-10, 0, 22 - min(22, t * 14)]},
@@ -120,6 +130,53 @@ def watcher():
     A_['spawn'] = A_['still']
     A_['vanish'] = A_['still']
     m.save(4, A_)
+
+
+# ======================= живые люди: дополнительные анимации жителей =======================
+def human_extra():
+    import json
+    path = f'{A}/animations/human.animation.json'
+    data = json.load(open(path))
+    an = data['animations']
+    # лунатик: медленно, руки висят плетьми, голова вниз, ноги шаркают (мало сгибаются), корпус покачивается
+    an['animation.human.sleepwalk'] = anim(lambda t: {
+        'right_leg': {'rotation': [-wob(t, 0.42, 13), 0, 0]}, 'left_leg': {'rotation': [wob(t, 0.42, 13), 0, 0]},
+        'right_shin': {'rotation': [max(0, wob(t, 0.42, 6, 1.4)), 0, 0]}, 'left_shin': {'rotation': [max(0, -wob(t, 0.42, 6, 1.4)), 0, 0]},
+        'right_arm': {'rotation': [wob(t, 0.42, 3, 0.5), 0, 3]}, 'left_arm': {'rotation': [-wob(t, 0.42, 3, 0.5), 0, -3]},
+        'right_forearm': {'rotation': [-4, 0, 0]}, 'left_forearm': {'rotation': [-4, 0, 0]},
+        'head': {'rotation': [26 + wob(t, 0.21, 3), wob(t, 0.11, 4), wob(t, 0.42, 3)]}, 'neck': {'rotation': [8, 0, 0]},
+        'chest': {'rotation': [6, wob(t, 0.42, 3), wob(t, 0.42, 2)]}, 'waist': {'rotation': [0, 0, wob(t, 0.42, 2.5)]},
+        'root': {'position': [0, -abs(wob(t, 0.42, 0.35)), 0]}}, 2.381)
+    # стоит и осматривается: голова медленно туда-сюда с паузами, дыхание
+    def look(t):
+        k = [(0, 0), (1.2, -38), (2.4, -38), (3.4, 26), (4.6, 26), (5.6, 0), (6, 0)]
+        for (a, va), (b, vb) in zip(k, k[1:]):
+            if a <= t <= b:
+                u = (t - a) / (b - a)
+                y = va + (vb - va) * (u * u * (3 - 2 * u))
+                break
+        return {'head': {'rotation': [wob(t, 0.3, 2), y, 0]}, 'chest': {'rotation': [wob(t, 0.3, 1.5), y * 0.15, 0]},
+                'right_arm': {'rotation': [wob(t, 0.3, 2), 0, 2]}, 'left_arm': {'rotation': [-wob(t, 0.3, 2), 0, -2]}}
+    an['animation.human.idle_look'] = anim(look, 6)
+    # переминается с ноги на ногу: вес на одну, потом на другую
+    an['animation.human.idle_shift'] = anim(lambda t: {
+        'waist': {'rotation': [0, wob(t, 0.2, 3), wob(t, 0.2, 4)], 'position': [wob(t, 0.2, 0.4), 0, 0]},
+        'right_leg': {'rotation': [0, 0, max(0, wob(t, 0.2, 4))]}, 'left_leg': {'rotation': [0, 0, min(0, wob(t, 0.2, 4))]},
+        'chest': {'rotation': [wob(t, 0.3, 1.5), 0, -wob(t, 0.2, 3)]}, 'head': {'rotation': [wob(t, 0.25, 3), wob(t, 0.13, 8), wob(t, 0.2, 2)]},
+        'right_arm': {'rotation': [wob(t, 0.2, 3), 0, 3]}, 'left_arm': {'rotation': [-wob(t, 0.2, 3), 0, -3]}}, 5)
+    # чешет затылок
+    def scratch(t):
+        up = min(1, t / 0.6) if t < 2.6 else max(0, 1 - (t - 2.6) / 0.7)
+        j = wob(t, 4.5, 6) * (1 if 0.7 < t < 2.5 else 0)
+        return {'right_arm': {'rotation': [-150 * up, -20 * up, 10 * up]}, 'right_forearm': {'rotation': [-70 * up + j, 0, 0]},
+                'head': {'rotation': [10 * up, -10 * up, 6 * up]}, 'chest': {'rotation': [wob(t, 0.3, 1.5), 0, 0]}}
+    an['animation.human.idle_scratch'] = anim(scratch, 4)
+    # колеблется на краю: шаг назад весом, голова опускается и поднимается
+    an['animation.human.hesitate'] = anim(lambda t: {
+        'waist': {'rotation': [-4 * min(1, t / 0.5), 0, 0]}, 'head': {'rotation': [18 * min(1, t / 0.6) - 22 * max(0, min(1, (t - 0.9) / 0.6)), 0, 0]},
+        'right_arm': {'rotation': [wob(t, 0.5, 3), 0, 4]}, 'left_arm': {'rotation': [-wob(t, 0.5, 3), 0, -4]},
+        'chest': {'rotation': [wob(t, 0.35, 2), 0, 0]}}, 1.6, loop=False)
+    json.dump(data, open(path, 'w'), separators=(',', ':'))
 
 
 # ======================= Порожняк =======================
@@ -199,6 +256,7 @@ def train():
     gc.MATS['roof'] = gc.material((36, 34, 34), crack=0.0, dirt=0.0, sheen=0.05, scale=0.5)
     gc.MATS['iron'] = gc.material((26, 24, 23), dirt=0.2, sheen=0.06, scale=0.6)
     gc.MATS['door'] = gc.material((42, 28, 24), crack=0.2, dirt=0.5, scale=0.5)
+    gc.MATS['wheel'] = gc.material((70, 58, 48), dirt=0.0, sheen=0.25, scale=0.8, edge=0.6)
     m = TrainModel('train', 1024, 1024)
     m.bone('root', None, [0, 0, 0])
     m.bone('body', 'root', [0, 0, 0])
@@ -209,10 +267,15 @@ def train():
         m.cube(b, [-Wd / 2, 10, z], [Wd, H, L], mat)
         m.cube(b, [-Wd / 2 - 1, 10 + H, z - 1], [Wd + 2, 2, L + 2], 'roof')
         m.cube(b, [-Wd / 2 + 4, 10 + H + 2, z + 4], [Wd - 8, 2, L - 8], 'roof')
-        m.cube(b, [-Wd / 2 + 2, 6, z + 4], [Wd - 4, 4, L - 8], 'iron')                # рама
-        for wz in (z + 12, z + 26, z + L - 26, z + L - 12):
-            for sx in (-Wd / 2 + 3, Wd / 2 - 6):
-                m.cube(b, [sx, 0, wz - 5], [3, 10, 10], 'iron')                    # колёса
+        m.cube(b, [-Wd / 2 + 2, 7, z + 4], [Wd - 4, 3, L - 8], 'iron')                # рама
+        # тележки узкой колеи: колёса точно на рельсах (нити рельса — ±4.5 px от оси), обод касается головки рельса
+        for bc in (z + 20, z + L - 20):
+            m.cube(b, [-8, 3, bc - 13], [16, 4, 26], 'iron')                            # рама тележки
+            for ax in (bc - 7, bc + 7):
+                m.cube(b, [-6.5, 3.5, ax - 0.75], [13, 1.5, 1.5], 'iron')              # ось
+                for wx in (-6, 3):
+                    m.cube(b, [wx, 0, ax - 4], [3, 8, 8], 'wheel')                      # колесо
+            m.cube(b, [-2, 7, bc - 2], [4, 3, 4], 'iron')                               # шкворень
         if i < 2:
             m.cube(b, [-Wd / 2 - 0.5, 10, z + L / 2 - 14], [0.5, H - 4, 28], 'door')   # сдвижная дверь теплушки
             m.cube(b, [Wd / 2, 10, z + L / 2 - 14], [0.5, H - 4, 28], 'door')
@@ -378,6 +441,13 @@ def blocks():
     d.rectangle([2, 5, 12, 11], fill=(34, 34, 36, 255)); d.rectangle([12, 6, 15, 10], fill=(22, 22, 24, 255)); d.ellipse([13, 7, 15, 9], fill=(70, 80, 96, 255))
     d.rectangle([3, 3, 7, 5], fill=(46, 46, 48, 255)); d.point((4, 7), fill=(200, 30, 30, 255)); d.line([3, 10, 10, 10], fill=(60, 60, 64, 255))
     im.save(f'{I}/camcorder.png')
+    # 3D-модель камеры в руке: корпус, объектив, видоискатель
+    body = noisy((16, 16), (32, 32, 34), 4); d = ImageDraw.Draw(body)
+    d.line([0, 11, 15, 11], fill=(50, 50, 54, 255)); d.rectangle([2, 3, 5, 5], fill=(60, 60, 66, 255)); d.point((12, 4), fill=(200, 30, 30, 255))
+    d.text((7, 6), 'P', fill=(120, 120, 126, 255)); body.save(f'{I}/camcorder_body.png')
+    lens = noisy((16, 16), (20, 20, 22), 3); d = ImageDraw.Draw(lens)
+    d.ellipse([2, 2, 13, 13], fill=(14, 14, 16, 255)); d.ellipse([4, 4, 11, 11], fill=(40, 52, 70, 255)); d.point((6, 6), fill=(150, 170, 200, 255))
+    lens.save(f'{I}/camcorder_lens.png')
     im = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
     d.rectangle([1, 4, 14, 12], fill=(24, 24, 26, 255)); d.rectangle([3, 5, 12, 8], fill=(214, 206, 180, 255))
     d.line([4, 6, 10, 6], fill=(60, 50, 80, 255)); d.ellipse([4, 9, 6, 11], fill=(90, 90, 90, 255)); d.ellipse([9, 9, 11, 11], fill=(90, 90, 90, 255))
@@ -463,7 +533,7 @@ def sounds():
 
 
 if __name__ == '__main__':
-    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'blocks', 'sounds']
+    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'human_extra', 'blocks', 'sounds']
     for n in which:
         globals()[n]()
         print('ok', n)

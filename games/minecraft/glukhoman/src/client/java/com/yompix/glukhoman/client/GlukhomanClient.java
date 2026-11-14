@@ -199,6 +199,11 @@ public class GlukhomanClient implements ClientModInitializer {
                 askedChoose = true;
                 c.setScreen(new DifficultyScreen());
             }
+            case "filmers" -> {
+                Viewfinder.FILMERS.clear();
+                NbtList l = m.getList("u", 8);
+                for (int i = 0; i < l.size(); i++) Viewfinder.FILMERS.add(java.util.UUID.fromString(l.getString(i)));
+            }
             case "cam" -> {
                 Viewfinder.up = m.getBoolean("up");
                 Viewfinder.ir = m.getBoolean("ir");

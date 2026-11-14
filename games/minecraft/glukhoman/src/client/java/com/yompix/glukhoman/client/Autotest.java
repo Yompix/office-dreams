@@ -30,7 +30,7 @@ public final class Autotest {
 
     public static void init() {
         String mode = System.getProperty("glukhoman.autotest", "");
-        if (mode.equals("shots") || mode.equals("trailer") || mode.equals("models")) System.setProperty("glukhoman.freeze", "true");
+        if (mode.equals("shots") || mode.equals("trailer") || mode.equals("models") || mode.equals("walk")) System.setProperty("glukhoman.freeze", "true");
         if ("watch".equals(System.getProperty("glukhoman.autotest"))) {
             watch();
             return;
@@ -41,6 +41,10 @@ public final class Autotest {
         }
         if ("trailer".equals(System.getProperty("glukhoman.autotest"))) {
             trailer();
+            return;
+        }
+        if ("walk".equals(System.getProperty("glukhoman.autotest"))) {
+            walk();
             return;
         }
         if ("models".equals(System.getProperty("glukhoman.autotest"))) {
@@ -236,6 +240,70 @@ public final class Autotest {
         ScreenshotRecorder.saveScreenshot(c.runDirectory, "g2_" + name + ".png", c.getFramebuffer(), t -> Glukhoman.LOG.info("AUTOTEST снимок {}", name));
     }
 
+    /** walk_demo: 10 с от первого лица с камерой — 5 с камера опущена (руки), 5 с у глаза; шаг, поворот, бег, спуск с перрона. */
+    static double walkT0 = -1;
+
+    static void walk() {
+        newWorld();
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
+        STEPS.add(new Step(5, c -> {
+            c.setScreen(null);
+            server(c, s -> Story.chooseDifficulty(pl(s), 1));
+        }));
+        wait(Autotest::ready, 3000);
+        STEPS.add(new Step(80, c -> {
+            server(c, s -> {
+                cam0(s, false);
+                tp(s, -7, 66, 19, -90, 6);
+                s.getTickManager().setTickRate(6f);   // медленнее мир — больше кадров на игровую секунду
+            });
+            c.options.getPerspective();
+        }));
+        STEPS.add(new Step(40, c -> {
+            Recorder.startFree("/tmp/claude-0/glukhoman-trailer3/walk_raw.mp4", 30);
+            walkT0 = (c.world.getTime()) / 20.0;
+            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.START.register(ctx -> {
+                if (walkT0 < 0 || c.player == null) return;
+                double t = (c.world.getTime() + c.getRenderTickCounter().getTickDelta(false)) / 20.0 - walkT0;
+                // взгляд: вдоль перрона, на 3-й секунде резко вправо (к дому бабы Поли), потом обратно, на 7-й — влево к линии
+                float yaw = -90 + (float) (-60 * smooth(t, 2.4, 2.9) + 60 * smooth(t, 3.8, 4.7) + 40 * smooth(t, 7.0, 7.4) - 40 * smooth(t, 8.4, 9.2));
+                c.player.setYaw(yaw);
+                c.player.prevYaw = yaw;
+                c.player.setPitch(6 + (float) (Math.sin(t * 0.7) * 2));
+                c.player.prevPitch = c.player.getPitch();
+                c.options.forwardKey.setPressed(t < 9.6 && !(t > 4.2 && t < 5.3));   // постоял, поднял камеру
+                c.options.sprintKey.setPressed(t > 6.0 && t < 7.8);
+                if (t > 4.6 && !Viewfinder.up) server(c, s -> cam0(s, true));
+            });
+        }));
+        STEPS.add(new Step(2, c -> {}));
+        wait(c -> walkT0 >= 0 && c.world.getTime() / 20.0 - walkT0 > 10.2, 20000);
+        STEPS.add(new Step(2, c -> {
+            Recorder.stop();
+            walkT0 = -1;
+            c.options.forwardKey.setPressed(false);
+            c.options.sprintKey.setPressed(false);
+            server(c, s -> s.getTickManager().setTickRate(20f));
+        }));
+        STEPS.add(new Step(20, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    static double smooth(double t, double a, double b) {
+        double u = Math.max(0, Math.min(1, (t - a) / (b - a)));
+        return u * u * (3 - 2 * u);
+    }
+
+    static void cam0(MinecraftServer s, boolean up) {
+        ServerPlayerEntity p = pl(s);
+        if (!p.getMainHandStack().isOf(GContent.CAMCORDER)) {
+            p.getInventory().selectedSlot = 0;
+            p.getInventory().setStack(0, new net.minecraft.item.ItemStack(GContent.CAMCORDER));
+        }
+        if (up && !com.yompix.glukhoman.story.Cam.up(p)) com.yompix.glukhoman.story.Cam.raise(p);
+        if (!up) com.yompix.glukhoman.story.Cam.lower(p, false);
+    }
+
     /** Проверка моделей: облёт и крупный план каждого существа днём. */
     static void models() {
         newWorld();
@@ -276,7 +344,7 @@ public final class Autotest {
                 {"t3_train", 40, 66, 20, 18000L, 8.0}, {"t3_updown", 14, 66, 20, 18000L, 5.5}, {"t3_vanish", 8, 66, 20, 18000L, 4.5},
                 {"t3_board", -5, 66, 25, 18000L, 5.0}, {"t3_rewind", 2, 66, 20, 18000L, 6.2}, {"t3_rollcall", 2, 66, 20, 18000L, 5.0},
                 {"t3_draisine", 112, 66, 16, 18000L, 4.5}, {"t3_look", 20, 66, 21, 18000L, 4.5}, {"t3_stop", 4, 66, 19, 18000L, 3.2},
-                {"t3_house", 8, 65, 40, 1000L, 5.0}};
+                {"t3_bogie", 10, 66, 19, 18000L, 4.0}, {"t3_house", 8, 65, 40, 1000L, 5.0}};
         String only = System.getProperty("glukhoman.only", "");
         for (Object[] sh : shots) {
             String id = (String) sh[0];

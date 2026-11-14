@@ -67,7 +67,10 @@ public class WatcherEntity extends HorrorMob implements Seen {
     @Override
     protected String baseAnim() {
         if (frozen()) return "still";
-        return getVelocity().horizontalLengthSquared() > 0.002 ? "walk" : "idle";
+        boolean moving = getVelocity().horizontalLengthSquared() > 0.002;
+        var pl = getWorld().getClosestPlayer(this, 6);
+        if (moving && pl != null) return "stalk";   // близко — сгибается пополам
+        return moving ? "walk" : "idle";
     }
 
     @Override

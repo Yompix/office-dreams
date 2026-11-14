@@ -23,6 +23,8 @@ public final class Viewfinder {
     private Viewfinder() {}
 
     public static boolean up, ir;
+    /** Кто снимает (сервер присылает всем): поза «камера у глаза» в третьем лице. */
+    public static final java.util.Set<java.util.UUID> FILMERS = new java.util.HashSet<>();
     static boolean nv;
     static final Map<BlockPos, BlockState> GHOST = new LinkedHashMap<>();
 
@@ -54,7 +56,10 @@ public final class Viewfinder {
             c.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
             nv = false;
         }
-        if (!Cine.active) ghostRails(c.world, view() && night(c) && GlukhomanClient.chapter > 0);
+        if (!Cine.active) {
+            ghostRails(c.world, view() && night(c) && GlukhomanClient.chapter > 0);
+            flicker(c.world, (c.world.getTime()) / 20.0);
+        }
     }
 
     /** Рельсы, которых нет: x 63…150 по оси пути. */
@@ -73,6 +78,26 @@ public final class Viewfinder {
         } else {
             for (var e : GHOST.entrySet()) if (w.getBlockState(e.getKey()).isOf(Blocks.RAIL)) w.setBlockState(e.getKey(), e.getValue(), 0x10 | 3);
             GHOST.clear();
+        }
+    }
+
+    static int flickBucket = Integer.MIN_VALUE;
+    static final BlockState RAIL = Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, RailShape.EAST_WEST);
+
+    /** Рельсы-призраки мерцают: куски пропадают и возвращаются (в видоискателе, ~6 раз в секунду). */
+    public static void flicker(ClientWorld w, double t) {
+        if (GHOST.isEmpty()) return;
+        int bucket = (int) Math.floor(t * 6);
+        if (bucket == flickBucket) return;
+        flickBucket = bucket;
+        for (var e : GHOST.entrySet()) {
+            BlockPos p = e.getKey();
+            long h = (p.getX() * 73856093L) ^ (bucket * 19349663L) ^ (p.getX() / 5 * 83492791L + bucket / 3);
+            h = (h ^ (h >>> 13)) * 1274126177L;
+            boolean on = ((h >>> 8) & 0xFF) > 40;   // ~84 % на месте
+            boolean is = w.getBlockState(p).isOf(Blocks.RAIL);
+            if (on && !is) w.setBlockState(p, RAIL, 0x10 | 3);
+            else if (!on && is) w.setBlockState(p, e.getValue(), 0x10 | 3);
         }
     }
 

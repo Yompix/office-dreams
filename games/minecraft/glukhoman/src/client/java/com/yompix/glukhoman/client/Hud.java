@@ -60,6 +60,8 @@ public final class Hud {
         long tod = (c.world.getTimeOfDay() + 6000) % 24000;
         int hh = (int) (tod / 1000), mm = (int) (tod % 1000 * 60 / 1000), ss = (int) (time / 20 % 60);
         int m = 14, L = 16, col = 0xC0E8E8E8;
+        ctx.getMatrices().push();
+        if (!Cine.active) ctx.getMatrices().translate(HandCam.hudX, HandCam.hudY, 0);   // рамка качается вместе с камерой
         // уголки кадра
         ctx.fill(m, m, m + L, m + 1, col); ctx.fill(m, m, m + 1, m + L, col);
         ctx.fill(w - m - L, m, w - m, m + 1, col); ctx.fill(w - m - 1, m, w - m, m + L, col);
@@ -88,6 +90,7 @@ public final class Hud {
         }
         ctx.drawTextWithShadow(tr, String.format("14.10.1996  %02d:%02d:%02d", hh, mm, ss), w - m - 118, h - m - 14, 0xD0D8D8D0);
         ctx.drawTextWithShadow(tr, "SP", m + 8, h - m - 14, 0xA0D8D8D0);
+        ctx.getMatrices().pop();
     }
 
     public static void render(DrawContext ctx, RenderTickCounter counter) {

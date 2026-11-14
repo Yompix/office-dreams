@@ -22,6 +22,8 @@ import java.util.List;
  */
 public class TrainEntity extends Entity implements GeoEntity, Seen {
     private final AnimatableInstanceCache geo = GeckoLibUtil.createInstanceCache(this);
+    /** Высота езды: колёса на головке рельса (рельс в блоке y=66). */
+    public static final double Y = 66.0625;
     public final List<Vec3d> path = new ArrayList<>();
     public double speed, maxSpeed = 0.35;
     /** Сколько тиков стоит у цели. */

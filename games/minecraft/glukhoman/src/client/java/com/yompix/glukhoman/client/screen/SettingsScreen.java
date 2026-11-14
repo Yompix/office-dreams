@@ -49,7 +49,20 @@ public class SettingsScreen extends Screen {
             b.setMessage(Text.literal("Яркость: " + br[c.brightness]));
             c.save();
         }).dimensions(width / 2 - 110, y + 120, 220, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 244, 120, 20).build());
+        addDrawableChild(new net.minecraft.client.gui.widget.SliderWidget(width / 2 - 110, y + 244, 220, 20,
+                Text.literal("Покачивание камеры: " + c.handSway + "%"), c.handSway / 100.0) {
+            @Override
+            protected void updateMessage() {
+                setMessage(Text.literal("Покачивание камеры: " + (int) Math.round(value * 100) + "%"));
+            }
+
+            @Override
+            protected void applyValue() {
+                c.handSway = (int) Math.round(value * 100);
+                c.save();
+            }
+        });
+        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 270, 120, 20).build());
     }
 
     void toggle(int y, String name, Supplier<Boolean> get, Consumer<Boolean> set) {

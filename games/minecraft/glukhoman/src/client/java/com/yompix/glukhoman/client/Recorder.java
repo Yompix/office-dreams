@@ -25,6 +25,29 @@ public final class Recorder {
     public static boolean on;
     static int frames;
 
+    /** Свободная запись (не кат-сцена): кадры выбираются по игровому времени, шаг 1/fps — ровно даже при медленной отрисовке. */
+    public static boolean free;
+    static double nextT;
+
+    public static void startFree(String out, int fps) {
+        start(out, fps);
+        free = true;
+        nextT = -1;
+    }
+
+    /** Из GameRenderer.render (TAIL): уже с рукой, HUD и рамкой видоискателя. */
+    public static void frameFree() {
+        if (!on || !free) return;
+        MinecraftClient c = MinecraftClient.getInstance();
+        if (c.world == null) return;
+        double gt = (c.world.getTime() + c.getRenderTickCounter().getTickDelta(false)) / 20.0;
+        if (nextT < 0) nextT = gt;
+        while (gt >= nextT) {
+            grab();
+            nextT += 1.0 / Cine.recFps;
+        }
+    }
+
     public static void start(String out, int fps) {
         path = out;
         Cine.recFps = fps;
@@ -35,7 +58,12 @@ public final class Recorder {
 
     /** Из WorldRenderEvents.END, после пост-эффекта. */
     public static void frame() {
-        if (!on || !Cine.active) return;
+        if (!on || free || !Cine.active) return;
+        grab();
+        Cine.recFrame++;
+    }
+
+    static void grab() {
         try {
             Framebuffer fb = MinecraftClient.getInstance().getFramebuffer();
             int w = fb.textureWidth, h = fb.textureHeight;
@@ -52,7 +80,6 @@ public final class Recorder {
             buf.rewind();
             while (buf.hasRemaining()) ch.write(buf);
             frames++;
-            Cine.recFrame++;
         } catch (Exception e) {
             Glukhoman.LOG.error("Запись трейлера", e);
             on = false;
@@ -61,6 +88,7 @@ public final class Recorder {
 
     public static void stop() {
         on = false;
+        free = false;
         Cine.recFps = 0;
         try {
             if (ch != null) ch.close();

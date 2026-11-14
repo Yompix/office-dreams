@@ -54,6 +54,13 @@ public final class GeoRenderers {
             return id("animations/" + (e instanceof DoppelEntity ? "human" : e.geoName()) + ".animation.json");
         }
 
+        /** Обходчик: тело поворачивает по ходу, а голова неотрывно на игроке — слишком далеко, до 110°. */
+        @Override
+        public void setCustomAnimations(T e, long instanceId, AnimationState<T> state) {
+            if (e instanceof com.yompix.glukhoman.entity.WatcherEntity && !com.yompix.glukhoman.client.Cine.active)
+                headLook(getAnimationProcessor().getBone("head"), e, state.getPartialTick(), 110);
+        }
+
         static boolean slim(DoppelEntity d) {
             if (d.mimic().equals("@anna")) return true;
             SkinTextures s = skin(d.mimic());
@@ -90,6 +97,23 @@ public final class GeoRenderers {
         public Identifier getAnimationResource(ResidentEntity e) {
             return id("animations/human.animation.json");
         }
+
+        /** Голова смотрит туда, куда смотрит житель (на игрока, по сторонам), поверх анимации тела. */
+        @Override
+        public void setCustomAnimations(ResidentEntity e, long instanceId, AnimationState<ResidentEntity> state) {
+            if (e.sleepwalking() || com.yompix.glukhoman.client.Cine.active) return;
+            headLook(getAnimationProcessor().getBone("head"), e, state.getPartialTick(), 60);
+        }
+    }
+
+    static void headLook(GeoBone head, LivingEntity e, float pt, float limit) {
+        if (head == null) return;
+        float body = net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevBodyYaw, e.bodyYaw);
+        float hy = net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevHeadYaw, e.headYaw);
+        float d = net.minecraft.util.math.MathHelper.clamp(net.minecraft.util.math.MathHelper.wrapDegrees(hy - body), -limit, limit);
+        float pitch = net.minecraft.util.math.MathHelper.lerp(pt, e.prevPitch, e.getPitch());
+        head.setRotY(head.getRotY() + d * net.minecraft.util.math.MathHelper.RADIANS_PER_DEGREE);
+        head.setRotX(head.getRotX() + pitch * net.minecraft.util.math.MathHelper.RADIANS_PER_DEGREE * 0.7f);
     }
 
     static class TrainModel extends GeoModel<TrainEntity> {
@@ -132,7 +156,14 @@ public final class GeoRenderers {
             return r;
         });
         EntityRendererRegistry.register(GContent.TRAIN, ctx -> {
-            GeoEntityRenderer<TrainEntity> r = new GeoEntityRenderer<>(ctx, new TrainModel());
+            // GeckoLib берёт поворот только у «живых» сущностей; поезд — не живой, поэтому поворот по пути задаём сами,
+            // иначе состав всегда стоит вдоль оси Z — поперёк путей (баг 0.4.0)
+            GeoEntityRenderer<TrainEntity> r = new GeoEntityRenderer<>(ctx, new TrainModel()) {
+                @Override
+                protected void applyRotations(TrainEntity e, net.minecraft.client.util.math.MatrixStack m, float age, float rotationYaw, float pt, float nativeScale) {
+                    super.applyRotations(e, m, age, net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevYaw, e.getYaw()), pt, nativeScale);
+                }
+            };
             r.addRenderLayer(new AutoGlowingGeoLayer<>(r));
             return r;
         });

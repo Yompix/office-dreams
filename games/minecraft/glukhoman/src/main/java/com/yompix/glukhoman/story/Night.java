@@ -168,8 +168,9 @@ public final class Night {
         if (t == 300) {
             train = Story.spawn(GContent.TRAIN, new BlockPos(330, 66, MapBuilder.LZ));
             if (train != null) {
+                train.refreshPositionAndAngles(330.5, TrainEntity.Y, MapBuilder.LZ + 0.5, 90, 0);
                 train.setYaw(90);
-                train.path.add(new Vec3d(8, 66, MapBuilder.LZ + 0.5));
+                train.path.add(new Vec3d(8, TrainEntity.Y, MapBuilder.LZ + 0.5));
                 train.maxSpeed = 0.42;
             }
             phase = 1;
@@ -186,7 +187,7 @@ public final class Night {
             if (!anyWalking) stopLeft = Math.min(stopLeft, 300);   // звать больше некого — постоит и уйдёт
             if (--stopLeft <= 0) {
                 phase = 3;
-                train.path.add(new Vec3d(-70, 66, MapBuilder.LZ + 0.5));
+                train.path.add(new Vec3d(-70, TrainEntity.Y, MapBuilder.LZ + 0.5));
                 train.vanishAtEnd = true;
                 train.maxSpeed = 0.3;
                 Story.voice("n2_zakhar_4", null, true);
@@ -197,9 +198,9 @@ public final class Night {
             loopWaited = true;
             train.wait = 1800;
         } else if (phase == 4 && train != null && train.path.isEmpty() && train.wait <= 0) {   // с обгонного — обратно к перрону
-            train.path.add(new Vec3d(-16, 66, MapBuilder.LOOPZ + 0.5));
-            train.path.add(new Vec3d(-22, 66, MapBuilder.LZ + 0.5));
-            train.path.add(new Vec3d(8, 66, MapBuilder.LZ + 0.5));
+            train.path.add(new Vec3d(-16, TrainEntity.Y, MapBuilder.LOOPZ + 0.5));
+            train.path.add(new Vec3d(-22, TrainEntity.Y, MapBuilder.LZ + 0.5));
+            train.path.add(new Vec3d(8, TrainEntity.Y, MapBuilder.LZ + 0.5));
             phase = 1;
         }
         if (t == 900 && watcher != null) watcher.posted = false;   // постоял на краю перрона — пошёл
@@ -343,9 +344,9 @@ public final class Night {
         // поезд уходит на обгонный путь и стоит там 90 с, потом возвращается
         train.path.clear();
         double x = train.getX();
-        train.path.add(new Vec3d(Math.max(x, 12), 66, MapBuilder.LZ + 0.5));
-        train.path.add(new Vec3d(Math.max(x, 12) + 6, 66, MapBuilder.LOOPZ + 0.5));
-        train.path.add(new Vec3d(20, 66, MapBuilder.LOOPZ + 0.5));
+        train.path.add(new Vec3d(Math.max(x, 12), TrainEntity.Y, MapBuilder.LZ + 0.5));
+        train.path.add(new Vec3d(Math.max(x, 12) + 6, TrainEntity.Y, MapBuilder.LOOPZ + 0.5));
+        train.path.add(new Vec3d(20, TrainEntity.Y, MapBuilder.LOOPZ + 0.5));
         train.wait = 0;
         train.maxSpeed = 0.25;
         loopWaited = false;

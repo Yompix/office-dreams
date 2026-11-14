@@ -114,7 +114,20 @@ public final class Cam {
         send(p);
     }
 
+    /** Всем: кто сейчас снимает (для позы «камера у глаза» в третьем лице у друзей). */
+    static void broadcast(MinecraftServer server) {
+        if (server == null) return;
+        NbtCompound m = Net.msg("filmers");
+        net.minecraft.nbt.NbtList l = new net.minecraft.nbt.NbtList();
+        S.forEach((u, st) -> {
+            if (st.up) l.add(net.minecraft.nbt.NbtString.of(u.toString()));
+        });
+        m.put("u", l);
+        Net.all(server, m);
+    }
+
     static void send(ServerPlayerEntity p) {
+        broadcast(p.getServer());
         State s = s(p);
         NbtCompound m = Net.msg("cam");
         m.putBoolean("up", s.up);

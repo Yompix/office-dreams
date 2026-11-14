@@ -34,6 +34,7 @@ final class Trailer3 {
             case "t3_draisine" -> new Draisine();
             case "t3_look" -> new Look();
             case "t3_stop" -> new Stop();
+            case "t3_bogie" -> new Bogie();
             default -> null;
         };
     }
@@ -123,7 +124,7 @@ final class Trailer3 {
         public void start(ClientWorld w) {
             this.w = w;
             vf = true;
-            tr = puppet(w, GContent.TRAIN, 130, 66, 16.5, 90);
+            tr = puppet(w, GContent.TRAIN, 130, TrainEntity.Y, 16.5, 90);
             Viewfinder.ghostRails(w, true);
         }
 
@@ -135,7 +136,7 @@ final class Trailer3 {
             fov = (float) MathHelper.lerp(ease(seg(t, 0, 8)), 34, 50);
             glitch = (float) (0.08 + 0.4 * Math.max(0, 1 - Math.abs(tx - 40) / 30));
             act(tr, "idle", t);
-            place(tr, tx, 66, 16.5, 90);
+            place(tr, tx, TrainEntity.Y, 16.5, 90);
             crossing(w, t, 0);
             motor(t);
         }
@@ -148,7 +149,7 @@ final class Trailer3 {
 
         public void start(ClientWorld w) {
             vf = true;
-            tr = puppet(w, GContent.TRAIN, 8, 66, 16.5, 90);
+            tr = puppet(w, GContent.TRAIN, 8, TrainEntity.Y, 16.5, 90);
             watcher = puppet(w, GContent.WATCHER, -6.6, 66, 19.5, -90);
             Viewfinder.ghostRails(w, true);
             key(w, 6, 68, 19, 8);
@@ -164,8 +165,8 @@ final class Trailer3 {
             fov = vf ? (t >= 3.5 ? (float) MathHelper.lerp(ease(seg(t, 3.5, 5.5)), 46, 30) : 46) : 62;
             glitch = vf ? (t >= 3.5 && t < 3.8 ? 0.8f : 0.1f) : 0.02f;
             act(tr, "idle", t);
-            place(tr, 8, 66, 16.5, 90);
-            act(watcher, "still", t);
+            place(tr, 8, TrainEntity.Y, 16.5, 90);
+            act(watcher, "idle", t);
             place(watcher, -6.6, 66, 19.5, -90);
             motor(t);
         }
@@ -213,8 +214,9 @@ final class Trailer3 {
             fov = 50;
             glitch = 0.05f;
             if (zina != null) zina.talking = t > 2.8;
-            act(zina, "idle", t);
-            place(zina, 11.8, 65, 37.2, -60);
+            act(zina, t < 2.6 ? "idle_shift" : "idle", t);
+            Vec3d zp = v(11.8, 65, 37.2);
+            place(zina, zp.x, zp.y, zp.z, MathHelper.lerpAngleDegrees((float) ease(seg(t, 1.8, 2.8)), 150, yawTo(zp, p)));
         }
     }
 
@@ -270,8 +272,9 @@ final class Trailer3 {
             glitch = t < 1.0 ? 0.9f : t > 4.3 ? 0.45f : 0.1f;
             act(me, "idle", t);
             place(me, 6.2, 66, 19.5, -90);
-            act(watcher, t < 4.3 ? "still" : "lean", t < 4.3 ? t : (t - 4.3) * 2.2);
-            place(watcher, 5.1, 66, 18.95, -90 + (float) (t > 4.3 ? 185 * ease(seg(t, 4.3, 5.2)) : 0));
+            act(watcher, t < 4.3 ? "idle" : "lean", t < 4.3 ? t : (t - 4.3) * 2.2);
+            Vec3d wp = v(5.1, 66, 18.95);
+            place(watcher, wp.x, wp.y, wp.z, MathHelper.lerpAngleDegrees((float) ease(seg(t, 4.3, 4.95)), -90, yawTo(wp, p)));
             if (t > 5.6) {
                 glitch = 1f;
                 tintR = tintG = tintB = 0.05f;
@@ -302,7 +305,7 @@ final class Trailer3 {
             fov = 44;
             glitch = 0.06f;
             for (int i = 0; i < 8; i++) {
-                act(r[i], "idle", t + i);
+                act(r[i], i % 3 == 0 ? "idle_shift" : i % 3 == 1 ? "idle" : "idle_look", t + i * 0.7);
                 place(r[i], -5.5 + i * 1.6, 66, 18.7, 0);
             }
         }
@@ -340,7 +343,7 @@ final class Trailer3 {
         }
 
         public void frame(double t) {
-            inner.frame(Math.min(13.3, t + 8.9));
+            inner.frame(Math.min(13.3, t + 7.9));
         }
     }
 
@@ -360,12 +363,38 @@ final class Trailer3 {
             cam(p, p.add(dirOf(-120, 6)));
             fov = 58;
             glitch = t > 1.8 ? 0.4f : 0.08f;
-            act(watcher, t < 1.4 ? "still" : "lean", t < 1.4 ? t : (t - 1.4) * 1.8);
-            place(watcher, 7.2, 66, 20.3, 90 - (float) (t > 1.4 ? 80 * ease(seg(t, 1.4, 2.3)) : 0));
+            act(watcher, t < 1.4 ? "idle" : "lean", t < 1.4 ? t : (t - 1.4) * 1.8);
+            Vec3d wp = v(7.2, 66, 20.3);
+            place(watcher, wp.x, wp.y, wp.z, MathHelper.lerpAngleDegrees((float) ease(seg(t, 1.4, 2.3)), 90, yawTo(wp, p)));
             if (t > 2.6) {
                 glitch = 1f;
                 tintR = tintG = tintB = 0.03f;
             }
+        }
+    }
+
+    /** Низко с края перрона: колёса тележек стоят на рельсах, вагон — вплотную к платформе. Медленный проезд камеры вдоль. */
+    static class Bogie implements Scene {
+        TrainEntity tr;
+
+        public void start(ClientWorld w) {
+            vf = true;
+            tr = puppet(w, GContent.TRAIN, 8, TrainEntity.Y, 16.5, 90);
+            Viewfinder.ghostRails(w, true);
+            key(w, 4, 67, 18, 9);
+            key(w, 14, 67, 18, 9);
+        }
+
+        public void frame(double t) {
+            vhsNight();
+            double x = MathHelper.lerp(ease(seg(t, 0, 4)), 15.5, 4.5);
+            Vec3d p = v(x, 66.75, 19.0).add(hand(t, 0.3).multiply(0.6));
+            cam(p, v(x - 2.2, 66.45, 16.4));
+            fov = 58;
+            glitch = 0.07f;
+            act(tr, "idle", t);
+            place(tr, 8, TrainEntity.Y, 16.5, 90);
+            motor(t);
         }
     }
 }

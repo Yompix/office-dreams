@@ -127,7 +127,7 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 3, state -> {
+        controllers.add(new AnimationController<>(this, "main", 6, state -> {
             String a = act();
             if (a.isEmpty()) a = baseAnim();
             return state.setAndContinue(raw("animation." + animSet() + "." + a));

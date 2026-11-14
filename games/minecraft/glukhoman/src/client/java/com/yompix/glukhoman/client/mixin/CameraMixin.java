@@ -21,7 +21,16 @@ public abstract class CameraMixin {
 
     @Inject(method = "update", at = @At("TAIL"))
     private void glukhoman$cine(BlockView area, Entity focused, boolean third, boolean inverse, float tickDelta, CallbackInfo ci) {
-        if (!Cine.active) return;
+        if (!Cine.active) {
+            com.yompix.glukhoman.client.HandCam.frame(tickDelta);
+            if (com.yompix.glukhoman.client.HandCam.active && !third) {
+                Camera self = (Camera) (Object) this;
+                net.minecraft.util.math.Vec3d o = com.yompix.glukhoman.client.HandCam.offset(self.getYaw());
+                setRotation(self.getYaw() + com.yompix.glukhoman.client.HandCam.dYaw, self.getPitch() + com.yompix.glukhoman.client.HandCam.dPitch);
+                setPos(self.getPos().x + o.x, self.getPos().y + o.y, self.getPos().z + o.z);
+            }
+            return;
+        }
         Cine.frame();
         if (!Cine.active) return;
         setRotation(Cine.yaw, Cine.pitch);

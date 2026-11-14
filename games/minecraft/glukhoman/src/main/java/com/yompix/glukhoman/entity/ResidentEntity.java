@@ -156,11 +156,16 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar c) {
-        c.add(new AnimationController<>(this, "main", 4, state -> {
+        c.add(new AnimationController<>(this, "main", 7, state -> {
             String a = act();
             if (a.isEmpty()) {
                 boolean moving = getVelocity().horizontalLengthSquared() > 0.0015;
-                a = sleepwalking() ? (moving ? "walk" : "still") : moving ? "walk" : "idle";
+                if (sleepwalking()) a = "sleepwalk";
+                else if (moving) a = "walk";
+                else {   // разнообразие на месте: дышит, переминается, осматривается, чешет затылок
+                    String[] v = {"idle", "idle_shift", "idle", "idle_look", "idle_shift", "idle_scratch"};
+                    a = v[(int) ((getTick(this) / 120 + getId()) % v.length)];
+                }
             }
             return state.setAndContinue(HorrorMob.raw("animation.human." + a));
         }));
