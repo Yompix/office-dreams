@@ -85,6 +85,7 @@ public final class Story {
         StoryState st = st();
         if (!isOurWorld()) return;
         if (!st.built) com.yompix.glukhoman.world.MapBuilder.build(w(), st);
+        if (st.built && !st.flag("decor2")) com.yompix.glukhoman.world.MapBuilder.decor(w(), st);
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);
@@ -178,8 +179,10 @@ public final class Story {
                     Sanity.set(p, 100);
                 }
                 setStep("c1_road");
-                titleAll(1, true);
-                Sched.after(160, () -> seq("uaz", st.point("uaz"), false));
+                scene("intro", () -> {
+                    titleAll(1, true);
+                    seq("uaz", st.point("uaz"), false);
+                });
                 Sched.after(900, () -> {
                     for (ServerPlayerEntity p : players()) Director.apparition(p, false);
                 });
@@ -187,9 +190,11 @@ public final class Story {
             case 2 -> {
                 w.setTimeOfDay(18000);
                 setStep("c2_fuses");
-                titleAll(2, false);
                 spawn(GContent.LISTENER, st.point("school_listener"));
-                Sched.after(100, () -> seq("numbers", null, true));
+                scene("village", () -> {
+                    titleAll(2, false);
+                    seq("numbers", null, true);
+                });
             }
             case 3 -> {
                 w.setTimeOfDay(18000);
@@ -271,6 +276,46 @@ public final class Story {
         for (Entity e : w().getEntitiesByClass(LivingEntity.class, new Box(BlockPos.ORIGIN).expand(700),
                 e -> e instanceof PoleEntity || e instanceof ListenerEntity || e instanceof ChoirEntity || (!keepAnna && e instanceof AnnaEntity)))
             e.discard();
+    }
+
+    // ===================== кат-сцены =====================
+    private static int sceneSeq;
+    private static Runnable sceneAfter;
+    private static final java.util.Set<UUID> SKIPPED = new java.util.HashSet<>();
+
+    /** Кат-сцена у всех игроков сразу (клиент сам играет камеру и актёров); after — что делать после неё. */
+    public static void scene(String id, Runnable after) {
+        int len = Scenes.ticks(id);
+        int token = ++sceneSeq;
+        sceneAfter = after;
+        SKIPPED.clear();
+        sceneLock = Math.max(sceneLock, len + 10);
+        NbtCompound m = Net.msg("cut");
+        m.putString("id", id);
+        Net.all(server, m);
+        Glukhoman.LOG.info("Глухомань: кат-сцена {} ({} тиков)", id, len);
+        Sched.after(len, () -> {
+            if (token == sceneSeq) finishScene();
+        });
+    }
+
+    static void finishScene() {
+        sceneSeq++;
+        sceneLock = 0;
+        Runnable r = sceneAfter;
+        sceneAfter = null;
+        Net.all(server, Net.msg("cutend"));
+        if (r != null) r.run();
+    }
+
+    /** Пропуск: хозяин (первый в списке) пропускает за всех, иначе — когда пропустили все. */
+    public static void skip(ServerPlayerEntity p) {
+        if (sceneAfter == null && sceneLock == 0) return;
+        SKIPPED.add(p.getUuid());
+        var list = server.getPlayerManager().getPlayerList();
+        boolean host = !list.isEmpty() && list.get(0) == p || server.isHost(p.getGameProfile());
+        if (host || list.stream().allMatch(q -> SKIPPED.contains(q.getUuid()))) finishScene();
+        else msg(p, "Ждём, пока пропустят остальные…");
     }
 
     // ===================== шаги и HUD =====================
@@ -521,8 +566,10 @@ public final class Story {
             case "c5_bunker" -> {
                 if (inZone(p, "bunker")) {
                     setStep("c5_amps");
-                    spawnChoir(st.point("choir_bunker"), false);
-                    voice("final_2", st.point("choir_bunker"), true);
+                    scene("bunker", () -> {
+                        spawnChoir(st.point("choir_bunker"), false);
+                        voice("final_2", st.point("choir_bunker"), true);
+                    });
                 }
             }
             default -> {
@@ -772,6 +819,12 @@ public final class Story {
         BlockPos door = st.point("anna_door");
         BlockState ds = w().getBlockState(door);
         if (ds.getBlock() instanceof DoorBlock && ds.get(DoorBlock.OPEN)) closeDoor(door);
+        scene("knock", Story::knockRest);
+    }
+
+    static void knockRest() {
+        StoryState st = st();
+        BlockPos door = st.point("anna_door");
         sceneLock = 1000;
         List<BlockPos> lamps = lamps("anna");
         Sched.after(40, () -> Director.setLamps(w(), lamps, false));
@@ -902,9 +955,14 @@ public final class Story {
     }
 
     static void chase() {
-        StoryState st = st();
         setStep("c3_run");
-        sceneLock = 200;
+        Director.setLamps(w(), lamps("station"), false);
+        scene("corridor", Story::chaseRest);
+    }
+
+    static void chaseRest() {
+        StoryState st = st();
+        sceneLock = 100;
         Director.setLamps(w(), lamps("station"), false);
         sound(st.point("station_hall"), "power_on", 1.5f, 0.5f);
         fxAll("chase", 0);
@@ -947,8 +1005,7 @@ public final class Story {
             give(p, new ItemStack(GContent.TUNING_FORK));
             msgAll(p.getName().getString() + " получил камертон Шумова.");
             setStep("c4_escape");
-            sceneLock = 100;
-            Sched.after(140, () -> {
+            scene("anna", () -> {
                 fxAll("shake", 60);
                 fxAll("chase", 0);
                 voice("choir_mine", null, true);
@@ -1007,7 +1064,8 @@ public final class Story {
             c.stun(p);
         }
         int d = seq("final", p.getBlockPos(), true);
-        Sched.after(d, () -> {
+        Sched.after(d - 20, () -> Net.all(server, Net.msg("fakecrash")));
+        Sched.after(d + 110, () -> {
             Net.send(p, Net.msg("choice"));
             for (ServerPlayerEntity q : players()) if (q != p) msg(q, p.getName().getString() + " держит камертон над передатчиком…");
         });
@@ -1035,9 +1093,9 @@ public final class Story {
         }
         Sched.after(60, () -> {
             clearCreatures(true);
-            w.setTimeOfDay(e.equals("A") ? 1000 : 13000);
+            w.setTimeOfDay(e.equals("A") ? 1000 : 6000);
             for (ServerPlayerEntity p : players()) {
-                tp(p, st.point("cp5"));
+                tp(p, st.point(e.equals("A") ? "cp5" : "cp2"));
                 Sanity.set(p, 100);
                 Light.off(p);
                 p.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0, false, false));
@@ -1047,12 +1105,13 @@ public final class Story {
             m.putString("b", e.equals("A") ? "Тишина" : "Эхо");
             m.putString("c", e.equals("A") ? "Хор замолчал." : "Ты ответил.");
             Net.all(server, m);
+            Sched.after(40, () -> scene(e.equals("A") ? "endA" : "endB", null));
         });
-        Sched.after(200, () -> voice(e.equals("A") ? "epi_a" : "epi_b", null, true));
-        Sched.after(360, () -> {
+        Sched.after(240, () -> voice(e.equals("A") ? "epi_a" : "epi_b", null, true));
+        Sched.after(460, () -> {
             for (ServerPlayerEntity p : players()) note(p, e.equals("A") ? "epilogue_a" : "epilogue_b");
         });
-        Sched.after(420, () -> Net.all(server, Net.msg("credits")));
+        Sched.after(520, () -> Net.all(server, Net.msg("credits")));
     }
 
     // ===================== команды и подсказки =====================

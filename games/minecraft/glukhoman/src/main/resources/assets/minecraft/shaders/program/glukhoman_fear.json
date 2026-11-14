@@ -1,0 +1,164 @@
+{
+ "blend": {
+  "func": "add",
+  "srcrgb": "one",
+  "dstrgb": "zero"
+ },
+ "vertex": "sobel",
+ "fragment": "glukhoman_fear",
+ "attributes": [
+  "Position"
+ ],
+ "samplers": [
+  {
+   "name": "DiffuseSampler"
+  }
+ ],
+ "uniforms": [
+  {
+   "name": "ProjMat",
+   "type": "matrix4x4",
+   "count": 16,
+   "values": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "name": "InSize",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "OutSize",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "Time",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Fear",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Near",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Strength",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "Flash",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Blur",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Rays",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "RayX",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0.5
+   ]
+  },
+  {
+   "name": "RayY",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0.25
+   ]
+  },
+  {
+   "name": "Tear",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "TintR",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "TintG",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "TintB",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  }
+ ]
+}

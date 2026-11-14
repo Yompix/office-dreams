@@ -341,6 +341,54 @@
    }
   ]
  },
+ "jumpscare": {
+  "sounds": [
+   {
+    "name": "glukhoman:jumpscare",
+    "stream": false
+   }
+  ]
+ },
+ "breath_close": {
+  "sounds": [
+   {
+    "name": "glukhoman:breath_close",
+    "stream": false
+   }
+  ]
+ },
+ "scratch": {
+  "sounds": [
+   {
+    "name": "glukhoman:scratch",
+    "stream": false
+   }
+  ]
+ },
+ "musicbox": {
+  "sounds": [
+   {
+    "name": "glukhoman:musicbox",
+    "stream": false
+   }
+  ]
+ },
+ "crash_buzz": {
+  "sounds": [
+   {
+    "name": "glukhoman:crash_buzz",
+    "stream": false
+   }
+  ]
+ },
+ "slowmo": {
+  "sounds": [
+   {
+    "name": "glukhoman:slowmo",
+    "stream": false
+   }
+  ]
+ },
  "voice.r_uaz_1": {
   "sounds": [
    {

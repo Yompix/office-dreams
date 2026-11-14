@@ -49,9 +49,37 @@ public final class MapBuilder {
         station(b);
         bunker(b);
         mine(b);
+        decor(world, st);
         st.built = true;
         st.markDirty();
         Glukhoman.LOG.info("Глухомань: карта построена за {} мс, точек {}, вещей {}", System.currentTimeMillis() - t0, st.points.size(), st.interact.size());
+    }
+
+    // ================= история без слов (0.2): плакаты, царапины, куклы, фото =================
+    public static void decor(ServerWorld world, StoryState st) {
+        B b = new B(world, st);
+        int[][] posters = {{-8, 66, 113, 3}, {-8, 66, 99, 3}, {8, 66, 113, 2}, {8, 66, 96, 2}, {-8, 66, 77, 3}, {-4, 66, 35, 0}, {-6, 66, -213, 0}, {5, 66, 145, 2}};
+        int[][] scratches = {{-14, 66, 84, 3}, {-14, 66, 78, 3}, {-5, 66, -243, 0}, {-120, 26, -172, 1}, {-111, 26, -196, 3}, {-13, 66, 125, 0}};
+        int[][] dolls = {{-11, 65, 125, 0}, {-20, 65, 74, 0}, {-12, 65, 112, 1}, {-44, 65, 78, 0}, {-130, 25, -201, 3}, {-108, 25, -226, 1}};
+        int[][] photos = {{-16, 67, 127, 3}, {-16, 67, 114, 3}, {16, 67, 114, 2}, {-7, 67, -247, 3}};
+        Direction[] D = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
+        for (int[][] set : new int[][][]{posters, scratches, dolls, photos}) for (int[] q : set) world.getChunk(q[0] >> 4, q[2] >> 4);
+        for (int i = 0; i < posters.length; i++) {
+            int[] q = posters[i];
+            if (b.get(q[0], q[1], q[2]).isAir()) b.set(q[0], q[1], q[2], GContent.POSTER.getDefaultState().with(net.minecraft.block.HorizontalFacingBlock.FACING, D[q[3]])
+                    .with(com.yompix.glukhoman.block.DecorBlock.VARIANT, i % 3));
+        }
+        for (int[] q : scratches) if (b.get(q[0], q[1], q[2]).isAir()) b.prop(q[0], q[1], q[2], GContent.SCRATCHES, D[q[3]]);
+        for (int[] q : dolls) if (b.get(q[0], q[1], q[2]).isAir() || b.get(q[0], q[1], q[2]).isReplaceable()) {
+            b.prop(q[0], q[1], q[2], GContent.DOLL, D[q[3]]);
+            st.lamp("doll", new net.minecraft.util.math.BlockPos(q[0], q[1], q[2]));
+        }
+        for (int[] q : photos) if (b.get(q[0], q[1], q[2]).isAir()) {
+            b.prop(q[0], q[1], q[2], GContent.PHOTO, D[q[3]]);
+            st.lamp("photo", new net.minecraft.util.math.BlockPos(q[0], q[1], q[2]));
+        }
+        st.set("decor2");
+        st.markDirty();
     }
 
     // ================= старт: УАЗ у закрытого моста =================

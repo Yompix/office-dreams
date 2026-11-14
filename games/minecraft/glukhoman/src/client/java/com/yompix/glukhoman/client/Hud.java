@@ -21,10 +21,44 @@ public final class Hud {
 
     static final Identifier VIGNETTE = Glukhoman.id("textures/gui/vignette.png");
 
+    /** Ложный «вылет»: игра будто зависла и упала, потом «перезапускается» — с глючащим логотипом. */
+    static void fakeCrash(DrawContext ctx, MinecraftClient c, int w, int h) {
+        TextRenderer tr = c.textRenderer;
+        int t = crashT;
+        if (t < 40) {
+            ctx.fill(0, 0, w, h, 0x50000000);
+            int bw = 300, bh = 70, x = w / 2 - bw / 2, y = h / 2 - bh / 2;
+            ctx.fill(x, y, x + bw, y + bh, 0xFFF0F0F0);
+            ctx.fill(x, y, x + bw, y + 14, 0xFF2B5797);
+            ctx.drawTextWithShadow(tr, "Глухомань", x + 4, y + 3, 0xFFFFFFFF);
+            ctx.drawText(tr, "Программа не отвечает.", x + 10, y + 22, 0xFF000000, false);
+            ctx.drawText(tr, "java.lang.IllegalStateException: в мире есть кто-то ещё", x + 10, y + 36, 0xFF600000, false);
+            ctx.drawText(tr, "[ Закрыть ]", x + bw - 70, y + 54, 0xFF000000, false);
+        } else if (t < 95) {
+            ctx.fill(0, 0, w, h, 0xFF000000);
+            if ((t / 8) % 2 == 0) ctx.drawTextWithShadow(tr, "_", 8, 8, 0xFFC0C0C0);
+            if (t > 60) {
+                int gl = (t * 7) % 9 - 4;
+                ctx.getMatrices().push();
+                ctx.getMatrices().translate(w / 2f + gl, h / 2f, 0);
+                ctx.getMatrices().scale(4f, 4f, 1f);
+                ctx.drawCenteredTextWithShadow(tr, t % 5 == 0 ? "ОТВЕТЬ МНЕ" : "ГЛУХОМАНЬ", 0, 0, t % 7 == 0 ? 0xFFB02020 : 0xFFD8D0C0);
+                ctx.getMatrices().pop();
+            }
+        } else {
+            int a = (int) ((1 - (t - 95) / 35f) * 255);
+            ctx.fill(0, 0, w, h, Math.max(0, a) << 24);
+        }
+    }
+
     public static void render(DrawContext ctx, RenderTickCounter counter) {
         MinecraftClient c = MinecraftClient.getInstance();
         if (!inWorld || c.player == null || c.options.hudHidden) return;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
+        if (crashT >= 0) {
+            fakeCrash(ctx, c, w, h);
+            return;
+        }
         TextRenderer tr = c.textRenderer;
         long time = c.world.getTime();
         float pt = counter.getTickDelta(true);
@@ -105,6 +139,8 @@ public final class Hud {
             k = Math.min(1, k * 1.4f);
             ctx.fill(0, 0, w, h, ((int) (k * 255) << 24) | (fadeColor & 0xFFFFFF));
         }
+
+        Jumpscare.render(ctx, w, h);
 
         // титры
         if (creditsT >= 0) {

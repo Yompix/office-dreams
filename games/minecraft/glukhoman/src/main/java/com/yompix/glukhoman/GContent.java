@@ -60,6 +60,12 @@ public final class GContent {
     public static final Block STREET_LAMP = block("street_lamp", new LampBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).sounds(BlockSoundGroup.METAL)
             .nonOpaque().luminance(s -> s.get(LampBlock.LIT) ? 15 : 0)));
 
+    // ---------- обстановка: история без слов ----------
+    public static final Block POSTER = block("poster", new com.yompix.glukhoman.block.DecorBlock(decor(), box(1, 2, 0, 15, 15, 0.5)));
+    public static final Block SCRATCHES = block("scratches", new com.yompix.glukhoman.block.DecorBlock(decor(), box(0, 0, 0, 16, 16, 0.5)));
+    public static final Block DOLL = block("doll", new com.yompix.glukhoman.block.DecorBlock(decor(), box(5, 0, 6, 11, 9, 10)));
+    public static final Block PHOTO = block("photo", new com.yompix.glukhoman.block.DecorBlock(decor(), box(3, 4, 0, 13, 13, 1)));
+
     // ---------- предметы ----------
     public static final Item FLASHLIGHT = item("flashlight", new FlashlightItem(new Item.Settings().maxCount(1).maxDamage(300), true));
     public static final Item BATTERY = item("battery", new Item(new Item.Settings().maxCount(16)));
@@ -79,6 +85,8 @@ public final class GContent {
             .dimensions(1.1f, 0.9f).maxTrackingRange(10));
     public static final EntityType<ChoirEntity> CHOIR = entity("choir", EntityType.Builder.create(ChoirEntity::new, SpawnGroup.MONSTER)
             .dimensions(1.8f, 3.2f).maxTrackingRange(12));
+    public static final EntityType<com.yompix.glukhoman.entity.DoppelEntity> DOPPEL = entity("doppel", EntityType.Builder.create(com.yompix.glukhoman.entity.DoppelEntity::new, SpawnGroup.MONSTER)
+            .dimensions(0.6f, 1.8f).maxTrackingRange(12));
     public static final EntityType<AnnaEntity> ANNA = entity("anna", EntityType.Builder.create(AnnaEntity::new, SpawnGroup.MISC)
             .dimensions(0.6f, 1.8f).maxTrackingRange(10));
     public static final EntityType<PebbleEntity> PEBBLE_ENTITY = entity("pebble", EntityType.Builder.<PebbleEntity>create(PebbleEntity::new, SpawnGroup.MISC)
@@ -90,7 +98,7 @@ public final class GContent {
             "heartbeat", "breath", "knock", "steps_far", "steps_near", "whisper", "radio_static", "radio_click", "stinger", "stinger_soft",
             "pole_appear", "pole_vanish", "pole_step", "listener_click", "listener_scream", "listener_hurt", "choir_roar", "choir_hum", "choir_hurt",
             "flashlight_click", "battery_dead", "fuse", "generator", "power_on", "lamp_buzz", "door_creak", "lift", "tape_click", "title_hit",
-            "pebble", "branch_snap", "distant_scream", "wind_gust"};
+            "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo"};
 
     public static SoundEvent sound(String name) {
         return SOUNDS.get(name);
@@ -103,6 +111,7 @@ public final class GContent {
         FabricDefaultAttributeRegistry.register(LISTENER, ListenerEntity.attributes());
         FabricDefaultAttributeRegistry.register(CHOIR, ChoirEntity.attributes());
         FabricDefaultAttributeRegistry.register(ANNA, AnnaEntity.attributes());
+        FabricDefaultAttributeRegistry.register(DOPPEL, com.yompix.glukhoman.entity.DoppelEntity.attributes());
         Registry.register(Registries.CHUNK_GENERATOR, Glukhoman.id("taiga"), com.yompix.glukhoman.world.TaigaChunkGenerator.CODEC);
         Registry.register(Registries.ITEM_GROUP, Glukhoman.id("main"), FabricItemGroup.builder()
                 .icon(() -> new ItemStack(FLASHLIGHT)).displayName(Text.translatable("itemGroup.glukhoman"))
@@ -112,6 +121,10 @@ public final class GContent {
     private static void registerSound(String n) {
         var id = Glukhoman.id(n);
         SOUNDS.put(n, Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id)));
+    }
+
+    private static AbstractBlock.Settings decor() {
+        return AbstractBlock.Settings.create().strength(-1f, 3600000f).noCollision().nonOpaque().sounds(BlockSoundGroup.WOOL).dropsNothing();
     }
 
     private static AbstractBlock.Settings metal() {

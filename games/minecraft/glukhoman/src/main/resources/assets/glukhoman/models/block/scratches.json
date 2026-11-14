@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/scratches_side",
+  "top": "glukhoman:block/scratches_top",
+  "front": "glukhoman:block/scratches",
+  "particle": "glukhoman:block/scratches_side"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    16,
+    0.3
+   ],
+   "faces": {
+    "north": {
+     "texture": "#front"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#front"
+    },
+    "west": {
+     "texture": "#front"
+    },
+    "up": {
+     "texture": "#front"
+    },
+    "down": {
+     "texture": "#front"
+    }
+   }
+  }
+ ]
+}

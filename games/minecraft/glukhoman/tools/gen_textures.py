@@ -218,6 +218,43 @@ def gui():
     save(ic, 'icon.png')
 
 
+def decor():
+    """Плакаты «Пропал человек» (3), царапины, кукла, семейное фото — три состояния (обычное, лица зацарапаны, лишний человек)."""
+    B = ('textures', 'block')
+    names = ['САВЕЛЬЕВЫ', 'КУЗЬМИН', 'А. ВЕТРОВА']
+    for v in range(3):
+        p = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(p)
+        d.rectangle([1, 2, 14, 14], fill=(214, 206, 178, 255))
+        d.rectangle([2, 3, 13, 4], fill=(150, 30, 30, 255))             # «ПРОПАЛ» красной полосой
+        d.rectangle([5, 6, 10, 11], fill=(120, 116, 108, 255))          # фото
+        d.ellipse([6, 6, 9, 9], fill=(60, 56, 52, 255)); d.rectangle([6, 9, 9, 11], fill=(60, 56, 52, 255))
+        if v == 2: d.point((7, 7), fill=(240, 240, 240, 255)); d.point((8, 7), fill=(240, 240, 240, 255))
+        for y in (12, 13): d.line([3, y, 3 + rnd.randint(6, 9), y], fill=(70, 60, 60, 255))
+        d.point((rnd.randint(2, 13), 14), fill=(120, 110, 90, 255))
+        save(p, *B, f'poster_{v}.png')
+    sc = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(sc)
+    for i in range(4):
+        x = 3 + i * 3
+        d.line([x, 2, x - 2 + rnd.randint(0, 2), 14], fill=(60, 50, 46, 210))
+    d.line([2, 6, 14, 9], fill=(70, 60, 56, 160))
+    save(sc, *B, 'scratches.png')
+    for nm, col in (('doll_side', (170, 120, 120)), ('doll_top', (226, 210, 196)), ('photo_side', (70, 46, 30))):
+        save(noisy((16, 16), col, 8), *B, nm + '.png')
+    dl = noisy((16, 16), (226, 210, 196), 6); d = ImageDraw.Draw(dl)
+    d.point((6, 5), fill=(10, 10, 10, 255)); d.point((9, 5), fill=(10, 10, 10, 255)); d.line([6, 9, 9, 9], fill=(130, 60, 60, 255))
+    d.rectangle([0, 0, 15, 2], fill=(150, 100, 40, 255)); save(dl, *B, 'doll.png')
+    for v in range(3):
+        ph = Image.new('RGBA', (16, 16), (70, 46, 30, 255)); d = ImageDraw.Draw(ph)
+        d.rectangle([1, 1, 14, 14], fill=(176, 166, 140, 255))
+        d.rectangle([1, 10, 14, 14], fill=(110, 120, 100, 255))
+        for i, x in enumerate((3, 7, 11)):                               # семья из трёх
+            d.ellipse([x - 1, 4, x + 1, 6], fill=(214, 190, 160, 255)); d.rectangle([x - 1, 7, x + 1, 11], fill=(60, 70, 90, 255))
+            if v >= 1: d.line([x - 1, 4, x + 1, 6], fill=(20, 20, 20, 255)); d.line([x + 1, 4, x - 1, 6], fill=(20, 20, 20, 255))
+        if v == 2:                                                       # четвёртый — высокий, сзади
+            d.rectangle([13, 2, 13, 11], fill=(30, 28, 26, 255)); d.point((13, 3), fill=(240, 236, 210, 255))
+        save(ph, *B, f'photo_{v}.png')
+
+
 if __name__ == '__main__':
-    blocks(); items(); entities(); gui()
+    blocks(); items(); gui(); decor()  # существа и люди — tools/gen_geo.py
     print('ok')

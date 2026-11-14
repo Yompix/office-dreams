@@ -349,6 +349,40 @@ def one_shots():
     save('wind_gust', wind(4, 1.2, 0.8) * env(int(4 * SR), 1.5, 2.0), 0.7)
 
 
+def extra():
+    # скример 0.2: тишина-вдох, потом слоёный удар: кластер, визг, рёв, низ
+    t = t_(2.6)
+    cl = sum(np.sign(np.sin(2 * np.pi * f * t)) for f in (196, 208, 233, 415, 440, 698, 740)) / 7
+    screech = np.sin(2 * np.pi * np.cumsum(2100 + 900 * np.sin(2 * np.pi * 17 * t) - 600 * t) / SR) * 0.45
+    roar = np.tanh(choir(2.6, [70, 82, 104, 123], 'a') * 2) * 0.5
+    hit = (bp(cl, 120, 6000) + screech + roar + bp(noise(2.6), 400, 9000) * 0.7) * np.exp(-t * 1.8) + thump(34, 2.6, 2.5)
+    pre = bp(noise(0.25), 300, 3000) * np.linspace(0, 1, int(0.25 * SR)) ** 4 * 0.3
+    save('jumpscare', reverb(np.concatenate([pre, hit]), 1.6, 0.3), 0.99)
+    t = t_(1.8)
+    save('breath_close', bp(noise(1.8), 300, 3500) * np.sin(np.pi * t / 1.8) ** 2 * (1 + 0.5 * np.sin(2 * np.pi * 11 * t)), 0.7)
+    sc = np.zeros(int(1.4 * SR))
+    for i in range(5):
+        seg = bp(noise(0.22), 1500, 7000) * env(int(0.22 * SR), 0.02, 0.12) * (1 + 0.6 * np.sin(2 * np.pi * 90 * t_(0.22)))
+        place(sc, seg, i * 0.25 + rng.uniform(0, 0.05), wrap=False)
+    save('scratch', sc, 0.75)
+    notes = [880, 1046, 988, 784, 880, 659, 698, 880]
+    mb = np.zeros(int(7 * SR))
+    for i, f in enumerate(notes):
+        tt = t_(1.4)
+        tone = (np.sin(2 * np.pi * f * 0.985 * tt) + 0.4 * np.sin(2 * np.pi * f * 2.01 * tt)) * np.exp(-tt * 4)
+        place(mb, tone * 0.3, i * (0.7 + 0.08 * i), wrap=False)    # шкатулка замедляется
+    save('musicbox', reverb(mb, 2.0, 0.4), 0.6)
+    t = t_(1.5)
+    save('crash_buzz', np.sign(np.sin(2 * np.pi * 60 * t)) * 0.3 + bp(noise(1.5), 1000, 4000) * 0.2, 0.6)
+    t = t_(2.5)
+    sw = bp(noise(2.5), 200, 2000) * np.exp(-t * 1.2) + np.sin(2 * np.pi * np.cumsum(220 - 60 * t) / SR) * 0.3 * np.exp(-t)
+    save('slowmo', reverb(sw, 2.0, 0.5), 0.7)
+
+
 if __name__ == '__main__':
+    if '--extra' in __import__('sys').argv:
+        extra()
+        raise SystemExit
     amb_forest(); amb_village(); amb_mine(); amb_station(); amb_bunker(); amb_dread(); amb_relief(); amb_chase()
     one_shots()
+    extra()

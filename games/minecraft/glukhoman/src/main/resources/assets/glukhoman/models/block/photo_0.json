@@ -1,0 +1,42 @@
+{
+ "textures": {
+  "side": "glukhoman:block/photo_side",
+  "top": "glukhoman:block/photo_top",
+  "front": "glukhoman:block/photo_0",
+  "particle": "glukhoman:block/photo_side"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    4,
+    0
+   ],
+   "to": [
+    13,
+    13,
+    1
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}
