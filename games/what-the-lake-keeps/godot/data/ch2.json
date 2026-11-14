@@ -67,7 +67,8 @@
   "storm_slip": 0,
   "storm_tool": 0,
   "frost": 0,
-  "storm_radio": 0
+  "storm_radio": 0,
+  "kitchen_exit": 0
  },
  "map": [
   {
@@ -2204,6 +2205,64 @@
      "shot": "cafe_truckers"
     },
     {
+     "say": "trucker",
+     "ru": "С трассы, молодёжь? Там на посту с утра всех трясут.",
+     "en": "Off the highway, kids? That checkpoint’s been shaking everybody down since morning.",
+     "shot": "cafe_truckers",
+     "ev": "detour",
+     "if": {
+      "detour": ">0"
+     },
+     "resp": "ev_detour"
+    },
+    {
+     "say": "noah",
+     "ru": "Мы лесом.",
+     "en": "We took the woods road.",
+     "shot": "noah_cafe",
+     "ev": "detour",
+     "if": {
+      "detour": ">0"
+     },
+     "resp": "ev_detour"
+    },
+    {
+     "say": "trucker",
+     "ru": "Лесом? В такую погоду? Отчаянные.",
+     "en": "Through the woods? In this weather? You’re nuts.",
+     "shot": "cafe_truckers",
+     "ev": "detour",
+     "if": {
+      "detour": ">0"
+     },
+     "resp": "ev_detour"
+    },
+    {
+     "say": "iris",
+     "ru": "«Отчаянные». Это он про тебя.",
+     "en": "“Nuts.” He means you.",
+     "shot": "cafe_iris",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "ev": "detour",
+     "if": {
+      "detour": ">0"
+     },
+     "resp": "ev_detour"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "ev": "detour",
+     "if": {
+      "detour": ">0"
+     }
+    },
+    {
      "say": "iris",
      "ru": "Ты бы правда сдался.",
      "en": "You really would’ve given yourself up.",
@@ -3343,6 +3402,12 @@
    "beats": [
     {
      "set": {
+      "kitchen_exit": 1
+     },
+     "ev": "kitchen_exit"
+    },
+    {
+     "set": {
       "zoe_trust": 1
      },
      "if": {
@@ -3987,6 +4052,66 @@
      "ru": "Мотор не глушу. Иначе замёрзнем.",
      "en": "I’m keeping the engine running. Or we’ll freeze.",
      "shot": "noah"
+    },
+    {
+     "say": "danny",
+     "ru": "Ной. А на заправке ты не хотел меня брать.",
+     "en": "Noah. Back at the gas station you didn’t want to take me.",
+     "shot": "back",
+     "look": {
+      "who": "danny",
+      "at": "noah"
+     },
+     "ev": "danny_refused",
+     "if": {
+      "danny_refused": ">0",
+      "danny": ">0"
+     },
+     "resp": "ev_danny_refused"
+    },
+    {
+     "say": "noah",
+     "ru": "Не хотел, чтобы с нами тебе стало хуже.",
+     "en": "I didn’t want things to get worse for you. With us.",
+     "shot": "noah",
+     "look": {
+      "who": "iris",
+      "at": "danny"
+     },
+     "ev": "danny_refused",
+     "if": {
+      "danny_refused": ">0",
+      "danny": ">0"
+     },
+     "resp": "ev_danny_refused"
+    },
+    {
+     "say": "danny",
+     "ru": "С вами не хуже. С вами тепло.",
+     "en": "It’s not worse with you. It’s warm with you.",
+     "shot": "back",
+     "gesture": {
+      "who": "danny",
+      "do": "nod",
+      "dur": 2.2
+     },
+     "ev": "danny_refused",
+     "if": {
+      "danny_refused": ">0",
+      "danny": ">0"
+     },
+     "resp": "ev_danny_refused"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "ev": "danny_refused",
+     "if": {
+      "danny_refused": ">0",
+      "danny": ">0"
+     }
     },
     {
      "note": {
@@ -4768,6 +4893,65 @@
       "en": "In the mirror, far behind, in the white haze — two headlights."
      },
      "dur": 3.4
+    },
+    {
+     "say": "iris",
+     "ru": "Мы же через кухню ушли. Он всё равно нас нашёл.",
+     "en": "We went out through the kitchen. He found us anyway.",
+     "shot": "iris",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "expr": {
+      "who": "iris",
+      "set": "fear"
+     },
+     "ev": "kitchen_exit",
+     "if": {
+      "kitchen_exit": ">0"
+     },
+     "resp": "ev_kitchen_exit"
+    },
+    {
+     "say": "noah",
+     "ru": "Не оглядывайся.",
+     "en": "Don’t look back.",
+     "shot": "noah",
+     "ev": "kitchen_exit",
+     "if": {
+      "kitchen_exit": ">0"
+     },
+     "resp": "ev_kitchen_exit"
+    },
+    {
+     "say": "iris",
+     "ru": "Я не оглядываюсь. Я в зеркало.",
+     "en": "I’m not. I’m looking in the mirror.",
+     "shot": "iris",
+     "look": {
+      "who": "iris",
+      "at": "window"
+     },
+     "ev": "kitchen_exit",
+     "if": {
+      "kitchen_exit": ">0"
+     },
+     "resp": "ev_kitchen_exit"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "ev": "kitchen_exit",
+     "if": {
+      "kitchen_exit": ">0"
+     }
     },
     {
      "end": 2

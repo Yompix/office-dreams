@@ -901,6 +901,77 @@
      "resp": "storm_radio"
     },
     {
+     "say": "zoe",
+     "ru": "Если полиция заедет — говорю я. На посту же получилось.",
+     "en": "If the cops come by, I’ll do the talking. Worked at the checkpoint.",
+     "shot": "zoe_house",
+     "look": {
+      "who": "zoe",
+      "at": "noah"
+     },
+     "ev": "zoe_talked",
+     "if": {
+      "zoe_talked": ">0",
+      "storm_radio": ">0",
+      "police": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "ev_zoe_talked"
+    },
+    {
+     "say": "iris",
+     "ru": "«Подрался за меня». Получилось у неё.",
+     "en": "“He got in a fight over me.” Sure. Worked.",
+     "shot": "iris_out",
+     "look": {
+      "who": "iris",
+      "at": "zoe"
+     },
+     "gesture": {
+      "who": "iris",
+      "do": "shake",
+      "dur": 1.2
+     },
+     "ev": "zoe_talked",
+     "if": {
+      "zoe_talked": ">0",
+      "storm_radio": ">0",
+      "police": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "ev_zoe_talked"
+    },
+    {
+     "look": {
+      "who": "zoe",
+      "at": null
+     },
+     "ev": "zoe_talked",
+     "if": {
+      "zoe_talked": ">0",
+      "storm_radio": ">0",
+      "police": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "ev": "zoe_talked",
+     "if": {
+      "zoe_talked": ">0",
+      "storm_radio": ">0",
+      "police": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
      "say": "iris",
      "ru": "Ной… а если она нас не пустит?",
      "en": "Noah… what if she doesn’t let us in?",
@@ -1890,6 +1961,61 @@
      "en": "Alive. Both of them. I don’t think I breathed the whole time.",
      "shot": "noah_house",
      "thought": true
+    },
+    {
+     "say": "iris",
+     "ru": "Ты в машине сказал: «всё будет хорошо». Помнишь?",
+     "en": "In the car you said, “It’ll be okay.” Remember?",
+     "shot": "iris_bed",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "ev": "said_ok",
+     "if": {
+      "said_ok": ">0"
+     },
+     "resp": "ev_said_ok"
+    },
+    {
+     "say": "noah",
+     "ru": "Я тогда сам в это не верил.",
+     "en": "I didn’t believe it myself.",
+     "shot": "noah_house",
+     "ev": "said_ok",
+     "if": {
+      "said_ok": ">0"
+     },
+     "resp": "ev_said_ok"
+    },
+    {
+     "say": "iris",
+     "ru": "Знаю. А сегодня — сбылось.",
+     "en": "I know. But tonight it came true.",
+     "shot": "iris_bed",
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "ev": "said_ok",
+     "if": {
+      "said_ok": ">0"
+     },
+     "resp": "ev_said_ok"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "ev": "said_ok",
+     "if": {
+      "said_ok": ">0"
+     }
     },
     {
      "fx": "eva_baby",

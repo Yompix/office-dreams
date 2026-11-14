@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """WHAT THE LAKE KEEPS — маршруты из tools/story_sim.py прогоняются в Godot (без окна, автопилот, те же выборы
-и провалы действий) и сравниваются с симулятором: путь по сценам, концовка, итоговые флаги.
+и провалы действий) и сравниваются с симулятором: путь по сценам, концовка, итоговые флаги и отклики на выборы (строки «отклик …» в логе:
+каждое событие-отклик срабатывает на своём маршруте и не срабатывает на чужих).
   python3 tools/story_sim.py all && python3 tools/story_tests.py [ИМЯ ...]   → /tmp/lake_tests.json
 Нужен Godot: source ../../tools/godot/env.sh (переменная GODOT)."""
 import json, os, re, subprocess, sys, concurrent.futures as cf
@@ -26,6 +27,8 @@ def run(name, t):
     end = re.findall(r'^конец игры: (\w+)', txt, re.M)
     fl = re.findall(r'^итог флаги (\{.*\})', txt, re.M)
     errs = re.findall(r'^SCRIPT ERROR: (.*)$', txt, re.M)
+    resp = set(re.findall(r'^отклик (\S+)', txt, re.M))   # отклики на выборы и события-отклики (events16.py)
+    resp_sim = set(t.get('resp', []))
     flags = {k: v for k, v in json.loads(fl[-1]).items() if v} if fl else {}
     sim = {k: float(v) for k, v in t['flags'].items()}
     gd = {k: float(v) for k, v in flags.items()}
@@ -34,6 +37,7 @@ def run(name, t):
                   'path_equal': path == t['path'], 'path_len': len(path), 'sim_len': len(t['path']),
                   'first_diff': next((i for i, (a, b) in enumerate(zip(path, t['path'])) if a != b), None),
                   'flag_diff': {k: [sim.get(k, 0), gd.get(k, 0)] for k in diff}, 'errors': errs[:5],
+                  'resp_missing': sorted(resp_sim - resp), 'resp_extra': sorted(resp - resp_sim), 'resp': sorted(resp),
                   'picks': t['picks'], 'miss': t.get('miss', []), 'missin': t.get('missin', []),
                   'choices': t['choices'], 'flags': t['flags'], 'log': log}
 
@@ -45,10 +49,13 @@ def main():
     with cf.ThreadPoolExecutor(max_workers=int(os.environ.get('JOBS', '4'))) as ex:
         for name, r in ex.map(lambda n: run(n, sim[n]), names):
             res[name] = r
-            ok = r['path_equal'] and r['ending_sim'] == r['ending_godot'] and not r['flag_diff'] and not r['errors']
-            print('%s %-28s %-9s путь %s (%d), флаги %s, ошибок %d' % ('ОК ' if ok else 'НЕТ', name, r['ending_godot'],
+            ok = r['path_equal'] and r['ending_sim'] == r['ending_godot'] and not r['flag_diff'] and not r['errors'] \
+                and not r['resp_missing'] and not r['resp_extra']
+            print('%s %-28s %-9s путь %s (%d), флаги %s, отклики %s, ошибок %d' % ('ОК ' if ok else 'НЕТ', name, r['ending_godot'],
                   'совпал' if r['path_equal'] else 'расходится с №%s' % r['first_diff'], r['path_len'],
-                  'совпали' if not r['flag_diff'] else r['flag_diff'], len(r['errors'])), flush=True)
+                  'совпали' if not r['flag_diff'] else r['flag_diff'],
+                  'совпали (%d)' % len(r['resp']) if not (r['resp_missing'] or r['resp_extra'])
+                  else 'нет в игре %s, лишние %s' % (r['resp_missing'], r['resp_extra']), len(r['errors'])), flush=True)
     old = json.load(open('/tmp/lake_tests.json')) if os.path.exists('/tmp/lake_tests.json') else {}
     old.update(res)
     json.dump(old, open('/tmp/lake_tests.json', 'w'), ensure_ascii=False, indent=1)

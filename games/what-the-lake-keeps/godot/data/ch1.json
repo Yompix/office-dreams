@@ -35,7 +35,10 @@
   "choco_given": 0,
   "blanket": 0,
   "blanket_given": 0,
-  "phoned": 0
+  "phoned": 0,
+  "mittens": 0,
+  "danny_refused": 0,
+  "said_ok": 0
  },
  "names": {
   "noah": {
@@ -2977,6 +2980,12 @@
    "loc": "station",
    "beats": [
     {
+     "set": {
+      "danny_refused": 1
+     },
+     "ev": "danny_refused"
+    },
+    {
      "say": "noah",
      "ru": "Мы не можем его взять.",
      "en": "We can’t take him.",
@@ -3644,6 +3653,12 @@
   "s7_a": {
    "loc": "car",
    "beats": [
+    {
+     "set": {
+      "said_ok": 1
+     },
+     "ev": "said_ok"
+    },
     {
      "say": "noah",
      "shot": "noah",

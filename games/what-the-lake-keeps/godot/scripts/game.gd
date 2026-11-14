@@ -310,6 +310,11 @@ func _menu() -> void:
 		if id == "settings":
 			await _settings_screen()
 			continue
+		if id == "credits":   # «Авторы»: титры и лицензии (scripts/ui/hud.gd, credits/ — tools/licenses_txt.py)
+			hud.hide_menu()
+			hud.show_credits(false)
+			await hud.credits_closed
+			continue
 		if id == "tree":
 			await _tree_screen()
 			if _tree_start != "":   # «переиграть отсюда» — сцена и флаги этой контрольной точки
@@ -2238,6 +2243,8 @@ func _the_end() -> void:
 		return
 	await _wait(4.0)
 	hud.title.text = ""
+	hud.show_credits(true)   # титры после концовки: едут сами, «Назад» / Esc — пропустить
+	await hud.credits_closed
 	get_tree().reload_current_scene()   # обратно в главное меню: «Продолжить» — с последнего сохранения главы 5 (другие концовки)
 
 
@@ -2521,9 +2528,9 @@ func _hold_wheel() -> void:
 func _life_hints(delta: float) -> void:
 	var tr := float(flags.get("trust", 0))
 	for k in actors:
-		var a: Actor = actors[k]
-		if not is_instance_valid(a):
+		if not is_instance_valid(actors[k]):   # проверка до приведения к Actor: удалённая модель (полицейский с поста после объезда) роняла «previously freed instance»
 			continue
+		var a: Actor = actors[k]
 		if _blizzard and a.get_parent() == scene:
 			a.breeze = move_toward(a.breeze, 0.9, delta)
 		elif a.get_parent() == scene.car:
