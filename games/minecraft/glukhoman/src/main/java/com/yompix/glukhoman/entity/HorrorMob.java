@@ -74,8 +74,11 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
         actTicks = ticks;
     }
 
+    /** Пока идёт расправа — существо стоит на месте. */
+    public int hold;
+
     public boolean vanishing() {
-        return act().equals("vanish");
+        return act().equals("vanish") || hold > 0;
     }
 
     /** Плавно исчезнуть (анимация, потом удаление). */
@@ -91,6 +94,7 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
             started = true;
             if (spawnActTicks() > 0 && act().isEmpty()) act(spawnAct(), spawnActTicks());
         }
+        if (hold > 0) hold--;
         if (actTicks > 0 && --actTicks == 0) {
             if (vanishing()) {
                 discard();
@@ -146,6 +150,21 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return geo;
+    }
+
+    /** Удар по игроку: брызги крови (стилизованные частицы). */
+    @Override
+    public boolean tryAttack(net.minecraft.entity.Entity target) {
+        if (target instanceof net.minecraft.server.network.ServerPlayerEntity p && !p.isCreative()
+                && p.getHealth() <= getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE) * 1.6) {
+            com.yompix.glukhoman.story.Story.execute(p, this);   // последний удар — расправа с кат-сценой
+            return true;
+        }
+        boolean hit = super.tryAttack(target);
+        if (hit && getWorld() instanceof ServerWorld w)
+            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 1.4f),
+                    target.getX(), target.getY() + 1.2, target.getZ(), 26, 0.3, 0.4, 0.3, 0.05);
+        return hit;
     }
 
     @Override

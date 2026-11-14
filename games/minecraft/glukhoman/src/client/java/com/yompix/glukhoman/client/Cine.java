@@ -77,6 +77,8 @@ public final class Cine {
         active = true;
         FIRED.clear();
         blur = rays = tear = warp = flash = 0;
+        fogS = 0;
+        recFrame = 0;
         tintR = tintG = tintB = 1;
         fov = 70;
         roll = 0;
@@ -92,6 +94,8 @@ public final class Cine {
     public static void stop() {
         MinecraftClient c = MinecraftClient.getInstance();
         if (!active) return;
+        Glukhoman.LOG.info("Кат-сцена {} закончилась на {} с", id, String.format("%.1f", time()));
+        if (FIXED) Glukhoman.LOG.info("стек остановки", new Throwable());
         active = false;
         for (Entity e : PUPPETS) if (c.world != null) c.world.removeEntity(e.getId(), Entity.RemovalReason.DISCARDED);
         PUPPETS.clear();
@@ -107,7 +111,14 @@ public final class Cine {
     public static final boolean FIXED = System.getProperty("glukhoman.autotest") != null;
     public static int clockTicks;
 
+    /** Запись трейлера: кадр за кадром с шагом 1/recFps (FearFx/рекордер двигают recFrame). */
+    public static int recFps, recFrame;
+    public static float fovScale = 1f;
+    /** Свой туман сцены (если start > 0). */
+    public static float fogS, fogE, fogR, fogG, fogB;
+
     public static double time() {
+        if (recFps > 0) return recFrame / (double) recFps;
         if (FIXED) return (clockTicks + MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false)) / 20.0;
         return (System.nanoTime() - startNs) / 1e9;
     }
@@ -217,7 +228,7 @@ public final class Cine {
     }
 
     static int ground(ClientWorld w, double x, double z) {
-        return w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MathHelper.floor(x), MathHelper.floor(z));
+        return w.getTopY(Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(x), MathHelper.floor(z));   // на клиенте есть только этот
     }
 
     static void lamp(ClientWorld w, BlockPos p, boolean lit) {
@@ -236,8 +247,224 @@ public final class Cine {
             case "bunker" -> new Bunker();
             case "endA" -> new EndA();
             case "endB" -> new EndB();
+            case "tr_radio" -> new TrRadio();
+            case "tr_gore" -> new TrGore();
+            case "death_pole" -> new Death(GContent.POLE, 3.6, "stinger");
+            case "death_listener" -> new Death(GContent.LISTENER, 0.9, "listener_scream");
+            case "death_choir" -> new Death(GContent.CHOIR, 2.9, "choir_roar");
+            case "death_human" -> new Death(GContent.DOPPEL, 1.6, "stinger");
+            case "tr_path" -> new TrPath();
+            case "tr_listener" -> new TrListener();
+            case "tr_doppel" -> new TrDoppel();
+            case "tr_scare" -> new TrScare();
+            case "tt_pole" -> new Turntable(GContent.POLE, 4.6, 2.2, 3.6);
+            case "tt_listener" -> new Turntable(GContent.LISTENER, 3.0, 0.7, 0.85);
+            case "tt_choir" -> new Turntable(GContent.CHOIR, 6.5, 2.0, 2.9);
             default -> null;
         };
+    }
+
+    // ======================= сцены трейлера =======================
+    static void fog(float s, float e, float r, float g, float b) {
+        fogS = s; fogE = e; fogR = r; fogG = g; fogB = b;
+    }
+
+    /** 18+: изба охотника — то, что от него осталось. */
+    static class TrGore implements Scene {
+        public void start(ClientWorld w) {
+            key(w, -9, 67, -93, 11);
+        }
+
+        public void frame(double t) {
+            double u = ease(t / 6);
+            cam(v(-7.2, 66.7, -93.2).lerp(v(-8.6, 66.3, -92.4), u), v(-10.8, 65.2, -93.0).lerp(v(-9.6, 65.1, -93.8), u));
+            fov = (float) MathHelper.lerp(u, 58, 44);
+            tintR = 1.12f; tintG = 0.9f; tintB = 0.85f;
+            blur = 0.25f;
+        }
+    }
+
+    /** Смерть от существа: падаешь, оно над тобой — бросок, тьма. */
+    static class Death implements Scene {
+        final EntityType<? extends Entity> type;
+        final double head;
+        final String snd;
+        Entity k;
+        Vec3d at;
+        float y0;
+
+        Death(EntityType<? extends Entity> type, double head, String snd) {
+            this.type = type;
+            this.head = head;
+            this.snd = snd;
+        }
+
+        public void start(ClientWorld w) {
+            var p = MinecraftClient.getInstance().player;
+            at = p.getPos();
+            y0 = p.getYaw();
+            Vec3d f = Vec3d.fromPolar(0, y0).multiply(1.5);
+            k = puppet(w, type, at.x + f.x, at.y, at.z + f.z, y0 + 180);
+            if (k instanceof DoppelEntity d) d.setMimic("@anna");
+        }
+
+        public void frame(double t) {
+            double fall = ease(seg(t, 0, 0.9));
+            Vec3d f = Vec3d.fromPolar(0, y0);
+            Vec3d eye = at.add(0, MathHelper.lerp(fall, 1.62, 0.25), 0).subtract(f.multiply(0.3 * fall));
+            cam(eye, at.add(f.multiply(1.5)).add(0, head * (0.6 + 0.4 * fall), 0));
+            roll = (float) (fall * 62);
+            fov = (float) MathHelper.lerp(seg(t, 1.2, 2.6), 70, 52);
+            act(k, t < 1.2 ? "attack" : "jumpscare", t < 1.2 ? t : t - 1.2);
+            place(k, at.x + f.x * 1.5, at.y, at.z + f.z * 1.5, y0 + 180);
+            if (once("s", t, 0.1)) sound(snd, null, 1.2f, 0.9f);
+            if (once("b", t, 2.3)) Jumpscare.splatter();
+            flash = 0;
+            tintR = 1.2f; tintG = (float) (1 - 0.5 * seg(t, 2, 3.5)); tintB = tintG;
+            GlukhomanClient.shake = (float) Math.max(GlukhomanClient.shake, t > 2.2 ? 1.6 : 0.4);
+        }
+    }
+
+    /** Наезд на рацию Анны в тёмной избе. */
+    static class TrRadio implements Scene {
+        public void start(ClientWorld w) {
+            key(w, -12, 67, 127, 9);
+        }
+
+        public void frame(double t) {
+            double u = ease(t / 6);
+            cam(v(-11.2, 67.1, 129.0).lerp(v(-13.9, 66.7, 127.0), u), v(-15, 66.35, 126.5));
+            fov = (float) MathHelper.lerp(u, 52, 34);
+            blur = (float) (0.2 + 0.3 * u);
+            tintR = 1.1f; tintG = 0.95f; tintB = 0.85f;
+        }
+    }
+
+    /** Просека в тумане: камера идёт по тропе, из-за ели выглядывает Жердь. */
+    static class TrPath implements Scene {
+        Entity pole;
+        double gy;
+
+        public void start(ClientWorld w) {
+            gy = ground(w, -3.0, -71.5);
+            pole = puppet(w, GContent.POLE, -3.0, gy, -71.5, -160);
+        }
+
+        public void frame(double t) {
+            double u = ease(t / 6);
+            Vec3d p = v(1.5, ground(MinecraftClient.getInstance().world, 1, -58) + 1.7, -57.5).lerp(v(0.8, ground(MinecraftClient.getInstance().world, 1, -64) + 1.7, -63.5), u);
+            cam(p.add(Math.sin(t * 2.1) * 0.05, Math.abs(Math.sin(t * 4.2)) * 0.05, 0), v(-2.6 + Math.sin(t * 0.5) * 0.3, gy + 2.6, -71.5));
+            roll = (float) (Math.sin(t * 1.3) * 1.0);
+            fov = 58;
+            fog(1.5f, 22f, 0.16f, 0.17f, 0.19f);
+            act(pole, "peek", t);
+            place(pole, -3.0, gy, -71.5, -160);
+        }
+    }
+
+    /** Штольня: Слухач несётся на камеру по рельсам. */
+    static class TrListener implements Scene {
+        Entity l;
+
+        public void start(ClientWorld w) {
+            l = puppet(w, GContent.LISTENER, -100.5, 25, -172.5, 90);
+            key(w, -116, 27, -173, 11);
+            key(w, -108, 27, -173, 7);
+        }
+
+        public void frame(double t) {
+            cam(v(-120.5, 25.9, -172.6), v(-110, 25.8, -172.6));
+            fov = 62;
+            double u = seg(t, 1.2, 4.6);
+            act(l, t < 1.2 ? "listen" : "sprint", t);
+            place(l, MathHelper.lerp(u * u, -100.5, -117.5), 25, -172.5, 90);
+            warp = (float) (0.5 * u);
+            tintR = 1.05f; tintG = 0.95f; tintB = 0.9f;
+        }
+    }
+
+    /** Ночная улица: «Анна» стоит спиной; голова поворачивается к нам. */
+    static class TrDoppel implements Scene {
+        DoppelEntity d;
+
+        public void start(ClientWorld w) {
+            d = puppet(w, GContent.DOPPEL, 0.5, 65, 92.5, 180);
+            if (d != null) {
+                d.setMimic("@anna");
+                d.setCustomNameVisible(false);
+            }
+            key(w, 1, 67, 95, 10);
+        }
+
+        public void frame(double t) {
+            double u = ease(t / 5);
+            cam(v(1.6, 66.8, 104).lerp(v(1.0, 66.7, 97.5), u), v(0.5, 66.4, 92.5));
+            fov = (float) MathHelper.lerp(u, 50, 36);
+            act(d, t < 2.2 ? "still" : "turn180", t < 2.2 ? t : (t - 2.2) * 0.5);
+            place(d, 0.5, 65, 92.5, 180);
+            tintR = 0.85f; tintG = 0.92f; tintB = 1.15f;
+        }
+    }
+
+    /** Финальный скример: тьма, тишина… и лицо Жерди вплотную. */
+    static class TrScare implements Scene {
+        Entity p;
+        ClientWorld w;
+
+        public void start(ClientWorld w) {
+            this.w = w;
+            p = puppet(w, GContent.POLE, -40, 65, -241.5, -90);
+        }
+
+        public void frame(double t) {
+            cam(v(2.0, 66.6, -241.5), v(-6, 66.4, -241.5));
+            fov = 60;
+            boolean show = t > 2.4;
+            lamp(w, new BlockPos(-10, 69, -241), t > 0.4 && t < 0.55 || show);
+            if (show && once("k", t, 2.4)) key(w, 0, 67, -241, 14);
+            act(p, "jumpscare", Math.max(0, t - 2.4));
+            place(p, show ? 0.7 - Math.min(0.5, (t - 2.4) * 2) * 0 : -40, 65 - (show ? 1.35 : 0), -241.5, -90);
+            if (show) GlukhomanClient.shake = 2f;
+            warp = show ? 0.8f : 0;
+        }
+    }
+
+    /** Смотровая сцена для проверки моделей: облёт на 360°, ходьба, крупный план лица со скримером. */
+    static class Turntable implements Scene {
+        final EntityType<? extends Entity> type;
+        final double dist, mid, head;
+        Entity e;
+        static final double X = 0.5, Z = -224.5;
+        double y;
+
+        Turntable(EntityType<? extends Entity> type, double dist, double mid, double head) {
+            this.type = type;
+            this.dist = dist;
+            this.mid = mid;
+            this.head = head;
+        }
+
+        public void start(ClientWorld w) {
+            y = ground(w, X, Z);
+            e = puppet(w, type, X, y, Z, 0);
+            key(w, 0, (int) y + 3, -227, 13);
+        }
+
+        public void frame(double t) {
+            if (t < 6) {
+                double a = t / 6 * Math.PI * 2;
+                cam(v(X + Math.sin(a) * dist, y + mid + 1.4, Z - Math.cos(a) * dist), v(X, y + mid, Z));
+                act(e, "idle", t);
+            } else if (t < 9) {
+                cam(v(X + dist * 0.7, y + mid, Z - dist * 0.7), v(X, y + mid, Z));
+                act(e, e.getType() == GContent.LISTENER ? "crawl" : "walk", t - 6);
+            } else {
+                cam(v(X, y + head + 0.1, Z + 1.9 + head * 0.25), v(X, y + head, Z));
+                act(e, t < 10 ? "still" : "jumpscare", t < 10 ? t - 9 : t - 10);
+            }
+            fov = t < 9 ? 55 : 60;
+            place(e, X, y, Z, 0);
+        }
     }
 
     /** Глава I. Кран над рекой, мимо УАЗа, вверх по дороге; у кромки леса стоит фигура и исчезает. */

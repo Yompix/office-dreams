@@ -35,13 +35,20 @@ public class SettingsScreen extends Screen {
             c.save();
         }).dimensions(width / 2 - 110, y + 144, 220, 20).build());
         toggle(y + 168, "Ложный вылет игры в финале", () -> c.fakeCrash, v -> c.fakeCrash = v);
+        toggle(y + 192, "Без крови на экране", () -> c.noBlood, v -> c.noBlood = v);
+        addDrawableChild(ButtonWidget.builder(Text.literal("Жестокость: " + (c.goreReduced ? "меньше" : "полная (18+)")), b -> {
+            c.goreReduced = !c.goreReduced;
+            c.save();
+            com.yompix.glukhoman.client.GlukhomanClient.applyGore(client);
+            b.setMessage(Text.literal("Жестокость: " + (c.goreReduced ? "меньше" : "полная (18+)")));
+        }).dimensions(width / 2 - 110, y + 216, 220, 20).build());
         String[] br = {"Темно (как задумано)", "Обычно", "Светлее"};
         addDrawableChild(ButtonWidget.builder(Text.literal("Яркость: " + br[c.brightness]), b -> {
             c.brightness = (c.brightness + 1) % 3;
             b.setMessage(Text.literal("Яркость: " + br[c.brightness]));
             c.save();
         }).dimensions(width / 2 - 110, y + 120, 220, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 196, 120, 20).build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 244, 120, 20).build());
     }
 
     void toggle(int y, String name, Supplier<Boolean> get, Consumer<Boolean> set) {

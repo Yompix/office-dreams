@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class FovMixin {
     @Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
     private void glukhoman$fov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> cir) {
-        if (Cine.active && changingFov) cir.setReturnValue((double) Cine.fov);
+        if (Cine.active && changingFov) cir.setReturnValue((double) (Cine.fov * Cine.fovScale));
     }
 }

@@ -48,8 +48,9 @@ DECOR = {  # имя: (элементы, текстура зависит от в�
     'scratches': ([el([0, 0, 0], [16, 16, 0.3], 'front', 'front')], False),
     'doll': ([el([6, 0, 7], [10, 5, 9.5], 'side', 'front'), el([6.5, 5, 7], [9.5, 8.5, 9.5], 'top', 'front'), el([4.5, 3, 7.5], [6, 5, 8.5], 'side'), el([10, 3, 7.5], [11.5, 5, 8.5], 'side')], False),
     'photo': ([el([3, 4, 0], [13, 13, 1], 'side', 'front')], True),
+    'blood': ([{'from': [0, 0, 0], 'to': [16, 0.1, 16], 'faces': {'up': {'texture': '#front'}}}], True),
 }
-ITEMS = ['flashlight', 'battery', 'oil_lamp', 'oil', 'pebble', 'fuse', 'gate_key', 'mine_key', 'canister', 'tuning_fork']
+ITEMS = ['gore_chunk', 'flashlight', 'battery', 'oil_lamp', 'oil', 'pebble', 'fuse', 'gate_key', 'mine_key', 'canister', 'tuning_fork']
 
 NAMES = {
     'radio': ('Рация', 'Radio', 'Рація'), 'tape_player': ('Магнитофон', 'Tape player', 'Магнітофон'),
@@ -58,7 +59,8 @@ NAMES = {
     'note': ('Записка', 'Note', 'Записка'), 'chalk_mark': ('Метка мелом', 'Chalk mark', 'Позначка крейдою'), 'lock': ('Замок', 'Lock', 'Замок'),
     'crate': ('Ящик', 'Crate', 'Скриня'),
     'poster': ('Плакат «Пропал человек»', 'Missing poster', 'Плакат «Зник чоловік»'), 'scratches': ('Царапины', 'Scratches', 'Подряпини'),
-    'doll': ('Кукла', 'Doll', 'Лялька'), 'photo': ('Семейное фото', 'Family photo', 'Родинне фото'),
+    'doll': ('Кукла', 'Doll', 'Лялька'), 'blood': ('Кровь', 'Blood', 'Кров'), 'remains': ('Останки', 'Remains', 'Рештки'),
+    'gore_chunk': ('Кусок', 'Gore', 'Шматок'), 'photo': ('Семейное фото', 'Family photo', 'Родинне фото'),
     'doppel': ('Двойник', 'Doppelganger', 'Двійник'), 'lamp': ('Лампочка', 'Light bulb', 'Лампочка'), 'street_lamp': ('Фонарь', 'Street lamp', 'Ліхтар'),
     'flashlight': ('Фонарик', 'Flashlight', 'Ліхтарик'), 'battery': ('Батарейка', 'Battery', 'Батарейка'),
     'oil_lamp': ('Керосиновая лампа', 'Oil lamp', 'Гасова лампа'), 'oil': ('Керосин', 'Lamp oil', 'Гас'),
@@ -107,6 +109,31 @@ def blocks():
                 variants[f'facing={f},variant={v}'] = {'model': f'{NS}:block/{m}', 'y': y}
         w(f'{A}/blockstates/{n}.json', {'variants': variants})
         w(f'{A}/models/item/{n}.json', {'parent': f'{NS}:block/{n}_0' if per_variant else f'{NS}:block/{n}'})
+    # 18+: останки — у каждого варианта своя форма (тело в разорванной куртке, рука, внутренности)
+    def box(a, b, t):
+        return {'from': a, 'to': b, 'faces': {s: {'texture': '#' + t} for s in ('north', 'south', 'east', 'west', 'up', 'down')}}
+    shapes = {
+        0: [box([2, 0, 3], [14, 3, 12], 'cloth'), box([3, 3, 4], [13, 4.5, 11], 'flesh'), box([5, 0, 12], [11, 4, 15], 'skin'),
+            box([4, 3.2, 5], [12, 4.2, 6], 'bone'), box([4, 3.2, 7], [12, 4.2, 8], 'bone'), box([4, 3.2, 9], [12, 4.2, 10], 'bone'),
+            box([0, 0, 6], [2, 1.5, 9], 'flesh')],
+        1: [box([2, 0, 7], [11, 2, 9], 'cloth'), box([11, 0, 6.5], [14, 1.5, 9.5], 'skin'), box([0, 0, 6.8], [2, 2.2, 9.2], 'flesh'),
+            box([0.5, 0.5, 7.4], [1.5, 1.5, 8.6], 'bone')],
+        2: [box([3, 0, 4], [8, 2, 9], 'flesh'), box([7, 0, 7], [12, 1.6, 12], 'flesh'), box([5, 0, 10], [9, 1.2, 14], 'flesh'), box([9, 0, 3], [13, 1.4, 7], 'flesh')],
+    }
+    variants = {}
+    for v, els in shapes.items():
+        tex = {t: f'{NS}:block/remains_{t}' for t in ('cloth', 'flesh', 'skin', 'bone')}
+        tex['particle'] = f'{NS}:block/remains_flesh'
+        w(f'{A}/models/block/remains_{v}.json', {'textures': tex, 'elements': els})
+        for f, y in (('south', 0), ('west', 90), ('north', 180), ('east', 270)):
+            variants[f'facing={f},variant={v}'] = {'model': f'{NS}:block/remains_{v}', 'y': y}
+    w(f'{A}/blockstates/remains.json', {'variants': variants})
+    w(f'{A}/models/item/remains.json', {'parent': f'{NS}:block/remains_0'})
+    # пакет «меньше жестокости»: останки → лужа крови, куски → капли
+    RP = os.path.join(ROOT, 'resourcepacks', 'reduced_gore')
+    w(f'{RP}/pack.mcmeta', {'pack': {'pack_format': 34, 'description': 'Глухомань: меньше жестокости'}})
+    w(f'{RP}/assets/{NS}/blockstates/remains.json', {'variants': {k: {'model': f'{NS}:block/blood_1', 'y': v['y']} for k, v in variants.items()}})
+    w(f'{RP}/assets/{NS}/models/item/gore_chunk.json', {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/blood_drop'}})
     for it in ITEMS:
         if it in ('flashlight', 'oil_lamp'):
             w(f'{A}/models/item/{it}.json', {'parent': 'minecraft:item/handheld', 'textures': {'layer0': f'{NS}:item/{it}'},

@@ -64,6 +64,9 @@ public final class GContent {
     public static final Block POSTER = block("poster", new com.yompix.glukhoman.block.DecorBlock(decor(), box(1, 2, 0, 15, 15, 0.5)));
     public static final Block SCRATCHES = block("scratches", new com.yompix.glukhoman.block.DecorBlock(decor(), box(0, 0, 0, 16, 16, 0.5)));
     public static final Block DOLL = block("doll", new com.yompix.glukhoman.block.DecorBlock(decor(), box(5, 0, 6, 11, 9, 10)));
+    public static final Block BLOOD = block("blood", new com.yompix.glukhoman.block.DecorBlock(decor(), box(0, 0, 0, 16, 0.2, 16)));
+    /** 18+: останки — 0 разорванное тело, 1 оторванная рука, 2 внутренности (в режиме «меньше жестокости» — просто кровь). */
+    public static final Block REMAINS = block("remains", new com.yompix.glukhoman.block.DecorBlock(decor(), box(1, 0, 1, 15, 4, 15)));
     public static final Block PHOTO = block("photo", new com.yompix.glukhoman.block.DecorBlock(decor(), box(3, 4, 0, 13, 13, 1)));
 
     // ---------- предметы ----------
@@ -76,6 +79,8 @@ public final class GContent {
     public static final Item GATE_KEY = item("gate_key", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
     public static final Item MINE_KEY = item("mine_key", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
     public static final Item CANISTER = item("canister", new Item(new Item.Settings().maxCount(1)));
+    /** Куски для частиц расправы (в «меньше жестокости» текстура — капли крови). */
+    public static final Item GORE_CHUNK = item("gore_chunk", new Item(new Item.Settings()));
     public static final Item TUNING_FORK = item("tuning_fork", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
     // ---------- существа ----------

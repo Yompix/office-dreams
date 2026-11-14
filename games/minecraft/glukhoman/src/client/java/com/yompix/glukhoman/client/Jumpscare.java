@@ -22,6 +22,28 @@ public final class Jumpscare {
     static long start;
     static float headY = 3.4f;
 
+    static long splat = -1;
+
+    /** Брызги на экран (кат-сцена смерти). */
+    public static void splatter() {
+        if (!GConfig.get().noBlood) splat = System.nanoTime();
+    }
+
+    public static void renderSplat(DrawContext ctx, int w, int h) {
+        if (splat < 0) return;
+        float t = (System.nanoTime() - splat) / 1e9f;
+        if (t > 3f) {
+            splat = -1;
+            return;
+        }
+        java.util.Random r = new java.util.Random(splat);
+        int a = (int) (Math.min(1, t * 6) * Math.max(0, 1 - Math.max(0, t - 2) ) * 220);
+        for (int i = 0; i < 60; i++) {
+            int x = r.nextInt(w), y = r.nextInt(h), s = 4 + r.nextInt(26);
+            ctx.fill(x, y, x + s, y + s + (int) (t * 40 * r.nextFloat()), (a << 24) | 0x5A0A0C);
+        }
+    }
+
     public static boolean active() {
         return e != null && (System.nanoTime() - start) / 1e9 < 1.3;
     }
@@ -40,7 +62,7 @@ public final class Jumpscare {
             case "doppel" -> GContent.DOPPEL;
             default -> GContent.POLE;
         };
-        headY = switch (kind) { case "listener" -> 1.0f; case "choir" -> 2.6f; case "doppel" -> 1.6f; default -> 3.45f; };
+        headY = switch (kind) { case "listener" -> 1.0f; case "choir" -> 2.6f; case "doppel" -> 1.6f; default -> 3.6f; };
         e = t.create(c.world);
         if (e instanceof HorrorMob m) m.act("jumpscare", 0);
         start = System.nanoTime();
@@ -71,6 +93,14 @@ public final class Jumpscare {
         e.setYaw(180);
         e.setPitch(0);
         InventoryScreen.drawEntity(ctx, w / 2f + jx, h / 2f + jy, size, new Vector3f(0, headY, 0), new Quaternionf().rotateZ((float) Math.PI), null, e);
+        if (t > 0.18f && !GConfig.get().noBlood) {   // брызги по краям кадра
+            java.util.Random r = new java.util.Random(start);
+            int a = (int) (Math.min(1, (t - 0.18f) * 8) * 200);
+            for (int i = 0; i < 26; i++) {
+                int x = r.nextBoolean() ? r.nextInt(w / 4) : w - r.nextInt(w / 4), y = r.nextInt(h), s = 3 + r.nextInt(16);
+                ctx.fill(x, y, x + s, y + s + r.nextInt(30), (a << 24) | 0x5A0A0C);
+            }
+        }
         if (!GConfig.get().noFlashing && t < 0.12f) ctx.fill(0, 0, w, h, ((int) ((0.12f - t) / 0.12f * 200) << 24) | 0xF0E8E8);
         if (t > 1.0f) ctx.fill(0, 0, w, h, ((int) Math.min(255, (t - 1.0f) / 0.3f * 255)) << 24);
     }

@@ -189,7 +189,14 @@ public class PoleEntity extends HorrorMob {
         if (++stepTick % 12 == 0) w.playSound(null, getBlockPos(), GContent.sound("pole_step"), SoundCategory.HOSTILE, 0.7f, 0.8f + random.nextFloat() * 0.2f);
         if (dist < 1.9 && cooldown == 0) {
             float dmg = (float) getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) * (diff == 0 ? 0.6f : diff == 2 ? 1.6f : 1f);
+            if (target.getHealth() <= dmg && !target.isCreative()) {
+                com.yompix.glukhoman.story.Story.execute(target, this);
+                cooldown = 200;
+                return;
+            }
             target.damage(getDamageSources().mobAttack(this), dmg);
+            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 1.5f),
+                    target.getX(), target.getY() + 1.3, target.getZ(), 30, 0.3, 0.4, 0.3, 0.05);
             Sanity.add(target, -30);
             jumpScare(target);
             act("attack", 16);

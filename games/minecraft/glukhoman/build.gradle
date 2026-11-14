@@ -22,6 +22,9 @@ loom {
         client {
             runDir 'run/client'
             if (project.hasProperty('autotest')) vmArg "-Dglukhoman.autotest=${project.property('autotest')}"
+            if (project.hasProperty('only')) vmArg "-Dglukhoman.only=${project.property('only')}"
+            if (project.hasProperty('vertical')) vmArg "-Dglukhoman.vertical=true"
+            if (project.hasProperty('models')) vmArg "-Dglukhoman.models=${project.property('models')}"
         }
     }
     mods {

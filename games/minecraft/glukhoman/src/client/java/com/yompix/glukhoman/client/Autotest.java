@@ -37,6 +37,14 @@ public final class Autotest {
             join();
             return;
         }
+        if ("trailer".equals(System.getProperty("glukhoman.autotest"))) {
+            trailer();
+            return;
+        }
+        if ("models".equals(System.getProperty("glukhoman.autotest"))) {
+            models();
+            return;
+        }
         if ("shots2".equals(System.getProperty("glukhoman.autotest"))) {
             shots2();
             return;
@@ -245,6 +253,96 @@ public final class Autotest {
             }
         });
         ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    /** Проверка моделей: облёт и крупный план каждого существа днём. */
+    static void models() {
+        newWorld();
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
+        STEPS.add(new Step(10, c -> {
+            c.setScreen(null);
+            GlukhomanClient.askedChoose = false;   // сюжет не запускаем — только смотрим модели
+        }));
+        String only = System.getProperty("glukhoman.models", "pole,listener,choir");
+        for (String n : only.split(",")) {
+            STEPS.add(new Step(10, c -> server(c, s -> { tp(s, 0, 65, -218, 180, 0); s.getOverworld().setTimeOfDay(6000); })));
+            STEPS.add(new Step(80, c -> Cine.play("tt_" + n)));
+            for (int[] k : new int[][]{{20, 0}, {40, 1}, {40, 2}, {50, 3}, {70, 4}, {40, 5}, {10, 6}}) {
+                final int idx = k[1];
+                STEPS.add(new Step(k[0], c -> shot2(c, n + "_" + idx)));
+            }
+            STEPS.add(new Step(30, c -> Cine.stop()));
+        }
+        STEPS.add(new Step(20, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    /** Съёмка трейлера: каждая сцена — отдельный клип в /tmp/claude-0/glukhoman-trailer/clips/. */
+    static void trailer() {
+        boolean vert = Boolean.getBoolean("glukhoman.vertical");
+        String dir = "/tmp/claude-0/glukhoman-trailer/clips/" + (vert ? "v_" : "h_");
+        newWorld();
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
+        STEPS.add(new Step(10, c -> {
+            c.setScreen(null);
+            GlukhomanClient.askedChoose = false;
+            GConfig.get().fewerScares = true;   // скримеры в кадре — своими сценами, без экрана-вставки
+            Cine.fovScale = vert ? 1.45f : 1f;
+            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> Recorder.frame());
+        }));
+        Object[][] shots = vert ? new Object[][]{
+                {"tr_scare", 2, 65, -241, 18000L, 4.0}, {"knock", -3, 65, 125, 18000L, 10.0}, {"village", 0, 65, 120, 18000L, 8.0},
+                {"corridor", 2, 65, -241, 18000L, 6.7}, {"tr_listener", -120, 25, -173, 18000L, 4.6}, {"tr_doppel", 1, 65, 100, 18000L, 5.0},
+                {"bunker", 14, 42, -252, 18000L, 7.0}}
+                : new Object[][]{
+                {"intro", 0, 65, 238, 12800L, 7.0}, {"village", 0, 65, 120, 18000L, 11.0}, {"tr_radio", -12, 65, 128, 18000L, 5.0},
+                {"knock", -3, 65, 125, 18000L, 10.0}, {"tr_path", 1, 0, -60, 15000L, 5.0}, {"corridor", 2, 65, -241, 18000L, 6.7},
+                {"tr_listener", -120, 25, -173, 18000L, 4.6}, {"anna", -110, 25, -219, 18000L, 7.0}, {"tr_doppel", 1, 65, 100, 18000L, 5.0},
+                {"bunker", 14, 42, -252, 18000L, 7.0}, {"tr_scare", 2, 65, -241, 18000L, 4.0},
+                {"tr_gore", -9, 65, -93, 18000L, 6.0}, {"death_pole", 1, 0, -60, 15000L, 3.6}};
+        String only = System.getProperty("glukhoman.only", "");
+        for (Object[] sh : shots) {
+            String id = (String) sh[0];
+            if (!only.isEmpty() && !java.util.Arrays.asList(only.split(",")).contains(id)) continue;
+            double limit = (Double) sh[5];
+            STEPS.add(new Step(10, c -> server(c, s -> { tp(s, (Integer) sh[1], (Integer) sh[2], (Integer) sh[3], 0, 0); s.getOverworld().setTimeOfDay((Long) sh[4]); })));
+            STEPS.add(new Step(140, c -> {}));
+            wait(Autotest::ready, 6000);   // ждём, пока чанки вокруг придут и построятся
+            STEPS.add(new Step(40, c -> {
+                Recorder.start(dir + id + ".mp4", 30);
+                Cine.play(id);
+            }));
+            wait(c -> !Cine.active || Cine.time() >= limit, 200000);
+            STEPS.add(new Step(2, c -> {
+                Recorder.stop();
+                Cine.stop();
+            }));
+        }
+        STEPS.add(new Step(20, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    static boolean ready(MinecraftClient c) {
+        if (c.player == null || c.world == null) return false;
+        int cx = c.player.getBlockX() >> 4, cz = c.player.getBlockZ() >> 4;
+        for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++) {
+            if (!c.world.getChunkManager().isChunkLoaded(cx + dx, cz + dz)) return false;
+            if (!c.worldRenderer.isRenderingReady(new BlockPos((cx + dx) * 16 + 8, c.player.getBlockY(), (cz + dz) * 16 + 8))) return false;
+        }
+        return c.worldRenderer.isTerrainRenderComplete();
+    }
+
+    static void newWorld() {
+        STEPS.add(new Step(100, c -> {
+            var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                    net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+            var info = new net.minecraft.world.level.LevelInfo("GlkT" + System.currentTimeMillis() % 100000, net.minecraft.world.GameMode.ADVENTURE, false,
+                    net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
+            var key = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, Glukhoman.id("taiga"));
+            c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
+                    drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(key).createDimensionsRegistryHolder(),
+                    new net.minecraft.client.gui.screen.TitleScreen());
+        }));
     }
 
     static Entity spawnRet(MinecraftServer s, net.minecraft.entity.EntityType<? extends Entity> t, int x, int y, int z) {

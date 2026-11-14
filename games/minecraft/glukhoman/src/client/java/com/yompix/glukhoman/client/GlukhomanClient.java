@@ -74,7 +74,8 @@ public class GlukhomanClient implements ClientModInitializer {
     public void onInitializeClient() {
         com.yompix.glukhoman.client.render.GeoRenderers.init();
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> FearFx.render(ctx.tickCounter().getTickDelta(false)));
-        net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(net.minecraft.client.render.RenderLayer.getCutout(), GContent.NOTE, GContent.CHALK_MARK);
+        net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(net.minecraft.client.render.RenderLayer.getCutout(), GContent.NOTE, GContent.CHALK_MARK,
+                GContent.BLOOD, GContent.POSTER, GContent.SCRATCHES, GContent.PHOTO, GContent.DOLL, GContent.REMAINS);
         FLASH = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.flashlight", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.glukhoman"));
         HINT = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.hint", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.categories.glukhoman"));
         ClientPlayNetworking.registerGlobalReceiver(Net.S2C.ID, (p, ctx) -> ctx.client().execute(() -> onMessage(p.data())));
@@ -86,6 +87,15 @@ public class GlukhomanClient implements ClientModInitializer {
             if (screen instanceof GameMenuScreen && inWorld)
                 Screens.getButtons(screen).add(ButtonWidget.builder(Text.literal("Глухомань"), b -> c.setScreen(new SettingsScreen(screen)))
                         .dimensions(4, 4, 96, 20).build());
+        });
+        // 18+: встроенный пакет «меньше жестокости» (останки → кровь), включается переключателем в настройках
+        net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(Glukhoman.MOD_ID).ifPresent(mc ->
+                net.fabricmc.fabric.api.resource.ResourceManagerHelper.registerBuiltinResourcePack(Glukhoman.id("reduced_gore"), mc,
+                        Text.literal("Глухомань: меньше жестокости"), net.fabricmc.fabric.api.resource.ResourcePackActivationType.NORMAL));
+        // предупреждение 18+ при первом запуске
+        ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
+            if (screen instanceof net.minecraft.client.gui.screen.TitleScreen && !GConfig.get().ageAck && System.getProperty("glukhoman.autotest") == null)
+                c.execute(() -> c.setScreen(new com.yompix.glukhoman.client.screen.AgeScreen(screen)));
         });
         Autotest.init();
     }
@@ -107,6 +117,17 @@ public class GlukhomanClient implements ClientModInitializer {
             c.options.getGamma().setValue(savedGamma);
             savedGamma = -1;
         }
+    }
+
+    /** Включить/выключить пакет «меньше жестокости» и перезагрузить ресурсы. */
+    public static void applyGore(MinecraftClient c) {
+        var mgr = c.getResourcePackManager();
+        String id = "glukhoman:reduced_gore";
+        boolean on = mgr.getEnabledIds().contains(id);
+        if (GConfig.get().goreReduced == on) return;
+        if (GConfig.get().goreReduced) mgr.enable(id);
+        else mgr.disable(id);
+        c.options.refreshResourcePacks(mgr);
     }
 
     public static void sendPrefs() {
@@ -278,7 +299,8 @@ public class GlukhomanClient implements ClientModInitializer {
         if (chase) { s *= 0.7f; e *= 0.8f; }
         if (lostT > 0) { s = 0.5f; e = 10; r = 0.55f; gg = 0.57f; b = 0.6f; }
         if (sanity < 30) e *= 0.6f + sanity / 75f;
-        float k = 0.04f;
+        if (Cine.active && Cine.fogS > 0) { s = Cine.fogS; e = Cine.fogE; r = Cine.fogR; gg = Cine.fogG; b = Cine.fogB; }
+        float k = Cine.active && Cine.fogS > 0 ? 1f : 0.04f;
         fogStart += (s - fogStart) * k;
         fogEnd += (e - fogEnd) * k;
         fogR += (r - fogR) * k;
@@ -386,7 +408,7 @@ public class GlukhomanClient implements ClientModInitializer {
         double ang = Math.toRadians(70) * (RND.nextBoolean() ? 1 : -1);
         Vec3d dir = new Vec3d(look.x * Math.cos(ang) - look.z * Math.sin(ang), 0, look.x * Math.sin(ang) + look.z * Math.cos(ang));
         Vec3d at = c.player.getPos().add(dir.multiply(14));
-        int top = c.world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MathHelper.floor(at.x), MathHelper.floor(at.z));
+        int top = c.world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(at.x), MathHelper.floor(at.z));
         e.setId(-777000 - RND.nextInt(1000));
         e.refreshPositionAndAngles(at.x, top, at.z, (float) Math.toDegrees(Math.atan2(-dir.x, dir.z)) + 180, 0);
         c.world.addEntity(e);

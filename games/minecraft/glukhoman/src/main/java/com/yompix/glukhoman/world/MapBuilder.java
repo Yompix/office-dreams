@@ -79,6 +79,38 @@ public final class MapBuilder {
             st.lamp("photo", new net.minecraft.util.math.BlockPos(q[0], q[1], q[2]));
         }
         st.set("decor2");
+        blood(world, st);
+        st.markDirty();
+    }
+
+    /** Кровь (0.3): изба охотника, радиорубка, сельсовет и следы волочения из посёлка в лес. */
+    public static void blood(ServerWorld world, StoryState st) {
+        B b = new B(world, st);
+        int[][] marks = {{-12, 65, -93, 1}, {-10, 65, -94, 0}, {-13, 65, -246, 1}, {-11, 65, -247, 0}, {-14, 65, -248, 0},
+                {14, 65, 98, 0}, {-110, 25, -205, 0}, {-119, 25, -173, 1}};
+        for (int[] q : marks) world.getChunk(q[0] >> 4, q[2] >> 4);
+        for (int[] q : marks) if (b.get(q[0], q[1], q[2]).isAir())
+            b.set(q[0], q[1], q[2], GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, q[3]));
+        // следы волочения: от брошенной избы на западе в лес
+        for (int i = 0; i < 18; i++) {
+            int x = -18 - i, z = 112 + (i % 3 == 0 ? 1 : 0);
+            world.getChunk(x >> 4, z >> 4);
+            int y = Terrain.surface(x, z) + 1;
+            if (b.get(x, y, z).isAir() || b.get(x, y, z).isReplaceable())
+                b.set(x, y, z, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 2)
+                        .with(net.minecraft.block.HorizontalFacingBlock.FACING, Direction.EAST));
+        }
+        // 18+: останки охотника в избе, радиста в рубке, рука на просеке, у шахты
+        int[][] remains = {{-11, 65, -93, 0}, {-10, 65, -92, 2}, {-9, 65, -94, 1}, {-11, 65, -246, 0}, {-12, 65, -247, 2}, {-118, 25, -174, 1}};
+        for (int[] q : remains) {
+            world.getChunk(q[0] >> 4, q[2] >> 4);
+            if (b.get(q[0], q[1], q[2]).isAir() || b.get(q[0], q[1], q[2]).isOf(GContent.BLOOD))
+                b.set(q[0], q[1], q[2], GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, q[3]));
+        }
+        int ax = -1, az = -110;
+        world.getChunk(ax >> 4, az >> 4);
+        b.set(ax, Terrain.surface(ax, az) + 1, az, GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1));
+        st.set("decor3");
         st.markDirty();
     }
 

@@ -86,6 +86,7 @@ public final class Story {
         if (!isOurWorld()) return;
         if (!st.built) com.yompix.glukhoman.world.MapBuilder.build(w(), st);
         if (st.built && !st.flag("decor2")) com.yompix.glukhoman.world.MapBuilder.decor(w(), st);
+        else if (st.built && !st.flag("decor3")) com.yompix.glukhoman.world.MapBuilder.blood(w(), st);
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);
@@ -316,6 +317,46 @@ public final class Story {
         boolean host = !list.isEmpty() && list.get(0) == p || server.isHost(p.getGameProfile());
         if (host || list.stream().allMatch(q -> SKIPPED.contains(q.getUuid()))) finishScene();
         else msg(p, "Ждём, пока пропустят остальные…");
+    }
+
+    // ===================== расправа (18+) =====================
+    private static final java.util.Set<UUID> EXECUTING = new java.util.HashSet<>();
+
+    /** Последний удар существа: игрок видит свою смерть (кат-сцена), потом брызги, куски, кровь и следы волочения. */
+    public static void execute(ServerPlayerEntity p, com.yompix.glukhoman.entity.HorrorMob mob) {
+        if (!EXECUTING.add(p.getUuid())) return;
+        p.setInvulnerable(true);
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 9, false, false));
+        mob.hold = 75;
+        mob.act("attack", 20);
+        NbtCompound m = Net.msg("cut");
+        m.putString("id", "death_" + mob.geoName());
+        Net.send(p, m);
+        Sched.after(60, () -> {
+            ServerWorld w = p.getServerWorld();
+            Vec3d at = p.getPos();
+            w.spawnParticles(new net.minecraft.particle.ItemStackParticleEffect(net.minecraft.particle.ParticleTypes.ITEM, new ItemStack(GContent.GORE_CHUNK)),
+                    at.x, at.y + 1, at.z, 40, 0.4, 0.5, 0.4, 0.18);
+            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 2f), at.x, at.y + 1, at.z, 60, 0.6, 0.6, 0.6, 0.1);
+            BlockPos q = p.getBlockPos();
+            if (w.getBlockState(q).isAir()) w.setBlockState(q, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1), 3);
+            if (mob instanceof ChoirEntity) {   // Хор рвёт на части — остаются куски
+                BlockPos r = q.east();
+                if (w.getBlockState(r).isAir()) w.setBlockState(r, GContent.REMAINS.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 1), 3);
+            } else if (mob instanceof PoleEntity) {   // Жердь утаскивает тело в лес — след волочения
+                Vec3d dir = at.subtract(mob.getPos()).multiply(-1, 0, -1).normalize();
+                for (int i = 1; i < 9; i++) {
+                    BlockPos t = BlockPos.ofFloored(at.add(dir.multiply(i)));
+                    int y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, t.getX(), t.getZ());
+                    BlockPos tp2 = new BlockPos(t.getX(), y, t.getZ());
+                    if (w.getBlockState(tp2).isAir()) w.setBlockState(tp2, GContent.BLOOD.getDefaultState().with(com.yompix.glukhoman.block.DecorBlock.VARIANT, 2), 3);
+                }
+            }
+            w.playSound(null, q, GContent.sound("choir_hurt"), SoundCategory.HOSTILE, 1.2f, 0.6f);
+            p.setInvulnerable(false);
+            EXECUTING.remove(p.getUuid());
+            p.damage(mob.getDamageSources().mobAttack(mob), 1000f);
+        });
     }
 
     // ===================== шаги и HUD =====================

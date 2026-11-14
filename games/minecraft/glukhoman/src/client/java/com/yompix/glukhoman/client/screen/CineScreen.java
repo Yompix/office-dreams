@@ -44,6 +44,7 @@ public class CineScreen extends Screen {
             }
         }
         com.yompix.glukhoman.client.Jumpscare.render(ctx, width, height);
+        com.yompix.glukhoman.client.Jumpscare.renderSplat(ctx, width, height);
         ctx.drawTextWithShadow(textRenderer, skipped ? "пропуск…" : "Esc — пропустить", width - 96, 6, 0x60A0A0A0);
     }
 

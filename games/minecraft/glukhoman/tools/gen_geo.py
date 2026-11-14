@@ -399,9 +399,7 @@ def human_skin(name, coat, pants, hair, face=(226, 190, 160), eyes=(40, 60, 80),
 
 
 def main():
-    anims = {'pole': pole(), 'listener': listener(), 'choir': choir()}
-    for n, an in anims.items():
-        w(f'{A}/animations/{n}.animation.json', {'format_version': '1.8.0', 'animations': {f'animation.{n}.{k}': v for k, v in an.items()}})
+    # существа 0.3 — tools/gen_creatures.py; здесь только люди (Анна, Двойник)
     humans()
     human_skin('anna', (214, 110, 40), (52, 62, 96), (58, 40, 30))
     # лица Анны: моргание, «говорит» (рот открыт), испуг (широкие глаза, открытый рот)
@@ -415,7 +413,15 @@ def main():
         im.save(f'{A}/textures/entity/{name}.png')
     # Двойник: ватник, шапка, слишком бледное лицо, тёмные глаза с огоньком
     human_skin('doppel', (70, 74, 70), (40, 42, 46), (30, 30, 34), face=(214, 210, 204), eyes=(240, 230, 190), glow=True)
-    print('ok', {k: len(v) for k, v in anims.items()})
+    # кровь на ватнике и рукавах Двойника (засохшая, с бликами)
+    im = Image.open(f'{A}/textures/entity/doppel.png')
+    for (u, v, w_, h_) in ((20, 22, 6, 6), (17, 26, 3, 4), (44, 26, 4, 6), (36, 56, 4, 6), (4, 24, 3, 4)):
+        for y in range(v, v + h_):
+            for x in range(u, u + w_):
+                if rnd.random() < 0.75:
+                    im.putpixel((x, y), (88 + rnd.randint(0, 40), 12, 14, 255))
+    im.save(f'{A}/textures/entity/doppel.png')
+    print('ok')
 
 
 if __name__ == '__main__':
