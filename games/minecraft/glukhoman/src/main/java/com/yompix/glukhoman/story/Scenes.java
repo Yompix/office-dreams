@@ -13,6 +13,8 @@ public final class Scenes {
         LEN.put("pr_train", 12f);
         LEN.put("pr_board", 14f);
         LEN.put("rp_night", 15f);
+        LEN.put("proto_npc", 21f);    // прототипы новой анимации/режиссёра (только просмотр и запись, в сюжете нет)
+        LEN.put("proto_cut", 40f);
         for (String k : new String[]{"pole", "watcher", "listener", "choir"}) LEN.put("tt_" + k, 12f);
         // трейлер 0.4 (только автотест-съёмка)
         LEN.put("t3_rails", 6.5f);

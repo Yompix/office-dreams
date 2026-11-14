@@ -64,11 +64,17 @@ public final class Cine {
         void start(ClientWorld w);
 
         void frame(double t);
+
+        /** После сцены (пропуск, конец): вернуть мир как было. */
+        default void end() {
+        }
     }
 
     // ======================= управление =======================
     /** Сцена «в видоискателе»: REC на экране, видно то, что видно только камерой. replay — это пересмотр кассеты (PLAY ▶). */
     public static boolean vf, replay, noFx;
+    /** Сцена запущена только на этом клиенте (просмотр, автотест): Esc останавливает её сразу, без сервера. */
+    public static boolean local;
     /** Съёмка панорамы: грань куба 0–5. */
     public static int panoFace;
     /** Параметры сцены от сервера (пересмотр: где лежала камера, кого будили). */
@@ -115,6 +121,8 @@ public final class Cine {
         Glukhoman.LOG.info("Кат-сцена {} закончилась на {} с", id, String.format("%.1f", time()));
         if (FIXED) Glukhoman.LOG.info("стек остановки", new Throwable());
         active = false;
+        if (scene != null) scene.end();
+        local = false;
         for (Entity e : PUPPETS) if (c.world != null) c.world.removeEntity(e.getId(), Entity.RemovalReason.DISCARDED);
         PUPPETS.clear();
         if (c.world != null) for (BlockPos p : KEYS) if (c.world.getBlockState(p).isOf(net.minecraft.block.Blocks.LIGHT)) c.world.setBlockState(p, net.minecraft.block.Blocks.AIR.getDefaultState(), 3);
@@ -276,6 +284,8 @@ public final class Cine {
             case "rp_night" -> new RpNight();
             case "pano" -> new Pano();
             case "in_ir" -> new InIr();
+            case "proto_npc" -> ProtoScenes.npc();
+            case "proto_cut" -> ProtoScenes.handover();
             case "tt_pole" -> new Turntable(GContent.POLE, 4.6, 2.2, 3.6);
             case "tt_watcher" -> new Turntable(GContent.WATCHER, 4.4, 1.8, 3.0);
             case "tt_listener" -> new Turntable(GContent.LISTENER, 3.0, 0.7, 0.85);
@@ -289,8 +299,9 @@ public final class Cine {
 
     /** Ручная камера: дыхание, микродрожь, шаги. */
     static Vec3d hand(double t, double walk) {
-        return v(Math.sin(t * 0.9) * 0.025 + Math.sin(t * 7.3) * 0.004, Math.sin(t * 1.3) * 0.03 + Math.abs(Math.sin(t * Math.PI * 1.8)) * 0.05 * walk,
-                Math.cos(t * 0.7) * 0.02);
+        double k = Timeline.shakeMul();
+        return k == 0 ? Vec3d.ZERO : v(Math.sin(t * 0.9) * 0.025 + Math.sin(t * 7.3) * 0.004, Math.sin(t * 1.3) * 0.03 + Math.abs(Math.sin(t * Math.PI * 1.8)) * 0.05 * walk,
+                Math.cos(t * 0.7) * 0.02).multiply(k);
     }
 
     /** Луч фонаря: свет там, куда он бьёт, и рядом с камерой; всё остальное — темнота. */

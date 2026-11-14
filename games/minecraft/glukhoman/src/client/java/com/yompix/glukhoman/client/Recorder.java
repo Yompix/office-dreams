@@ -105,7 +105,7 @@ public final class Recorder {
             int w = fb.textureWidth, h = fb.textureHeight;
             if (proc == null) {
                 proc = new ProcessBuilder("ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgba", "-s", w + "x" + h,
-                        "-r", Integer.toString(Cine.recFps), "-i", "-", "-vf", "vflip", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                        "-r", Integer.toString(Cine.recFps), "-i", "-", "-vf", "vflip", "-c:v", "libx264", "-preset", "veryfast", "-crf", System.getProperty("glukhoman.crf", "21"),
                         "-pix_fmt", "yuv420p", path).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.INHERIT).start();
                 ch = Channels.newChannel(proc.getOutputStream());
                 buf = BufferUtils.createByteBuffer(w * h * 4);

@@ -48,13 +48,18 @@ public class TitleMenuScreen extends Screen {
     protected void init() {
         MinecraftClient c = MinecraftClient.getInstance();
         items = List.of(
-                new Item("Новая смена", WorldStart::newShift),
+                new Item("Новая смена", () -> {
+                    if (WorldStart.hasSave(c)) c.setScreen(new com.yompix.glukhoman.client.ui.ConfirmScreen(this, false, "Новая смена?",
+                            "Прошлая смена останется в «Мирах».", "Начать", "Назад", WorldStart::newShift));
+                    else WorldStart.newShift();
+                }),
                 new Item("Продолжить", WorldStart::continueLatest),
-                new Item("Вместе", () -> c.setScreen(new MultiplayerScreen(this))),
+                new Item("Главы", () -> c.setScreen(new com.yompix.glukhoman.client.ui.ChapterScreen(this))),
+                new Item("Вместе", () -> c.setScreen(new com.yompix.glukhoman.client.ui.CoopScreen(this))),
                 new Item("Настройки", () -> c.setScreen(new com.yompix.glukhoman.client.screen.SettingsScreen(this))),
                 new Item("Миры", () -> c.setScreen(new SelectWorldScreen(this))),
                 new Item("Титры", () -> c.setScreen(new CreditsMenuScreen(this))),
-                new Item("Выход", c::scheduleStop));
+                new Item("Выход", () -> c.setScreen(new com.yompix.glukhoman.client.ui.ConfirmScreen(this, false, "Выйти из игры?", "", "Выйти", "Назад", c::scheduleStop))));
         MenuSound.loop("amb.forest", 0.5f);
         MenuSound.loop("amb.dread", 0.3f);
     }

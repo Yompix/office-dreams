@@ -55,6 +55,10 @@ public final class Autotest {
             walk();
             return;
         }
+        if ("ui".equals(System.getProperty("glukhoman.autotest"))) {
+            AutotestUi.run();
+            return;
+        }
         if ("models".equals(System.getProperty("glukhoman.autotest"))) {
             models();
             return;
@@ -453,7 +457,8 @@ public final class Autotest {
                 {"t3_train", 40, 66, 20, 18000L, 8.0}, {"t3_updown", 14, 66, 20, 18000L, 5.5}, {"t3_vanish", 8, 66, 20, 18000L, 4.5},
                 {"t3_board", -5, 66, 25, 18000L, 5.0}, {"t3_rewind", 2, 66, 20, 18000L, 6.2}, {"t3_rollcall", 2, 66, 20, 18000L, 5.0},
                 {"t3_draisine", 112, 66, 16, 18000L, 4.5}, {"t3_look", 20, 66, 21, 18000L, 4.5}, {"t3_stop", 4, 66, 19, 18000L, 3.2},
-                {"t3_bogie", 10, 66, 19, 18000L, 4.0}, {"t3_house", 8, 65, 40, 1000L, 5.0}};
+                {"t3_bogie", 10, 66, 19, 18000L, 4.0}, {"t3_house", 8, 65, 40, 1000L, 5.0},
+                {"proto_npc", 1, 66, 27, 6000L, 21.2}, {"proto_cut", 1, 66, 27, 18000L, 40.2}};
         String only = System.getProperty("glukhoman.only", "");
         for (Object[] sh : shots) {
             String id = (String) sh[0];
@@ -464,6 +469,7 @@ public final class Autotest {
                 s.getOverworld().setTimeOfDay((Long) sh[4]);
                 var st = StoryState.get(s.getOverworld());
                 Story.clearResidents();
+                if (id.startsWith("proto")) s.getOverworld().setWeather(12000, 0, false, false);
                 for (String g : new String[]{"station", "dispatch"}) {
                     var l = st.lamps.get(g);
                     if (l != null) for (long q : l) {
@@ -484,6 +490,7 @@ public final class Autotest {
             STEPS.add(new Step(40, c -> {
                 Recorder.start(dir + id + ".mp4", 30);
                 Cine.play(id);
+                Cine.local = true;
             }));
             wait(c -> !Cine.active || Cine.time() >= limit, 200000);
             STEPS.add(new Step(2, c -> {

@@ -23,6 +23,23 @@ public final class WorldStart {
                 new TitleMenuScreen());
     }
 
+    /** Есть ли хоть одно сохранение (для «Продолжить» и подтверждения «Новой смены»). */
+    public static boolean hasSave(MinecraftClient c) {
+        try {
+            return !c.getLevelStorage().getLevelList().levels().isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static void newShift(MinecraftClient c, net.minecraft.client.gui.screen.Screen back) {
+        newShift();
+    }
+
+    public static void continueShift(MinecraftClient c, net.minecraft.client.gui.screen.Screen back) {
+        continueLatest();
+    }
+
     public static void continueLatest() {
         MinecraftClient c = MinecraftClient.getInstance();
         try {

@@ -15,12 +15,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TitleMixin {
     @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
     private void glukhoman$title(Screen screen, CallbackInfo ci) {
+        if (screen != null && screen.getClass() == net.minecraft.client.gui.screen.GameMenuScreen.class && ((net.minecraft.client.gui.screen.GameMenuScreen) screen).shouldShowMenu()
+                && com.yompix.glukhoman.client.GConfig.get().kitUi) {
+            ci.cancel();   // своя пауза (этап 5)
+            ((MinecraftClient) (Object) this).setScreen(new com.yompix.glukhoman.client.ui.PauseScreen());
+            return;
+        }
+        if (screen != null && screen.getClass() == net.minecraft.client.gui.screen.DeathScreen.class && com.yompix.glukhoman.client.GConfig.get().kitUi) {
+            ci.cancel();   // «плёнка оборвалась» вместо «вы погибли»
+            ((MinecraftClient) (Object) this).setScreen(new com.yompix.glukhoman.client.ui.FailScreen());
+            return;
+        }
         if (screen == null || screen.getClass() != TitleScreen.class) return;
         String auto = System.getProperty("glukhoman.autotest");
         ci.cancel();
         MinecraftClient c = (MinecraftClient) (Object) this;
         Screen menu = new TitleMenuScreen();
         boolean intro = auto == null || auto.equals("menu");
-        c.setScreen(intro ? new IntroScreen(menu) : menu);
+        Screen first = intro ? new IntroScreen(menu) : menu;
+        // заставка студии — один раз за запуск игры, перед заставкой мода (этап 6)
+        if (intro && !com.yompix.glukhoman.client.menu.YompixScreen.shown) first = new com.yompix.glukhoman.client.menu.YompixScreen(first);
+        c.setScreen(first);
     }
 }

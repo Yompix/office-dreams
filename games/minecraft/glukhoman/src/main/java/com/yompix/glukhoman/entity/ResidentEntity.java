@@ -44,6 +44,8 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
     public int hold;
     public boolean talking;
     public double animClock = -1;
+    /** Клиент: выбор базового клипа новой системой анимации (client/anim/Animator); на сервере не используется. */
+    public static java.util.function.BiFunction<ResidentEntity, String, String> ANIM;
 
     public ResidentEntity(EntityType<? extends PathAwareEntity> type, World world) {
         super(type, world);
@@ -164,9 +166,10 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
                 else if (moving) a = "walk";
                 else {   // разнообразие на месте: дышит, переминается, осматривается, чешет затылок
                     String[] v = {"idle", "idle_shift", "idle", "idle_look", "idle_shift", "idle_scratch"};
-                    a = v[(int) ((getTick(this) / 120 + getId()) % v.length)];
+                    a = v[(int) Math.floorMod((long) (getTick(this) / 120) + getId(), (long) v.length)];   // у кукол кат-сцен id отрицательные
                 }
             }
+            if (ANIM != null) a = ANIM.apply(this, a);
             return state.setAndContinue(HorrorMob.raw("animation.human." + a));
         }));
     }

@@ -176,7 +176,113 @@ def human_extra():
         'waist': {'rotation': [-4 * min(1, t / 0.5), 0, 0]}, 'head': {'rotation': [18 * min(1, t / 0.6) - 22 * max(0, min(1, (t - 0.9) / 0.6)), 0, 0]},
         'right_arm': {'rotation': [wob(t, 0.5, 3), 0, 4]}, 'left_arm': {'rotation': [-wob(t, 0.5, 3), 0, -4]},
         'chest': {'rotation': [wob(t, 0.35, 2), 0, 0]}}, 1.6, loop=False)
+    zakhar_clips(an)
     json.dump(data, open(path, 'w'), separators=(',', ':'))
+
+
+def zakhar_clips(an):
+    """Захар Ильич — базовые клипы новой системы анимации (жесты — слоями в коде, client/anim/Gestures.java).
+    Старик-дежурный: сутулится, правая нога не гнётся (хромает), шаг медленный и неровный, голову держит поднятой."""
+    P = 1.36                                   # период шага, с: на «плохую» правую ногу — коротко, на левую — долго
+    def ph(t):
+        u = (t % P) / P                        # 0…0.42 — опора на правую (больную), 0.42…1 — на левую
+        return u
+    def walk(t):
+        u = ph(t)
+        s = math.sin(2 * math.pi * u)
+        bad = 1 if u < 0.42 else 0             # стоит на больной ноге — проседает и спешит снять с неё вес
+        k = math.sin(math.pi * min(1, u / 0.42)) if bad else 0
+        dip = -0.55 * k                        # «провал» корпуса на больной ноге
+        return {
+            'root': {'position': [0.25 * k, dip + 0.12 * abs(math.sin(2 * math.pi * u * 2)), 0]},
+            'waist': {'rotation': [-8, 4 * s, 5 * k - 1.5]},   # waist не в FLIP: минус — наклон вперёд
+            'chest': {'rotation': [12 + 2 * k, -5 * s, -3 * k]},
+            'neck': {'rotation': [-6, 0, 0]},
+            'head': {'rotation': [-8 - 2 * k, 3 * s, 2 * k]},
+            # правая нога почти прямая (колено не гнётся), выносится дугой вбок; левая — обычный шаг
+            'right_leg': {'rotation': [-22 * math.sin(2 * math.pi * u + 0.3), 0, -5 * (1 - bad) * math.sin(math.pi * max(0, (u - 0.42) / 0.58))]},
+            'right_shin': {'rotation': [4 + 4 * max(0, math.sin(2 * math.pi * u)), 0, 0]},
+            'left_leg': {'rotation': [24 * math.sin(2 * math.pi * u + 0.3), 0, 0]},
+            'left_shin': {'rotation': [max(0, 26 * math.sin(2 * math.pi * u + 2.2)), 0, 0]},
+            # левая рука машет, правая почти висит (держит равновесие, чуть отставлена)
+            'left_arm': {'rotation': [-16 * math.sin(2 * math.pi * u + 0.3), 0, -4]},
+            'left_forearm': {'rotation': [-12 - 6 * max(0, math.sin(2 * math.pi * u)), 0, 0]},
+            'right_arm': {'rotation': [5 * math.sin(2 * math.pi * u + 0.3), 0, 9 + 4 * k]},
+            'right_forearm': {'rotation': [-10, 0, 0]},
+        }
+    an['animation.human.z_walk'] = anim(walk, P * 2)
+    # стоит: сутулый, вес на левой ноге, правое колено чуть согнуто; медленное тяжёлое дыхание, лёгкое покачивание
+    def idle(t):
+        b = math.sin(2 * math.pi * t / 4.0)
+        sw = math.sin(2 * math.pi * t / 7.0)
+        return {
+            'root': {'position': [0.35, -0.15 - 0.05 * b, 0]},
+            'waist': {'rotation': [-6, 2 * sw, -3]},
+            'chest': {'rotation': [11 - 1.5 * b, 1.5 * sw, 1.5]},
+            'neck': {'rotation': [-5, 0, 0]},
+            'head': {'rotation': [-7 + b, 2 * sw, 1.5]},
+            'right_leg': {'rotation': [-4, 0, -2]}, 'right_shin': {'rotation': [8, 0, 0]},
+            'left_leg': {'rotation': [2, 0, 3]},
+            'right_arm': {'rotation': [2 + b, 0, 6]}, 'right_forearm': {'rotation': [-8, 0, 0]},
+            'left_arm': {'rotation': [3 - b, 0, -6]}, 'left_forearm': {'rotation': [-10, 0, 0]},
+        }
+    an['animation.human.z_idle'] = anim(idle, 28)
+
+
+def zakhar_sounds():
+    """Кашель старика: три толчка воздуха (шум через «горло» — полосовой фильтр с формантами), хрип на вдохе."""
+    import numpy as np
+    from scipy.signal import butter, sosfilt
+    rng = np.random.default_rng(1952)
+    n = int(2.2 * SR)
+    x = np.zeros(n)
+    bp = lambda y, a, b: sosfilt(butter(2, [a, b], 'band', fs=SR, output='sos'), y)
+    for at, g in ((0.05, 1.0), (0.48, 0.8), (0.92, 0.65)):
+        m = int(0.32 * SR)
+        e = np.exp(-np.arange(m) / SR * 11) * np.minimum(1, np.arange(m) / (0.008 * SR))
+        burst = bp(rng.standard_normal(m), 300, 2600) * 0.7 + bp(rng.standard_normal(m), 900, 1300) * 0.6
+        i = int(at * SR)
+        x[i:i + m] += burst * e * g
+    m = int(0.6 * SR)                          # хриплый вдох после
+    e = np.sin(np.linspace(0, np.pi, m)) * 0.18
+    i = int(1.4 * SR)
+    x[i:i + m] += bp(rng.standard_normal(m), 1800, 4200) * e
+    save_ogg('cough', x)
+
+
+def yompix_sound():
+    """Звуковая подпись Yompix Games для «Глухомани»: щелчок реле, низкий гул плёнки, три «пиксельных» тона вверх
+    (пиксели эмблемы встают на место), «тиньк» и шипение ленты на исчезновении. 4.6 с."""
+    import numpy as np
+    from scipy.signal import butter, sosfilt
+    rng = np.random.default_rng(2024)
+    n = int(4.6 * SR)
+    t = np.arange(n) / SR
+    lp = lambda y, f: sosfilt(butter(2, f, 'low', fs=SR, output='sos'), y)
+    bp = lambda y, a, b: sosfilt(butter(2, [a, b], 'band', fs=SR, output='sos'), y)
+    x = np.zeros(n)
+    # гул: 55 Гц + обертоны, нарастает к 1.6 с, держится, уходит
+    env = np.clip(t / 1.4, 0, 1) * np.clip((4.4 - t) / 1.0, 0, 1)
+    x += (np.sin(2 * np.pi * 55 * t) * 0.5 + np.sin(2 * np.pi * 110 * t + 0.4) * 0.25 + lp(rng.standard_normal(n), 300) * 0.25) * env * 0.6
+    # шипение плёнки в начале
+    x += bp(rng.standard_normal(n), 3000, 8000) * np.clip(1 - t / 1.6, 0, 1) * 0.12
+    # щелчок реле на 0.05 с
+    m = int(0.01 * SR); i = int(0.05 * SR)
+    x[i:i + m] += bp(rng.standard_normal(m), 1500, 6000) * np.exp(-np.arange(m) / m * 4) * 1.2
+    # три тона (квадратные с мягким срезом) — ми, соль, си
+    for at, f in ((0.9, 659.3), (1.15, 784.0), (1.4, 987.8)):
+        m = int(0.22 * SR); i = int(at * SR)
+        tt = np.arange(m) / SR
+        tone = np.sign(np.sin(2 * np.pi * f * tt)) * 0.5 + np.sin(2 * np.pi * f * 2 * tt) * 0.2
+        x[i:i + m] += lp(tone, 4000) * np.exp(-tt * 9) * 0.5
+    # «тиньк» (колокольчик) на 1.9 с — эмблема собрана
+    m = int(1.6 * SR); i = int(1.9 * SR)
+    tt = np.arange(m) / SR
+    x[i:i + m] += sum(a * np.sin(2 * np.pi * f * tt) for f, a in ((1318.5, 0.5), (2637, 0.2), (3951, 0.08))) * np.exp(-tt * 3.2) * 0.6
+    # срыв строки на 3.1 с
+    m = int(0.2 * SR); i = int(3.1 * SR)
+    x[i:i + m] += bp(rng.standard_normal(m), 800, 5000) * np.sin(np.linspace(0, np.pi, m)) * 0.35
+    save_ogg('yompix', x)
 
 
 # ======================= Порожняк =======================
@@ -287,7 +393,8 @@ def train():
 
 # ======================= жители =======================
 def skin(name, *, hair, coat, legs, boots, face=(196, 160, 138), scarf=None, cap=None, beard=None, old=False, girl=False, gown=None):
-    def paint(blink=False, talk=False):
+    def paint(blink=False, talk=False, look=0, half=False):
+        rnd = random.Random(name)        # один шум для всех вариантов лица — при смене кадра ничего не «мерцает»
         img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
         px = img.load()
 
@@ -316,7 +423,10 @@ def skin(name, *, hair, coat, legs, boots, face=(196, 160, 138), scarf=None, cap
         for x in (9, 10, 13, 14):
             px[x, 10] = brow
         eye = (58, 46, 40) if not girl else (70, 56, 44)
-        for x, c in ((9, (168, 162, 156)), (10, eye), (13, eye), (14, (168, 162, 156))):
+        white = (168, 162, 156)
+        pupils = {0: (10, 13), -1: (9, 13), 1: (10, 14)}[look]   # взгляд: прямо, влево, вправо (по картинке)
+        for x in (9, 10, 13, 14):
+            c = eye if x in pupils else white
             px[x, 11] = (c + (255,)) if not blink else shade(face, 0.8)
         for x in (9, 10, 13, 14):
             px[x, 12] = shade(face, 0.84 if old else 0.9)
@@ -332,6 +442,11 @@ def skin(name, *, hair, coat, legs, boots, face=(196, 160, 138), scarf=None, cap
                         px[x, y] = shade(beard, 1 + rnd.uniform(-0.08, 0.08))
         for x in (11, 12):
             px[x, 14] = (126, 86, 82, 255) if not talk else (50, 24, 24, 255)
+        if half:                                 # рот приоткрыт (между слогами)
+            px[11, 14] = (70, 34, 32, 255)
+        if talk and not beard:
+            px[11, 15] = shade(face, 0.7)
+            px[12, 15] = shade(face, 0.7)
         box(16, 16, 8, 12, 4, coat, 0.07)
         if gown:                                # ночная рубашка ниже куртки/кофты
             region(16, 26, 24, 6, gown, 0.05)
@@ -356,6 +471,10 @@ def skin(name, *, hair, coat, legs, boots, face=(196, 160, 138), scarf=None, cap
     paint().save(f'{A}/textures/entity/res_{name}.png')
     paint(blink=True).save(f'{A}/textures/entity/res_{name}_blink.png')
     paint(talk=True).save(f'{A}/textures/entity/res_{name}_talk.png')
+    paint(half=True).save(f'{A}/textures/entity/res_{name}_half.png')
+    # зрачки к правому/левому краю картинки; на лице это правая/левая сторона самого персонажа (картинка — как в зеркале)
+    paint(look=-1).save(f'{A}/textures/entity/res_{name}_eyes_r.png')
+    paint(look=1).save(f'{A}/textures/entity/res_{name}_eyes_l.png')
 
 
 def residents():
@@ -541,7 +660,7 @@ def sounds():
 
 
 if __name__ == '__main__':
-    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'human_extra', 'blocks', 'sounds']
+    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'human_extra', 'blocks', 'sounds', 'zakhar_sounds', 'yompix_sound']
     for n in which:
         globals()[n]()
         print('ok', n)

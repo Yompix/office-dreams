@@ -24,12 +24,12 @@ public class DifficultyScreen extends Screen {
         int y = height / 2 + 4;
         for (int i = 0; i < 3; i++) {
             final int d = i;
-            addDrawableChild(ButtonWidget.builder(Text.literal(D[i][0]), b -> {
+            addDrawableChild(new com.yompix.glukhoman.client.ui.Kit.Item(width / 2 - 75, y + i * 18, 150, D[i][0], i, b -> {   // стиль интерфейса мода (этап 5)
                 NbtCompound m = Net.msg("difficulty");
                 m.putInt("d", d);
                 GlukhomanClient.send(m);
                 close();
-            }).dimensions(width / 2 - 75, y + i * 24, 150, 20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.literal(D[i][1]))).build());
+            }));
         }
     }
 
@@ -47,6 +47,10 @@ public class DifficultyScreen extends Screen {
         ctx.drawCenteredTextWithShadow(textRenderer, "ПКМ с камерой — к глазу. В камере видно то, чего нет глазами. Играй в наушниках:", width / 2, height / 2 - 14, 0xFF9A9A9A);
         ctx.drawCenteredTextWithShadow(textRenderer, "Yompix Games · не связано с Mojang", width / 2, height - 14, 0xFF555555);
         super.render(ctx, mx, my, delta);
+        for (var el : children())   // описание сложности — под пунктами, для того, на который навели
+            if (el instanceof com.yompix.glukhoman.client.ui.Kit.Item it && (it.isHovered() || it.isFocused()))
+                for (int i = 0; i < 3; i++) if (it.getMessage().getString().equals(D[i][0]))
+                    ctx.drawCenteredTextWithShadow(textRenderer, D[i][1], width / 2, height / 2 + 64, 0xFFA8A090);
     }
 
     @Override

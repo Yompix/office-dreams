@@ -127,7 +127,7 @@ public final class Hud {
         if (Viewfinder.view()) rec(ctx, tr, w, h, time);
 
         // цель
-        if (chapter > 0 && !objective.isEmpty() && creditsT < 0) {
+        if (chapter > 0 && !objective.isEmpty() && creditsT < 0 && GConfig.get().hudObjective) {
             long since = time - objectiveChanged;
             int col = since < 80 ? 0xFFE8D9A8 : 0xB0A0A0A0;
             String head = title;
@@ -155,20 +155,9 @@ public final class Hud {
             ctx.drawCenteredTextWithShadow(tr, cardC, w / 2, h / 2 + 20, al | 0xB0A898);
         }
 
-        // субтитры
-        int y = h - 72;
-        for (int i = SUBS.size() - 1; i >= 0; i--) {
-            String[] s = SUBS.get(i);
-            String line = (s[0].isEmpty() ? "" : s[0] + ": ") + s[1];
-            List<net.minecraft.text.OrderedText> lines = tr.wrapLines(net.minecraft.text.Text.literal(line), Math.min(360, w - 40));
-            for (int k = lines.size() - 1; k >= 0; k--) {
-                int lw = tr.getWidth(lines.get(k));
-                ctx.fill(w / 2 - lw / 2 - 3, y - 2, w / 2 + lw / 2 + 3, y + 9, 0x99000000);
-                ctx.drawTextWithShadow(tr, lines.get(k), w / 2 - lw / 2, y, s[0].startsWith("Голос") || s[0].equals("???") ? 0xFFD8B0B0 : 0xFFE0E0E0);
-                y -= 12;
-            }
-            y -= 2;
-        }
+        // субтитры (очередь, имя цветом, размер/положение из настроек)
+        com.yompix.glukhoman.client.ui.Subtitles.render(ctx, tr, w, h, 62);
+        com.yompix.glukhoman.client.ui.Notify.render(ctx, tr, w, h);
 
         // стрелка к цели
         if (hintT > 0 && hint != null) {

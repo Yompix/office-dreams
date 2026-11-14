@@ -2,6 +2,24 @@
   "required": true,
   "package": "com.yompix.glukhoman.client.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["FogMixin", "ShakeMixin", "NoMusicMixin", "CameraMixin", "FovMixin", "HidePlayersMixin", "HandMixin", "VisibilityMixin", "PoseMixin", "RecordMixin", "TickDeltaMixin", "TitleMixin", "SplashMixin", "SplashBgMixin"],
-  "injectors": {"defaultRequire": 0}
+  "client": [
+    "FogMixin",
+    "ShakeMixin",
+    "NoMusicMixin",
+    "CameraMixin",
+    "FovMixin",
+    "HidePlayersMixin",
+    "HandMixin",
+    "VisibilityMixin",
+    "PoseMixin",
+    "RecordMixin",
+    "TickDeltaMixin",
+    "TitleMixin",
+    "SplashMixin",
+    "SplashBgMixin",
+    "LoadingMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
 }

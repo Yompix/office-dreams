@@ -34,15 +34,7 @@ public class CineScreen extends Screen {
                 ctx.getMatrices().pop();
             } else ctx.drawCenteredTextWithShadow(textRenderer, Cine.caption, width / 2, height - bar - 30, 0xFFE8D9A8);
         }
-        int y = height - bar + 6;
-        for (int i = Math.max(0, GlukhomanClient.SUBS.size() - 2); i < GlukhomanClient.SUBS.size(); i++) {
-            String[] s = GlukhomanClient.SUBS.get(i);
-            List<OrderedText> lines = textRenderer.wrapLines(Text.literal((s[0].isEmpty() ? "" : s[0] + ": ") + s[1]), width - 60);
-            for (OrderedText l : lines) {
-                ctx.drawCenteredTextWithShadow(textRenderer, l, width / 2, y, 0xFFE0E0E0);
-                y += 10;
-            }
-        }
+        com.yompix.glukhoman.client.ui.Subtitles.render(ctx, textRenderer, width, height, Math.max(8, bar - 30));
         com.yompix.glukhoman.client.Jumpscare.render(ctx, width, height);
         com.yompix.glukhoman.client.Jumpscare.renderSplat(ctx, width, height);
         ctx.drawTextWithShadow(textRenderer, skipped ? "пропуск…" : "Esc — пропустить", width - 96, 6, 0x60A0A0A0);
@@ -56,7 +48,8 @@ public class CineScreen extends Screen {
     public boolean keyPressed(int key, int scan, int mods) {
         if (key == GLFW.GLFW_KEY_ESCAPE && !skipped) {
             skipped = true;
-            GlukhomanClient.send(Net.msg("skip"));
+            if (Cine.local) Cine.stop();
+            else GlukhomanClient.send(Net.msg("skip"));
             return true;
         }
         return false;

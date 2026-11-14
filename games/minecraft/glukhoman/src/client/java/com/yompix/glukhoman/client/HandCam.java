@@ -52,7 +52,7 @@ public final class HandCam {
     public static void frame(float tickDelta) {
         MinecraftClient c = MinecraftClient.getInstance();
         ClientPlayerEntity p = c.player;
-        float k = GConfig.get().handSway / 100f;
+        float k = GConfig.get().noShake ? 0f : GConfig.get().handSway / 100f;
         active = p != null && c.world != null && !Cine.active && GlukhomanClient.inWorld && holding(p) && k > 0.001f && c.options.getPerspective().isFirstPerson();
         if (!active) {
             ox = oy = 0;

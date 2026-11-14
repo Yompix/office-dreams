@@ -61,6 +61,12 @@ public final class Texts {
         return w == null ? "" : w.getAsString();
     }
 
+    /** Ключ говорящего (zakhar, vika…) — для цвета имени и перевода в субтитрах. */
+    public String lineWhoKey(String id) {
+        var l = root.getAsJsonObject("lines").getAsJsonObject(id);
+        return l == null ? "" : l.get("who").getAsString();
+    }
+
     /** Имя для списка «кто в кадре»: житель, игрок (player:Ник), перрон, поезд… */
     public String whoName(String key) {
         if (key.startsWith("player:")) return key.substring(7);

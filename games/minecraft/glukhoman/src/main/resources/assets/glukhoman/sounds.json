@@ -458,5 +458,22 @@
     "stream": false
    }
   ]
+ },
+ "cough": {
+  "sounds": [
+   {
+    "name": "glukhoman:cough",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.glukhoman.cough"
+ },
+ "yompix": {
+  "sounds": [
+   {
+    "name": "glukhoman:yompix",
+    "stream": false
+   }
+  ]
  }
 }

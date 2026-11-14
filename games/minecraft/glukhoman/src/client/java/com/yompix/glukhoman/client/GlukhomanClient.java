@@ -81,7 +81,13 @@ public class GlukhomanClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(Net.S2C.ID, (p, ctx) -> ctx.client().execute(() -> onMessage(p.data())));
         HudRenderCallback.EVENT.register(Hud::render);
         ClientTickEvents.END_CLIENT_TICK.register(GlukhomanClient::tick);
-        ClientPlayConnectionEvents.JOIN.register((h, s, c) -> sendPrefs());
+        ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
+            sendPrefs();
+            if (com.yompix.glukhoman.client.ui.CoopScreen.hostOnJoin) {   // «Вместе → позвать друзей»: открыть смену по сети сразу
+                com.yompix.glukhoman.client.ui.CoopScreen.hostOnJoin = false;
+                c.execute(() -> com.yompix.glukhoman.client.ui.CoopScreen.openLan(c, null));
+            }
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> leave(c));
         ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
             if (screen instanceof GameMenuScreen && inWorld)
@@ -117,6 +123,7 @@ public class GlukhomanClient implements ClientModInitializer {
         chase = false;
         creditsT = -1;
         SUBS.clear();
+        com.yompix.glukhoman.client.ui.Subtitles.clear();
         for (Loop l : LOOPS.values()) c.getSoundManager().stop(l);
         LOOPS.clear();
         if (savedGamma >= 0) {
@@ -173,6 +180,14 @@ public class GlukhomanClient implements ClientModInitializer {
                 cardB = m.getString("b");
                 cardC = m.getString("c");
                 cardT = 160;
+                for (int n = 1; n <= 3; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
+                    String ct = com.yompix.glukhoman.story.Texts.get().chapterTitle(n);
+                    if (!ct.isEmpty() && (ct.contains(cardB) && !cardB.isEmpty() || ct.contains(cardA) && !cardA.isEmpty() || (cardA + " · " + cardB).contains(ct))
+                            && n > GConfig.get().chapterReached) {
+                        GConfig.get().chapterReached = n;
+                        GConfig.get().save();
+                    }
+                }
             }
             case "voice" -> {
                 SoundEvent e = m.getString("id").isEmpty() ? null : sound("voice." + m.getString("id"));
@@ -185,6 +200,9 @@ public class GlukhomanClient implements ClientModInitializer {
                 if (GConfig.get().subtitles) {
                     SUBS.add(new String[]{m.getString("who"), m.getString("text"), Integer.toString(m.getInt("dur"))});
                     while (SUBS.size() > 3) SUBS.remove(0);
+                    String id = m.getString("id"), key = id.isEmpty() ? "" : com.yompix.glukhoman.story.Texts.get().lineWhoKey(id);
+                    com.yompix.glukhoman.client.ui.Subtitles.push(key, com.yompix.glukhoman.client.ui.StoryLang.who(key, m.getString("who")),
+                            com.yompix.glukhoman.client.ui.StoryLang.text(id, m.getString("text")), m.getInt("dur") / 20.0 * 0.85);
                 }
             }
             case "snd" -> {
