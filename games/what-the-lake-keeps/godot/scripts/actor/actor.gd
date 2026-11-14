@@ -102,6 +102,30 @@ var leg := 0.9                  # длина ноги (м): шаг клипа п
 var _skip := 0
 var _acc := 0.0
 var _ginv := {}                 # кость → обратный мировой базис (один раз за кадр: слоям хватает, углы малые)
+# разговор (14 ноя): ударения говорящего — голова и руки; слушающие кивают в паузах собеседника
+var phrase_n := 0               # говорящий: сколько фраз закончено (пауза в голосе или знак препинания)
+var _voiced := 0.0
+var _quiet := 0.0
+var _was_talk := false
+var _beat_t := -1.0
+var _beat_cd := 0.0
+var _beat_amp := 1.0
+var _beat_side := 1.0
+var _talk_w := 0.0              # руки «в разговоре» (0…1), плавно
+var _lvl_prev := 0
+var _ch_prev := " "
+var _bc_t := -1.0               # слушающий: кивок-отклик (идёт), задержка перед ним, громкость
+var _bc_delay := -1.0
+var _bc_amp := 1.0
+var _bc_cd := 0.0               # после кивка — не раньше чем через 2,5–4,5 с (не «китайский болванчик»)
+var _bc_seen := -1
+var _bc_who: Actor = null
+var _tk := {}
+var _chy := 0.0                 # грудь догоняет голову медленнее: глаза → голова → корпус
+var _chyv := 0.0
+## клипы, где руки свободно висят или лежат на коленях — говорящий может жестикулировать; в разговорных клипах жесты уже есть
+const TALK_ARMS := ["Idle", "Rk_Watching", "Rk_SitIdle", "Rk_SitIdle2", "Sitting_Idle"]
+const PUNCT := [" ", ".", ",", "!", "?", "…", "-", "—"]
 
 const HAIR_SHADER := """
 shader_type spatial;
@@ -156,6 +180,8 @@ static var prof_us := 0
 static var prof_frames := 0
 static var _prof_frame := -1
 static var prof_sections := false
+static var live2 := true          # слои 14 ноя: разговор (ударения, кивки), покачивание сидя, грудь догоняет голову; стенд: false
+static var ease_blend := true     # своё смешивание клипов по smoothstep (14 ноя); стенд сравнения: false
 static var foot_lock_on := true   # стопы не едут по земле на ходу (8 ноя); стенд сравнения: false
 var _fl_hold := 0.0
 var _fl_yaw := 0.0
@@ -315,20 +341,197 @@ func play(c: String, at := 0.0, blend := -1.0) -> void:
 		b = 0.0
 	if c == clip and ap.is_playing() and b > 0.0 and at <= 0.0:   # тот же клип: продолжить (повтор play каждую реплику не дёргает позу)
 		return
+	var old_clip := clip
+	var old_speed := ap.speed_scale
 	clip = c
 	if c != _walk_clip:
 		ap.speed_scale = 1.0
 	if b <= 0.0:
+		_xf = {}
 		skel.reset_bone_poses()
 		ap.play(c, 0.0)
 		ap.seek(at, true)
 	else:
-		ap.play(c, b)
-		if at > 0.0:
-			ap.seek(at, true)
+		# 14 ноя: смешивание — своё, с плавным началом и концом (smoothstep), а не линейное AnimationPlayer: у линейного
+		# скорость костей в первый и последний кадр перехода прыгала на 240–385 °/с («щелчок»). Новый клип играет сразу,
+		# старый досчитывается из его дорожек (идёт дальше, а не замирает) и уходит по кривой ease-in-out (_apply_xf).
+		if ease_blend:
+			_xf_begin(old_clip, old_speed, c, b)
+			ap.play(c, 0.0)
+			if at > 0.0:
+				ap.seek(at, false)
+		else:   # стенд сравнения: линейное смешивание AnimationPlayer, как до 14 ноя
+			ap.play(c, b)
+			if at > 0.0:
+				ap.seek(at, true)
 	_base.clear()
 	# сел — когда поза встанет (после смешивания), тело ложится на сиденье, а не в него (Seats.settle)
 	_settle_t = (b + 0.08) if (c in SEAT and not c in ["Crouch_Idle", "Fixing_Kneeling", "Driving"]) else -1.0
+
+
+## Переход клипа (своё смешивание): откуда (клип и его время или застывшая поза), сколько длится, сколько прошло.
+var _xf := {}
+var _xf_pose := {}     # кость → поворот после смешивания в этом кадре (если переход прервут новым — начать от неё)
+var _xf_ppos := {}     # кость → положение (таз)
+static var _tmap := {} # клип → {"r": {кость: дорожка поворота}, "p": {кость: дорожка положения}}
+
+
+func _tracks(c: String) -> Dictionary:
+	if _tmap.has(c):
+		return _tmap[c]
+	var r := {}
+	var p := {}
+	var an := ap.get_animation(c)
+	for i in an.get_track_count():
+		var bn := String(an.track_get_path(i).get_concatenated_subnames())
+		match an.track_get_type(i):
+			Animation.TYPE_ROTATION_3D:
+				r[bn] = i
+			Animation.TYPE_POSITION_3D:
+				p[bn] = i
+	_tmap[c] = {"r": r, "p": p}
+	return _tmap[c]
+
+
+func _xf_begin(from: String, spd: float, to: String, dur: float) -> void:
+	var nx := {"dur": dur, "el": 0.0}
+	var tb: Dictionary = _tracks(to)
+	var bones := {}
+	var pbones := {}
+	for bn in tb.r:
+		bones[_bi(bn)] = -1
+	for bn in tb.p:
+		pbones[_bi(bn)] = -1
+	if from != "" and ap.has_animation(from) and ap.is_playing() and ap.current_animation == from:
+		var ta: Dictionary = _tracks(from)
+		nx["anim"] = from
+		nx["t"] = ap.current_animation_position
+		nx["spd"] = spd
+		nx["loop"] = from in LOOPS
+		for bn in ta.r:
+			bones[_bi(bn)] = int(ta.r[bn])
+		for bn in ta.p:
+			pbones[_bi(bn)] = int(ta.p[bn])
+		if not _xf.is_empty() and not _xf_pose.is_empty():
+			# прервали переход (на прогулке шаг ↔ стоя бывает каждые полсекунды): старый клип идёт дальше, но со сдвигом
+			# «где была смешанная поза» — поза не прыгает и не замирает (замершие ноги при едущем корне — скольжение)
+			var an_from := ap.get_animation(from)
+			var off := {}
+			var offp := {}
+			for b in _xf_pose:
+				var tr: int = bones.get(b, -1)
+				var q0: Quaternion = an_from.rotation_track_interpolate(tr, float(nx.t)) if tr >= 0 else skel.get_bone_rest(b).basis.get_rotation_quaternion()
+				off[b] = (_xf_pose[b] as Quaternion) * q0.inverse()
+				if not bones.has(b):
+					bones[b] = -1
+			for b in _xf_ppos:
+				var tp: int = pbones.get(b, -1)
+				var p0: Vector3 = an_from.position_track_interpolate(tp, float(nx.t)) if tp >= 0 else skel.get_bone_rest(b).origin
+				offp[b] = (_xf_ppos[b] as Vector3) - p0
+				if not pbones.has(b):
+					pbones[b] = -1
+			nx["off"] = off
+			nx["offp"] = offp
+	else:   # клип стоял на паузе (замершая поза): от поз костей, как сейчас (корпус и руки — без слоёв)
+		var pose := {}
+		for b in bones:
+			if b >= 0:
+				pose[b] = _base[b] if _base.has(b) else skel.get_bone_pose_rotation(b)
+		nx["pose"] = pose
+		var pp := {}
+		for b in pbones:
+			if b >= 0:
+				pp[b] = skel.get_bone_pose_position(b)
+		nx["ppos"] = pp
+	bones.erase(-1)
+	pbones.erase(-1)
+	# шаг ↔ стоя: ноги и таз — линейно, как раньше (корень героя уже едет; с медленным началом smoothstep стопы позы
+	# «стоя» дольше ехали бы по полу); корпус, руки и голова — плавно
+	var legs := {}
+	if to in STRIDE or from in STRIDE:
+		for bn in ["pelvis", "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r"]:
+			if _bi(bn) >= 0:
+				legs[_bi(bn)] = true
+	nx["legs"] = legs
+	# большой путь (рука от уха вниз, со скрещенных на груди — вдоль тела): переход длиннее, чтобы кость шла не быстрее
+	# ~200 °/с в среднем (пик smoothstep — в 1,5 раза больше); посадку не трогаем — по её времени тело кладётся на сиденье
+	if not (to in SEAT) and not (to in LIE) and not (to in STRIDE):
+		var big := 0.0
+		var an_to := ap.get_animation(to)
+		for bn in ["upperarm_l", "upperarm_r", "lowerarm_l", "lowerarm_r", "spine_02", "spine_03"]:
+			var b := _bi(bn)
+			if b < 0 or not tb.r.has(bn):
+				continue
+			var qa: Quaternion = _base[b] if _base.has(b) else skel.get_bone_pose_rotation(b)
+			var qb := an_to.rotation_track_interpolate(int(tb.r[bn]), 0.0)
+			big = maxf(big, rad_to_deg(qa.angle_to(qb)))
+		nx["dur"] = clampf(big / 200.0, dur, 0.75)
+	nx["bones"] = bones
+	nx["pbones"] = pbones
+	_xf = nx
+	_xf_pose.clear()
+	_xf_ppos.clear()
+
+
+## Своё смешивание клипов (после advance, до слоёв): поза = старый клип → новый по smoothstep — скорость костей в начале
+## и в конце перехода нарастает и гаснет плавно (без «щелчка»).
+func _apply_xf(dt: float) -> void:
+	if _xf.is_empty():
+		return
+	var legs: Dictionary = _xf.get("legs", {})
+	var spd := float(_xf.get("spd", 1.0))
+	if not legs.is_empty():
+		# шаг ↔ стоя: переход идёт в темпе шага (как у AnimationPlayer — его смешивание тоже шло со speed_scale): на
+		# медленном старте ноги дольше в позе «стоя», пока корень едва движется — опорная стопа не едет вперёд клипа
+		spd = ap.speed_scale
+		dt *= clampf(absf(ap.speed_scale), 0.3, 1.5)
+		spd = signf(spd) if spd != 0.0 else 1.0
+	_xf.el = float(_xf.el) + dt
+	var u := clampf(float(_xf.el) / maxf(float(_xf.dur), 0.01), 0.0, 1.0)
+	if u >= 1.0:
+		_xf = {}
+		_xf_pose.clear()
+		_xf_ppos.clear()
+		return
+	var w := u * u * (3.0 - 2.0 * u)
+	var src: Animation = null
+	var ta := 0.0
+	if _xf.has("anim"):
+		src = ap.get_animation(String(_xf.anim))
+		_xf.t = float(_xf.t) + dt * spd
+		ta = fposmod(float(_xf.t), maxf(src.length, 0.001)) if bool(_xf.loop) else clampf(float(_xf.t), 0.0, src.length)
+	var pose: Dictionary = _xf.get("pose", {})
+	var ppos: Dictionary = _xf.get("ppos", {})
+	var off: Dictionary = _xf.get("off", {})
+	var offp: Dictionary = _xf.get("offp", {})
+	var bones: Dictionary = _xf.bones
+	for b in bones:
+		var cur := skel.get_bone_pose_rotation(b)
+		var s: Quaternion
+		if src != null:
+			var tr: int = bones[b]
+			s = src.rotation_track_interpolate(tr, ta) if tr >= 0 else skel.get_bone_rest(b).basis.get_rotation_quaternion()
+			if off.has(b):
+				s = (off[b] as Quaternion) * s
+		else:
+			s = pose.get(b, cur)
+		var q := s.slerp(cur, u if legs.has(b) else w)
+		skel.set_bone_pose_rotation(b, q)
+		_xf_pose[b] = q
+	var pb: Dictionary = _xf.pbones
+	for b in pb:
+		var cur := skel.get_bone_pose_position(b)
+		var s: Vector3
+		if src != null:
+			var tr: int = pb[b]
+			s = src.position_track_interpolate(tr, ta) if tr >= 0 else skel.get_bone_rest(b).origin
+			if offp.has(b):
+				s += offp[b]
+		else:
+			s = ppos.get(b, cur)
+		var p := s.lerp(cur, u if legs.has(b) else w)
+		skel.set_bone_pose_position(b, p)
+		_xf_ppos[b] = p
 
 
 func _blend_time(from: String, to: String) -> float:
@@ -747,10 +950,12 @@ func _tick(delta: float) -> void:
 	var qa := Time.get_ticks_usec()
 	if ap.is_playing():
 		ap.advance(dt)
+		_apply_xf(dt)
 		if prof_sections:
 			sec_us["клип"] = int(sec_us.get("клип", 0)) + Time.get_ticks_usec() - qa
 		_capture_base()
 	else:
+		_xf = {}
 		_restore_base()   # поза удержана (клип кончился или на паузе): слои ниже пишут поверх неё, а не поверх прошлого кадра
 	if skirt_sim:
 		# лёжа — без пружин: сила тяжести мира тянула полы пальто к матрасу, бёдра выталкивали их вверх, и подол вставал
@@ -763,6 +968,7 @@ func _tick(delta: float) -> void:
 		SkirtRig.drive(skel, skirt_sim)   # поводки подола — за бёдрами клипа (до пружин)
 	if _snap > 0:
 		_snap -= 1
+	_talk_track(dt)   # реплика идёт и вне кадра: паузы в ней слышат слушающие (кивок на их плане)
 	if vw > 1.5:   # не в кадре: позу держим, остальное не считаем
 		return
 	var q0 := Time.get_ticks_usec()
@@ -771,6 +977,8 @@ func _tick(delta: float) -> void:
 	_life(dt)
 	var q1 := Time.get_ticks_usec()
 	_gaze(dt)
+	if live2:
+		_converse(dt)
 	var q2 := Time.get_ticks_usec()
 	_update_wave(dt)
 	_update_gesture(dt)
@@ -932,6 +1140,15 @@ func _life(dt: float) -> void:
 	_rot(_bi("spine_03"), tilt, -deg_to_rad(0.85) * br * amp)
 	_rot(_bi("clavicle_l"), fwd, deg_to_rad(0.7) * br * amp)
 	_rot(_bi("clavicle_r"), fwd, -deg_to_rad(0.7) * br * amp)
+	if live2 and seat and clip != "Driving" and String(get_meta("carrying", "")) == "":
+		# сидя (14 ноя): корпус не замирает — еле заметно покачивается и поворачивается, таз остаётся на сиденье
+		var sw2 := _mv("sway", 0.5) * 0.7
+		var st := float(_m.get("sway_t", 8.0))
+		var s2 := _noise(st * 1.3, 5.7) * sw2
+		_rot(_bi("spine_01"), fwd, deg_to_rad(0.5) * s2)
+		_rot(_bi("spine_02"), fwd, deg_to_rad(0.35) * s2)
+		_rot(_bi("spine_02"), up, deg_to_rad(0.7) * _noise(st * 1.7, 8.1) * sw2)
+		_rot(_bi("spine_01"), tilt, deg_to_rad(0.6) * _noise(st * 2.1, 3.3) * sw2)
 	if not stand:
 		return
 	# перенос веса: медленно с ноги на ногу — таз наклоняется, грудь компенсирует (голова остаётся ровно)
@@ -1048,8 +1265,15 @@ func _gaze(dt: float) -> void:
 	look_w = move_toward(look_w, 1.0 if has else 0.0, dt * 3.0)
 	var dy := wrapf(_ay - cy, -PI, PI)
 	var dp := _ap - cp
-	# поворот раскладывается: грудь берёт то, что больше 45°, шея и голова — остальное
-	var chest := clampf(absf(dy) - deg_to_rad(45.0), 0.0, deg_to_rad(30.0)) * signf(dy)
+	# поворот раскладывается: грудь берёт то, что больше 45°, шея и голова — остальное. Грудь идёт своей, более
+	# медленной пружиной (14 ноя): глаза ведут, голова догоняет, корпус — последним
+	var wc := w * 0.45
+	_chyv += (-(2.0 * wc) * _chyv - wc * wc * (_chy - dy)) * k
+	_chy += _chyv * k
+	if _snap > 0 or not live2:
+		_chy = dy
+		_chyv = 0.0
+	var chest := clampf(absf(_chy) - deg_to_rad(45.0), 0.0, deg_to_rad(30.0)) * signf(_chy)
 	var rest := dy - chest
 	# угол «+» — вправо (как у глаз: eyeLookOutRight), а поворот вокруг «вверх» на «+» — влево; поэтому минус
 	_rot(_bi("spine_02"), up, -chest * 0.45)
@@ -1102,6 +1326,132 @@ func _gaze(dt: float) -> void:
 	# большой поворот головы — часто сопровождается морганием
 	if absf(_ayv) > 2.5 and blink_t > 0.6 and blink_t < 1e8 and randf() < dt * 3.0:
 		blink_t = 0.2
+
+
+# ---------------------------------------------------------------------------------------------------------------- разговор
+
+## Реплика идёт (и вне кадра): время, конец фразы (пауза в голосе ≥ 0,22 с после ≥ 0,6 с речи, или знак препинания
+## без озвучки) и ударные слоги (всплеск громкости или начало слова) — для жестов говорящего и кивков слушающих.
+func _talk_track(dt: float) -> void:
+	if talk_t < 0.0:
+		if _was_talk:   # реплика кончилась — это тоже конец фразы
+			_was_talk = false
+			if _voiced > 0.3:
+				phrase_n += 1
+			_voiced = 0.0
+			_quiet = 0.0
+		return
+	_was_talk = true
+	talk_t += dt
+	if talk_t >= talk_dur:
+		talk_t = -1.0
+		return
+	var ch := _talk_char(talk_t)
+	var lvl := -1
+	var voiced := not (ch in PUNCT)
+	if talk_env != "":
+		var ei := int(talk_t / 0.04)
+		lvl = clampi(talk_env.unicode_at(ei) - 48, 0, 9) if ei < talk_env.length() else 0
+		voiced = lvl >= 3
+	if voiced:
+		_voiced += dt
+		_quiet = 0.0
+	else:
+		_quiet += dt
+		var stop := _quiet >= 0.22 if lvl >= 0 else (ch != " " and ch != _ch_prev)   # без озвучки — запятая, точка, тире
+		if stop and _voiced > 0.6:
+			phrase_n += 1
+			_voiced = 0.0
+	_beat_cd -= dt
+	var onset := (lvl >= 6 and _lvl_prev < 5) if lvl >= 0 else (voiced and _ch_prev in PUNCT)
+	if onset and _beat_cd <= 0.0:
+		_beat_t = 0.0
+		_beat_cd = randf_range(0.45, 0.9)
+		_beat_amp = randf_range(0.6, 1.0) * (clampf(float(lvl) / 8.0, 0.6, 1.1) if lvl >= 0 else 1.0)
+		if randf() < 0.25:
+			_beat_side = -_beat_side
+	_lvl_prev = maxi(lvl, 0)
+	_ch_prev = ch
+
+
+## Слои разговора (после взгляда): говорящий на ударениях чуть кивает головой «в такт» и, если руки свободны, поднимает
+## предплечье (держит руки «в разговоре», пока говорит); слушающий в паузах собеседника иногда коротко кивает.
+## Всё — по характеру (Manner.TALK) и состоянию: Хейл почти не жестикулирует, Зоя — живо; «второй он» — почти неподвижен.
+func _converse(dt: float) -> void:
+	if mood == "dead" or clip in LIE:
+		_beat_t = -1.0
+		_bc_t = -1.0
+		return
+	if _tk.is_empty():
+		_tk = Manner.talk(key)
+	var mm := float(Manner.TALK_MOOD.get(mood, 1.0))
+	var tilt := global_transform.basis.orthonormalized().x   # поворот на + — голова вперёд/вниз; предплечье на − — вперёд/вверх
+	var h := _bi("head")
+	var talking := talk_t >= 0.0
+	var g := float(_tk.get("gest", 0.45)) * mm
+	var beat := 0.0
+	if _beat_t >= 0.0:
+		_beat_t += dt
+		var u := _beat_t / 0.5
+		if u >= 1.0:
+			_beat_t = -1.0
+		else:
+			var sb := sin(PI * u)
+			beat = sb * sb * _beat_amp   # sin²: начинается и гаснет с нулевой скоростью
+	if beat > 0.0 and h >= 0:
+		_rot(h, tilt, deg_to_rad(2.4) * beat * (0.4 + 0.6 * minf(g * 1.6, 1.0)))
+		_rot(_bi("neck_01"), tilt, deg_to_rad(0.8) * beat)
+	_talk_w = move_toward(_talk_w, 1.0 if talking else 0.0, dt * (1.6 if talking else 1.1))
+	if g > 0.01 and _talk_w > 0.001 and _arms_free():
+		var lift := ease(_talk_w, -1.8) * g
+		for side in ["_r", "_l"]:
+			if float(_grip_w[side]) > 0.05 or (grip.has(side) and float(grip[side]) > 0.05):
+				continue   # в руке предмет — рука не жестикулирует
+			var main: bool = (side == "_r") == (_beat_side > 0.0)
+			var k := 1.0 if main else 0.35 * minf(g * 1.5, 1.0)   # вторая рука — меньше (у Зои — почти наравне)
+			_rot(_bi("lowerarm" + side), tilt, -deg_to_rad(12.0 * lift * k + 12.0 * beat * g * k))
+			_rot(_bi("upperarm" + side), tilt, -deg_to_rad(3.5 * lift * k + 3.0 * beat * g * k))
+			# пальцы чуть раскрываются (в клипах покоя кисть почти в кулаке — жест кулаком читается как угроза)
+			var hb := _bi("hand" + side)
+			if hb >= 0 and _bi("index_01" + side) >= 0:
+				var curl := (skel.global_transform * skel.get_bone_global_pose(hb)).basis.x.normalized() * (1.0 if side == "_l" else -1.0)
+				var op := -minf(lift * k + beat * g * k * 0.5, 1.0)
+				for fn in ["index", "middle", "ring", "pinky"]:
+					_rot_now(_bi(fn + "_01" + side), curl, deg_to_rad(10.0) * op)
+					_rot_now(_bi(fn + "_02" + side), curl, deg_to_rad(22.0) * op)
+					_rot_now(_bi(fn + "_03" + side), curl, deg_to_rad(18.0) * op)
+	# слушающий: пауза у собеседника — короткий кивок (не каждый раз; задержка реакции 0,12–0,4 с)
+	var lt := listen_to
+	if not talking and lt != null and is_instance_valid(lt) and lt != self \
+			and (look_actor == lt or (look_actor == null and look_target == null and bool(_m.get("listen", true)))):
+		if _bc_who != lt:
+			_bc_who = lt
+			_bc_seen = lt.phrase_n
+		elif lt.phrase_n != _bc_seen:
+			_bc_seen = lt.phrase_n
+			if _bc_t < 0.0 and _nod_t < 0.0 and _bc_cd <= 0.0 and randf() < float(_tk.get("nod", 0.35)) * mm:
+				_bc_delay = randf_range(0.12, 0.4)
+				_bc_cd = randf_range(2.5, 4.5)
+	_bc_cd -= dt
+	if _bc_delay >= 0.0:
+		_bc_delay -= dt
+		if _bc_delay < 0.0:
+			_bc_t = 0.0
+			_bc_amp = randf_range(0.7, 1.1)
+	if _bc_t >= 0.0 and h >= 0:
+		_bc_t += dt
+		var v := _bc_t / 0.7
+		if v >= 1.0:
+			_bc_t = -1.0
+		else:
+			var sn := sin(PI * v)
+			_rot(h, tilt, deg_to_rad(5.5) * sn * sn * _bc_amp)
+			_rot(_bi("neck_01"), tilt, deg_to_rad(2.0) * sn * sn * _bc_amp)
+
+
+func _arms_free() -> bool:
+	return clip in TALK_ARMS and reach.is_empty() and gesture == "" and _wave_w < 0.01 and point.is_empty() \
+		and String(get_meta("carrying", "")) == "" and not bool(get_meta("in_car", false))
 
 
 # ---------------------------------------------------------------------------------------------------------------- руки
@@ -1575,22 +1925,17 @@ func _face_update(dt: float) -> void:
 	# губы: буква реплики → форма рта; веса плавно (без «щёлканья»), челюсть — по громкости голоса
 	var vt := ""
 	var open := 0.0
-	if talk_t >= 0.0:
-		talk_t += dt
-		var f := talk_t / talk_dur
-		if f >= 1.0:
-			talk_t = -1.0
-		else:
-			var ch := _talk_char(talk_t)
-			vt = VIS.get(ch, "")
-			open = 0.0 if ch in [" ", ".", ",", "!", "?", "…", "-", "—"] else 0.35 + 0.25 * sin(talk_t * 21.0)
-			if talk_env != "":
-				var ei := int(talk_t / 0.04)
-				open = (float(talk_env.unicode_at(ei) - 48) / 9.0) * 0.75 if ei < talk_env.length() else 0.0
-				if ch == " ":
-					vt = ""
-			if vt in ["viseme_PP", "viseme_FF"]:
-				open *= 0.5
+	if talk_t >= 0.0:   # время реплики идёт в _talk_track (и вне кадра)
+		var ch := _talk_char(talk_t)
+		vt = VIS.get(ch, "")
+		open = 0.0 if ch in [" ", ".", ",", "!", "?", "…", "-", "—"] else 0.35 + 0.25 * sin(talk_t * 21.0)
+		if talk_env != "":
+			var ei := int(talk_t / 0.04)
+			open = (float(talk_env.unicode_at(ei) - 48) / 9.0) * 0.75 if ei < talk_env.length() else 0.0
+			if ch == " ":
+				vt = ""
+		if vt in ["viseme_PP", "viseme_FF"]:
+			open *= 0.5
 	var vk_on := 1.0 - exp(-dt * 28.0)
 	var vk_off := 1.0 - exp(-dt * 16.0)
 	for v in VIS_ALL:

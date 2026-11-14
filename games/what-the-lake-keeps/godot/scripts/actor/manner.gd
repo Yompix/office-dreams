@@ -74,6 +74,21 @@ const MOOD := {
 }
 
 
+## Разговор (14 ноя): gest — руки говорящего на ударных слогах (0 — руки не участвуют, 1 — живо, как Зоя);
+## nod — как часто слушающий кивает в паузах собеседника (0…1). Состояние (страх, «второй он») — множителем ниже.
+const TALK := {
+	"noah": {"gest": 0.6, "nod": 0.45}, "iris": {"gest": 0.25, "nod": 0.22}, "zoe": {"gest": 1.0, "nod": 0.55},
+	"eva": {"gest": 0.5, "nod": 0.45}, "danny": {"gest": 0.4, "nod": 0.35}, "agnes": {"gest": 0.35, "nod": 0.4},
+	"hale": {"gest": 0.2, "nod": 0.15}, "orderly": {"gest": 0.15, "nod": 0.05}, "roman": {"gest": 0.6, "nod": 0.35},
+}
+const TALK_DEFAULT := {"gest": 0.45, "nod": 0.35}
+const TALK_MOOD := {"afraid": 0.5, "pain": 0.4, "other": 0.1, "sleep": 0.0, "dead": 0.0, "tense": 0.8}
+
+
+static func talk(key: String) -> Dictionary:
+	return TALK.get(who(key), TALK_DEFAULT)
+
+
 ## Ключ героя в сцене → профиль (8 ноя): мать в гл. 5 — ключ "mom" (профиль Анны), официантка в гл. 2 — "waitress" (Нины);
 ## Ной в 8 лет двигается как ребёнок (профиль Дэнни), а не как взрослый Ной.
 const ALIAS := {"mom": "anna", "waitress": "nina", "noah_kid": "danny"}
