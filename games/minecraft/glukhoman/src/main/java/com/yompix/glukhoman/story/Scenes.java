@@ -30,6 +30,8 @@ public final class Scenes {
         LEN.put("t3_vanish", 4.5f);
         LEN.put("t3_look", 4.5f);
         LEN.put("t3_bogie", 4.0f);
+        LEN.put("pano", 600f);
+        LEN.put("in_ir", 3.0f);
     }
 
     public static int ticks(String id) {

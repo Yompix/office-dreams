@@ -530,6 +530,14 @@ def sounds():
         i = int(k * SR); m_ = int(0.08 * SR)
         x[i:i + m_] += lp(rng.standard_normal(m_), 400) * np.exp(-np.arange(m_) / m_ * 6)
     save_ogg('joints', verb(x, 2.0, 0.5))
+    # далёкий гудок: аккорд паровозного свистка (три трубы), атака воздухом, долгий хвост в тумане
+    t = t_(3.2)
+    env = np.minimum(1, t / 0.18) * np.minimum(1, np.maximum(0, (2.6 - t) / 0.9))
+    vib = 1 + 0.004 * np.sin(2 * np.pi * 5.2 * t)
+    tone = sum(a * np.sin(2 * np.pi * f * vib * t + rng.uniform(0, 6)) for f, a in ((349, 1), (440, 0.8), (523, 0.6), (698, 0.25), (880, 0.15)))
+    air = bp(rng.standard_normal(len(t)), 900, 3500) * 0.35
+    x = lp((tone + air) * env, 2600)
+    save_ogg('whistle', verb(x, 3.0, 0.55))
 
 
 if __name__ == '__main__':

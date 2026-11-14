@@ -62,6 +62,8 @@ public class SettingsScreen extends Screen {
                 c.save();
             }
         });
+        addDrawableChild(ButtonWidget.builder(Text.literal("Настройки игры (графика, звук, управление)…"), b -> client.setScreen(new net.minecraft.client.gui.screen.option.OptionsScreen(this, client.options)))
+                .dimensions(width / 2 - 110, y - 48, 220, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("Готово"), b -> close()).dimensions(width / 2 - 60, y + 270, 120, 20).build());
     }
 

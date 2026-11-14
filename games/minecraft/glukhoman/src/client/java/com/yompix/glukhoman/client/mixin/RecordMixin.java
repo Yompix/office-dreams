@@ -11,6 +11,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Автотест-запись «как видит игрок»: после всего кадра (мир, рука, HUD). */
 @Mixin(GameRenderer.class)
 public class RecordMixin {
+    @Inject(method = "render", at = @At("HEAD"))
+    private void glukhoman$recBegin(RenderTickCounter counter, boolean tick, CallbackInfo ci) {
+        Recorder.beginFrame();
+    }
+
     @Inject(method = "render", at = @At("TAIL"))
     private void glukhoman$rec(RenderTickCounter counter, boolean tick, CallbackInfo ci) {
         Recorder.frameFree();

@@ -68,7 +68,9 @@ public final class Cine {
 
     // ======================= управление =======================
     /** Сцена «в видоискателе»: REC на экране, видно то, что видно только камерой. replay — это пересмотр кассеты (PLAY ▶). */
-    public static boolean vf, replay;
+    public static boolean vf, replay, noFx;
+    /** Съёмка панорамы: грань куба 0–5. */
+    public static int panoFace;
     /** Параметры сцены от сервера (пересмотр: где лежала камера, кого будили). */
     public static NbtCompound args = new NbtCompound();
 
@@ -123,7 +125,7 @@ public final class Cine {
         c.chunkCullingEnabled = true;
         blur = rays = tear = warp = flash = 0;
         tintR = tintG = tintB = 1;
-        vf = replay = false;
+        vf = replay = noFx = false;
         if (c.currentScreen instanceof CineScreen) c.setScreen(null);
     }
 
@@ -272,6 +274,8 @@ public final class Cine {
             case "pr_train" -> new PrTrain();
             case "pr_board" -> new PrBoard();
             case "rp_night" -> new RpNight();
+            case "pano" -> new Pano();
+            case "in_ir" -> new InIr();
             case "tt_pole" -> new Turntable(GContent.POLE, 4.6, 2.2, 3.6);
             case "tt_watcher" -> new Turntable(GContent.WATCHER, 4.4, 1.8, 3.0);
             case "tt_listener" -> new Turntable(GContent.LISTENER, 3.0, 0.7, 0.85);
@@ -540,6 +544,48 @@ public final class Cine {
                 glitch = 1f;
                 tintR = tintG = tintB = 0.05f;
             }
+        }
+    }
+
+    /** Грани панорамы главного меню: ночная станция с перрона, угол 90°, без пост-эффекта (стыки должны совпасть). */
+    static class Pano implements Scene {
+        public void start(ClientWorld w) {
+            noFx = true;
+            key(w, 4, 68, 19, 7);
+        }
+
+        public void frame(double t) {
+            fog(3f, 46f, 0.06f, 0.068f, 0.08f);
+            float y0 = 60;
+            float[][] f = {{y0, 0}, {y0 + 90, 0}, {y0 + 180, 0}, {y0 - 90, 0}, {y0, -90}, {y0, 90}};
+            cx = 13.5;
+            cy = 67.4;
+            cz = 19.5;
+            yaw = f[panoFace][0];
+            pitch = f[panoFace][1];
+            roll = 0;
+            fov = 90;
+            cone = crush = glitch = 0;
+        }
+    }
+
+    /** Заставка: перрон ночью в ИК-режиме камеры (зелёный, зернистый), камера в руках. */
+    static class InIr implements Scene {
+        public void start(ClientWorld w) {
+            vf = true;
+        }
+
+        public void frame(double t) {
+            Vec3d p = v(-6 + t * 1.3, 67.6, 19.6).add(hand(t, 0.8));
+            cam(p, p.add(dirOf(-75 + (float) Math.sin(t * 0.6) * 10, 8)));
+            fov = 60;
+            fog(6f, 50f, 0.12f, 0.2f, 0.12f);
+            cone = 0;
+            crush = 0;
+            glitch = 0.15f;
+            tintR = 0.5f;
+            tintG = 1.35f;
+            tintB = 0.5f;
         }
     }
 }

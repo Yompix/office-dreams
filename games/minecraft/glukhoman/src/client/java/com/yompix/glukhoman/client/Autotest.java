@@ -43,6 +43,14 @@ public final class Autotest {
             trailer();
             return;
         }
+        if ("assets".equals(System.getProperty("glukhoman.autotest"))) {
+            assets();
+            return;
+        }
+        if ("menu".equals(System.getProperty("glukhoman.autotest"))) {
+            menu();
+            return;
+        }
         if ("walk".equals(System.getProperty("glukhoman.autotest"))) {
             walk();
             return;
@@ -255,18 +263,28 @@ public final class Autotest {
             server(c, s -> {
                 cam0(s, false);
                 tp(s, -7, 66, 19, -90, 6);
-                s.getTickManager().setTickRate(6f);   // медленнее мир — больше кадров на игровую секунду
+                ServerPlayerEntity pp = pl(s);
+                pp.getInventory().setStack(40, new net.minecraft.item.ItemStack(GContent.FLASHLIGHT));   // фонарь в левой руке — чтобы движение было видно
+                pp.getInventory().insertStack(new net.minecraft.item.ItemStack(GContent.BATTERY, 4));
+                if (!com.yompix.glukhoman.horror.Light.isOn(pp)) com.yompix.glukhoman.horror.Light.toggle(pp);
+                s.getTickManager().setTickRate(0.5f);   // медленнее мир — кадр отрисовки на каждый кадр видео, без дублей
             });
             c.options.getPerspective();
         }));
         STEPS.add(new Step(40, c -> {
+            if (c.currentScreen != null) c.setScreen(null);
+            server(c, s -> { if (StoryState.get(s.getOverworld()).chapter == 0) Story.chooseDifficulty(pl(s), 1); });
+            c.options.hudHidden = true;   // чистый кадр: видно только движение камеры
+            System.setProperty("glukhoman.camlog", "/tmp/claude-0/glk/camlog.csv");
             Recorder.startFree("/tmp/claude-0/glukhoman-trailer3/walk_raw.mp4", 30);
             walkT0 = (c.world.getTime()) / 20.0;
-            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.START.register(ctx -> {
+            Recorder.preFrame = () -> {
                 if (walkT0 < 0 || c.player == null) return;
+                if (c.currentScreen != null) c.setScreen(null);   // никаких экранов поверх (выбор сложности мог прийти позже)
                 double t = (c.world.getTime() + c.getRenderTickCounter().getTickDelta(false)) / 20.0 - walkT0;
                 // взгляд: вдоль перрона, на 3-й секунде резко вправо (к дому бабы Поли), потом обратно, на 7-й — влево к линии
-                float yaw = -90 + (float) (-60 * smooth(t, 2.4, 2.9) + 60 * smooth(t, 3.8, 4.7) + 40 * smooth(t, 7.0, 7.4) - 40 * smooth(t, 8.4, 9.2));
+                // «мышь» как у человека: повороты с плавным разгоном и торможением (smootherstep), без рывков
+                float yaw = -90 + (float) (-55 * smoother(t, 2.2, 3.2) + 55 * smoother(t, 3.9, 5.0) + 35 * smoother(t, 6.8, 7.7) - 35 * smoother(t, 8.4, 9.4));
                 c.player.setYaw(yaw);
                 c.player.prevYaw = yaw;
                 c.player.setPitch(6 + (float) (Math.sin(t * 0.7) * 2));
@@ -274,7 +292,7 @@ public final class Autotest {
                 c.options.forwardKey.setPressed(t < 9.6 && !(t > 4.2 && t < 5.3));   // постоял, поднял камеру
                 c.options.sprintKey.setPressed(t > 6.0 && t < 7.8);
                 if (t > 4.6 && !Viewfinder.up) server(c, s -> cam0(s, true));
-            });
+            };
         }));
         STEPS.add(new Step(2, c -> {}));
         wait(c -> walkT0 >= 0 && c.world.getTime() / 20.0 - walkT0 > 10.2, 20000);
@@ -287,6 +305,97 @@ public final class Autotest {
         }));
         STEPS.add(new Step(20, c -> c.scheduleStop()));
         ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    /** Съёмка ресурсов меню: 6 граней панорамы и клипы для заставки (ИК-перрон, табло, поезд, фигура). */
+    static void assets() {
+        newWorld();
+        wait(c -> c.player != null && c.currentScreen != null, 1500);
+        STEPS.add(new Step(5, c -> {
+            c.setScreen(null);
+            server(c, s -> Story.chooseDifficulty(pl(s), 1));
+        }));
+        STEPS.add(new Step(10, c -> server(c, s -> {
+            Story.clearResidents();
+            tp(s, 13, 66, 19, 0, 0);
+            s.getOverworld().setTimeOfDay(18000);
+            var st = StoryState.get(s.getOverworld());
+            for (String g : new String[]{"station", "dispatch"}) {
+                var l = st.lamps.get(g);
+                if (l != null) for (long q : l) {
+                    var bp = BlockPos.fromLong(q);
+                    var bs = s.getOverworld().getBlockState(bp);
+                    if (bs.getBlock() instanceof com.yompix.glukhoman.block.LampBlock) s.getOverworld().setBlockState(bp, bs.with(com.yompix.glukhoman.block.LampBlock.LIT, true), 3);
+                }
+            }
+        })));
+        STEPS.add(new Step(200, c -> {}));
+        wait(Autotest::ready, 1500);
+        STEPS.add(new Step(100, c -> {
+            Cine.play("pano");
+            Cine.panoFace = 0;
+        }));
+        for (int f = 0; f < 6; f++) {
+            final int face = f;
+            STEPS.add(new Step(f == 0 ? 60 : 30, c -> Cine.panoFace = face));
+            STEPS.add(new Step(30, c -> ScreenshotRecorder.saveScreenshot(c.runDirectory, "pano_" + face + ".png", c.getFramebuffer(), t -> Glukhoman.LOG.info("AUTOTEST грань {}", face))));
+        }
+        STEPS.add(new Step(10, c -> {
+            Cine.stop();
+            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> Recorder.frame());
+        }));
+        for (Object[] sh : new Object[][]{{"in_ir", 2.9}, {"t3_board", 4.6}, {"t3_train", 7.5}, {"t3_rewind", 5.3}}) {
+            String id = (String) sh[0];
+            double limit = (Double) sh[1];
+            STEPS.add(new Step(40, c -> {
+                Recorder.start("/tmp/claude-0/glk/intro_" + id + ".mp4", 30);
+                Cine.play(id);
+            }));
+            wait(c -> !Cine.active || Cine.time() >= limit, 200000);
+            STEPS.add(new Step(2, c -> {
+                Recorder.stop();
+                Cine.stop();
+            }));
+        }
+        STEPS.add(new Step(20, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    /** Ролики заставки и меню: всё — кадр за кадром по часам меню; в конце — журнал звуков для сборки звуковой дорожки. */
+    static void menu() {
+        wait(c -> c.currentScreen instanceof com.yompix.glukhoman.client.menu.IntroScreen, 3000);
+        STEPS.add(new Step(1, c -> Recorder.startScreen("/tmp/claude-0/glk/menu_raw.mp4", 30)));
+        int introF = (int) (com.yompix.glukhoman.client.menu.IntroScreen.FULL * 30) + 6;
+        wait(c -> com.yompix.glukhoman.client.menu.MenuClock.recFrame >= introF + 1, 100000);
+        // меню: наводим на пункты по очереди, на 10-й секунде — редкий сбой
+        int[][] plan = {{60, 0}, {45, 1}, {45, 2}, {40, 3}, {50, -2}, {60, 5}, {60, 6}, {60, 0}};
+        int at = introF + 30;
+        for (int[] pl : plan) {
+            final int target = at, what = pl[1];
+            wait(c -> com.yompix.glukhoman.client.menu.MenuClock.recFrame >= target, 100000);
+            STEPS.add(new Step(0, c -> {
+                if (what == -2) com.yompix.glukhoman.client.menu.TitleMenuScreen.forceScare = true;
+                else com.yompix.glukhoman.client.menu.TitleMenuScreen.forceHover = what;
+            }));
+            at += pl[0];
+        }
+        final int end = introF + 15 * 30;
+        wait(c -> com.yompix.glukhoman.client.menu.MenuClock.recFrame >= end, 100000);
+        STEPS.add(new Step(1, c -> {
+            Recorder.stop();
+            try {
+                java.nio.file.Files.write(java.nio.file.Path.of("/tmp/claude-0/glk/menu_sounds.csv"), com.yompix.glukhoman.client.menu.MenuSound.LOG);
+            } catch (Exception e) {
+                Glukhoman.LOG.error("журнал звуков", e);
+            }
+        }));
+        STEPS.add(new Step(20, c -> c.scheduleStop()));
+        ClientTickEvents.END_CLIENT_TICK.register(Autotest::tick);
+    }
+
+    static double smoother(double t, double a, double b) {
+        double u = Math.max(0, Math.min(1, (t - a) / (b - a)));
+        return u * u * u * (u * (u * 6 - 15) + 10);
     }
 
     static double smooth(double t, double a, double b) {

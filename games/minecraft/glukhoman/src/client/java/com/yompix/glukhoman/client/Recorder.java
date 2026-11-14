@@ -35,17 +35,53 @@ public final class Recorder {
         nextT = -1;
     }
 
-    /** Из GameRenderer.render (TAIL): уже с рукой, HUD и рамкой видоискателя. */
-    public static void frameFree() {
+    /** Подменённая доля тика (-1 — нет): кадр рисуется ровно в момент nextT, без дрожи выборки. */
+    public static float forceDelta = -1;
+    static boolean capture;
+
+    /** Из GameRenderer.render (HEAD): если следующий кадр видео попадает в текущий тик — рисуем ровно его. */
+    public static void beginFrame() {
+        forceDelta = -1;
+        capture = false;
         if (!on || !free) return;
         MinecraftClient c = MinecraftClient.getInstance();
         if (c.world == null) return;
-        double gt = (c.world.getTime() + c.getRenderTickCounter().getTickDelta(false)) / 20.0;
-        if (nextT < 0) nextT = gt;
-        while (gt >= nextT) {
+        double now = c.world.getTime();
+        if (nextT < 0) nextT = (now + 0.0) / 20.0;
+        double target = nextT * 20 - now;     // в тиках от начала текущего тика
+        if (target < 1.0) {
+            forceDelta = (float) Math.max(0, target);
+            capture = true;
+        } else forceDelta = 0f;   // ждём следующего тика: время = начало тика (между прошлым и следующим кадром видео, не забегая вперёд)
+        if (preFrame != null) preFrame.run();
+    }
+
+    /** Автотест: сценарий «мыши» — до обновления камеры, по тому же времени кадра. */
+    public static Runnable preFrame;
+
+    /** Запись экранов (заставка, меню): каждый кадр отрисовки — кадр видео, часы меню идут по кадрам. */
+    public static boolean screenRec;
+
+    public static void startScreen(String out, int fps) {
+        start(out, fps);
+        screenRec = true;
+        com.yompix.glukhoman.client.menu.MenuClock.recFps = fps;
+        com.yompix.glukhoman.client.menu.MenuClock.recFrame = 0;
+    }
+
+    /** Из GameRenderer.render (TAIL): уже с рукой, HUD и рамкой видоискателя. */
+    public static void frameFree() {
+        if (on && screenRec) {
             grab();
-            nextT += 1.0 / Cine.recFps;
+            com.yompix.glukhoman.client.menu.MenuClock.recFrame++;
+            return;
         }
+        if (!on || !free || !capture) return;
+        grab();
+        HandCam.logFrame();
+        nextT += 1.0 / Cine.recFps;
+        forceDelta = -1;
+        capture = false;
     }
 
     public static void start(String out, int fps) {
@@ -89,6 +125,8 @@ public final class Recorder {
     public static void stop() {
         on = false;
         free = false;
+        if (screenRec) com.yompix.glukhoman.client.menu.MenuClock.recFrame = -1;
+        screenRec = false;
         Cine.recFps = 0;
         try {
             if (ch != null) ch.close();

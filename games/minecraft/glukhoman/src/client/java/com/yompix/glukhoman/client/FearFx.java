@@ -22,6 +22,7 @@ public final class FearFx {
         MinecraftClient mc = MinecraftClient.getInstance();
         int level = GConfig.get().screenFx;
         if (!GlukhomanClient.inWorld || level == 0 || failed || mc.world == null || mc.player == null) return;
+        if (Cine.active && Cine.noFx) return;   // съёмка панорамы меню: чистые грани куба
         try {
             if (fx == null) {
                 fx = new PostEffectProcessor(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), Glukhoman.id("shaders/post/fear.json"));

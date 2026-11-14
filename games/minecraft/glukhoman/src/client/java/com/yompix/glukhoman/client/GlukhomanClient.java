@@ -94,9 +94,14 @@ public class GlukhomanClient implements ClientModInitializer {
                         Text.literal("Глухомань: меньше жестокости"), net.fabricmc.fabric.api.resource.ResourcePackActivationType.NORMAL));
         // предупреждение 18+ при первом запуске
         ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
-            if (screen instanceof net.minecraft.client.gui.screen.TitleScreen && !GConfig.get().ageAck && System.getProperty("glukhoman.autotest") == null)
+            if (screen instanceof com.yompix.glukhoman.client.menu.TitleMenuScreen && !GConfig.get().ageAck && System.getProperty("glukhoman.autotest") == null)
                 c.execute(() -> c.setScreen(new com.yompix.glukhoman.client.screen.AgeScreen(screen)));
         });
+        // экран загрузки: тёмный фон вместо красного Mojang (логотип подменяет SplashMixin)
+        try {
+            MinecraftClient.getInstance().options.getMonochromeLogo().setValue(true);
+        } catch (Exception ignored) {
+        }
         Autotest.init();
     }
 

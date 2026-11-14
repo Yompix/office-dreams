@@ -450,5 +450,13 @@
    }
   ],
   "subtitle": "subtitles.glukhoman.joints"
+ },
+ "whistle": {
+  "sounds": [
+   {
+    "name": "glukhoman:whistle",
+    "stream": false
+   }
+  ]
  }
 }

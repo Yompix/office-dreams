@@ -120,7 +120,7 @@ public final class GContent {
             "pole_appear", "pole_vanish", "pole_step", "listener_click", "listener_scream", "listener_hurt", "choir_roar", "choir_hum", "choir_hurt",
             "flashlight_click", "battery_dead", "fuse", "generator", "power_on", "lamp_buzz", "door_creak", "lift", "tape_click", "title_hit",
             "pebble", "branch_snap", "distant_scream", "wind_gust", "jumpscare", "breath_close", "scratch", "musicbox", "crash_buzz", "slowmo",
-            "crossing_bell", "cam_motor", "relay", "loudspeaker", "rewind", "motor", "joints"};
+            "crossing_bell", "cam_motor", "relay", "loudspeaker", "rewind", "motor", "joints", "whistle"};
 
     public static SoundEvent sound(String name) {
         return SOUNDS.get(name);

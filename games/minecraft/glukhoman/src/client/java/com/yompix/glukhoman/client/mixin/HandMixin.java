@@ -35,10 +35,10 @@ public class HandMixin {
         boolean right = (hand == Hand.MAIN_HAND) == (player.getMainArm() == net.minecraft.util.Arm.RIGHT);
         float k = com.yompix.glukhoman.client.GConfig.get().handSway / 100f;
         double ph = MathHelper.lerp(tickDelta, player.prevHorizontalSpeed, player.horizontalSpeed);
-        double sp = Math.min(1.5, player.getVelocity().horizontalLength() / 0.13);
+        double sp = com.yompix.glukhoman.client.HandCam.gait * (1 + 0.6 * com.yompix.glukhoman.client.HandCam.runB);   // сглаженная сила шага, как у камеры
         m.push();
-        m.translate(Math.sin(Math.PI * ph) * 0.03 * sp * k, -Math.abs(Math.cos(Math.PI * ph)) * 0.035 * sp * k, 0);
-        m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) (Math.sin(Math.PI * ph) * 2.5 * sp * k)));
+        m.translate(Math.sin(Math.PI * ph) * 0.02 * sp * k, -(0.5 + 0.5 * Math.cos(2 * Math.PI * ph)) * 0.025 * sp * k, 0);
+        m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) (Math.sin(Math.PI * ph) * 1.5 * sp * k)));
         m.push();
         m.translate(right ? 0.05 : -0.05, -0.08, 0.05);
         renderArmHoldingItem(m, v, light, equip, swing, right ? net.minecraft.util.Arm.RIGHT : net.minecraft.util.Arm.LEFT);
