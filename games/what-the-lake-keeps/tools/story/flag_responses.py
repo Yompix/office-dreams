@@ -105,7 +105,7 @@ def _ru(b):
 def strip(x):
     """Убрать прошлые вставки (шаги с "resp") — во всём дереве главы."""
     if isinstance(x, list):
-        x[:] = [v for v in x if not (isinstance(v, dict) and 'resp' in v)]
+        x[:] = [v for v in x if not (isinstance(v, dict) and 'resp' in v and 'ev' not in v)]   # шаги events16.py ("ev") не трогать
         for v in x:
             strip(v)
     elif isinstance(x, dict):

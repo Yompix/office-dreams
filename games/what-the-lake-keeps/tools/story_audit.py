@@ -372,6 +372,10 @@ def present(who, f, sid):
 PRESENCE_KEYS = {'eva_alone', 'danny_left', 'zoe_passed', 'eva_alive', 'baby', 'zoe', 'zoe_gone', 'zoe_taken', 'zoe_taken4', 'zoe_died', 'danny', 'danny_lost', 'danny_hale', 'danny_stayed',
                  'eva', 'eva_found', 'eva_dead', 'agnes_dead', 'end_witness', 'end_shadow', 'end_ice', 'end_mama', 'end_oblivion'}
 COUNTERS = {'trust', 'shadow', 'memory', 'proof', 'ptotal', 'romance', 'hard', 'zoe_trust'}   # числа с порогами — в проходе «любое»
+# Журнальные флаги событий-откликов (tools/story/events16.py): читаются только условиями реплик, сюжет не ветвят —
+# в проходе «любые» (обе ветки реплик проверяются на присутствие героев), иначе состояний вдвое-втрое больше (память).
+COUNTERS |= {'danny_refused', 'said_ok', 'kitchen_exit', 'enough_both', 'book_left', 'hut_shut', 'hut_creak', 'hut_still',
+             'danny_unanswered', 'danny_try'}
 
 # Где герой есть в кадре, даже если ещё не едет с Ноем (встреча, его дом, засада) — сцены по началу ID.
 ENCOUNTER = {

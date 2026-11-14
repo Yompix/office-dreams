@@ -54,7 +54,13 @@
   "c4_card": 0,
   "c4_anna": 0,
   "c4_zoef": 0,
-  "ev_archive": 0
+  "ev_archive": 0,
+  "enough_both": 0,
+  "book_left": 0,
+  "hut_shut": 0,
+  "hut_creak": 0,
+  "hut_still": 0,
+  "danny_unanswered": 0
  },
  "map": [
   {
@@ -1265,6 +1271,12 @@
   "c4_s2_enough": {
    "beats": [
     {
+     "set": {
+      "enough_both": 1
+     },
+     "ev": "enough_both"
+    },
+    {
      "say": "noah",
      "ru": "Хватит. Обе.",
      "en": "Enough. Both of you.",
@@ -1472,6 +1484,85 @@
      "say": "noah",
      "ru": "Всё, закипела. Стоим. Автобуса тут, похоже, лет десять не было.",
      "en": "That’s it, she’s boiling over. We wait. Looks like no bus has stopped here in ten years."
+    },
+    {
+     "say": "zoe",
+     "ru": "Капитан, а ругаться уже можно? Или всё ещё «хватит»?",
+     "en": "Captain, are we allowed to argue now? Or is it still “enough”?",
+     "shot": "zoe_van",
+     "look": {
+      "who": "zoe",
+      "at": "noah"
+     },
+     "ev": "enough_both",
+     "if": {
+      "enough_both": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "ev_enough_both"
+    },
+    {
+     "say": "noah",
+     "ru": "Ругайтесь. Только с мотором.",
+     "en": "Go ahead. Argue with the engine.",
+     "shot": "noah_van",
+     "ev": "enough_both",
+     "if": {
+      "enough_both": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "ev_enough_both"
+    },
+    {
+     "say": "iris",
+     "ru": "Я за. Он первый начал.",
+     "en": "Fine by me. It started it.",
+     "shot": "iris_van",
+     "look": {
+      "who": "iris",
+      "at": "zoe"
+     },
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "ev": "enough_both",
+     "if": {
+      "enough_both": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "ev_enough_both"
+    },
+    {
+     "look": {
+      "who": "zoe",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "ev": "enough_both",
+     "if": {
+      "enough_both": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "ev": "enough_both",
+     "if": {
+      "enough_both": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
     },
     {
      "fx": "stop_walk"
@@ -1994,6 +2085,12 @@
   "c4_s3_leave": {
    "beats": [
     {
+     "set": {
+      "book_left": 1
+     },
+     "ev": "book_left"
+    },
+    {
      "dur": 2.4,
      "shot": "iris_asleep",
      "say": "noah",
@@ -2256,6 +2353,12 @@
   "c4_s4_quiet": {
    "beats": [
     {
+     "set": {
+      "danny_unanswered": 1
+     },
+     "ev": "danny_unanswered"
+    },
+    {
      "dur": 2.6,
      "shot": "danny_stop",
      "say": "danny",
@@ -2340,6 +2443,38 @@
      "ru": "Как голова? Ты плохо спишь — это видно даже отсюда.",
      "en": "How’s the head? You’re not sleeping — I can see it from here.",
      "shot": "hale"
+    },
+    {
+     "say": "hale",
+     "ru": "Утром я к вам заходил. Постучал три раза. Вы не открыли — я не в обиде.",
+     "en": "I stopped by this morning. Knocked three times. You didn’t open — no hard feelings.",
+     "shot": "hale",
+     "look": {
+      "who": "iris",
+      "at": "hale"
+     },
+     "gesture": {
+      "who": "hale",
+      "do": "nod",
+      "dur": 2.2
+     },
+     "ev": "hale_knows",
+     "if": {
+      "hale_knows": ">0"
+     },
+     "resp": "ev_hale_knows"
+    },
+    {
+     "say": "noah",
+     "ru": "Три стука. Вежливо. Подпол, темнота — а он за дверью.",
+     "en": "Three knocks. Polite. The cellar, the dark — and him outside the door.",
+     "thought": true,
+     "shot": "noah_pine",
+     "ev": "hale_knows",
+     "if": {
+      "hale_knows": ">0"
+     },
+     "resp": "ev_hale_knows"
     },
     {
      "say": "noah",
@@ -3908,6 +4043,141 @@
      "fx": "ice_done"
     },
     {
+     "say": "iris",
+     "ru": "Там, в избушке, ты дверь закрыл — ни звука. Я думала, петли заорут.",
+     "en": "Back in the hut you shut that door without a sound. I thought the hinges would scream.",
+     "shot": "iris_lake",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "if": {
+      "hut_shut": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_shut"
+    },
+    {
+     "say": "noah",
+     "ru": "Её надо приподнять за ручку. Тогда петли молчат.",
+     "en": "You lift it by the handle. Then the hinges keep quiet.",
+     "shot": "noah_woods",
+     "if": {
+      "hut_shut": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_shut"
+    },
+    {
+     "say": "iris",
+     "ru": "Механик.",
+     "en": "Mechanic.",
+     "shot": "iris_lake",
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "if": {
+      "hut_shut": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_shut"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "if": {
+      "hut_shut": ">0"
+     },
+     "ev": "hut_door"
+    },
+    {
+     "say": "iris",
+     "ru": "Когда в избушке скрипнула дверь, я решила — всё. Конец.",
+     "en": "When that door creaked in the hut, I thought that was it. The end.",
+     "shot": "iris_lake",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "expr": {
+      "who": "iris",
+      "set": "sad"
+     },
+     "if": {
+      "hut_creak": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_creak"
+    },
+    {
+     "say": "noah",
+     "ru": "Я тоже.",
+     "en": "So did I.",
+     "shot": "noah_woods",
+     "if": {
+      "hut_creak": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_creak"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "if": {
+      "hut_creak": ">0"
+     },
+     "ev": "hut_door"
+    },
+    {
+     "say": "iris",
+     "ru": "В избушке свет был у самых твоих ботинок. А ты даже не шелохнулся.",
+     "en": "In the hut the light was right at your boots. And you didn’t even flinch.",
+     "shot": "iris_lake",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "if": {
+      "hut_still": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_still"
+    },
+    {
+     "say": "noah",
+     "ru": "Не мог. Ноги не слушались.",
+     "en": "I couldn’t. My legs wouldn’t move.",
+     "shot": "noah_woods",
+     "if": {
+      "hut_still": ">0"
+     },
+     "ev": "hut_door",
+     "resp": "ev_hut_door:hut_still"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "if": {
+      "hut_still": ">0"
+     },
+     "ev": "hut_door"
+    },
+    {
      "note": {
       "ru": "Ной стучит зубами. Штаны заледенели коркой.",
       "en": "Noah’s teeth are chattering. His jeans are stiff with ice."
@@ -4132,6 +4402,12 @@
      "fail": "c4_s6_creak"
     },
     {
+     "set": {
+      "hut_shut": 1
+     },
+     "ev": "hut_shut"
+    },
+    {
      "shot": "hut",
      "note": {
       "ru": "Дверь встаёт на место. Без звука.",
@@ -4146,6 +4422,12 @@
   },
   "c4_s6_creak": {
    "beats": [
+    {
+     "set": {
+      "hut_creak": 1
+     },
+     "ev": "hut_creak"
+    },
     {
      "fx": "snd:knock:-16",
      "shot": "hut_gap",
@@ -4170,6 +4452,12 @@
   },
   "c4_s6_still": {
    "beats": [
+    {
+     "set": {
+      "hut_still": 1
+     },
+     "ev": "hut_still"
+    },
     {
      "shot": "hut",
      "dur": 3.4,
@@ -4254,6 +4542,61 @@
      "thought": true,
      "ru": "Шланг держит. Пока держит.",
      "en": "The hose is holding. For now."
+    },
+    {
+     "say": "iris",
+     "ru": "Ты не открыл блокнот. Я на обложку волосок клала.",
+     "en": "You didn’t open my notebook. I left a hair on the cover.",
+     "shot": "iris_van",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "ev": "book_left",
+     "if": {
+      "book_left": ">0"
+     },
+     "resp": "ev_book_left"
+    },
+    {
+     "say": "noah",
+     "ru": "Шпионка.",
+     "en": "Spy.",
+     "shot": "noah_van",
+     "ev": "book_left",
+     "if": {
+      "book_left": ">0"
+     },
+     "resp": "ev_book_left"
+    },
+    {
+     "say": "iris",
+     "ru": "Спасибо, Ной.",
+     "en": "Thanks, Noah.",
+     "shot": "iris_van",
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "ev": "book_left",
+     "if": {
+      "book_left": ">0"
+     },
+     "resp": "ev_book_left"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "ev": "book_left",
+     "if": {
+      "book_left": ">0"
+     }
     },
     {
      "ask": {

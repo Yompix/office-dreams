@@ -5,7 +5,8 @@
 сравнивает путь, концовку и флаги.
   python3 tools/story_sim.py list          тесты
   python3 tools/story_sim.py run ИМЯ       один тест (путь, выборы, флаги)
-  python3 tools/story_sim.py all [файл]    все тесты → JSON (по умолчанию /tmp/lake_sim.json)"""
+  python3 tools/story_sim.py all [файл]    все тесты → JSON (по умолчанию /tmp/lake_sim.json)
+  python3 tools/story_sim.py events        16 событий-откликов: на каких маршрутах срабатывают (код 1 — если ни на одном или на всех)"""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import story_audit as A
@@ -70,10 +71,24 @@ def sim_explore(d, f, data, asked, skip=()):
         use(e)
 
 
+RESP = []   # отклики, которые прошёл маршрут (шаги с "resp", как «отклик …» в логе game.gd), по порядку
+ABSENT = []   # (отклик, сцена, кто): реплика отклика героя, которого по story_audit.present() рядом нет
+CUR = ['']
+
+
+def _resp(b, f):
+    RESP.append(b['resp'])
+    w = b.get('say')
+    if w in ('zoe', 'danny', 'eva', 'agnes') and not A.present(w, f, CUR[0]):
+        ABSENT.append((b['resp'], CUR[0], w))
+
+
 def sim_beats(beats, f, data, asked, key, skip=()):
     for b in beats:
         if 'if' in b and not A.cond_ok(b['if'], f):
             continue
+        if 'resp' in b:
+            _resp(b, f)
         if 'set' in b:
             for k, v in b['set'].items():
                 f[k] = f.get(k, 0) + int(v)
@@ -93,11 +108,13 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0, skip=()):
     asked = {}
     ending = None
     guard = 0
+    RESP.clear()
     while sid:
         guard += 1
         if guard > 2000:
             raise RuntimeError('зациклилось у ' + sid)
         path.append(sid)
+        CUR[0] = sid
         nxt = None
         for b in sc[sid]['beats']:
             if 'if' in b and not A.cond_ok(b['if'], f):
@@ -105,6 +122,8 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0, skip=()):
                     nxt = b['else']
                     break
                 continue
+            if 'resp' in b:
+                _resp(b, f)
             if 'set' in b:
                 for k, v in b['set'].items():
                     f[k] = f.get(k, 0) + int(v)
@@ -160,7 +179,8 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0, skip=()):
                             break
                 break
         sid = nxt
-    return {'picks': picks, 'path': path, 'choices': said, 'flags': {k: v for k, v in f.items() if v}, 'ending': ending}
+    return {'picks': picks, 'path': path, 'choices': said, 'flags': {k: v for k, v in f.items() if v}, 'ending': ending,
+            'resp': list(RESP)}
 
 
 # Общая основа «мирного» прохождения: Ной не выбирает насилие, бережёт доверие Айрис, всех берёт с собой.
@@ -261,6 +281,18 @@ TESTS = {
                                rules=T(DARK, c5_s3_iris='Я всё помню', c5_s4='Айрис', c5_s4_iris='Не двигаться', c4_s5='Отдать ему дневник',
                                        c4_s5_diary_no='Отобрать силой', c4_s4_road='Свернуть')),
     '30_archive_peace': dict(title='Мирный путь с заездом в «Тихие сосны» (Зоя ждёт в буханке)', rules=T(PEACE, c4_s4_road='Свернуть')),
+    # 16 событий-откликов (tools/story/events16.py): маршруты, где срабатывают события, которых нет на маршрутах выше
+    '31_echoes_peace': dict(title='События-отклики, мирный путь: Дэнни взяли после «Мы не можем его взять», объезд поста, «Хватит. Обе», '
+                                  'провал на заправке и Дэнни на остановке без ответа, в избушке замер, у сосны — в лес, «постараюсь» Дэнни, '
+                                  'таблетку попросил у Айрис',
+                            rules=T(PEACE, s4='Не принимать', s6='Мы не можем его взять', s6_b='Ладно. Садись назад', c2_s3='Развернуться',
+                                    c2_s4_danny='Да. Я не помню как',
+                                    c4_s2_zoe='Хватит. Обе', c4_s4='silent', c4_s6_hide='Не трогать', c4_s5='Бежать в лес',
+                                    c5_t_danny='Не знаю. Но я постараюсь', c5_s1_pills2='Попросить таблетку')),
+    '32_echoes_dark': dict(title='События-отклики, тёмный путь: блокнот не тронул, Дэнни на остановке не ответил, '
+                                 'дверь в избушке скрипнула, малышка заплакала',
+                           rules=T(DARK, s6_b='Ладно. Садись назад', c4_s3_sleep='Не трогать', c4_s4='silent',
+                                   c4_s6_hide='Закрыть дверь'), miss=['brake'], missin=['c4_s6_door', 'c4_s6_baby', 'c4_s6_rock_iris']),
 }
 
 
@@ -271,6 +303,30 @@ def main():
         for k, t in TESTS.items():
             print('%-28s %s' % (k, t['title']))
         return 0
+    if cmd == 'events':   # 16 событий-откликов (events16.py): на каких маршрутах срабатывают; каждое — хотя бы на одном и не на всех
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'story'))
+        import events16
+        ABSENT.clear()
+        runs = {k: simulate(data, chapters, t['rules'], t.get('miss', ()), t.get('missin', ()), skip=t.get('skip', ()))['resp']
+                for k, t in TESTS.items()}
+        bad = 0
+        for ev in events16.EVENTS:
+            ids = []   # отклики события в данных: одно или по одному на исход
+            for b in data['scenes'][ev[2]]['beats']:
+                if b.get('ev') == ev[0] and b.get('resp') and b['resp'] not in ids:
+                    ids.append(b['resp'])
+            if not ids:
+                print('НЕТ %s: в данных нет шагов (запустить tools/story/events16.py)' % ev[0])
+                bad += 1
+            for rid in ids:
+                on = [k for k, rs in runs.items() if rid in rs]
+                ok = 0 < len(on) < len(TESTS)
+                bad += not ok
+                print('%s %-28s гл.%d %-14s маршрутов %2d/%d: %s' % ('ОК ' if ok else 'НЕТ', rid, ev[1], ev[2], len(on), len(TESTS),
+                      ' '.join(on[:5]) + (' …' if len(on) > 5 else '')))
+        ev_abs = sorted(set(x for x in ABSENT if x[0].startswith('ev_')))
+        print('реплики событий героев, которых нет рядом (story_audit.present): %d %s' % (len(ev_abs), ev_abs))
+        return 1 if bad or ev_abs else 0
     names = list(TESTS) if cmd == 'all' else [sys.argv[2]]
     out = {}
     for k in names:

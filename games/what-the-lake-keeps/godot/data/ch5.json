@@ -78,7 +78,8 @@
   "c5_pack": 0,
   "c5_box": 0,
   "c5_letter": 0,
-  "ev_letter": 0
+  "ev_letter": 0,
+  "danny_try": 0
  },
  "map": [
   {
@@ -646,6 +647,35 @@
      "en": "Shh, little one, shh. It’ll be warm soon."
     },
     {
+     "say": "eva",
+     "ru": "Хотя нет — плачь, маленькая. Тут можно. Тут никто не услышит.",
+     "en": "Actually, no — go ahead and cry, little one. You can here. No one will hear.",
+     "shot": "dacha_room",
+     "expr": {
+      "who": "eva",
+      "set": "smile"
+     },
+     "if": {
+      "baby_cried": ">0",
+      "baby": ">0",
+      "eva_alive": ">0"
+     },
+     "ev": "baby_cried",
+     "resp": "ev_baby_cried"
+    },
+    {
+     "expr": {
+      "who": "eva",
+      "set": "none"
+     },
+     "if": {
+      "baby_cried": ">0",
+      "baby": ">0",
+      "eva_alive": ">0"
+     },
+     "ev": "baby_cried"
+    },
+    {
      "say": "agnes",
      "ru": "Неча на лёд у мостков ходить. Там ключи бьют — лёд и в лютый мороз не держит.",
      "en": "Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.",
@@ -764,6 +794,152 @@
       "iris_fought": ">0"
      },
      "shot": "iris_coat"
+    },
+    {
+     "say": "iris",
+     "ru": "У сосны ты схватил монтировку раньше, чем я успела крикнуть.",
+     "en": "At the pine you grabbed the crowbar before I could even yell.",
+     "shot": "iris_coat",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "if": {
+      "pine_attack": ">0",
+      "iris_fought": "==0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_attack"
+    },
+    {
+     "say": "noah",
+     "ru": "Руки быстрее меня. Это и пугает.",
+     "en": "My hands are faster than me. That’s what scares me.",
+     "shot": "noah_room",
+     "gesture": {
+      "who": "noah",
+      "do": "look_hands",
+      "dur": 2.6
+     },
+     "if": {
+      "pine_attack": ">0",
+      "iris_fought": "==0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_attack"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "if": {
+      "pine_attack": ">0",
+      "iris_fought": "==0"
+     },
+     "ev": "pine"
+    },
+    {
+     "say": "iris",
+     "ru": "В лесу ты меня так за руку тащил — чуть не оторвал.",
+     "en": "In the woods you dragged me by the hand so hard you nearly pulled it off.",
+     "shot": "iris_coat",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "if": {
+      "pine_run": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_run"
+    },
+    {
+     "say": "noah",
+     "ru": "Прости.",
+     "en": "Sorry.",
+     "shot": "noah_room",
+     "if": {
+      "pine_run": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_run"
+    },
+    {
+     "say": "iris",
+     "ru": "Не извиняйся. Если что — тащи и дальше.",
+     "en": "Don’t apologize. If it comes to that, keep dragging me.",
+     "shot": "iris_coat",
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "if": {
+      "pine_run": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_run"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     },
+     "if": {
+      "pine_run": ">0"
+     },
+     "ev": "pine"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты спросил его про маму. Прямо в лицо. Я бы не смогла.",
+     "en": "You asked him about Mom. Right to his face. I couldn’t have.",
+     "shot": "iris_coat",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "if": {
+      "pine_talk": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_talk"
+    },
+    {
+     "say": "noah",
+     "ru": "Он соврал.",
+     "en": "He lied.",
+     "shot": "noah_room",
+     "if": {
+      "pine_talk": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_talk"
+    },
+    {
+     "say": "iris",
+     "ru": "Соврал. Но ты спросил.",
+     "en": "He lied. But you asked.",
+     "shot": "iris_coat",
+     "if": {
+      "pine_talk": ">0"
+     },
+     "ev": "pine",
+     "resp": "ev_pine:pine_talk"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "if": {
+      "pine_talk": ">0"
+     },
+     "ev": "pine"
     },
     {
      "fx": "house5"
@@ -1186,6 +1362,66 @@
     },
     {
      "say": "zoe",
+     "ru": "Глянь, синяк. Это с леса — когда ты меня у них отбил.",
+     "en": "Look, a bruise. From the woods — when you got me away from them.",
+     "shot": "zoe_porch",
+     "gesture": {
+      "who": "zoe",
+      "do": "look_hands",
+      "dur": 2.4
+     },
+     "ev": "zoe_saved",
+     "if": {
+      "zoe_saved": ">0"
+     },
+     "resp": "ev_zoe_saved"
+    },
+    {
+     "say": "noah",
+     "ru": "Прости.",
+     "en": "Sorry.",
+     "shot": "noah_porch",
+     "ev": "zoe_saved",
+     "if": {
+      "zoe_saved": ">0"
+     },
+     "resp": "ev_zoe_saved"
+    },
+    {
+     "say": "zoe",
+     "ru": "Дурак. Это мой любимый синяк.",
+     "en": "Idiot. It’s my favorite bruise.",
+     "shot": "zoe_porch",
+     "look": {
+      "who": "zoe",
+      "at": "noah"
+     },
+     "expr": {
+      "who": "zoe",
+      "set": "smile"
+     },
+     "ev": "zoe_saved",
+     "if": {
+      "zoe_saved": ">0"
+     },
+     "resp": "ev_zoe_saved"
+    },
+    {
+     "look": {
+      "who": "zoe",
+      "at": null
+     },
+     "expr": {
+      "who": "zoe",
+      "set": "none"
+     },
+     "ev": "zoe_saved",
+     "if": {
+      "zoe_saved": ">0"
+     }
+    },
+    {
+     "say": "zoe",
      "ru": "Кстати. «Айрис… может, и так». Я запомнила.",
      "en": "By the way. “Iris… maybe you’re right.” I remember that.",
      "shot": "zoe_porch",
@@ -1397,6 +1633,69 @@
     },
     {
      "say": "danny",
+     "ru": "На остановке я тебе всё рассказал. А ты промолчал.",
+     "en": "At the bus stop I told you everything. And you didn’t say a thing.",
+     "shot": "danny_room",
+     "look": {
+      "who": "danny",
+      "at": "noah"
+     },
+     "ev": "danny_unanswered",
+     "if": {
+      "danny_unanswered": ">0"
+     },
+     "resp": "ev_danny_unanswered"
+    },
+    {
+     "say": "noah",
+     "ru": "Я не знал, что на такое отвечают.",
+     "en": "I didn’t know what you say to something like that.",
+     "shot": "noah_room",
+     "ev": "danny_unanswered",
+     "if": {
+      "danny_unanswered": ">0"
+     },
+     "resp": "ev_danny_unanswered"
+    },
+    {
+     "say": "danny",
+     "ru": "Можно просто «спасибо».",
+     "en": "You can just say “thanks.”",
+     "shot": "danny_room",
+     "ev": "danny_unanswered",
+     "if": {
+      "danny_unanswered": ">0"
+     },
+     "resp": "ev_danny_unanswered"
+    },
+    {
+     "say": "noah",
+     "ru": "Спасибо, Дэнни.",
+     "en": "Thanks, Danny.",
+     "shot": "danny_room",
+     "gesture": {
+      "who": "danny",
+      "do": "nod",
+      "dur": 2.2
+     },
+     "ev": "danny_unanswered",
+     "if": {
+      "danny_unanswered": ">0"
+     },
+     "resp": "ev_danny_unanswered"
+    },
+    {
+     "look": {
+      "who": "danny",
+      "at": null
+     },
+     "ev": "danny_unanswered",
+     "if": {
+      "danny_unanswered": ">0"
+     }
+    },
+    {
+     "say": "danny",
      "ru": "Я никому не сказал. Про заправку. Как ты просил.",
      "en": "I didn’t tell anybody. About the gas station. Like you said.",
      "shot": "danny_room",
@@ -1505,6 +1804,12 @@
   },
   "c5_t_danny_try": {
    "beats": [
+    {
+     "set": {
+      "danny_try": 1
+     },
+     "ev": "danny_try"
+    },
     {
      "say": "noah",
      "ru": "Не знаю. Но я постараюсь.",
@@ -1677,6 +1982,23 @@
   },
   "c5_s1_pills2": {
    "beats": [
+    {
+     "say": "noah",
+     "ru": "Карман пустой. Пузырёк так и лежит в сугробе у Агнес. Пусть лежит до весны.",
+     "en": "Empty pocket. The bottle’s still in the snowdrift at Agnes’s. Let it stay there till spring.",
+     "thought": true,
+     "shot": "noah_room",
+     "gesture": {
+      "who": "noah",
+      "do": "pockets",
+      "dur": 2.8
+     },
+     "ev": "pills_snow",
+     "if": {
+      "pills_snow": ">0"
+     },
+     "resp": "ev_pills_snow"
+    },
     {
      "if": {
       "pills_iris": ">0"
@@ -2114,6 +2436,32 @@
      "say": "iris",
      "ru": "Я тут, за спиной. Смотри. Я никуда не денусь.",
      "en": "I’m right behind you. Look. I’m not going anywhere."
+    },
+    {
+     "say": "noah",
+     "ru": "Таблеток нет — Айрис сожгла. Ничего не глушит. Только я и эта щель.",
+     "en": "No pills — Iris burned them. Nothing to dull it. Just me and this gap.",
+     "thought": true,
+     "shot": "noah_gap",
+     "look": {
+      "who": "iris",
+      "at": "noah"
+     },
+     "ev": "iris_refused",
+     "if": {
+      "iris_refused": ">0"
+     },
+     "resp": "ev_iris_refused"
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": null
+     },
+     "ev": "iris_refused",
+     "if": {
+      "iris_refused": ">0"
+     }
     },
     {
      "fx": "summer_night"
@@ -3981,6 +4329,23 @@
      "say": "danny",
      "ru": "Лови верёвку! На руку мотай! Я тяну!",
      "en": "Catch the rope! Wrap it round your hand! I’m pulling!"
+    },
+    {
+     "say": "danny",
+     "ru": "Ты сказал — постараешься! Вот и старайся!",
+     "en": "You said you’d try! So try!",
+     "shot": "hole",
+     "look": {
+      "who": "danny",
+      "at": "noah"
+     },
+     "ev": "danny_try",
+     "if": {
+      "danny_try": ">0",
+      "danny_rope": ">0",
+      "sitter_danny": "==0"
+     },
+     "resp": "ev_danny_try"
     },
     {
      "qte": "press",
