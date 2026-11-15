@@ -95,5 +95,14 @@
     "button": "▶️ Play in browser",
     "url": "https://yompix.github.io",
     "photo": "posts/2026-11-13-yg-hts-update.jpg"
+  },
+  {
+    "id": "2026-11-15-yg-yurk-vpn",
+    "at": "2026-11-15T17:00:00Z",
+    "channel": "@yompixgames",
+    "text": "<b>🛡 Meet YURK VPN — my new project</b>\n\nI got tired of VPNs that drop every five minutes, so I built my own. One tap, and every site and video opens — fast, no buffering.\n\n⚡ No speed limits\n🥷 Invisible to DPI: your traffic looks like a normal website (VLESS Reality)\n🌍 Servers in the Netherlands, the USA and Singapore\n📱 Phone, PC and Mac on one subscription\n🔒 No logs: we don't keep which sites you open\n🎁 <b>3 days free</b>, no card needed\n💸 Invite friends and get <b>20%</b> of every payment they make\n\nIt all lives in Telegram: open the bot, tap \"Open YURK\" and you're connected in a minute.\n\nMade by me at Yompix, the studio behind Hush Till Six. The only official bot is @yurkvpn_bot.",
+    "button": "🛡 Try YURK free",
+    "url": "https://t.me/yurkvpn_bot",
+    "photo": "posts/2026-11-15-yg-yurk-vpn.jpg"
   }
 ]
