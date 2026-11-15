@@ -44,7 +44,7 @@ function xrayBase(n, users) {
 
 function xrayVps(n, users) {
   return {
-    log: { loglevel: 'warning' },
+    log: { loglevel: 'warning', access: 'none', dnsLog: false }, // no access log: we never keep which sites people open
     inbounds: [{
       listen: '0.0.0.0', port: n.port, protocol: 'vless', tag: 'reality',
       settings: { clients: users.map((u) => ({ id: u.uuid, flow: 'xtls-rprx-vision', email: `u${u.id}` })), decryption: 'none' },
