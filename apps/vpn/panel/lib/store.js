@@ -38,6 +38,9 @@ function open(file) {
   `);
   // columns added after the first release
   const cols = db.prepare('PRAGMA table_info(nodes)').all().map((c) => c.name);
+  const ucols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
+  if (!ucols.includes('plan')) db.exec("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT ''");
+  if (!ucols.includes('paid_at')) db.exec('ALTER TABLE users ADD COLUMN paid_at INTEGER DEFAULT 0');
   const pcols = db.prepare('PRAGMA table_info(payments)').all().map((c) => c.name);
   if (!pcols.includes('method')) db.exec("ALTER TABLE payments ADD COLUMN method TEXT DEFAULT 'stars'");
   if (!pcols.includes('usd')) db.exec('ALTER TABLE payments ADD COLUMN usd REAL DEFAULT 0');
@@ -52,7 +55,7 @@ function open(file) {
     insUser: q('INSERT INTO users (id, name, lang, created, token, uuid, pass, ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
     updName: q('UPDATE users SET name = ?, lang = ? WHERE id = ?'),
     setExp: q('UPDATE users SET expires = ? WHERE id = ?'),
-    active: q('SELECT id, uuid, pass FROM users WHERE expires > ? AND banned = 0 ORDER BY id'),
+    active: q('SELECT id, uuid, pass, plan, paid_at FROM users WHERE expires > ? AND banned = 0 ORDER BY id'),
     insPay: q('INSERT OR IGNORE INTO payments (charge, uid, plan, stars, days, ts, method, usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
     insNode: q('INSERT INTO nodes (name, host, secret, priv, pub, sid, sni) VALUES (?, ?, ?, ?, ?, ?, ?)'),
     nodes: q('SELECT * FROM nodes ORDER BY id'),
@@ -89,7 +92,7 @@ function open(file) {
     startTrial(id, days, now = Date.now()) {
       const u = store.user(id);
       if (!u || u.trial || u.expires > now) return 0;
-      db.prepare('UPDATE users SET trial = 1 WHERE id = ?').run(id);
+      db.prepare("UPDATE users SET trial = 1, plan = 'trial' WHERE id = ?").run(id);
       return store.extend(id, days, now);
     },
 
@@ -150,6 +153,8 @@ function open(file) {
     addTraffic(day, uid, up, down) {
       db.prepare('INSERT INTO traffic (day, uid, up, down) VALUES (?, ?, ?, ?) ON CONFLICT(day, uid) DO UPDATE SET up = up + excluded.up, down = down + excluded.down').run(day, uid, up, down);
     },
+    userTrafficSince: (uid, day) => db.prepare('SELECT COALESCE(SUM(up + down), 0) AS b FROM traffic WHERE uid = ? AND day >= ?').get(uid, day).b,
+    setPlan: (id, plan, now = Date.now()) => db.prepare('UPDATE users SET plan = ?, paid_at = ? WHERE id = ?').run(plan, now, id),
     trafficSince: (day) => db.prepare('SELECT COALESCE(SUM(up + down), 0) AS b, COUNT(DISTINCT uid) AS users FROM traffic WHERE day >= ?').get(day),
     topTraffic: (day, n = 5) => db.prepare('SELECT uid, SUM(up + down) AS b FROM traffic WHERE day >= ? GROUP BY uid ORDER BY b DESC LIMIT ?').all(day, n),
     paymentsSince: (ts) => db.prepare('SELECT method, COUNT(*) AS n, SUM(stars) AS stars, SUM(usd) AS usd FROM payments WHERE ts >= ? GROUP BY method').all(ts),

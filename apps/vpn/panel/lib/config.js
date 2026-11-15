@@ -46,11 +46,16 @@ function load(e = process.env) {
     },
     // card payments only for these Telegram languages (the card provider works in cardCurrency)
     cardLangs: (e.CARD_LANGS || 'ru,be,kk').split(',').map((s) => s.trim()),
-    // a node running as a Railway service (see apps/vpn/railway-node); TCP is "host:port" of its TCP proxy
-    railwayNode: e.RAILWAY_NODE_SECRET && e.RAILWAY_NODE_HOST ? {
-      name: e.RAILWAY_NODE_NAME || '🌐 Railway', secret: e.RAILWAY_NODE_SECRET, host: e.RAILWAY_NODE_HOST,
-      rhost: (e.RAILWAY_NODE_TCP || '').split(':')[0] || '', rport: Number((e.RAILWAY_NODE_TCP || '').split(':')[1]) || 0,
-    } : null,
+    // nodes running as Railway services (apps/vpn/railway-node): RAILWAY_NODE_*, RAILWAY_NODE2_*, … RAILWAY_NODE9_*
+    // SECRET, HOST (https domain), TCP ("host:port" of the TCP proxy), NAME
+    railwayNodes: [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => {
+      const k = (x) => e[`RAILWAY_NODE${i > 1 ? i : ''}_${x}`] || '';
+      if (!k('SECRET') || !k('HOST')) return null;
+      const [rhost, rport] = k('TCP').split(':');
+      return { name: k('NAME') || '🌐 Railway', secret: k('SECRET'), host: k('HOST'), rhost: rhost || '', rport: Number(rport) || 0 };
+    }).filter(Boolean),
+    // traffic limit in GB per month by plan (0 = none). On Railway every GB costs $0.05
+    quotas: { trial: 3, m1: 50, m3: 60, y1: 80, ...(e.QUOTAS ? JSON.parse(e.QUOTAS) : {}) },
     // Telegram sends this back in X-Telegram-Bot-Api-Secret-Token, so we know a webhook call is real
     hookSecret: botToken ? crypto.createHash('sha256').update('hook:' + botToken).digest('hex').slice(0, 48) : '',
   };

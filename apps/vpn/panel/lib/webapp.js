@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const { tierOf, TIERS } = require('./regions.js');
 const { pick } = require('./texts.js');
+const Quota = require('./quota.js');
 
 const hmac = (key, data, enc) => crypto.createHmac('sha256', key).update(data).digest(enc);
 
@@ -63,8 +64,9 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       active, expires: u.expires, daysLeft: active ? Math.ceil((u.expires - now) / 86400000) : 0,
       trial: !u.trial && !active && cfg.trialDays > 0, trialDays: cfg.trialDays,
       sub: active ? subUrl(u) : null,
+      usage: (() => { const q = Quota.usage(store, cfg, u, now); return { used: q.usedGb, quota: q.quotaGb, over: q.over }; })(),
       ref: cfg.botUsername ? `https://t.me/${cfg.botUsername}?start=r${u.id}` : null, refDays: cfg.refDays,
-      tier, plans: bot.plansFor(tier).map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, card: cardOk(u) ? cardAmount(cfg, p) / 100 : null })),
+      tier, plans: bot.plansFor(tier).map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, gb: cfg.quotas[p.id] || 0, card: cardOk(u) ? cardAmount(cfg, p) / 100 : null })),
       methods: { stars: true, crypto: !!cb, card: cardOk(u) }, cardCurrency: cfg.cardCurrency,
       nodes: store.enabledNodes().map((n) => n.name),
       support: cfg.support || null,

@@ -207,9 +207,9 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   [, r] = await wa.api('pay', init, { plan: 'y1', method: 'crypto' }, now);
   assert.strictEqual(r.link, 'https://t.me/CryptoBot?start=IV7');
   const ci = cbCalls.find((c) => c.m === 'createInvoice').p;
-  assert.strictEqual(ci.amount, '24.99'); assert.strictEqual(ci.payload, 'y1:400:mid'); assert.strictEqual(ci.fiat, 'USD');
+  assert.strictEqual(ci.amount, '29.99'); assert.strictEqual(ci.payload, 'y1:400:mid'); assert.strictEqual(ci.fiat, 'USD');
   const exp1 = store.user(400).expires;
-  paidItems = [{ invoice_id: 7, status: 'paid', amount: '24.99', payload: 'y1:400:mid' }, { invoice_id: 8, payload: 'zz:1' }];
+  paidItems = [{ invoice_id: 7, status: 'paid', amount: '29.99', payload: 'y1:400:mid' }, { invoice_id: 8, payload: 'zz:1' }];
   assert.strictEqual(await wa.pollCrypto(now), 1);
   assert.strictEqual(await wa.pollCrypto(now), 0);
   assert.strictEqual(store.user(400).expires, exp1 + 365 * DAY);
@@ -261,6 +261,36 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(await dailyMoney(cfg, store, tg, morning + 3600e3), false);
   assert.strictEqual(await dailyMoney(cfg, store, tg, Date.UTC(2026, 10, 17, 3)), false);
   ok('traffic counters + money report (/money, daily)');
+
+  // traffic limits by plan: trial 3 GB, month 50 GB; over the limit -> off the node, notice in the app, warning once
+  const Quota = require('./lib/quota.js');
+  const eve = { id: 800, first_name: 'Eve', language_code: 'ru' };
+  await bot.handle(msg(eve, '/start'), now);
+  await bot.handle(cb(eve, 'trial'), now);
+  assert.strictEqual(store.user(800).plan, 'trial');
+  const today = new Date(now).toISOString().slice(0, 10);
+  store.addTraffic(today, 800, 1 * GB, 1 * GB);
+  let q = Quota.usage(store, cfg, store.user(800), now);
+  assert.strictEqual(q.quotaGb, 3); assert.strictEqual(q.usedGb, 2); assert.strictEqual(q.over, false);
+  assert.ok(Quota.allowedUsers(store, cfg, now).some((u) => u.id === 800));
+  calls.length = 0;
+  await bot.quotaWarn(now); await bot.quotaWarn(now);
+  assert.strictEqual(calls.filter((c) => c.m === 'sendMessage' && c.p.chat_id === 800).length, 0); // 66% — quiet
+  store.addTraffic(today, 800, 0, 1 * GB);
+  q = Quota.usage(store, cfg, store.user(800), now);
+  assert.strictEqual(q.over, true);
+  assert.ok(!Quota.allowedUsers(store, cfg, now).some((u) => u.id === 800));
+  await bot.quotaWarn(now); await bot.quotaWarn(now);
+  assert.strictEqual(calls.filter((c) => c.m === 'sendMessage' && c.p.chat_id === 800).length, 1);
+  const sub = Links.subscription(store.user(800), store.enabledNodes(), cfg, now, q);
+  assert.strictEqual(sub.lines.length, 1); assert.ok(decodeURIComponent(sub.lines[0]).includes('Лимит трафика'));
+  assert.match(sub.headers['subscription-userinfo'], new RegExp(`download=${3 * GB}; total=${3 * GB}`));
+  // buying starts a new window with the plan's limit
+  await wbot.fulfil({ uid: 800, plan: wbot.planById('m1'), charge: 'q1', stars: 199, method: 'stars' }, now + 3600e3);
+  q = Quota.usage(store, cfg, store.user(800), now + 3600e3);
+  assert.strictEqual(q.quotaGb, 50); assert.strictEqual(q.over, false);
+  assert.ok(Quota.allowedUsers(store, cfg, now + 3600e3).some((u) => u.id === 800));
+  ok('traffic limits by plan');
 
   // the page itself is served
   const srv2 = http.createServer(createApp({ cfg, store, bot, webapp: wa, log: quiet })).listen(0);

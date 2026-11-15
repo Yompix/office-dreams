@@ -4,6 +4,7 @@ const { pick } = require('./texts.js');
 const { tierOf, TIERS } = require('./regions.js');
 const { DAY } = require('./store.js');
 const Money = require('./money.js');
+const Quota = require('./quota.js');
 
 const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').reverse().join('.');
 
@@ -31,7 +32,8 @@ function create({ cfg, store, tg, log = console }) {
   async function showKey(chat, u, now) {
     const t = pick(u.lang);
     if (u.expires <= now) return send(chat, t.noSub, [[{ text: t.bBuy, callback_data: 'buy' }], ...back(t)]);
-    return send(chat, t.key(subUrl(u), fmtDate(u.expires)), [
+    const q = Quota.usage(store, cfg, u, now);
+    return send(chat, t.key(subUrl(u), fmtDate(u.expires)) + '\n\n' + (q.over ? t.qOver : t.qLine(q.usedGb, q.quotaGb)), [
       [{ text: t.bConnect, url: subUrl(u) }],
       [{ text: t.bReset, callback_data: 'reset' }, { text: t.bHelp, callback_data: 'help' }],
       ...back(t),
@@ -85,7 +87,7 @@ function create({ cfg, store, tg, log = console }) {
     return send(chat, mn.text, mn.kb);
   }
 
-  const plansKb = (u) => { const t = pick(u.lang); return [...plansFor(tierOf(u.lang)).map((p) => [{ text: t.plan(p), callback_data: 'plan:' + p.id }]), ...back(t)]; };
+  const plansKb = (u) => { const t = pick(u.lang); return [...plansFor(tierOf(u.lang)).map((p) => [{ text: t.plan(p) + (cfg.quotas[p.id] ? ` · ${cfg.quotas[p.id]} ${t.gbMo}` : ''), callback_data: 'plan:' + p.id }]), ...back(t)]; };
 
   async function onCallback(q, now) {
     const { user: u } = store.ensureUser(q.from, 0, now);
@@ -147,6 +149,7 @@ function create({ cfg, store, tg, log = console }) {
     if (!before) return false;
     if (!store.recordPayment(charge, uid, plan.id, stars, plan.days, now, method, usd)) return false; // already counted
     const exp = store.extend(uid, plan.days, now);
+    store.setPlan(uid, plan.id, now); // new traffic window with this plan's limit
     await send(uid, pick(before.lang).paid(fmtDate(exp))).catch(() => {});
     if (!before.paid && before.ref && cfg.refDays > 0) {
       const r = store.user(before.ref);
@@ -165,6 +168,21 @@ function create({ cfg, store, tg, log = console }) {
     } catch (e) { log.error('bot:', e.message); }
   }
 
+  // traffic warnings: at 80% and when the limit is reached, once per traffic window
+  async function quotaWarn(now = Date.now()) {
+    for (const u of store.activeUsers(now)) {
+      const q = Quota.usage(store, cfg, u, now);
+      const lvl = q.over ? 100 : q.share >= 0.8 ? 80 : 0;
+      if (!lvl) continue;
+      const key = `qw:${u.id}:${q.from}:${lvl}`;
+      if (store.kvGet(key)) continue;
+      store.kvSet(key, 1);
+      const full = store.user(u.id);
+      const t = pick(full.lang);
+      await send(u.id, lvl === 100 ? t.qOver : t.q80(q.usedGb, q.quotaGb), [[{ text: t.bBuy, callback_data: 'buy' }]]).catch(() => {});
+    }
+  }
+
   // reminder a day before the end, once per expiry date
   async function remind(now = Date.now()) {
     for (const u of store.toWarn(now, DAY)) {
@@ -174,7 +192,7 @@ function create({ cfg, store, tg, log = console }) {
     }
   }
 
-  return { handle, remind, menu, fulfil, planById, plansFor };
+  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor };
 }
 
 module.exports = { create, fmtDate };

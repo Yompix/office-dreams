@@ -4,9 +4,9 @@
 
 const DEFAULT_TIERS = {
   // owner gets ~$0.013 per star; Railway traffic costs $0.05/GB (~$1-2 per active user a month)
-  high: [{ id: 'm1', days: 30, stars: 299, usd: 4.99 }, { id: 'm3', days: 90, stars: 749, usd: 12.99 }, { id: 'y1', days: 365, stars: 2390, usd: 39.99 }],
-  mid: [{ id: 'm1', days: 30, stars: 199, usd: 2.99 }, { id: 'm3', days: 90, stars: 499, usd: 7.49 }, { id: 'y1', days: 365, stars: 1690, usd: 24.99 }],
-  low: [{ id: 'm1', days: 30, stars: 149, usd: 1.99 }, { id: 'm3', days: 90, stars: 379, usd: 4.99 }, { id: 'y1', days: 365, stars: 1290, usd: 16.99 }],
+  high: [{ id: 'm1', days: 30, stars: 299, usd: 4.99 }, { id: 'm3', days: 90, stars: 749, usd: 12.99 }, { id: 'y1', days: 365, stars: 3290, usd: 49.99 }],
+  mid: [{ id: 'm1', days: 30, stars: 199, usd: 2.99 }, { id: 'm3', days: 90, stars: 499, usd: 7.49 }, { id: 'y1', days: 365, stars: 1990, usd: 29.99 }],
+  low: [{ id: 'm1', days: 30, stars: 149, usd: 1.99 }, { id: 'm3', days: 90, stars: 379, usd: 4.99 }, { id: 'y1', days: 365, stars: 1590, usd: 21.99 }],
 };
 
 const TIER_OF_LANG = {

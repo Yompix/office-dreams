@@ -12,6 +12,7 @@ const Bot = require('./lib/bot.js');
 const Tg = require('./lib/tg.js');
 const WebApp = require('./lib/webapp.js');
 const Money = require('./lib/money.js');
+const Quota = require('./lib/quota.js');
 const APP_HTML = path.join(__dirname, 'public', 'app.html');
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -70,7 +71,7 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         const now = Date.now();
         const full = `${cfg.publicUrl}/sub/${u.token}`;
         if (isBrowser(req)) return send(200, subPage(cfg, u, full, now), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-        const s = Links.subscription(u, store.enabledNodes(), cfg, now);
+        const s = Links.subscription(u, store.enabledNodes(), cfg, now, Quota.usage(store, cfg, u, now));
         return send(200, s.body, s.headers);
       }
 
@@ -82,7 +83,7 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         if (!n) return send(403, 'no');
         const pin = String(req.headers['x-hy2-pin'] || '').trim();
         store.touchNode(n.id, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/i.test(pin) ? pin.toUpperCase() : '');
-        const users = n.enabled ? store.activeUsers() : [];
+        const users = n.enabled ? Quota.allowedUsers(store, cfg) : [];
         if (m[1] === 'xray.json') return send(200, JSON.stringify(NodeCfg.xray(n, users, { stats: url.searchParams.get('stats') !== '0' }), null, 1), { 'content-type': 'application/json' });
         return send(200, NodeCfg.hysteria(n, users), { 'content-type': 'text/yaml' });
       }
@@ -177,7 +178,7 @@ async function startBot(cfg, tg, bot, log) {
 if (require.main === module) {
   const cfg = Config.load();
   const store = Store.open(cfg.dbPath);
-  if (cfg.railwayNode) { const n = store.railwayNode(cfg.railwayNode); console.log(`railway node #${n.id} ${n.host}${n.rport ? ' + ' + n.rhost + ':' + n.rport : ''}`); }
+  for (const rn of cfg.railwayNodes) { const n = store.railwayNode(rn); console.log(`railway node #${n.id} ${n.name} ${n.host}${n.rport ? ' + ' + n.rhost + ':' + n.rport : ''}`); }
   const tg = cfg.botToken ? Tg.client(cfg.botToken) : { call: async () => { throw new Error('BOT_TOKEN is not set'); } };
   const bot = Bot.create({ cfg, store, tg });
   const webapp = WebApp.create({ cfg, store, bot, tg });
@@ -185,6 +186,7 @@ if (require.main === module) {
   if (cfg.botToken) startBot(cfg, tg, bot, console).catch((e) => console.error('bot start:', e.message));
   else console.warn('BOT_TOKEN is not set: the bot is off');
   setInterval(() => bot.remind().catch(() => {}), 3600e3).unref();
+  setInterval(() => bot.quotaWarn().catch((e) => console.error('quota:', e.message)), 600e3).unref();
   setInterval(() => dailyMoney(cfg, store, tg).catch((e) => console.error('money:', e.message)), 600e3).unref();
   if (cfg.cryptoToken) setInterval(() => webapp.pollCrypto().catch((e) => console.error(e.message)), 60e3).unref();
 }

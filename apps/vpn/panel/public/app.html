@@ -49,6 +49,14 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .btn.ghost{background:var(--card2);border:1px solid var(--line2);padding:0 16px}
 .btn[disabled]{opacity:.45;pointer-events:none}
 
+.use{margin-top:16px}
+.use .ut{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:6px}
+.use .ut b{color:var(--tx)}
+.use .bar2{height:8px;border-radius:99px;background:#1d2436;overflow:hidden}
+.use .bar2 i{display:block;height:100%;width:0;border-radius:99px;background:var(--grad);transition:width .8s}
+.use.warn .bar2 i{background:linear-gradient(90deg,var(--warn),var(--bad))}
+.use.over .ut span{color:var(--bad);font-weight:700}
+.plan .gb{font-size:11.5px;color:var(--a2);margin-top:6px;font-weight:600}
 .gift{margin-top:12px;display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);background:linear-gradient(120deg,rgba(255,181,71,.16),rgba(255,93,115,.10));border:1px solid rgba(255,181,71,.35)}
 .gift .e{font-size:28px}
 .gift div:nth-child(2){flex:1}
@@ -137,6 +145,7 @@ h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)
       <button class="btn main" id="connect" disabled>⚡ <span data-t="connect"></span></button>
       <button class="btn ghost" id="copy" disabled title="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button>
     </div>
+    <div class="use" id="use" hidden><div class="ut"><span id="useL"></span><b id="useV"></b></div><div class="bar2"><i id="useBar"></i></div></div>
   </section>
 
   <div class="gift" id="gift" hidden><div class="e">🎁</div><div><b id="giftH"></b><span data-t="giftP"></span></div><button id="trial" data-t="giftB"></button></div>
@@ -183,6 +192,7 @@ const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurre
 
 const L = {
   ru: {
+    traffic: 'Трафик в этом месяце', gb: 'ГБ', gbMo: 'ГБ/мес', qOver: 'Лимит исчерпан — продлите',
     on: 'Защищено', off: 'Не подключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'),
     actH: 'Подписка активна', actP: (d) => `до ${d} · все серверы и устройства`, offH: 'Нет подписки', offP: 'Выберите тариф ниже — включится сразу после оплаты',
     connect: 'Подключить', copied: 'Ссылка скопирована', giftH: (n) => `${n} дня бесплатно`, giftP: 'Без оплаты, без карты', giftB: 'Взять',
@@ -199,6 +209,7 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    traffic: 'Traffic this month', gb: 'GB', gbMo: 'GB/mo', qOver: 'Limit reached — renew',
     on: 'Protected', off: 'Not connected', daysW: (n) => n === 1 ? 'day' : 'days',
     actH: 'Subscription active', actP: (d) => `until ${d} · all servers and devices`, offH: 'No subscription', offP: 'Pick a plan below — it turns on right after payment',
     connect: 'Connect', copied: 'Link copied', giftH: (n) => `${n} days free`, giftP: 'No payment, no card', giftB: 'Get it',
@@ -215,6 +226,7 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    traffic: 'Трафік цього місяця', gb: 'ГБ', gbMo: 'ГБ/міс', qOver: 'Ліміт вичерпано — продовжте',
     on: 'Захищено', off: 'Не підключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дні' : 'днів'),
     actH: 'Підписка активна', actP: (d) => `до ${d} · усі сервери та пристрої`, offH: 'Немає підписки', offP: 'Оберіть тариф нижче — увімкнеться одразу після оплати',
     connect: 'Підключити', copied: 'Посилання скопійовано', giftH: (n) => `${n} дні безкоштовно`, giftP: 'Без оплати, без картки', giftB: 'Взяти',
@@ -231,6 +243,7 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    traffic: 'ترافیک این ماه', gb: 'گیگ', gbMo: 'گیگ/ماه', qOver: 'حجم تمام شد — تمدید کنید',
     on: 'محافظت‌شده', off: 'متصل نیست', daysW: () => 'روز',
     actH: 'اشتراک فعال است', actP: (d) => `تا ${d} · همه سرورها و دستگاه‌ها`, offH: 'اشتراکی ندارید', offP: 'یک طرح را از پایین انتخاب کنید — بلافاصله پس از پرداخت فعال می‌شود',
     connect: 'اتصال', copied: 'لینک کپی شد', giftH: (n) => `${n} روز رایگان`, giftP: 'بدون پرداخت، بدون کارت', giftB: 'دریافت',
@@ -247,6 +260,7 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    traffic: 'Bu ayki trafik', gb: 'GB', gbMo: 'GB/ay', qOver: 'Limit doldu — yenileyin',
     on: 'Korunuyor', off: 'Bağlı değil', daysW: () => 'gün',
     actH: 'Abonelik aktif', actP: (d) => `${d} tarihine kadar · tüm sunucular ve cihazlar`, offH: 'Abonelik yok', offP: 'Aşağıdan bir paket seçin — ödemeden hemen sonra açılır',
     connect: 'Bağlan', copied: 'Bağlantı kopyalandı', giftH: (n) => `${n} gün ücretsiz`, giftP: 'Ödeme yok, kart yok', giftB: 'Al',
@@ -263,6 +277,7 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    traffic: '本月流量', gb: 'GB', gbMo: 'GB/月', qOver: '流量已用完 — 请续费',
     on: '已保护', off: '未连接', daysW: () => '天',
     actH: '订阅有效', actP: (d) => `至 ${d} · 所有服务器和设备`, offH: '暂无订阅', offP: '在下方选择套餐 — 付款后立即生效',
     connect: '连接', copied: '链接已复制', giftH: (n) => `免费 ${n} 天`, giftP: '无需付款，无需银行卡', giftB: '领取',
@@ -279,6 +294,7 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    traffic: 'Tráfico este mes', gb: 'GB', gbMo: 'GB/mes', qOver: 'Límite agotado — renueva',
     on: 'Protegido', off: 'No conectado', daysW: (n) => n === 1 ? 'día' : 'días',
     actH: 'Suscripción activa', actP: (d) => `hasta el ${d} · todos los servidores y dispositivos`, offH: 'Sin suscripción', offP: 'Elige un plan abajo — se activa justo después del pago',
     connect: 'Conectar', copied: 'Enlace copiado', giftH: (n) => `${n} días gratis`, giftP: 'Sin pago, sin tarjeta', giftB: 'Obtener',
@@ -337,6 +353,15 @@ function render() {
   $('connect').disabled = $('copy').disabled = !S.sub;
   document.querySelector('.btns').hidden = !S.sub;
 
+  const U = S.usage || {};
+  $('use').hidden = !(S.active || U.over) || !U.quota;
+  if (U.quota) {
+    const sh = Math.min(1, U.used / U.quota);
+    $('use').className = 'use' + (U.over ? ' over' : sh >= 0.8 ? ' warn' : '');
+    $('useL').textContent = U.over ? T.qOver : T.traffic;
+    $('useV').textContent = `${U.used} / ${U.quota} ${T.gb}`;
+    requestAnimationFrame(() => { $('useBar').style.width = (sh * 100).toFixed(1) + '%'; });
+  }
   $('gift').hidden = !S.trial;
   $('giftH').textContent = T.giftH(S.trialDays);
 
@@ -347,7 +372,7 @@ function render() {
     const tag = p.days === 90 ? `<span class="tag p">${T.pop}</span>` : save >= 10 ? `<span class="tag">${T.best(save)}</span>` : '';
     const name = T['d' + p.days] || p.days + 'd';
     const pm = method === 'stars' ? Math.round(p.stars / (p.days / 30)) + ' ⭐' : method === 'card' && p.card ? Math.round(p.card / (p.days / 30)) + ' ' + (({ RUB: '₽' })[S.cardCurrency] || S.cardCurrency) : usd(p.usd / (p.days / 30));
-    return `<button class="plan${p.id === plan ? ' sel' : ''}" data-p="${p.id}">${tag}<div class="d">${name}</div><div class="pm">${T.perMo(pm)}</div><div class="pr">${price(p, method) || usd(p.usd)}</div></button>`;
+    return `<button class="plan${p.id === plan ? ' sel' : ''}" data-p="${p.id}">${tag}<div class="d">${name}</div><div class="pm">${T.perMo(pm)}</div><div class="pr">${price(p, method) || usd(p.usd)}</div>${p.gb ? `<div class="gb">${p.gb} ${T.gbMo}</div>` : ''}</button>`;
   }).join('');
 
   const P = S.plans.find((p) => p.id === plan) || S.plans[0];
@@ -432,10 +457,11 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && S 
 function demo(action) {
   const now = Date.now();
   if (!demo.s) demo.s = { brand: 'YURK', bot: 'yurkvpn_bot', lang: (new URLSearchParams(location.search).get('lang') || 'ru'), active: /active/.test(location.search), expires: now + 23 * 864e5, daysLeft: 23, trial: !/active/.test(location.search), trialDays: 3,
+    usage: { used: 18.4, quota: 60, over: false },
     sub: 'https://example.com/sub/demo', ref: 'https://t.me/yurkvpn_bot?start=r1', refDays: 7,
-    plans: /lang=fa/.test(location.search) ? [{ id: 'm1', days: 30, stars: 149, usd: 1.99 }, { id: 'm3', days: 90, stars: 379, usd: 4.99 }, { id: 'y1', days: 365, stars: 1290, usd: 16.99 }]
-      : [{ id: 'm1', days: 30, stars: 199, usd: 2.99, card: 299 }, { id: 'm3', days: 90, stars: 499, usd: 7.49, card: 749 }, { id: 'y1', days: 365, stars: 1690, usd: 24.99, card: 2499 }],
-    methods: { stars: true, crypto: true, card: false }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇫🇮 Финляндия', '🇩🇪 Германия'], support: '@yurk_support' };
+    plans: /lang=fa/.test(location.search) ? [{ id: 'm1', days: 30, stars: 149, usd: 1.99, gb: 50 }, { id: 'm3', days: 90, stars: 379, usd: 4.99, gb: 60 }, { id: 'y1', days: 365, stars: 1590, usd: 21.99, gb: 80 }]
+      : [{ id: 'm1', days: 30, stars: 199, usd: 2.99, card: 299, gb: 50 }, { id: 'm3', days: 90, stars: 499, usd: 7.49, card: 749, gb: 60 }, { id: 'y1', days: 365, stars: 1990, usd: 29.99, card: 2999, gb: 80 }],
+    methods: { stars: true, crypto: true, card: false }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇺🇸 США', '🇸🇬 Сингапур'], support: '@yurk_support' };
   if (!demo.s.active) demo.s.sub = null;
   if (action === 'trial') { demo.s.sub = 'https://example.com/sub/demo'; demo.s.trial = false; demo.s.active = true; demo.s.daysLeft = 3; demo.s.expires = now + 3 * 864e5; }
   return Promise.resolve(demo.s);
