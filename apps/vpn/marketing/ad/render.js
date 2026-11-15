@@ -14,9 +14,10 @@ const { chromium } = require('playwright');
   await p.goto('file://' + path.join(__dirname, 'scene.html') + '?render');
   const dur = await p.evaluate(() => window.DUR);
   const n = Math.round(dur * fps);
+  const voice = process.env.VOICE_SYNC === '1'; // timing fitted to the owner's recording (scene.html VOICE)
   const from = Number(process.argv[4] || 0), to = Number(process.argv[5] || n); // optional frame range
   for (let i = from; i < Math.min(n, to); i++) {
-    await p.evaluate((t) => window.frame(t), i / fps);
+    await p.evaluate(([t, v]) => (v ? window.frameVoice(t) : window.frame(t)), [i / fps, voice]);
     await p.screenshot({ path: path.join(out, `f${String(i + 1).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 92 });
     if (i % 60 === 0) process.stdout.write(`${i}/${n} `);
   }
