@@ -12,7 +12,7 @@ const { createApp } = require('./server.js');
 const calls = [];
 const tg = { call: async (m, p) => { calls.push({ m, p }); return { ok: true }; } };
 const last = (m) => [...calls].reverse().find((c) => c.m === m);
-const cfg = Config.load({ BOT_TOKEN: '1:x', BOT_USERNAME: 'TestVpnBot', PUBLIC_URL: 'https://vpn.example.com', ADMIN_IDS: '1', ADMIN_KEY: 'k', BRAND: 'Skvoz' });
+const cfg = Config.load({ BOT_TOKEN: '1:x', BOT_USERNAME: 'TestVpnBot', PUBLIC_URL: 'https://vpn.example.com', ADMIN_IDS: '1', ADMIN_KEY: 'k', BRAND: 'Лазейка' });
 const store = Store.open(':memory:');
 const quiet = { log() {}, error() {} };
 const bot = Bot.create({ cfg, store, tg, log: quiet });
