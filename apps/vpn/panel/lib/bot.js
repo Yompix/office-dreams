@@ -1,6 +1,7 @@
 'use strict';
 /* Telegram bot: menu, free trial, Stars payments, referrals, admin commands. */
 const { pick } = require('./texts.js');
+const { tierOf, TIERS } = require('./regions.js');
 const { DAY } = require('./store.js');
 
 const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').reverse().join('.');
@@ -8,7 +9,8 @@ const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').rever
 function create({ cfg, store, tg, log = console }) {
   const subUrl = (u) => `${cfg.publicUrl}/sub/${u.token}`;
   const isAdmin = (id) => cfg.adminIds.includes(id);
-  const planById = (id) => cfg.plans.find((p) => p.id === id);
+  const plansFor = (tier) => cfg.tiers[tier] || cfg.tiers.mid;
+  const planById = (id, tier = 'mid') => plansFor(tier).find((p) => p.id === id);
   const send = (chat, text, kb) => tg.call('sendMessage', { chat_id: chat, text, parse_mode: 'HTML', disable_web_page_preview: true, ...(kb ? { reply_markup: { inline_keyboard: kb } } : {}) });
 
   function menu(u, now = Date.now()) {
@@ -81,7 +83,7 @@ function create({ cfg, store, tg, log = console }) {
     return send(chat, mn.text, mn.kb);
   }
 
-  const plansKb = (u) => { const t = pick(u.lang); return [...cfg.plans.map((p) => [{ text: t.plan(p), callback_data: 'plan:' + p.id }]), ...back(t)]; };
+  const plansKb = (u) => { const t = pick(u.lang); return [...plansFor(tierOf(u.lang)).map((p) => [{ text: t.plan(p), callback_data: 'plan:' + p.id }]), ...back(t)]; };
 
   async function onCallback(q, now) {
     const { user: u } = store.ensureUser(q.from, 0, now);
@@ -102,11 +104,12 @@ function create({ cfg, store, tg, log = console }) {
     if (d === 'help') return send(chat, t.help, back(t));
     if (d === 'ref') return send(chat, t.ref(`https://t.me/${cfg.botUsername}?start=r${u.id}`, cfg.refDays), back(t));
     if (d.startsWith('plan:')) {
-      const p = planById(d.slice(5));
+      const tier = tierOf(u.lang);
+      const p = planById(d.slice(5), tier);
       if (!p) return;
       return tg.call('sendInvoice', {
         chat_id: chat, title: t.invTitle(cfg.brand, p), description: t.invDesc(p),
-        payload: `${p.id}:${u.id}`, currency: 'XTR', prices: [{ label: t.invTitle(cfg.brand, p), amount: p.stars }],
+        payload: `${p.id}:${u.id}:${tier}`, currency: 'XTR', prices: [{ label: t.invTitle(cfg.brand, p), amount: p.stars }],
       });
     }
   }
@@ -115,8 +118,9 @@ function create({ cfg, store, tg, log = console }) {
   function checkPayload(payload, currency, amount) {
     const parts = String(payload || '').split(':');
     const card = parts[0] === 'card';
-    const [pid, uid] = card ? parts.slice(1) : parts;
-    const p = planById(pid);
+    const [pid, uid, tier = 'mid'] = card ? parts.slice(1) : parts;
+    if (!TIERS.includes(tier)) return null;
+    const p = planById(pid, tier);
     if (!p || !store.user(Number(uid))) return null;
     if (card ? !(cfg.cardToken && currency === cfg.cardCurrency && amount === Math.round(p.usd * cfg.cardRate) * 100) : (currency !== 'XTR' || amount !== p.stars)) return null;
     return { plan: p, uid: Number(uid), card };
@@ -168,7 +172,7 @@ function create({ cfg, store, tg, log = console }) {
     }
   }
 
-  return { handle, remind, menu, fulfil, planById };
+  return { handle, remind, menu, fulfil, planById, plansFor };
 }
 
 module.exports = { create, fmtDate };

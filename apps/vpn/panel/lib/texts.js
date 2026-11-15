@@ -1,56 +1,164 @@
 'use strict';
-/* Bot texts. ru is used for ru/uk/be/kk, en for everyone else. Add a language = add a block. */
+/* Bot texts: ru, uk, en, fa, tr, zh, es. Other ex-USSR languages get ru, everyone else en.
+   Add a language = add a block (same keys) + UNITS. */
+
+const UNITS = {
+  ru: { d: 'дн.', m: (n) => `${n} мес.`, y: (n) => (n === 1 ? '1 год' : `${n} года`) },
+  uk: { d: 'дн.', m: (n) => `${n} міс.`, y: (n) => (n === 1 ? '1 рік' : `${n} роки`) },
+  en: { d: 'days', m: (n) => (n === 1 ? '1 month' : `${n} months`), y: (n) => (n === 1 ? '1 year' : `${n} years`) },
+  fa: { d: 'روز', m: (n) => `${n} ماه`, y: (n) => `${n} سال` },
+  tr: { d: 'gün', m: (n) => `${n} ay`, y: (n) => `${n} yıl` },
+  zh: { d: '天', m: (n) => `${n} 个月`, y: (n) => `${n} 年` },
+  es: { d: 'días', m: (n) => (n === 1 ? '1 mes' : `${n} meses`), y: (n) => (n === 1 ? '1 año' : `${n} años`) },
+};
+
+function planName(p, lang) {
+  const u = UNITS[lang] || UNITS.en;
+  if (p.days % 365 === 0) return u.y(p.days / 365);
+  if (p.days % 30 === 0) return u.m(p.days / 30);
+  return `${p.days} ${u.d}`;
+}
+
 const T = {
   ru: {
     hello: (b, nodes) => `🛡 <b>${b}</b> — быстрый VPN, который работает там, где другие блокируют.\n\n⚡ VLESS Reality и Hysteria2: трафик выглядит как обычный сайт, DPI его не видит.\n🌍 Серверы: ${nodes || 'скоро'}\n📱 Android, iPhone, Windows, Mac — одна подписка на все устройства.`,
-    active: (d) => `✅ Подписка активна до <b>${d}</b>`,
-    none: '❌ Подписки нет.',
+    active: (d) => `✅ Подписка активна до <b>${d}</b>`, none: '❌ Подписки нет.',
     bApp: '🚀 Открыть YURK', bTrial: (n) => `🎁 Бесплатно ${n} дн.`, bBuy: '💳 Купить / продлить', bKey: '🔑 Мой ключ', bHelp: '📲 Как подключить',
     bRef: '👥 Пригласить друга', bSupport: '💬 Поддержка', bBack: '« Назад', bConnect: '📲 Подключить в один клик', bReset: '🔄 Сменить ключ',
     trialOk: (d) => `🎁 Пробный период включён до <b>${d}</b>.\nЖмите «Мой ключ» и подключайтесь.`,
     trialUsed: 'Пробный период уже был. Выберите тариф 👇',
-    plans: '💳 <b>Тарифы</b>\nОплата звёздами Telegram, без карт. Дни добавляются к текущей подписке.',
-    plan: (p) => `${planName(p, 'ru')} — ${p.stars} ⭐`,
-    invTitle: (b, p) => `${b}: ${planName(p, 'ru')}`, invDesc: (p) => `VPN на ${p.days} дн. Все серверы и устройства.`,
+    plans: '💳 <b>Тарифы</b>\nОплата звёздами Telegram, без карт. Крипта и карты — в приложении 🚀. Дни добавляются к текущей подписке.',
+    invDesc: (p) => `VPN на ${p.days} дн. Все серверы и устройства.`,
     paid: (d) => `✅ Оплата получена, спасибо! Подписка до <b>${d}</b>.`,
     noSub: 'Подписки нет — сначала включите пробный период или купите тариф.',
     key: (url, d) => `🔑 <b>Ваша подписка</b> (до ${d})\n\n1. Нажмите «Подключить в один клик» и выберите приложение.\n2. Или скопируйте ссылку и добавьте её в приложении как «подписку»:\n<code>${url}</code>\n\n⚠️ Не делитесь ссылкой: по ней подключается любой.`,
     reset: '🔄 Ключ сменён. Старая ссылка перестанет работать через минуту — добавьте новую в приложение.',
-    help: '📲 <b>Как подключить</b>\n\n<b>1. Установите приложение</b>\n• Android — Happ, v2RayTun или Hiddify (Google Play)\n• iPhone / iPad — Happ, v2RayTun или Streisand (App Store)\n• Windows / Mac — Happ или Hiddify\n\n<b>2.</b> Нажмите «🔑 Мой ключ» → «Подключить в один клик».\n<b>3.</b> Включите VPN в приложении. Если один сервер не работает — выберите другой (⚡ — Hysteria2, быстрее на мобильном).',
+    help: '📲 <b>Как подключить</b>\n\n<b>1. Установите приложение</b>\n• Android — Happ, v2RayTun или Hiddify (Google Play)\n• iPhone / iPad — Happ, v2RayTun или Streisand (App Store)\n• Windows / Mac — Happ или Hiddify\n\n<b>2.</b> Нажмите «🔑 Мой ключ» → «Подключить в один клик».\n<b>3.</b> Включите VPN в приложении. Если один сервер не работает — выберите другой.',
     ref: (link, n) => `👥 <b>Приглашайте друзей</b>\nЗа каждого друга, который оплатит подписку, вы получите <b>+${n} дней</b>.\n\nВаша ссылка:\n${link}`,
     refBonus: (n) => `🎉 Ваш друг оплатил подписку — вам +${n} дней!`,
     warn: (d) => `⏰ Подписка заканчивается ${d}. Продлите, чтобы VPN не отключился.`,
   },
+  uk: {
+    hello: (b, nodes) => `🛡 <b>${b}</b> — швидкий VPN, який працює там, де інші блокують.\n\n⚡ VLESS Reality: трафік виглядає як звичайний сайт, DPI його не бачить.\n🌍 Сервери: ${nodes || 'скоро'}\n📱 Android, iPhone, Windows, Mac — одна підписка на всі пристрої.`,
+    active: (d) => `✅ Підписка активна до <b>${d}</b>`, none: '❌ Підписки немає.',
+    bApp: '🚀 Відкрити YURK', bTrial: (n) => `🎁 Безкоштовно ${n} дн.`, bBuy: '💳 Купити / продовжити', bKey: '🔑 Мій ключ', bHelp: '📲 Як підключити',
+    bRef: '👥 Запросити друга', bSupport: '💬 Підтримка', bBack: '« Назад', bConnect: '📲 Підключити в один клік', bReset: '🔄 Змінити ключ',
+    trialOk: (d) => `🎁 Пробний період увімкнено до <b>${d}</b>.\nТисніть «Мій ключ» і підключайтеся.`,
+    trialUsed: 'Пробний період уже був. Оберіть тариф 👇',
+    plans: '💳 <b>Тарифи</b>\nОплата зірками Telegram. Крипта — у застосунку 🚀. Дні додаються до поточної підписки.',
+    invDesc: (p) => `VPN на ${p.days} дн. Усі сервери та пристрої.`,
+    paid: (d) => `✅ Оплату отримано, дякуємо! Підписка до <b>${d}</b>.`,
+    noSub: 'Підписки немає — спершу увімкніть пробний період або купіть тариф.',
+    key: (url, d) => `🔑 <b>Ваша підписка</b> (до ${d})\n\n1. Натисніть «Підключити в один клік» і оберіть застосунок.\n2. Або скопіюйте посилання і додайте його в застосунку як «підписку»:\n<code>${url}</code>\n\n⚠️ Не діліться посиланням: за ним підключається будь-хто.`,
+    reset: '🔄 Ключ змінено. Старе посилання перестане працювати за хвилину — додайте нове.',
+    help: '📲 <b>Як підключити</b>\n\n<b>1. Встановіть застосунок</b>\n• Android — Happ, v2RayTun або Hiddify\n• iPhone / iPad — Happ, v2RayTun або Streisand\n• Windows / Mac — Happ або Hiddify\n\n<b>2.</b> Натисніть «🔑 Мій ключ» → «Підключити в один клік».\n<b>3.</b> Увімкніть VPN. Якщо сервер не працює — оберіть інший.',
+    ref: (link, n) => `👥 <b>Запрошуйте друзів</b>\nЗа кожного друга, який оплатить підписку, ви отримаєте <b>+${n} днів</b>.\n\nВаше посилання:\n${link}`,
+    refBonus: (n) => `🎉 Ваш друг оплатив підписку — вам +${n} днів!`,
+    warn: (d) => `⏰ Підписка закінчується ${d}. Продовжте, щоб VPN не вимкнувся.`,
+  },
   en: {
-    hello: (b, nodes) => `🛡 <b>${b}</b> — a fast VPN that works where others get blocked.\n\n⚡ VLESS Reality and Hysteria2: your traffic looks like a normal website, DPI can't see it.\n🌍 Servers: ${nodes || 'soon'}\n📱 Android, iPhone, Windows, Mac — one subscription for all devices.`,
-    active: (d) => `✅ Subscription active until <b>${d}</b>`,
-    none: '❌ No subscription.',
+    hello: (b, nodes) => `🛡 <b>${b}</b> — a fast VPN that works where others get blocked.\n\n⚡ VLESS Reality: your traffic looks like a normal website, DPI can't see it.\n🌍 Servers: ${nodes || 'soon'}\n📱 Android, iPhone, Windows, Mac — one subscription for all devices.`,
+    active: (d) => `✅ Subscription active until <b>${d}</b>`, none: '❌ No subscription.',
     bApp: '🚀 Open YURK', bTrial: (n) => `🎁 Free ${n} days`, bBuy: '💳 Buy / renew', bKey: '🔑 My key', bHelp: '📲 How to connect',
     bRef: '👥 Invite a friend', bSupport: '💬 Support', bBack: '« Back', bConnect: '📲 One-tap connect', bReset: '🔄 New key',
     trialOk: (d) => `🎁 Free trial is on until <b>${d}</b>.\nTap "My key" to connect.`,
     trialUsed: 'You already used the free trial. Pick a plan 👇',
-    plans: '💳 <b>Plans</b>\nPay with Telegram Stars, no card needed. Days are added to your current subscription.',
-    plan: (p) => `${planName(p, 'en')} — ${p.stars} ⭐`,
-    invTitle: (b, p) => `${b}: ${planName(p, 'en')}`, invDesc: (p) => `VPN for ${p.days} days. All servers and devices.`,
+    plans: '💳 <b>Plans</b>\nPay with Telegram Stars. Crypto is in the app 🚀. Days are added to your current subscription.',
+    invDesc: (p) => `VPN for ${p.days} days. All servers and devices.`,
     paid: (d) => `✅ Payment received, thank you! Subscription until <b>${d}</b>.`,
     noSub: 'No subscription yet — start the free trial or buy a plan first.',
     key: (url, d) => `🔑 <b>Your subscription</b> (until ${d})\n\n1. Tap "One-tap connect" and pick your app.\n2. Or copy the link and add it in the app as a "subscription":\n<code>${url}</code>\n\n⚠️ Don't share this link: anyone can connect with it.`,
     reset: '🔄 Key changed. The old link stops working within a minute — add the new one to your app.',
-    help: '📲 <b>How to connect</b>\n\n<b>1. Install an app</b>\n• Android — Happ, v2RayTun or Hiddify (Google Play)\n• iPhone / iPad — Happ, v2RayTun or Streisand (App Store)\n• Windows / Mac — Happ or Hiddify\n\n<b>2.</b> Tap "🔑 My key" → "One-tap connect".\n<b>3.</b> Turn the VPN on. If one server fails, pick another (⚡ = Hysteria2, faster on mobile).',
+    help: '📲 <b>How to connect</b>\n\n<b>1. Install an app</b>\n• Android — Happ, v2RayTun or Hiddify\n• iPhone / iPad — Happ, v2RayTun or Streisand\n• Windows / Mac — Happ or Hiddify\n\n<b>2.</b> Tap "🔑 My key" → "One-tap connect".\n<b>3.</b> Turn the VPN on. If one server fails, pick another.',
     ref: (link, n) => `👥 <b>Invite friends</b>\nFor every friend who buys a subscription you get <b>+${n} days</b>.\n\nYour link:\n${link}`,
     refBonus: (n) => `🎉 Your friend bought a subscription — you get +${n} days!`,
     warn: (d) => `⏰ Your subscription ends ${d}. Renew so the VPN keeps working.`,
   },
+  fa: {
+    hello: (b, nodes) => `🛡 <b>${b}</b> — یک VPN سریع که جایی کار می‌کند که بقیه مسدود می‌شوند.\n\n⚡ VLESS Reality: ترافیک شما مثل یک سایت معمولی دیده می‌شود و DPI آن را تشخیص نمی‌دهد.\n🌍 سرورها: ${nodes || 'به‌زودی'}\n📱 اندروید، آیفون، ویندوز، مک — یک اشتراک برای همه دستگاه‌ها.`,
+    active: (d) => `✅ اشتراک تا <b>${d}</b> فعال است`, none: '❌ اشتراکی ندارید.',
+    bApp: '🚀 باز کردن YURK', bTrial: (n) => `🎁 ${n} روز رایگان`, bBuy: '💳 خرید / تمدید', bKey: '🔑 کلید من', bHelp: '📲 نحوه اتصال',
+    bRef: '👥 دعوت از دوستان', bSupport: '💬 پشتیبانی', bBack: '« بازگشت', bConnect: '📲 اتصال با یک لمس', bReset: '🔄 کلید جدید',
+    trialOk: (d) => `🎁 دوره آزمایشی تا <b>${d}</b> فعال شد.\n«کلید من» را بزنید و وصل شوید.`,
+    trialUsed: 'قبلاً از دوره آزمایشی استفاده کرده‌اید. یک طرح انتخاب کنید 👇',
+    plans: '💳 <b>طرح‌ها</b>\nپرداخت با Telegram Stars. پرداخت کریپتو در اپلیکیشن 🚀. روزها به اشتراک فعلی اضافه می‌شوند.',
+    invDesc: (p) => `VPN برای ${p.days} روز. همه سرورها و دستگاه‌ها.`,
+    paid: (d) => `✅ پرداخت دریافت شد، ممنون! اشتراک تا <b>${d}</b>.`,
+    noSub: 'اشتراکی ندارید — ابتدا دوره آزمایشی را فعال کنید یا یک طرح بخرید.',
+    key: (url, d) => `🔑 <b>اشتراک شما</b> (تا ${d})\n\n1. «اتصال با یک لمس» را بزنید و اپلیکیشن را انتخاب کنید.\n2. یا لینک را کپی کرده و در اپلیکیشن به‌عنوان «اشتراک» اضافه کنید:\n<code>${url}</code>\n\n⚠️ لینک را به کسی ندهید.`,
+    reset: '🔄 کلید عوض شد. لینک قدیمی تا یک دقیقه دیگر کار نمی‌کند — لینک جدید را اضافه کنید.',
+    help: '📲 <b>نحوه اتصال</b>\n\n<b>1. یک اپلیکیشن نصب کنید</b>\n• اندروید — Happ، v2RayTun یا Hiddify\n• آیفون — Happ، v2RayTun یا Streisand\n• ویندوز / مک — Happ یا Hiddify\n\n<b>2.</b> «🔑 کلید من» ← «اتصال با یک لمس».\n<b>3.</b> VPN را روشن کنید. اگر سروری کار نکرد، سرور دیگری انتخاب کنید.',
+    ref: (link, n) => `👥 <b>دوستان را دعوت کنید</b>\nبرای هر دوستی که اشتراک بخرد <b>${n}+ روز</b> هدیه می‌گیرید.\n\nلینک شما:\n${link}`,
+    refBonus: (n) => `🎉 دوست شما اشتراک خرید — ${n}+ روز برای شما!`,
+    warn: (d) => `⏰ اشتراک شما ${d} تمام می‌شود. تمدید کنید تا VPN قطع نشود.`,
+  },
+  tr: {
+    hello: (b, nodes) => `🛡 <b>${b}</b> — başkalarının engellendiği yerde çalışan hızlı VPN.\n\n⚡ VLESS Reality: trafiğiniz sıradan bir site gibi görünür, DPI fark etmez.\n🌍 Sunucular: ${nodes || 'yakında'}\n📱 Android, iPhone, Windows, Mac — tüm cihazlar için tek abonelik.`,
+    active: (d) => `✅ Abonelik <b>${d}</b> tarihine kadar aktif`, none: '❌ Abonelik yok.',
+    bApp: "🚀 YURK'u aç", bTrial: (n) => `🎁 ${n} gün ücretsiz`, bBuy: '💳 Satın al / uzat', bKey: '🔑 Anahtarım', bHelp: '📲 Nasıl bağlanılır',
+    bRef: '👥 Arkadaş davet et', bSupport: '💬 Destek', bBack: '« Geri', bConnect: '📲 Tek dokunuşla bağlan', bReset: '🔄 Yeni anahtar',
+    trialOk: (d) => `🎁 Deneme süresi <b>${d}</b> tarihine kadar açık.\n"Anahtarım"a dokunun ve bağlanın.`,
+    trialUsed: 'Deneme süresini zaten kullandınız. Bir paket seçin 👇',
+    plans: '💳 <b>Paketler</b>\nTelegram Stars ile ödeme. Kripto uygulamada 🚀. Günler mevcut aboneliğe eklenir.',
+    invDesc: (p) => `${p.days} gün VPN. Tüm sunucular ve cihazlar.`,
+    paid: (d) => `✅ Ödeme alındı, teşekkürler! Abonelik <b>${d}</b> tarihine kadar.`,
+    noSub: 'Abonelik yok — önce deneme süresini açın veya paket alın.',
+    key: (url, d) => `🔑 <b>Aboneliğiniz</b> (${d} tarihine kadar)\n\n1. "Tek dokunuşla bağlan"a basın ve uygulamayı seçin.\n2. Veya bağlantıyı kopyalayıp uygulamaya "abonelik" olarak ekleyin:\n<code>${url}</code>\n\n⚠️ Bağlantıyı paylaşmayın.`,
+    reset: '🔄 Anahtar değişti. Eski bağlantı bir dakika içinde çalışmayı bırakır — yenisini ekleyin.',
+    help: '📲 <b>Nasıl bağlanılır</b>\n\n<b>1. Bir uygulama yükleyin</b>\n• Android — Happ, v2RayTun veya Hiddify\n• iPhone — Happ, v2RayTun veya Streisand\n• Windows / Mac — Happ veya Hiddify\n\n<b>2.</b> "🔑 Anahtarım" → "Tek dokunuşla bağlan".\n<b>3.</b> VPN\'i açın. Bir sunucu çalışmazsa başkasını seçin.',
+    ref: (link, n) => `👥 <b>Arkadaşlarını davet et</b>\nAbonelik alan her arkadaş için <b>+${n} gün</b>.\n\nBağlantınız:\n${link}`,
+    refBonus: (n) => `🎉 Arkadaşınız abonelik aldı — size +${n} gün!`,
+    warn: (d) => `⏰ Aboneliğiniz ${d} tarihinde bitiyor. VPN kesilmesin diye uzatın.`,
+  },
+  zh: {
+    hello: (b, nodes) => `🛡 <b>${b}</b> — 在别人被封锁的地方依然可用的高速 VPN。\n\n⚡ VLESS Reality：流量看起来就像普通网站，DPI 无法识别。\n🌍 服务器：${nodes || '即将上线'}\n📱 Android、iPhone、Windows、Mac — 一个订阅，所有设备通用。`,
+    active: (d) => `✅ 订阅有效期至 <b>${d}</b>`, none: '❌ 暂无订阅。',
+    bApp: '🚀 打开 YURK', bTrial: (n) => `🎁 免费 ${n} 天`, bBuy: '💳 购买 / 续费', bKey: '🔑 我的密钥', bHelp: '📲 如何连接',
+    bRef: '👥 邀请好友', bSupport: '💬 客服', bBack: '« 返回', bConnect: '📲 一键连接', bReset: '🔄 更换密钥',
+    trialOk: (d) => `🎁 试用已开启，至 <b>${d}</b>。\n点击“我的密钥”即可连接。`,
+    trialUsed: '您已使用过试用。请选择套餐 👇',
+    plans: '💳 <b>套餐</b>\n使用 Telegram Stars 支付。加密货币支付请在应用内 🚀。天数会叠加到当前订阅。',
+    invDesc: (p) => `VPN ${p.days} 天。所有服务器和设备。`,
+    paid: (d) => `✅ 已收到付款，谢谢！订阅至 <b>${d}</b>。`,
+    noSub: '暂无订阅 — 请先开启试用或购买套餐。',
+    key: (url, d) => `🔑 <b>您的订阅</b>（至 ${d}）\n\n1. 点击“一键连接”并选择应用。\n2. 或复制链接，在应用中添加为“订阅”：\n<code>${url}</code>\n\n⚠️ 请勿分享此链接。`,
+    reset: '🔄 密钥已更换。旧链接将在一分钟内失效，请添加新链接。',
+    help: '📲 <b>如何连接</b>\n\n<b>1. 安装应用</b>\n• Android — Happ、v2RayTun 或 Hiddify\n• iPhone — Happ、v2RayTun 或 Streisand\n• Windows / Mac — Happ 或 Hiddify\n\n<b>2.</b> 点击“🔑 我的密钥” → “一键连接”。\n<b>3.</b> 打开 VPN。若某个服务器不可用，请换一个。',
+    ref: (link, n) => `👥 <b>邀请好友</b>\n每位好友购买订阅，您可获得 <b>+${n} 天</b>。\n\n您的链接：\n${link}`,
+    refBonus: (n) => `🎉 您的好友已购买订阅 — 您获得 +${n} 天！`,
+    warn: (d) => `⏰ 您的订阅将于 ${d} 到期。请续费以免 VPN 中断。`,
+  },
+  es: {
+    hello: (b, nodes) => `🛡 <b>${b}</b> — una VPN rápida que funciona donde otras se bloquean.\n\n⚡ VLESS Reality: tu tráfico parece un sitio web normal, el DPI no lo detecta.\n🌍 Servidores: ${nodes || 'pronto'}\n📱 Android, iPhone, Windows, Mac — una suscripción para todos los dispositivos.`,
+    active: (d) => `✅ Suscripción activa hasta el <b>${d}</b>`, none: '❌ Sin suscripción.',
+    bApp: '🚀 Abrir YURK', bTrial: (n) => `🎁 ${n} días gratis`, bBuy: '💳 Comprar / renovar', bKey: '🔑 Mi clave', bHelp: '📲 Cómo conectar',
+    bRef: '👥 Invitar a un amigo', bSupport: '💬 Soporte', bBack: '« Atrás', bConnect: '📲 Conectar con un toque', bReset: '🔄 Nueva clave',
+    trialOk: (d) => `🎁 Prueba gratis activa hasta el <b>${d}</b>.\nToca "Mi clave" para conectarte.`,
+    trialUsed: 'Ya usaste la prueba gratis. Elige un plan 👇',
+    plans: '💳 <b>Planes</b>\nPago con Telegram Stars. Cripto en la app 🚀. Los días se suman a tu suscripción actual.',
+    invDesc: (p) => `VPN por ${p.days} días. Todos los servidores y dispositivos.`,
+    paid: (d) => `✅ ¡Pago recibido, gracias! Suscripción hasta el <b>${d}</b>.`,
+    noSub: 'Aún no tienes suscripción — activa la prueba o compra un plan.',
+    key: (url, d) => `🔑 <b>Tu suscripción</b> (hasta el ${d})\n\n1. Toca "Conectar con un toque" y elige tu app.\n2. O copia el enlace y añádelo en la app como "suscripción":\n<code>${url}</code>\n\n⚠️ No compartas este enlace.`,
+    reset: '🔄 Clave cambiada. El enlace antiguo dejará de funcionar en un minuto — añade el nuevo.',
+    help: '📲 <b>Cómo conectar</b>\n\n<b>1. Instala una app</b>\n• Android — Happ, v2RayTun o Hiddify\n• iPhone — Happ, v2RayTun o Streisand\n• Windows / Mac — Happ o Hiddify\n\n<b>2.</b> Toca "🔑 Mi clave" → "Conectar con un toque".\n<b>3.</b> Activa la VPN. Si un servidor falla, elige otro.',
+    ref: (link, n) => `👥 <b>Invita a tus amigos</b>\nPor cada amigo que compre una suscripción recibes <b>+${n} días</b>.\n\nTu enlace:\n${link}`,
+    refBonus: (n) => `🎉 Tu amigo compró una suscripción — ¡+${n} días para ti!`,
+    warn: (d) => `⏰ Tu suscripción termina el ${d}. Renueva para que la VPN siga funcionando.`,
+  },
 };
 
-function planName(p, lang) {
-  const ru = lang === 'ru';
-  if (p.days % 365 === 0) { const y = p.days / 365; return ru ? (y === 1 ? '1 год' : `${y} года`) : (y === 1 ? '1 year' : `${y} years`); }
-  if (p.days % 30 === 0) { const m = p.days / 30; return ru ? `${m} мес.` : (m === 1 ? '1 month' : `${m} months`); }
-  return ru ? `${p.days} дн.` : `${p.days} days`;
+// shared builders that need the plan name in the right language
+for (const [lang, t] of Object.entries(T)) {
+  t.lang = lang;
+  t.plan = (p) => `${planName(p, lang)} — ${p.stars} ⭐`;
+  t.invTitle = (b, p) => `${b}: ${planName(p, lang)}`;
 }
 
-const RU_LIKE = new Set(['ru', 'uk', 'be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka']);
-const pick = (lang) => (RU_LIKE.has(lang) ? T.ru : T.en);
+const RU_LIKE = new Set(['be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka']);
+const pick = (lang) => {
+  const l = String(lang || '').slice(0, 2);
+  return T[l] || (RU_LIKE.has(l) ? T.ru : T.en);
+};
 
 module.exports = { T, pick, planName };

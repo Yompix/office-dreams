@@ -4,17 +4,15 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const DEFAULT_PLANS = [
-  // owner gets ~$0.013 per star; Railway traffic costs $0.05/GB (~$1-2 per active user a month)
-  { id: 'm1', days: 30, stars: 199, usd: 2.99 },
-  { id: 'm3', days: 90, stars: 499, usd: 7.49 },
-  { id: 'y1', days: 365, stars: 1690, usd: 24.99 },
-];
+const { DEFAULT_TIERS } = require('./regions.js');
+const DEFAULT_PLANS = DEFAULT_TIERS.mid;
 
 function load(e = process.env) {
   const botToken = e.BOT_TOKEN || '';
-  let plans = DEFAULT_PLANS;
-  if (e.PLANS) plans = JSON.parse(e.PLANS);
+  // PRICES = {"high":[...],"mid":[...],"low":[...]} (each plan: id, days, stars, usd); PLANS (old) = the mid tier
+  const tiers = { ...DEFAULT_TIERS, ...(e.PRICES ? JSON.parse(e.PRICES) : {}) };
+  if (e.PLANS) tiers.mid = JSON.parse(e.PLANS);
+  const plans = tiers.mid;
   return {
     port: Number(e.PORT) || 8080,
     publicUrl: (e.PUBLIC_URL || '').replace(/\/+$/, ''),
@@ -36,6 +34,9 @@ function load(e = process.env) {
     trialDays: Number(e.TRIAL_DAYS ?? 3),
     refDays: Number(e.REF_DAYS ?? 7),
     plans,
+    tiers,
+    // card payments only for these Telegram languages (the card provider works in cardCurrency)
+    cardLangs: (e.CARD_LANGS || 'ru,be,kk').split(',').map((s) => s.trim()),
     // a node running as a Railway service (see apps/vpn/railway-node); TCP is "host:port" of its TCP proxy
     railwayNode: e.RAILWAY_NODE_SECRET && e.RAILWAY_NODE_HOST ? {
       name: e.RAILWAY_NODE_NAME || '🌐 Railway', secret: e.RAILWAY_NODE_SECRET, host: e.RAILWAY_NODE_HOST,

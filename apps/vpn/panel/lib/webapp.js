@@ -1,6 +1,8 @@
 'use strict';
 /* Mini App API: Telegram login (initData), status, trial, payments (Stars, CryptoBot, cards), key reset. */
 const crypto = require('crypto');
+const { tierOf, TIERS } = require('./regions.js');
+const { pick } = require('./texts.js');
 
 const hmac = (key, data, enc) => crypto.createHmac('sha256', key).update(data).digest(enc);
 
@@ -51,16 +53,19 @@ function cryptoBot(cfg, fetchImpl = fetch) {
 function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : null, log = console }) {
   const subUrl = (u) => `${cfg.publicUrl}/sub/${u.token}`;
 
+  const cardOk = (u) => !!cfg.cardToken && cfg.cardLangs.includes(String(u.lang).slice(0, 2));
+
   function view(u, now = Date.now()) {
     const active = u.expires > now && !u.banned;
+    const tier = tierOf(u.lang);
     return {
       brand: cfg.brand, bot: cfg.botUsername, lang: u.lang, name: u.name,
       active, expires: u.expires, daysLeft: active ? Math.ceil((u.expires - now) / 86400000) : 0,
       trial: !u.trial && !active && cfg.trialDays > 0, trialDays: cfg.trialDays,
       sub: active ? subUrl(u) : null,
       ref: cfg.botUsername ? `https://t.me/${cfg.botUsername}?start=r${u.id}` : null, refDays: cfg.refDays,
-      plans: cfg.plans.map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, card: cfg.cardToken ? cardAmount(cfg, p) / 100 : null })),
-      methods: { stars: true, crypto: !!cb, card: !!cfg.cardToken }, cardCurrency: cfg.cardCurrency,
+      tier, plans: bot.plansFor(tier).map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, card: cardOk(u) ? cardAmount(cfg, p) / 100 : null })),
+      methods: { stars: true, crypto: !!cb, card: cardOk(u) }, cardCurrency: cfg.cardCurrency,
       nodes: store.enabledNodes().map((n) => n.name),
       support: cfg.support || null,
     };
@@ -75,8 +80,8 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       let n = 0;
       const res = await cb.call('getInvoices', { status: 'paid', count: 100 });
       for (const inv of res.items || []) {
-        const [pid, uid] = String(inv.payload || '').split(':');
-        const plan = bot.planById(pid);
+        const [pid, uid, tier = 'mid'] = String(inv.payload || '').split(':');
+        const plan = TIERS.includes(tier) && bot.planById(pid, tier);
         if (!plan || !store.user(Number(uid))) continue;
         if (await bot.fulfil({ uid: Number(uid), plan, charge: `cb:${inv.invoice_id}`, usd: Number(inv.amount) || plan.usd, method: 'crypto' }, now)) n++;
       }
@@ -86,19 +91,20 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
   }
 
   async function pay(u, planId, method) {
-    const plan = bot.planById(planId);
+    const tier = tierOf(u.lang);
+    const plan = bot.planById(planId, tier);
     if (!plan) return { error: 'plan' };
-    const t = u.lang === 'ru' || u.lang === 'uk' ? 'ru' : 'en';
-    const title = `${cfg.brand}: ${plan.days} ${t === 'ru' ? 'дн.' : 'days'}`;
-    const description = t === 'ru' ? `VPN на ${plan.days} дн. Все серверы и устройства.` : `VPN for ${plan.days} days. All servers and devices.`;
+    const t = pick(u.lang);
+    const title = t.invTitle(cfg.brand, plan);
+    const description = t.invDesc(plan);
     if (method === 'stars') {
-      const link = await tg.call('createInvoiceLink', { title, description, payload: `${plan.id}:${u.id}`, currency: 'XTR', prices: [{ label: title, amount: plan.stars }] });
+      const link = await tg.call('createInvoiceLink', { title, description, payload: `${plan.id}:${u.id}:${tier}`, currency: 'XTR', prices: [{ label: title, amount: plan.stars }] });
       return { kind: 'invoice', link };
     }
     if (method === 'card') {
-      if (!cfg.cardToken) return { error: 'method' };
+      if (!cardOk(u)) return { error: 'method' };
       const link = await tg.call('createInvoiceLink', {
-        title, description, payload: `card:${plan.id}:${u.id}`, provider_token: cfg.cardToken,
+        title, description, payload: `card:${plan.id}:${u.id}:${tier}`, provider_token: cfg.cardToken,
         currency: cfg.cardCurrency, prices: [{ label: title, amount: cardAmount(cfg, plan) }],
       });
       return { kind: 'invoice', link };
@@ -107,7 +113,7 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       if (!cb) return { error: 'method' };
       const inv = await cb.call('createInvoice', {
         currency_type: 'fiat', fiat: 'USD', amount: String(plan.usd), accepted_assets: cfg.cryptoAssets,
-        description, payload: `${plan.id}:${u.id}`, expires_in: 3600,
+        description, payload: `${plan.id}:${u.id}:${tier}`, expires_in: 3600,
         paid_btn_name: 'callback', paid_btn_url: `https://t.me/${cfg.botUsername}`,
       });
       return { kind: 'link', link: inv.bot_invoice_url || inv.mini_app_invoice_url || inv.pay_url };

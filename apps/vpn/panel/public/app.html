@@ -58,11 +58,13 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 
 h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:26px 4px 10px;font-weight:700}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+[dir=rtl] .plan,[dir=rtl] .m{text-align:right}
 .plan{position:relative;text-align:left;padding:14px 12px 12px;border-radius:var(--r);background:var(--card);border:1.5px solid var(--line);transition:border-color .2s,background .2s}
 .plan.sel{border-color:transparent;background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--grad) border-box}
 .plan .d{font-weight:800;font-size:17px}
 .plan .pm{font-size:12px;color:var(--mut);margin-top:2px}
 .plan .pr{margin-top:12px;font-weight:700;font-size:15px}
+[dir=rtl] .tag{right:auto;left:8px}
 .tag{position:absolute;top:-9px;right:8px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:99px;background:var(--a2);color:#04130e;letter-spacing:.02em}
 .tag.p{background:var(--a1);color:#fff}
 
@@ -194,7 +196,7 @@ const L = {
     srvH: 'Серверы', none: 'Скоро появятся', refH: 'Друзьям', refB: (n) => `+${n} дней за друга`, refS: 'Когда друг оплатит подписку', refBtn: 'Позвать',
     shareTx: 'YURK — VPN, который работает, где другие блокируют. Попробуй бесплатно:',
     howH: 'Как подключить', s1: 'Установите приложение', s1s: 'Happ или v2RayTun — в App Store и Google Play', s2: 'Нажмите «Подключить»', s2s: 'Выберите приложение — подписка добавится сама', s3: 'Включите VPN', s3s: 'Если сервер не отвечает — выберите другой',
-    support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @',
+    support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
     on: 'Protected', off: 'Not connected', daysW: (n) => n === 1 ? 'day' : 'days',
@@ -210,14 +212,94 @@ const L = {
     srvH: 'Servers', none: 'Coming soon', refH: 'Friends', refB: (n) => `+${n} days per friend`, refS: 'When a friend buys a subscription', refBtn: 'Invite',
     shareTx: 'YURK — a VPN that works where others get blocked. Try it free:',
     howH: 'How to connect', s1: 'Install an app', s1s: 'Happ or v2RayTun — App Store and Google Play', s2: 'Tap "Connect"', s2s: 'Pick your app — the subscription is added automatically', s3: 'Turn the VPN on', s3s: "If a server doesn't answer, pick another",
-    support: 'Support', openTg: 'Open the app in Telegram: @',
+    support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
+  },
+  uk: {
+    on: 'Захищено', off: 'Не підключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дні' : 'днів'),
+    actH: 'Підписка активна', actP: (d) => `до ${d} · усі сервери та пристрої`, offH: 'Немає підписки', offP: 'Оберіть тариф нижче — увімкнеться одразу після оплати',
+    connect: 'Підключити', copied: 'Посилання скопійовано', giftH: (n) => `${n} дні безкоштовно`, giftP: 'Без оплати, без картки', giftB: 'Взяти',
+    trialOk: 'Пробний період увімкнено 🎉', plansH: 'Тариф', payH: 'Спосіб оплати', perMo: (v) => `${v} / міс`,
+    d30: '1 місяць', d90: '3 місяці', d365: '1 рік', pop: 'Хіт', best: (p) => `−${p}%`,
+    mStars: 'Telegram Stars', mStarsS: 'Миттєво, прямо в Telegram', mCrypto: 'Криптовалюта', mCryptoS: 'USDT, TON, BTC та інші · @CryptoBot',
+    mCard: 'Банківська картка', mCardS: 'Visa, Mastercard', soon: 'Скоро',
+    pay: (a) => `Оплатити ${a}`, renew: (a) => `Продовжити за ${a}`, payNote: 'Дні додаються до поточної підписки',
+    paid: 'Оплачено! Підписку продовжено ✅', wait: 'Чекаємо підтвердження оплати…', fail: 'Не вийшло, спробуйте ще раз',
+    whyH: 'Чому YURK', f1: 'Невидимий для DPI', f1s: 'Reality маскує трафік під звичайний сайт', f2: 'Швидко', f2s: 'Без обмежень швидкості', f3: 'Усі пристрої', f3s: 'Android, iPhone, Windows, Mac', f4: 'Без логів', f4s: 'Не зберігаємо історію сайтів',
+    srvH: 'Сервери', none: 'Скоро з’являться', refH: 'Друзям', refB: (n) => `+${n} днів за друга`, refS: 'Коли друг оплатить підписку', refBtn: 'Покликати',
+    shareTx: 'YURK — VPN, який працює там, де інші блокують. Спробуй безкоштовно:',
+    howH: 'Як підключити', s1: 'Встановіть застосунок', s1s: 'Happ або v2RayTun — в App Store і Google Play', s2: 'Натисніть «Підключити»', s2s: 'Оберіть застосунок — підписка додасться сама', s3: 'Увімкніть VPN', s3s: 'Якщо сервер не відповідає — оберіть інший',
+    support: 'Підтримка', locale: 'uk-UA',
+  },
+  fa: {
+    on: 'محافظت‌شده', off: 'متصل نیست', daysW: () => 'روز',
+    actH: 'اشتراک فعال است', actP: (d) => `تا ${d} · همه سرورها و دستگاه‌ها`, offH: 'اشتراکی ندارید', offP: 'یک طرح را از پایین انتخاب کنید — بلافاصله پس از پرداخت فعال می‌شود',
+    connect: 'اتصال', copied: 'لینک کپی شد', giftH: (n) => `${n} روز رایگان`, giftP: 'بدون پرداخت، بدون کارت', giftB: 'دریافت',
+    trialOk: 'دوره آزمایشی فعال شد 🎉', plansH: 'طرح', payH: 'روش پرداخت', perMo: (v) => `${v} / ماه`,
+    d30: '۱ ماه', d90: '۳ ماه', d365: '۱ سال', pop: 'محبوب', best: (p) => `٪${p}−`,
+    mStars: 'Telegram Stars', mStarsS: 'فوری، داخل تلگرام', mCrypto: 'ارز دیجیتال', mCryptoS: 'USDT، TON، BTC و بیشتر · @CryptoBot',
+    mCard: 'کارت بانکی', mCardS: 'Visa، Mastercard', soon: 'به‌زودی',
+    pay: (a) => `پرداخت ${a}`, renew: (a) => `تمدید با ${a}`, payNote: 'روزها به اشتراک فعلی اضافه می‌شوند',
+    paid: 'پرداخت شد! اشتراک تمدید شد ✅', wait: 'در انتظار تأیید پرداخت…', fail: 'مشکلی پیش آمد، دوباره تلاش کنید',
+    whyH: 'چرا YURK', f1: 'نامرئی برای DPI', f1s: 'Reality ترافیک را شبیه یک سایت معمولی می‌کند', f2: 'سریع', f2s: 'بدون محدودیت سرعت', f3: 'همه دستگاه‌ها', f3s: 'اندروید، آیفون، ویندوز، مک', f4: 'بدون لاگ', f4s: 'تاریخچه سایت‌ها را ذخیره نمی‌کنیم',
+    srvH: 'سرورها', none: 'به‌زودی', refH: 'دوستان', refB: (n) => `${n}+ روز برای هر دوست`, refS: 'وقتی دوستتان اشتراک بخرد', refBtn: 'دعوت',
+    shareTx: 'YURK — VPN که جایی کار می‌کند که بقیه مسدودند. رایگان امتحان کن:',
+    howH: 'نحوه اتصال', s1: 'یک اپلیکیشن نصب کنید', s1s: 'Happ یا v2RayTun — در App Store و Google Play', s2: '«اتصال» را بزنید', s2s: 'اپلیکیشن را انتخاب کنید — اشتراک خودکار اضافه می‌شود', s3: 'VPN را روشن کنید', s3s: 'اگر سروری جواب نداد، سرور دیگری انتخاب کنید',
+    support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
+  },
+  tr: {
+    on: 'Korunuyor', off: 'Bağlı değil', daysW: () => 'gün',
+    actH: 'Abonelik aktif', actP: (d) => `${d} tarihine kadar · tüm sunucular ve cihazlar`, offH: 'Abonelik yok', offP: 'Aşağıdan bir paket seçin — ödemeden hemen sonra açılır',
+    connect: 'Bağlan', copied: 'Bağlantı kopyalandı', giftH: (n) => `${n} gün ücretsiz`, giftP: 'Ödeme yok, kart yok', giftB: 'Al',
+    trialOk: 'Deneme süresi açıldı 🎉', plansH: 'Paket', payH: 'Ödeme yöntemi', perMo: (v) => `${v} / ay`,
+    d30: '1 ay', d90: '3 ay', d365: '1 yıl', pop: 'Popüler', best: (p) => `−%${p}`,
+    mStars: 'Telegram Stars', mStarsS: 'Anında, Telegram içinde', mCrypto: 'Kripto para', mCryptoS: 'USDT, TON, BTC ve diğerleri · @CryptoBot',
+    mCard: 'Banka kartı', mCardS: 'Visa, Mastercard', soon: 'Yakında',
+    pay: (a) => `${a} öde`, renew: (a) => `${a} ile uzat`, payNote: 'Günler mevcut aboneliğe eklenir',
+    paid: 'Ödendi! Abonelik uzatıldı ✅', wait: 'Ödeme onayı bekleniyor…', fail: 'Bir sorun oldu, tekrar deneyin',
+    whyH: 'Neden YURK', f1: 'DPI için görünmez', f1s: 'Reality trafiği normal bir site gibi gösterir', f2: 'Hızlı', f2s: 'Hız sınırı yok', f3: 'Tüm cihazlar', f3s: 'Android, iPhone, Windows, Mac', f4: 'Kayıt yok', f4s: 'Site geçmişini saklamıyoruz',
+    srvH: 'Sunucular', none: 'Yakında', refH: 'Arkadaşlar', refB: (n) => `Her arkadaş için +${n} gün`, refS: 'Arkadaşınız abonelik aldığında', refBtn: 'Davet et',
+    shareTx: 'YURK — başkalarının engellendiği yerde çalışan VPN. Ücretsiz dene:',
+    howH: 'Nasıl bağlanılır', s1: 'Bir uygulama yükleyin', s1s: 'Happ veya v2RayTun — App Store ve Google Play', s2: '"Bağlan"a dokunun', s2s: 'Uygulamayı seçin — abonelik otomatik eklenir', s3: "VPN'i açın", s3s: 'Bir sunucu yanıt vermezse başkasını seçin',
+    support: 'Destek', locale: 'tr-TR',
+  },
+  zh: {
+    on: '已保护', off: '未连接', daysW: () => '天',
+    actH: '订阅有效', actP: (d) => `至 ${d} · 所有服务器和设备`, offH: '暂无订阅', offP: '在下方选择套餐 — 付款后立即生效',
+    connect: '连接', copied: '链接已复制', giftH: (n) => `免费 ${n} 天`, giftP: '无需付款，无需银行卡', giftB: '领取',
+    trialOk: '试用已开启 🎉', plansH: '套餐', payH: '支付方式', perMo: (v) => `${v} / 月`,
+    d30: '1 个月', d90: '3 个月', d365: '1 年', pop: '热门', best: (p) => `−${p}%`,
+    mStars: 'Telegram Stars', mStarsS: '即时到账，就在 Telegram 内', mCrypto: '加密货币', mCryptoS: 'USDT、TON、BTC 等 · @CryptoBot',
+    mCard: '银行卡', mCardS: 'Visa、Mastercard', soon: '即将推出',
+    pay: (a) => `支付 ${a}`, renew: (a) => `续费 ${a}`, payNote: '天数会叠加到当前订阅',
+    paid: '支付成功！订阅已延长 ✅', wait: '正在等待付款确认…', fail: '出错了，请重试',
+    whyH: '为什么选 YURK', f1: 'DPI 无法识别', f1s: 'Reality 让流量看起来像普通网站', f2: '高速', f2s: '不限速', f3: '全设备', f3s: 'Android、iPhone、Windows、Mac', f4: '无日志', f4s: '不保存浏览记录',
+    srvH: '服务器', none: '即将上线', refH: '好友', refB: (n) => `每位好友 +${n} 天`, refS: '好友购买订阅后', refBtn: '邀请',
+    shareTx: 'YURK — 在别处被封时依然可用的 VPN。免费试用：',
+    howH: '如何连接', s1: '安装应用', s1s: 'Happ 或 v2RayTun — App Store 和 Google Play', s2: '点击“连接”', s2s: '选择应用 — 订阅会自动添加', s3: '打开 VPN', s3s: '如果某个服务器无响应，请换一个',
+    support: '客服', locale: 'zh-CN',
+  },
+  es: {
+    on: 'Protegido', off: 'No conectado', daysW: (n) => n === 1 ? 'día' : 'días',
+    actH: 'Suscripción activa', actP: (d) => `hasta el ${d} · todos los servidores y dispositivos`, offH: 'Sin suscripción', offP: 'Elige un plan abajo — se activa justo después del pago',
+    connect: 'Conectar', copied: 'Enlace copiado', giftH: (n) => `${n} días gratis`, giftP: 'Sin pago, sin tarjeta', giftB: 'Obtener',
+    trialOk: 'Prueba gratis activada 🎉', plansH: 'Plan', payH: 'Método de pago', perMo: (v) => `${v} / mes`,
+    d30: '1 mes', d90: '3 meses', d365: '1 año', pop: 'Top', best: (p) => `−${p}%`,
+    mStars: 'Telegram Stars', mStarsS: 'Al instante, dentro de Telegram', mCrypto: 'Criptomonedas', mCryptoS: 'USDT, TON, BTC y más · @CryptoBot',
+    mCard: 'Tarjeta bancaria', mCardS: 'Visa, Mastercard', soon: 'Pronto',
+    pay: (a) => `Pagar ${a}`, renew: (a) => `Renovar por ${a}`, payNote: 'Los días se suman a tu suscripción actual',
+    paid: '¡Pagado! Suscripción ampliada ✅', wait: 'Esperando la confirmación del pago…', fail: 'Algo salió mal, inténtalo de nuevo',
+    whyH: 'Por qué YURK', f1: 'Invisible al DPI', f1s: 'Reality hace que el tráfico parezca un sitio normal', f2: 'Rápida', f2s: 'Sin límite de velocidad', f3: 'Todos los dispositivos', f3s: 'Android, iPhone, Windows, Mac', f4: 'Sin registros', f4s: 'No guardamos tu historial',
+    srvH: 'Servidores', none: 'Muy pronto', refH: 'Amigos', refB: (n) => `+${n} días por amigo`, refS: 'Cuando un amigo compra una suscripción', refBtn: 'Invitar',
+    shareTx: 'YURK — una VPN que funciona donde otras se bloquean. Pruébala gratis:',
+    howH: 'Cómo conectar', s1: 'Instala una app', s1s: 'Happ o v2RayTun — App Store y Google Play', s2: 'Toca "Conectar"', s2s: 'Elige tu app — la suscripción se añade sola', s3: 'Activa la VPN', s3s: 'Si un servidor no responde, elige otro',
+    support: 'Soporte', locale: 'es-ES',
   },
 };
-const RU = ['ru', 'uk', 'be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka'];
+const RU = ['be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka'];
 let T = L.ru, S = null, plan = 'm3', method = 'stars';
 const $ = (id) => document.getElementById(id);
 const toast = (m) => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2400); };
-const fmt = (ms) => new Date(ms).toLocaleDateString(T === L.ru ? 'ru-RU' : 'en-GB', { day: 'numeric', month: 'long' });
+const fmt = (ms) => new Date(ms).toLocaleDateString(T.locale || 'en-GB', { day: 'numeric', month: 'long' });
 const usd = (v) => '$' + (Math.round(v * 100) / 100).toString();
 
 async function api(action, body) {
@@ -231,13 +313,14 @@ async function api(action, body) {
 function price(p, m) {
   if (m === 'stars') return p.stars + ' ⭐';
   if (m === 'crypto') return usd(p.usd);
-  if (m === 'card') return p.card ? `${p.card} ${S.cardCurrency === 'RUB' ? '₽' : S.cardCurrency}` : '';
+  if (m === 'card') return p.card ? `${p.card} ${({ RUB: '₽', UAH: '₴', KZT: '₸', EUR: '€' })[S.cardCurrency] || S.cardCurrency}` : '';
 }
 
 function render() {
   const lang = (S.lang || (tg && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'ru').slice(0, 2);
-  T = RU.includes(lang) ? L.ru : L.en;
-  document.documentElement.lang = T === L.ru ? 'ru' : 'en';
+  T = L[lang] || (RU.includes(lang) ? L.ru : L.en);
+  document.documentElement.lang = (T.locale || 'en').slice(0, 2);
+  document.documentElement.dir = T.rtl ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach((e) => { const v = T[e.dataset.t]; if (typeof v === 'string') e.textContent = v; });
 
   $('pill').classList.toggle('on', S.active);
@@ -263,7 +346,7 @@ function render() {
     const save = Math.round((1 - p.stars / p.days / perDay) * 100);
     const tag = p.days === 90 ? `<span class="tag p">${T.pop}</span>` : save >= 10 ? `<span class="tag">${T.best(save)}</span>` : '';
     const name = T['d' + p.days] || p.days + 'd';
-    const pm = method === 'stars' ? Math.round(p.stars / (p.days / 30)) + ' ⭐' : method === 'card' && p.card ? Math.round(p.card / (p.days / 30)) + ' ₽' : usd(p.usd / (p.days / 30));
+    const pm = method === 'stars' ? Math.round(p.stars / (p.days / 30)) + ' ⭐' : method === 'card' && p.card ? Math.round(p.card / (p.days / 30)) + ' ' + (({ RUB: '₽' })[S.cardCurrency] || S.cardCurrency) : usd(p.usd / (p.days / 30));
     return `<button class="plan${p.id === plan ? ' sel' : ''}" data-p="${p.id}">${tag}<div class="d">${name}</div><div class="pm">${T.perMo(pm)}</div><div class="pr">${price(p, method) || usd(p.usd)}</div></button>`;
   }).join('');
 
@@ -350,7 +433,8 @@ function demo(action) {
   const now = Date.now();
   if (!demo.s) demo.s = { brand: 'YURK', bot: 'yurkvpn_bot', lang: (new URLSearchParams(location.search).get('lang') || 'ru'), active: /active/.test(location.search), expires: now + 23 * 864e5, daysLeft: 23, trial: !/active/.test(location.search), trialDays: 3,
     sub: 'https://example.com/sub/demo', ref: 'https://t.me/yurkvpn_bot?start=r1', refDays: 7,
-    plans: [{ id: 'm1', days: 30, stars: 199, usd: 2.99, card: 299 }, { id: 'm3', days: 90, stars: 499, usd: 7.49, card: 749 }, { id: 'y1', days: 365, stars: 1690, usd: 24.99, card: 2499 }],
+    plans: /lang=fa/.test(location.search) ? [{ id: 'm1', days: 30, stars: 149, usd: 1.99 }, { id: 'm3', days: 90, stars: 379, usd: 4.99 }, { id: 'y1', days: 365, stars: 1290, usd: 16.99 }]
+      : [{ id: 'm1', days: 30, stars: 199, usd: 2.99, card: 299 }, { id: 'm3', days: 90, stars: 499, usd: 7.49, card: 749 }, { id: 'y1', days: 365, stars: 1690, usd: 24.99, card: 2499 }],
     methods: { stars: true, crypto: true, card: false }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇫🇮 Финляндия', '🇩🇪 Германия'], support: '@yurk_support' };
   if (!demo.s.active) demo.s.sub = null;
   if (action === 'trial') { demo.s.sub = 'https://example.com/sub/demo'; demo.s.trial = false; demo.s.active = true; demo.s.daysLeft = 3; demo.s.expires = now + 3 * 864e5; }
