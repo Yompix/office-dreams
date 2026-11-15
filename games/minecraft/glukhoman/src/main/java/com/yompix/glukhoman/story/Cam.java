@@ -171,6 +171,11 @@ public final class Cam {
             BlockPos q = st.point(t);
             if (q != null && inFrame(p, Vec3d.ofCenter(q), 45, true)) s.subj.merge(t, 5, Integer::sum);
         }
+        for (String t : Part3.targets()) {   // 0.7: имена сорока — фамилии в ИК, бирки глазами
+            BlockPos q = st.point(t);
+            if (q == null || (t.startsWith("nc") && !s.ir)) continue;
+            if (inFrame(p, Vec3d.ofCenter(q), t.startsWith("nc") ? 9 : 12, true)) s.subj.merge(t, 5, Integer::sum);
+        }
         for (String t : Part2.targets()) {   // 0.6: расписание Поли (сквозь щель), надписи на шпалах — только в ИК
             BlockPos q = st.point(t);
             if (q == null || (t.startsWith("carve") && !s.ir)) continue;

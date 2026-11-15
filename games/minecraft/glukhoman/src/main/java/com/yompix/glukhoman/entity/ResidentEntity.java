@@ -36,6 +36,8 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
     private static final TrackedData<String> WHO = DataTracker.registerData(ResidentEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<String> ACT = DataTracker.registerData(ResidentEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<Boolean> SLEEP = DataTracker.registerData(ResidentEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    /** 0.7: «Лишний» на перекличке — глазами есть, на плёнке нет. */
+    private static final TrackedData<Boolean> EXTRA = DataTracker.registerData(ResidentEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private final AnimatableInstanceCache geo = GeckoLibUtil.createInstanceCache(this);
     /** Маршрут (сервер): идём к первой точке, дошли — убираем. */
     public final List<Vec3d> route = new ArrayList<>();
@@ -67,6 +69,7 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
         b.add(WHO, "zina");
         b.add(ACT, "");
         b.add(SLEEP, false);
+        b.add(EXTRA, false);
     }
 
     public String who() {
@@ -83,6 +86,14 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
 
     public void sleepwalking(boolean s) {
         dataTracker.set(SLEEP, s);
+    }
+
+    public boolean extra() {
+        return dataTracker.get(EXTRA);
+    }
+
+    public void extra(boolean x) {
+        dataTracker.set(EXTRA, x);
     }
 
     public String act() {

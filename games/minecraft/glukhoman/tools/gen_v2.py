@@ -694,6 +694,9 @@ def residents():
             for y in range(10, 16):
                 px[x, y] = (150 - (y - 10) * 4, 146 - (y - 10) * 4, 140 - (y - 10) * 4, 255)
         im.save(f)
+    # дети Гены (0.7)
+    skin('kid_a', hair=(150, 110, 60), coat=(60, 90, 140), legs=(50, 50, 60), boots=(40, 34, 30), face=(214, 182, 160), girl=True)
+    skin('kid_b', hair=(90, 70, 50), coat=(140, 60, 60), legs=(50, 50, 60), boots=(40, 34, 30), face=(210, 176, 156))
     skin('mitya', hair=(120, 96, 66), coat=(60, 84, 70), legs=(44, 46, 60), boots=(36, 32, 30), face=(210, 178, 158), girl=True)
 
 

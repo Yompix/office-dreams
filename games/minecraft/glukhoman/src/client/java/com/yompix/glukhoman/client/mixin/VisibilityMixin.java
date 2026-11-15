@@ -21,6 +21,14 @@ public class VisibilityMixin {
             if (!ok) cir.setReturnValue(false);
             return;
         }
+        if (entity instanceof com.yompix.glukhoman.entity.ResidentEntity rx && rx.extra()) {   // 0.7: Лишний — на плёнке его нет
+            if (Viewfinder.view()) cir.setReturnValue(false);
+            return;
+        }
+        if (entity instanceof com.yompix.glukhoman.entity.TrainEntity && com.yompix.glukhoman.client.GlukhomanClient.trainVisible) {   // глава V: видно глазами
+            cir.setReturnValue(true);
+            return;
+        }
         if (entity instanceof com.yompix.glukhoman.entity.ResidentEntity r && r.cameraOnly) {
             cir.setReturnValue(Viewfinder.view());
             return;

@@ -22,6 +22,13 @@ public final class Scenes {
         LEN.put("c3_naryad", 22f);
         LEN.put("c3_savva", 16f);
         LEN.put("demo_ch2", 34f);
+        LEN.put("c4_chairs", 18f);      // 0.7: часть третья
+        LEN.put("c4_rollcall", 18f);
+        LEN.put("c4_face", 12f);
+        LEN.put("end_poimenno", 26f);
+        LEN.put("end_naryad", 22f);
+        LEN.put("end_obkh", 22f);
+        LEN.put("demo_ch5", 36f);
         LEN.put("demo_ch3", 34f);   // 0.5.1: «Сдача смены» в сюжете (Захар в дежурке)
         LEN.put("demo_watcher", 30f);   // ролики 0.5.1 (только запись)
         LEN.put("demo_residents", 26f);

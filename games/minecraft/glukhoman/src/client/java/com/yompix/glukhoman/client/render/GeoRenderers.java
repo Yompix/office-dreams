@@ -89,7 +89,7 @@ public final class GeoRenderers {
         public Identifier getModelResource(ResidentEntity e) {
             String w = e.who();
             if (w.equals("@me")) return id("geo/" + (meSkin().model() == net.minecraft.client.util.SkinTextures.Model.SLIM ? "human_slim" : "human") + ".geo.json");
-            return id("geo/" + (w.equals("vika") || w.equals("zina") || w.equals("polya") || w.equals("nyura") || w.equals("lyuba") || w.equals("mitya") ? "human_slim" : "human") + ".geo.json");
+            return id("geo/" + (w.equals("vika") || w.equals("zina") || w.equals("polya") || w.equals("nyura") || w.equals("lyuba") || w.equals("mitya") || w.equals("kid_a") ? "human_slim" : "human") + ".geo.json");
         }
 
         @Override
@@ -206,7 +206,7 @@ public final class GeoRenderers {
                 @Override
                 public void scaleModelForRender(float widthScale, float heightScale, net.minecraft.client.util.math.MatrixStack poseStack, ResidentEntity animatable,
                                                 software.bernie.geckolib.cache.object.BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
-                    float k = animatable.who().equals("vika") ? 0.86f : animatable.who().equals("mitya") ? 0.74f : 1f;
+                    float k = animatable.who().equals("vika") ? 0.86f : animatable.who().equals("mitya") || animatable.who().startsWith("kid") ? 0.74f : 1f;
                     super.scaleModelForRender(widthScale * k, heightScale * k, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
                 }
             };

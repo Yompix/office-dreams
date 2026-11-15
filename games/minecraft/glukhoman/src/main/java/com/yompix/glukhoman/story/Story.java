@@ -93,6 +93,7 @@ public final class Story {
         if (!isOurWorld()) return;
         if (!st.built) MapBuilder.build(w(), st);
         if (st.built && !st.flag("v3")) com.yompix.glukhoman.world.Part2Map.build(w(), st);   // 0.6: часть вторая — и в старых мирах
+        if (st.built && !st.flag("v4")) com.yompix.glukhoman.world.Part3Map.build(w(), st);   // 0.7: имена сорока, вагоны изнутри
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);
@@ -119,12 +120,13 @@ public final class Story {
             return;
         }
         if (st.step.startsWith("n2")) {
-            setStep(st.chapter == 4 ? "c2_wait" : "c1_wait");
+            setStep(st.chapter == 7 ? "c4_wait" : st.chapter == 4 ? "c2_wait" : "c1_wait");
             w().setTimeOfDay(16000);
         }
         if (st.chapter == 2) dayResidents();
         if (st.chapter == 4) dayResidents();
         Part2.loaded(st);
+        Part3.loaded(st);
     }
 
     public static boolean isOurWorld() {
@@ -172,6 +174,11 @@ public final class Story {
         boolean fresh = st().chapter == 0;
         chooseDifficulty(p, d, false);
         StoryState st = st();
+        if (fresh && (chapter == 7 || chapter == 8) && st.chapter == 1) {
+            Part3.jump(chapter);
+            msgAll("Новая смена — сразу с главы " + (chapter == 7 ? "IV «Перекличка»" : "V «Сверка»") + ".");
+            return;
+        }
         if (fresh && (chapter == 4 || chapter == 5) && st.chapter == 1) {
             Part2.jump(chapter);
             msgAll("Новая смена — сразу с главы " + (chapter == 4 ? "II «Порожняк»" : "III «Перегон»") + ".");
@@ -391,6 +398,10 @@ public final class Story {
             Part2.answer(p, i);
             return;
         }
+        if (id.equals("gena4") || id.equals("box4") || id.equals("gena5")) {
+            Part3.answer(p, id, i);
+            return;
+        }
         if (!id.equals("box") || st.flag("box_day1")) return;
         st.set("box_day1");
         if (i == 0) {
@@ -430,7 +441,8 @@ public final class Story {
             Night.wake(p, r);
             return;
         }
-        if (st.chapter >= 4 && Part2.resident(p, r)) return;
+        if (st.chapter >= 7 && Part3.resident(p, r)) return;
+        if (st.chapter >= 4 && st.chapter <= 6 && Part2.resident(p, r)) return;
         if (st.chapter == 2 && who.equals("zakhar") && st.step.equals("c1_zakhar")) {
             if (sceneRunning()) return;   // сцена уже идёт (после перезагрузки посреди сцены шаг тот же — заговори снова)
             // 0.5.1: «Сдача смены» — кат-сцена (реплики c1_zakhar_1–3 внутри неё); логика после — как раньше
@@ -466,7 +478,8 @@ public final class Story {
     /** Стул в дежурке: ждать вечера / ночи. */
     static void waitChair(ServerPlayerEntity p) {
         StoryState st = st();
-        if (st.chapter >= 4 && Part2.chair(p)) return;
+        if (st.chapter == 7 && Part3.chair(p)) return;
+        if (st.chapter >= 4 && st.chapter <= 6 && Part2.chair(p)) return;
         switch (st.step) {
             case "c1_evening" -> evening();
             case "c1_wait" -> {
@@ -511,6 +524,10 @@ public final class Story {
         StoryState st = st();
         if (st.chapter == 4) {
             Part2.night3Over();
+            return;
+        }
+        if (st.chapter == 7) {
+            Part3.night4Over();
             return;
         }
         w().setTimeOfDay(1000);
@@ -816,6 +833,7 @@ public final class Story {
         String t = Texts.get().objective(st.step);
         return switch (st.step) {
             case "c3_ride" -> Part2.rideHud();
+            case "c4_names", "c4_zakhar", "c4_gena" -> t + " · имён " + Names.count(st) + "/" + Names.threshold();
             case "c2_clues" -> t + " · имён " + st.count("names") + "/2" + (st.flag("clue_schedule") ? " · расписание есть" : "");
             case "p_rec" -> {
                 int n = 0;
@@ -852,6 +870,7 @@ public final class Story {
     static void titleAll(String a, String b, String c) {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             NbtCompound m = Net.msg("title");
+        m.putInt("ch", st().chapter);   // 0.7: клиент запоминает, до какой главы дошли («Главы»)
             m.putString("a", a);
             m.putString("b", b);
             m.putString("c", c);
@@ -880,6 +899,17 @@ public final class Story {
 
     static int dur(String line) {
         return (int) (Texts.get().lineText(line).length() / 13.0 * 20) + 30;
+    }
+
+    /** Реплика без id (имена сорока — собственные имена, не переводятся): кто, текст, где. */
+    public static void say(String whoKey, String who, String text, BlockPos at) {
+        NbtCompound m = Net.msg("voice");
+        m.putString("id", "");
+        m.putString("who", who);
+        m.putString("text", text);
+        m.putInt("dur", 50 + text.length() * 2);
+        m.putBoolean("global", true);
+        Net.all(server, m);
     }
 
     public static void voice(String line, BlockPos at, boolean global) {
@@ -1015,6 +1045,7 @@ public final class Story {
         if (t % 10 != 0) return;
         if (st.chapter == 1) prologueTick(st);
         if (st.chapter == 4 || st.chapter == 5) Part2.tick(st);
+        if (st.chapter == 7 || st.chapter == 8) Part3.tick(st);
         for (ServerPlayerEntity p : players()) area(p, st);
         if (t % 20 == 0 && st.ending.isEmpty()) for (ServerPlayerEntity p : players()) bounds(p, st);
         if (t % 40 == 0 && st.step.equals("n2_night")) hudAll();
@@ -1059,7 +1090,9 @@ public final class Story {
             return true;
         }
         switch (key) {
-            case "box" -> boxChoice(p);
+            case "box" -> {
+                if (!Part3.box(p)) boxChoice(p);
+            }
             case "radio" -> {
                 sound(pos, "radio_static", 0.6f, 1f);
                 String line = "radio_" + st.step;

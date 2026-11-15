@@ -173,6 +173,31 @@ if __name__ == '__main__':
         for x in ('p_ch2a.mp4', 'p_ch3a.mp4'):
             if os.path.exists(f'{OUT}/{x}'):
                 os.remove(f'{OUT}/{x}')
+    if what == 'v070':
+        g_n = 'eq=gamma=1.45:saturation=0.8:contrast=1.04,vignette=angle=PI/5'
+        g_d = 'eq=gamma=1.18:saturation=0.9:contrast=1.03'
+        parts = (('c4_chairs', 'p4a.mp4', g_d, False, 'Глава IV «Перекличка» · «Пустые стулья»'),
+                 ('c4_rollcall', 'p4b.mp4', g_d, False, 'Глава IV · перекличка: нас на одного больше'),
+                 ('c4_face', 'p4c.mp4', g_n, True, 'Глава IV · перемотка'),
+                 ('demo_ch5', 'ch5.mp4', g_n, True, 'Глава V «Сверка» · поезд изнутри'),
+                 ('end_poimenno', 'ending_poimenno.mp4', g_d, False, 'Концовка «Поимённо»'),
+                 ('end_naryad', 'ending_naryad.mp4', g_d, False, 'Концовка «Наряд закрыт»'),
+                 ('end_obkh', 'ending_obkhodchik.mp4', g_n, True, 'Концовка «Обходчик»'))
+        for clip, out, gr, night, label in parts:
+            if os.path.exists(f'{CLIPS}/{clip}.mp4'):
+                proto(clip, out, gr, night, label)
+        src = [f'{OUT}/{x}' for x in ('p4a.mp4', 'p4b.mp4', 'p4c.mp4') if os.path.exists(f'{OUT}/{x}')]
+        if src:
+            cmd = ['ffmpeg', '-y', '-loglevel', 'error']
+            for x in src:
+                cmd += ['-i', x]
+            n = len(src)
+            fc = ''.join(f'[{i}:v][{i}:a]' for i in range(n)) + f'concat=n={n}:v=1:a=1[v][a]'
+            run(cmd + ['-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', '-pix_fmt', 'yuv420p',
+                       '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', f'{OUT}/ch4.mp4'])
+            for x in src:
+                os.remove(x)
+            print('ch4.mp4')
     if what in ('ui', 'all'):
         ui(['yompix_intro'], 'yompix_intro.mp4', bed=0.0)
         ui(['ui_tour', 'ui_loading', 'ui_tour2'], 'ui_tour.mp4')

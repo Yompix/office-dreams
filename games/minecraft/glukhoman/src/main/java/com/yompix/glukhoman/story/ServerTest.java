@@ -152,6 +152,97 @@ public final class ServerTest {
         part2();
     }
 
+    static final boolean OBKH = Boolean.getBoolean("glukhoman.stobkh");
+
+    static void filmAt(String point, boolean ir) {
+        Cam.lower(fake, true);
+        BlockPos q = st().point(point);
+        tpAt(q.getX() + 3.5, q.getY(), q.getZ() + 3.5);
+        look(net.minecraft.util.math.Vec3d.ofCenter(q));
+        Cam.raise(fake);
+        if (ir) Cam.setIr(fake, true);
+    }
+
+    static ResidentEntity residentWhere(java.util.function.Predicate<ResidentEntity> f) {
+        var l = srv.getOverworld().getEntitiesByClass(ResidentEntity.class, new Box(BlockPos.ORIGIN).expand(700), f);
+        return l.isEmpty() ? null : l.get(0);
+    }
+
+    static void toZone(String zone) {
+        BlockPos q = st().point(zone.replace("_exit", ""));
+        if (q != null) tpAt(q.getX() + 7.0, q.getY(), q.getZ() + 0.5);
+    }
+
+    /** 0.7: часть третья — глава IV, глава V и концовка (normal → «Поимённо», board → «Наряд закрыт», obkh → «Обходчик»). */
+    static void part3() {
+        String want = BOARD ? "naryad" : OBKH ? "obkh" : "poimenno";
+        STEPS.add(new Step("конец части 2 → глава IV: пустые стулья, Гена с детьми", () -> {}, () -> st().chapter == 7 && step("c4_gena") && resident("gena") != null
+                && fake.getInventory().count(net.minecraft.item.Items.WRITTEN_BOOK) >= 1, 3000));
+        add(OBKH ? "Гена: отдал ему кассету «с собой»" : "Гена: не отдал — он забрал батареи", () -> {
+            ResidentEntity g = resident("gena");
+            tpAt(g.getX() + 1, g.getY(), g.getZ());
+            Story.resident(fake, g);
+            Story.answer(fake, "gena4", OBKH ? 0 : 1);
+        }, () -> step("c4_zakhar"));
+        add(BOARD ? "Захар без плёнки: 12 имён потеряны" : "признание Захара на плёнке: 12 имён", () -> {
+            Cam.lower(fake, true);
+            ResidentEntity z = resident("zakhar");
+            tpAt(z.getX() + 1.5, z.getY(), z.getZ());
+            look(z.getEyePos());
+            if (!BOARD) Cam.raise(fake);
+            Story.resident(fake, z);
+        }, () -> step("c4_names") && (BOARD ? st().flag("lost12") : Names.count(st()) >= 12));
+        if (!BOARD) {
+            for (int i = 0; i < Names.SPOTS; i++) {
+                final int k = i;
+                add("ИК: фамилии, улика " + (k + 1), () -> filmAt("nc_" + k, true), () -> st().flag("spot_c" + k));
+                add("глазами: бирка " + (k + 1), () -> filmAt("nt_" + k, false), () -> st().flag("spot_t" + k));
+            }
+            add("имён хватает: " + Names.threshold() + "+", () -> Cam.lower(fake, true), () -> Names.count(st()) >= Names.threshold());
+        } else add("сдал кассету после нарядной", () -> { Cam.lower(fake, true); use("box"); Story.answer(fake, "box4", 0); }, () -> st().count("dep_after") >= 1);
+        STEPS.add(new Step("стул → перекличка: нас на одного больше", () -> use("wait"), () -> step("c4_extra") && residentWhere(ResidentEntity::extra) != null, 2400));
+        add(BOARD ? "указал не на того — обиделся" : "нашёл лишнего (на плёнке его нет)", () -> {
+            ResidentEntity r = BOARD ? residentWhere(x -> !x.extra() && !x.who().startsWith("kid") && !x.who().equals("gena")) : residentWhere(ResidentEntity::extra);
+            if (r == null) r = residentWhere(x -> true);
+            tpAt(r.getX() + 1, r.getY(), r.getZ());
+            Story.resident(fake, r);
+        }, () -> step("c4_wait") && (BOARD || st().flag("extra_found")));
+        add("стул → ночь 4: Вика идёт сама, Безымянные", () -> use("wait"), () -> Night.running && st().data.getInt("night") == 4
+                && (st().flag("taken:vika") || Night.walkersList().stream().anyMatch(r -> r.who().equals("vika"))));
+        add("03:14 → поезд", () -> Night.skipTo(190), () -> step("n2_night") && count(TrainEntity.class) == 1);
+        if (!BOARD) {
+            add("включил Вике её запись «для мамы»", () -> {
+                ResidentEntity v = Night.walkersList().stream().filter(r -> r.who().equals("vika")).findFirst().orElse(null);
+                if (v == null) return;
+                tpAt(v.getX() + 1, v.getY(), v.getZ());
+                look(v.getEyePos());
+                Cam.raise(fake);
+                Story.resident(fake, v);
+            }, () -> st().flag("vika_tape") && Night.walkersList().stream().noneMatch(r -> r.who().equals("vika") && r.sleepwalking()));
+            add("ночь 4 кончилась", () -> { Cam.lower(fake, true); Night.finish(); }, () -> !Night.running);
+        } else STEPS.add(new Step("никто не будит: ночь 4 кончилась сама", () -> tp("cp_dispatch"), () -> !Night.running, 7000));
+        STEPS.add(new Step("лицо на плёнке → последнее правило → глава V, поезд видно глазами", () -> {}, () -> st().chapter == 8 && step("c5_board"), 3000));
+        add("посадка в поезд", () -> tpAt(4.5, 66, 17.8), () -> step("c5_car1"));
+        add("теплушка: называю пассажиров", () -> {
+            for (ResidentEntity r : srv.getOverworld().getEntitiesByClass(ResidentEntity.class, new Box(BlockPos.ORIGIN).expand(700), x -> x.who().equals("nameless")))
+                Story.resident(fake, r);
+        }, () -> BOARD || st().count("freed") >= 4);
+        add("вагон с кассетами", () -> toZone("car1_exit"), () -> step("c5_car2"));
+        add(OBKH ? "Гене — свою кассету" : "Гене — ничего", () -> {
+            ResidentEntity g = residentWhere(x -> x.who().equals("gena"));
+            if (g != null) Story.resident(fake, g);
+            Story.answer(fake, "gena5", OBKH ? 0 : 2);
+        }, () -> st().flag("gena5"));
+        add("пассажирский: Вика", () -> toZone("car2_exit"), () -> step("c5_car3"));
+        add("Вика", () -> { ResidentEntity v = residentWhere(x -> x.who().equals("vika")); if (v != null) Story.resident(fake, v); }, () -> true);
+        add("место 40", () -> toZone("car3_exit"), () -> step("c5_car4"));
+        STEPS.add(new Step("сам себя рядом с ним → концовка «" + want + "»", () -> {
+            var ws = srv.getOverworld().getEntitiesByClass(WatcherEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> true);
+            if (!ws.isEmpty()) look(ws.get(0).getPos().add(0, 1.5, 0));
+            Cam.raise(fake);
+        }, () -> st().chapter == 9 && st().ending.equals(want) && step("end_" + want), 2400));
+    }
+
     /** 0.6: часть вторая целиком — глава II (Гена, улики, ложное правило, ночь 3) и глава III (дрезина, 41-й км, нарядная). */
     static void part2() {
         STEPS.add(new Step("конец части 1 → глава II: Гена на перроне", () -> {}, () -> st().chapter == 4 && step("c2_board") && resident("gena") != null, 3000));
@@ -195,6 +286,7 @@ public final class ServerTest {
                 && fake.getInventory().count(GContent.CASSETTE) >= 1);
         add(BOARD ? "сжечь нарядную → конец части 2" : "забрать кассеты → конец части 2", () -> Story.answer(fake, "naryad", BOARD ? 1 : 0),
                 () -> st().chapter == 6 && step("end2") && st().ending.equals("2") && st().flag(BOARD ? "burned_naryad" : "took_tapes"));
+        part3();
     }
 
     static void tick(MinecraftServer s) {
@@ -210,7 +302,7 @@ public final class ServerTest {
             Story.testPlayer = fake;
             Story.reset();
             // у «призрака» нет клиента, который грузит чанки, — держим сюжетные места загруженными сами
-            int[][] areas = {{-80, -8, 120, 140}, {120, 0, 460, 40}};
+            int[][] areas = {{-80, -8, 120, 140}, {120, 0, 460, 40}, {140, -48, 210, -32}};
             for (int[] a : areas)
                 for (int x = a[0] >> 4; x <= a[2] >> 4; x++)
                     for (int z = a[1] >> 4; z <= a[3] >> 4; z++) s.getOverworld().setChunkForced(x, z, true);
@@ -232,7 +324,7 @@ public final class ServerTest {
         idx++;
         wait = 0;
         if (idx >= STEPS.size()) {
-            Glukhoman.LOG.info("SERVERTEST PASS: пролог, ночи 1–3 и перегон пройдены{}, конец части {}", BOARD ? " (вариант: никто не будит, забрали " + st().count("taken") + ")" : "", st().ending);
+            Glukhoman.LOG.info("SERVERTEST PASS: вся история пройдена{}, концовка {}", BOARD ? " (вариант: никто не будит, забрали " + st().count("taken") + ")" : "", st().ending);
             s.stop(false);
             return;
         }

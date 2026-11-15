@@ -18,6 +18,7 @@ loom {
             runDir 'run/server'
             if (project.hasProperty('servertest')) vmArg '-Dglukhoman.servertest=true'
             if (project.hasProperty('servertest') && project.property('servertest') == 'board') vmArg '-Dglukhoman.stboard=true'
+            if (project.hasProperty('servertest') && project.property('servertest') == 'obkh') vmArg '-Dglukhoman.stobkh=true'
             if (project.hasProperty('devop')) vmArg '-Dglukhoman.devop=true'
         }
         client {

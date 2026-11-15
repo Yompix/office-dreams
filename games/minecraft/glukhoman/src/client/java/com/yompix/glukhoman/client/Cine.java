@@ -294,6 +294,13 @@ public final class Cine {
             case "c3_naryad" -> Part2Scenes.naryad();
             case "c3_savva" -> Part2Scenes.savva();
             case "demo_ch2" -> Part2Scenes.demoCh2();
+            case "c4_chairs" -> Part3Scenes.chairs();       // 0.7: часть третья
+            case "c4_rollcall" -> Part3Scenes.rollcall();
+            case "c4_face" -> Part3Scenes.face();
+            case "demo_ch5" -> Part3Scenes.cars();
+            case "end_poimenno" -> Part3Scenes.poimenno();
+            case "end_naryad" -> Part3Scenes.naryad();
+            case "end_obkh" -> Part3Scenes.obkh();
             case "demo_ch3" -> Part2Scenes.demoCh3();
             case "demo_watcher" -> StoryScenes.demoWatcher();
             case "demo_residents" -> StoryScenes.demoResidents();

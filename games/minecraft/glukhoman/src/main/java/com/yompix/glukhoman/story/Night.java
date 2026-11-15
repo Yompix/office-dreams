@@ -76,7 +76,9 @@ public final class Night {
         Map<String, Integer> own = Tapes.weight(st, false);
         List<String> pool = new ArrayList<>(List.of("petrovich", "zina", "vika"));
         pool.removeIf(x -> st.flag("taken:" + x));
-        if (st.flag("listed:petrovich") && pool.contains("petrovich") && !Tapes.anchored(st, "petrovich")) out.add("petrovich");   // снял его имя на шпале — внёс в список
+        if (st.data.getInt("night") == 4 && pool.contains("vika")) out.add("vika");   // ночь 4: Вика идёт сама
+        for (String x : pool) if (st.flag("offended:" + x) && !out.contains(x)) out.add(x);   // обиженный на перекличке — уходит в ночь
+        if (st.flag("listed:petrovich") && pool.contains("petrovich") && !Tapes.anchored(st, "petrovich") && !out.contains("petrovich")) out.add("petrovich");   // снял его имя на шпале — внёс в список
         List<String> byList = new ArrayList<>(pool);
         byList.removeAll(out);
         byList.removeIf(x -> listed.getOrDefault(x, 0) <= 0 || Tapes.anchored(st, x));
@@ -121,7 +123,7 @@ public final class Night {
             r.speed = 0.55;
             WALKERS.add(r);
         }
-        Glukhoman.LOG.info("Глухомань: ночь {}, лунатики {}", st.data.getInt("night") == 3 ? 3 : 2, who);
+        Glukhoman.LOG.info("Глухомань: ночь {}, лунатики {}", Math.max(2, st.data.getInt("night")), who);
         watcher = Story.spawn(GContent.WATCHER, st.point("w_post"));
         if (watcher != null) {
             watcher.posted = true;
@@ -131,6 +133,7 @@ public final class Night {
         Story.setStep("n2_wait");
         Story.voice("n2_zakhar_1", null, true);
         if (st.data.getInt("night") == 3) Part2.night3Start();
+        if (st.data.getInt("night") == 4) Part3.night4Start();
         roles();
     }
 
@@ -268,6 +271,7 @@ public final class Night {
 
     public static void wake(ServerPlayerEntity p, ResidentEntity r) {
         if (!r.sleepwalking()) return;
+        if (Part3.wakeVika(p, r)) return;
         if (WAKING.containsKey(r)) return;
         WAKING.put(r, new int[]{0});
         WAKER.put(r, p);

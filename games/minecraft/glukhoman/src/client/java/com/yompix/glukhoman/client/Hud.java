@@ -158,6 +158,11 @@ public final class Hud {
         // субтитры (очередь, имя цветом, размер/положение из настроек)
         com.yompix.glukhoman.client.ui.Subtitles.render(ctx, tr, w, h, 62);
         com.yompix.glukhoman.client.ui.Notify.render(ctx, tr, w, h);
+        if (sanity < 50 && c.player != null) {   // 0.7: «Память» — тебя забывают
+            int pc = Math.max(0, Math.round(sanity));
+            ctx.drawTextWithShadow(tr, "ПАМЯТЬ " + pc + "%" + (pc < 30 ? " — тебя не узнают" : ""), 8, h - 92, pc < 30 ? 0xFFB06060 : 0xFF9A9488);
+            ctx.fill(8, h - 82, 8 + pc, h - 80, pc < 30 ? 0xFFB04040 : 0xFF8A8478);
+        }
 
         // стрелка к цели
         if (hintT > 0 && hint != null) {

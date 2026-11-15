@@ -474,7 +474,8 @@ public final class Part2 {
         Story.setStep("end2");
         int d = Story.seq("end2", st.find("radio"), true);
         Sched.after(d + 20, () -> {
-            Story.titleAll("Конец второй части", "ПОРОЖНЯК", "Продолжение — глава IV: перекличка");
+            Story.titleAll("Конец второй части", "ПОРОЖНЯК", "Дальше — глава IV: перекличка");
+            Sched.after(300, Part3::startChapter4);   // 0.7
             Glukhoman.LOG.info("Глухомань: часть 2 пройдена. Имён {}, внесён Петрович {}, нарядная {}", st.count("names"), st.flag("listed:petrovich"),
                     st.flag("burned_naryad") ? "сожжена" : "кассеты забраны");
         });

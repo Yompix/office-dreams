@@ -52,6 +52,8 @@ public class GlukhomanClient implements ClientModInitializer {
     // ---- эффекты ----
     public static String cardA = "", cardB = "", cardC = "";
     public static int cardT;
+    /** 0.7: в главе V поезд видно глазами. */
+    public static boolean trainVisible;
     public static final List<String[]> SUBS = new ArrayList<>(); // who, text, ticksLeft
     public static int fadeT, fadeTotal, fadeColor;
     public static float shake;
@@ -181,9 +183,15 @@ public class GlukhomanClient implements ClientModInitializer {
                 cardB = m.getString("b");
                 cardC = m.getString("c");
                 cardT = 160;
-                for (int n = 1; n <= 6; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
+                if (m.contains("ch") && m.getInt("ch") > GConfig.get().chapterReached && m.getInt("ch") <= 9) {
+                    GConfig.get().chapterReached = m.getInt("ch");
+                    GConfig.get().save();
+                }
+                for (int n = 1; n <= 9; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
                     String ct = com.yompix.glukhoman.story.Texts.get().chapterTitle(n);
-                    if (!ct.isEmpty() && (ct.contains(cardB) && !cardB.isEmpty() || ct.contains(cardA) && !cardA.isEmpty() || (cardA + " · " + cardB).contains(ct))
+                    String lc = ct.toLowerCase();   // 0.7: точное совпадение («Глава II» не открывает «Главу III»)
+                    if (!ct.isEmpty() && (!cardA.isEmpty() && lc.startsWith(cardA.toLowerCase() + " ·") || !cardB.isEmpty() && lc.endsWith("· " + cardB.toLowerCase())
+                            || lc.equals(cardA.toLowerCase()))
                             && n > GConfig.get().chapterReached) {
                         GConfig.get().chapterReached = n;
                         GConfig.get().save();
@@ -223,6 +231,8 @@ public class GlukhomanClient implements ClientModInitializer {
                     }
                 }
             }
+            case "trainvis" -> trainVisible = m.getBoolean("on");
+            case "chairspin" -> com.yompix.glukhoman.client.ui.Notify.show("Табло: «станция» занята. В дежурке — пусто. Стул ещё качается.");
             case "tug" -> Moments.tug(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
             case "turn" -> Moments.turn(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
             case "voice" -> {

@@ -209,7 +209,7 @@ public final class Gestures {
 
     public static final Map<String, AnimSet> SETS = Map.ofEntries(Map.entry("zakhar", ZAKHAR), Map.entry("@me", PLAYER), Map.entry("vika", VIKA),
             Map.entry("gena", GENA), Map.entry("petrovich", PETROVICH), Map.entry("polya", POLYA), Map.entry("zina", ZINA),
-            Map.entry("nyura", POLYA), Map.entry("nameless", NAMELESS), Map.entry("kolya", PETROVICH), Map.entry("lyuba", ZINA), Map.entry("mitya", VIKA));
+            Map.entry("nyura", POLYA), Map.entry("nameless", NAMELESS), Map.entry("kid_a", VIKA), Map.entry("kid_b", VIKA), Map.entry("kolya", PETROVICH), Map.entry("lyuba", ZINA), Map.entry("mitya", VIKA));
 
     /** Жесты по имени — для синхронизации с сервера (S2C «gest»). */
     public static Clip byName(String n, double hold) {

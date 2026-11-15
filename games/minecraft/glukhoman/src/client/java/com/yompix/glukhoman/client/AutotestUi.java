@@ -302,12 +302,12 @@ final class AutotestUi {
         // 0.6: «Главы» — открытые главы II и III активны, «конец части» — нет
         STEPS.add(new Autotest.Step(5, c -> {
             int was = GConfig.get().chapterReached;
-            GConfig.get().chapterReached = 6;
+            GConfig.get().chapterReached = 9;
             var s = new ChapterScreen(null);
             s.init(c, 640, 360);
             long on = s.children().stream().filter(e -> e instanceof Kit.Item it && it.active).count();
             GConfig.get().chapterReached = was;
-            check(on == 6, "«Главы»: пролог, I, II, III + продолжить + назад активны, «конец части» — нет (" + on + ")");
+            check(on == 8, "«Главы»: пролог, I–V + продолжить + назад активны, «конец части» — нет (" + on + ")");
         }));
         // 0.5.1: «Сдача смены» в сюжете — старт, «зашёл посреди сцены», перезагрузка посреди сцены, продолжение
         STEPS.add(new Autotest.Step(5, c -> Autotest.server(c, s -> {

@@ -103,7 +103,7 @@ final class Part2Scenes {
                 Cine.vf = true;
                 tr[0] = Cine.puppet(tl.w, GContent.TRAIN, 60, TrainEntity.Y, 16.5, 90);
                 Viewfinder.ghostRails(tl.w, true);
-                Cine.key(tl.w, 2, 68, 18, 9);
+                for (int x = -8; x <= 20; x += 7) Cine.key(tl.w, x, 68, 18, 11);   // фонари перрона: лица в окнах читаются
                 forty[0] = label("40", v(60, 68.0, 17.35), 0);
             });
             tl.each.add(t -> {
@@ -178,6 +178,8 @@ final class Part2Scenes {
             tl.at(0, () -> {
                 Cine.vf = true;
                 Cine.replay = true;
+                Cine.key(tl.w, 4, 68, 18, 13);   // свет на лица — «камера с подсветкой»
+                Cine.key(tl.w, 4, 67, 21, 9);
             });
             tl.each.add(t -> {
                 Cine.tintR = 1.12f;
