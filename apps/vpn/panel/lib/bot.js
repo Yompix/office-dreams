@@ -1,0 +1,199 @@
+'use strict';
+/* Telegram bot: menu, free trial, Stars payments, referrals, admin commands. */
+const { pick } = require('./texts.js');
+const { tierOf, TIERS } = require('./regions.js');
+const { DAY } = require('./store.js');
+const Money = require('./money.js');
+const Quota = require('./quota.js');
+const Referral = require('./referral.js');
+
+const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').reverse().join('.');
+
+function create({ cfg, store, tg, cb = null, log = console }) {
+  const subUrl = (u) => `${cfg.publicUrl}/sub/${u.token}`;
+  const isAdmin = (id) => cfg.adminIds.includes(id);
+  const plansFor = (tier) => cfg.tiers[tier] || cfg.tiers.mid;
+  const planById = (id, tier = 'mid') => plansFor(tier).find((p) => p.id === id);
+  const send = (chat, text, kb) => tg.call('sendMessage', { chat_id: chat, text, parse_mode: 'HTML', disable_web_page_preview: true, ...(kb ? { reply_markup: { inline_keyboard: kb } } : {}) });
+  const referral = Referral.create({ cfg, store, send, cb, log });
+
+  function menu(u, now = Date.now()) {
+    const t = pick(u.lang);
+    const names = store.enabledNodes().map((n) => n.name).join(', ');
+    const status = u.expires > now ? t.active(fmtDate(u.expires)) : t.none;
+    const kb = [];
+    if (cfg.publicUrl.startsWith('https://')) kb.push([{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]);
+    if (!u.trial && u.expires <= now && cfg.trialDays > 0) kb.push([{ text: t.bTrial(cfg.trialDays), callback_data: 'trial' }]);
+    kb.push([{ text: t.bKey, callback_data: 'key' }, { text: t.bBuy, callback_data: 'buy' }]);
+    kb.push([{ text: t.bHelp, callback_data: 'help' }, { text: t.bRef, callback_data: 'ref' }]);
+    if (cfg.support) kb.push([{ text: t.bSupport, url: cfg.support.startsWith('http') ? cfg.support : `https://t.me/${cfg.support.replace(/^@/, '')}` }]);
+    return { text: `${t.hello(cfg.brand, names)}\n\n${status}`, kb };
+  }
+  const back = (t) => [[{ text: t.bBack, callback_data: 'menu' }]];
+
+  async function showKey(chat, u, now) {
+    const t = pick(u.lang);
+    if (u.expires <= now) return send(chat, t.noSub, [[{ text: t.bBuy, callback_data: 'buy' }], ...back(t)]);
+    const q = Quota.usage(store, cfg, u, now);
+    return send(chat, t.key(subUrl(u), fmtDate(u.expires)) + '\n\n' + (q.over ? t.qOver : t.qLine(q.usedGb, q.quotaGb)), [
+      [{ text: t.bConnect, url: subUrl(u) }],
+      [{ text: t.bReset, callback_data: 'reset' }, { text: t.bHelp, callback_data: 'help' }],
+      ...back(t),
+    ]);
+  }
+
+  async function onAdmin(chat, text) {
+    const [cmd, ...a] = text.trim().split(/\s+/);
+    if (cmd === '/stats') {
+      const s = store.stats();
+      return send(chat, `📊 Пользователей: ${s.users} (+${s.new24h} за сутки)\nАктивных: ${s.active}\nПлатили: ${s.paying}\nОплат: ${s.payments}, звёзд всего: ${s.stars}, за 30 дн.: ${s.stars30d}\nУзлов: ${s.nodes}`);
+    }
+    if (cmd === '/money') return send(chat, Money.text(Money.report(store, cfg)));
+    if (cmd === '/nodes') {
+      const L = store.nodes().map((n) => `#${n.id} ${n.enabled ? '🟢' : '⚪'} <b>${n.name}</b> ${n.host} · ${n.sni} · ${n.seen ? 'связь ' + Math.round((Date.now() - n.seen) / 60000) + ' мин назад' : 'ещё не подключался'}${n.pin ? '' : ' · без Hysteria2'}`);
+      return send(chat, L.join('\n') || 'Узлов нет. /addnode Имя IP [сайт-маска]');
+    }
+    if (cmd === '/addnode') {
+      const [name, host, sni] = a;
+      if (!name || !host) return send(chat, 'Формат: /addnode 🇳🇱Нидерланды 1.2.3.4 [www.microsoft.com]');
+      const n = store.addNode(name, host, sni || undefined);
+      return send(chat, `✅ Узел #${n.id} «${n.name}» добавлен. Зайдите на сервер (Ubuntu/Debian, root) и выполните:\n\n<code>curl -fsSL ${cfg.publicUrl}/node/install.sh -o i.sh &amp;&amp; bash i.sh ${cfg.publicUrl} ${n.secret}</code>\n\nЧерез минуту проверьте /nodes.`);
+    }
+    if (cmd === '/node_off' || cmd === '/node_on') {
+      const ok = store.setNodeEnabled(Number(a[0]), cmd === '/node_on');
+      return send(chat, ok ? 'Готово.' : 'Нет такого узла.');
+    }
+    if (cmd === '/give') {
+      const id = Number(a[0]), days = Number(a[1]);
+      if (!store.user(id) || !(days > 0)) return send(chat, 'Формат: /give <telegram id> <дней>');
+      return send(chat, `Готово, до ${fmtDate(store.extend(id, days))}.`);
+    }
+    return send(chat, 'Админ: /stats, /money, /nodes, /addnode, /node_off N, /node_on N, /give id дней');
+  }
+
+  async function onMessage(m, now) {
+    if (!m.from || m.from.is_bot) return;
+    const chat = m.chat.id;
+    if (m.successful_payment) return onPaid(m, now);
+    const text = m.text || '';
+    let ref = 0;
+    const sp = /^\/start\s+r(\d+)/.exec(text);
+    if (sp) ref = Number(sp[1]);
+    const { user } = store.ensureUser(m.from, ref, now);
+    const t = pick(user.lang);
+    if (isAdmin(m.from.id) && /^\/(stats|money|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
+    if (text.startsWith('/key')) return showKey(chat, user, now);
+    if (text.startsWith('/buy')) return send(chat, t.plans, plansKb(user));
+    if (text.startsWith('/help')) return send(chat, t.help, back(t));
+    const mn = menu(user, now);
+    return send(chat, mn.text, mn.kb);
+  }
+
+  const plansKb = (u) => { const t = pick(u.lang); return [...plansFor(tierOf(u.lang)).map((p) => [{ text: t.plan(p) + (cfg.quotas[p.id] ? ` · ${cfg.quotas[p.id]} ${t.gbMo}` : ''), callback_data: 'plan:' + p.id }]), ...back(t)]; };
+
+  async function onCallback(q, now) {
+    const { user: u } = store.ensureUser(q.from, 0, now);
+    const t = pick(u.lang);
+    const chat = q.message ? q.message.chat.id : q.from.id;
+    await tg.call('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
+    const d = q.data || '';
+    if (d === 'menu') { const mn = menu(u, now); return send(chat, mn.text, mn.kb); }
+    if (d === 'trial') {
+      const exp = cfg.trialDays > 0 ? store.startTrial(u.id, cfg.trialDays, now) : 0;
+      if (!exp) return send(chat, t.trialUsed, plansKb(u));
+      await send(chat, t.trialOk(fmtDate(exp)));
+      return showKey(chat, store.user(u.id), now);
+    }
+    if (d === 'key') return showKey(chat, u, now);
+    if (d === 'reset') { const nu = store.resetKey(u.id); await send(chat, t.reset); return showKey(chat, nu, now); }
+    if (d === 'buy') return send(chat, t.plans, plansKb(u));
+    if (d === 'help') return send(chat, t.help, back(t));
+    if (d === 'ref') return send(chat, referral.text(u), [...(cfg.publicUrl.startsWith('https://') ? [[{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]] : []), ...back(t)]);
+    const wd = /^wd_(ok|no):(\d+)$/.exec(d);
+    if (wd && isAdmin(q.from.id)) return referral.decide(chat, Number(wd[2]), wd[1] === 'ok');
+    if (d.startsWith('plan:')) {
+      const tier = tierOf(u.lang);
+      const p = planById(d.slice(5), tier);
+      if (!p) return;
+      return tg.call('sendInvoice', {
+        chat_id: chat, title: t.invTitle(cfg.brand, p), description: t.invDesc(p),
+        payload: `${p.id}:${u.id}:${tier}`, currency: 'XTR', prices: [{ label: t.invTitle(cfg.brand, p), amount: p.stars }],
+      });
+    }
+  }
+
+  // payload is "<plan>:<user id>" (Stars) or "card:<plan>:<user id>"; price and currency must match the plan as it is now
+  function checkPayload(payload, currency, amount) {
+    const parts = String(payload || '').split(':');
+    const card = parts[0] === 'card';
+    const [pid, uid, tier = 'mid'] = card ? parts.slice(1) : parts;
+    if (!TIERS.includes(tier)) return null;
+    const p = planById(pid, tier);
+    if (!p || !store.user(Number(uid))) return null;
+    if (card ? !(cfg.cardToken && currency === cfg.cardCurrency && amount === Math.round(p.usd * cfg.cardRate) * 100) : (currency !== 'XTR' || amount !== p.stars)) return null;
+    return { plan: p, uid: Number(uid), card };
+  }
+
+  async function onPreCheckout(q) {
+    const ok = !!checkPayload(q.invoice_payload, q.currency, q.total_amount);
+    return tg.call('answerPreCheckoutQuery', { pre_checkout_query_id: q.id, ok, ...(ok ? {} : { error_message: 'Plan changed, please try again' }) });
+  }
+
+  async function onPaid(m, now) {
+    const sp = m.successful_payment;
+    const c = checkPayload(sp.invoice_payload, sp.currency, sp.total_amount);
+    if (!c) { log.error('payment with bad payload', sp.invoice_payload, sp.telegram_payment_charge_id); return; }
+    if (c.card) await fulfil({ uid: c.uid, plan: c.plan, charge: sp.telegram_payment_charge_id, usd: c.plan.usd, method: 'card' }, now);
+    else await fulfil({ uid: c.uid, plan: c.plan, charge: sp.telegram_payment_charge_id, stars: sp.total_amount, method: 'stars' }, now);
+  }
+
+  // one place for every payment method: count once, add days, reward the inviter, tell admins
+  async function fulfil({ uid, plan, charge, stars = 0, usd = 0, method }, now = Date.now()) {
+    const before = store.user(uid);
+    if (!before) return false;
+    if (!store.recordPayment(charge, uid, plan.id, stars, plan.days, now, method, usd)) return false; // already counted
+    const exp = store.extend(uid, plan.days, now);
+    store.setPlan(uid, plan.id, now); // new traffic window with this plan's limit
+    await send(uid, pick(before.lang).paid(fmtDate(exp))).catch(() => {});
+    await referral.onPayment({ uid, method, stars, usd, first: !before.paid, charge }, now).catch((e) => log.error('referral:', e.message));
+    const price = method === 'stars' ? `${stars} ⭐` : `$${usd} (${method})`;
+    for (const a of cfg.adminIds) send(a, `💰 ${before.name || before.id} купил ${plan.id} за ${price}`).catch(() => {});
+    return true;
+  }
+
+  async function handle(upd, now = Date.now()) {
+    try {
+      if (upd.message) return await onMessage(upd.message, now);
+      if (upd.callback_query) return await onCallback(upd.callback_query, now);
+      if (upd.pre_checkout_query) return await onPreCheckout(upd.pre_checkout_query);
+    } catch (e) { log.error('bot:', e.message); }
+  }
+
+  // traffic warnings: at 80% and when the limit is reached, once per traffic window
+  async function quotaWarn(now = Date.now()) {
+    for (const u of store.activeUsers(now)) {
+      const q = Quota.usage(store, cfg, u, now);
+      const lvl = q.over ? 100 : q.share >= 0.8 ? 80 : 0;
+      if (!lvl) continue;
+      const key = `qw:${u.id}:${q.from}:${lvl}`;
+      if (store.kvGet(key)) continue;
+      store.kvSet(key, 1);
+      const full = store.user(u.id);
+      const t = pick(full.lang);
+      await send(u.id, lvl === 100 ? t.qOver : t.q80(q.usedGb, q.quotaGb), [[{ text: t.bBuy, callback_data: 'buy' }]]).catch(() => {});
+    }
+  }
+
+  // reminder a day before the end, once per expiry date
+  async function remind(now = Date.now()) {
+    for (const u of store.toWarn(now, DAY)) {
+      store.markWarned(u.id, u.expires);
+      const t = pick(u.lang);
+      await send(u.id, t.warn(fmtDate(u.expires)), [[{ text: t.bBuy, callback_data: 'buy' }]]).catch(() => {});
+    }
+  }
+
+  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral };
+}
+
+module.exports = { create, fmtDate };

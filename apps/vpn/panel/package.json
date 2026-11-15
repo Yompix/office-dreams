@@ -1,0 +1,12 @@
+{
+  "name": "vpn-panel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VPN panel: Telegram bot (Stars), subscriptions, node configs (VLESS Reality + Hysteria2)",
+  "main": "server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  }
+}
