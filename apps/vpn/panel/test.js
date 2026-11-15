@@ -74,7 +74,8 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   const aliceBefore = store.user(100).expires;
   await bot.handle(paid, now);
   assert.strictEqual(store.user(200).expires, now + 30 * DAY);
-  assert.strictEqual(store.user(100).expires, aliceBefore + 7 * DAY, 'inviter gets +7 days');
+  assert.strictEqual(store.user(100).expires, aliceBefore + 3 * DAY, 'inviter gets +3 days');
+  assert.strictEqual(store.user(100).bal, Math.floor(Math.floor(199 * 0.013 * 100) * 0.2), 'inviter gets 20% of the net');
   await bot.handle(paid, now); // Telegram resent the same update
   assert.strictEqual(store.user(200).expires, now + 30 * DAY);
   assert.strictEqual(store.stats(now).stars, 199);
@@ -182,7 +183,7 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(code, 401);
   [code, me] = await wa.api('me', init, {}, now);
   assert.strictEqual(code, 200); assert.strictEqual(me.trial, true); assert.strictEqual(me.active, false);
-  assert.deepStrictEqual(me.methods, { stars: true, crypto: true, card: true });
+  assert.deepStrictEqual(me.methods, { stars: true, crypto: true, card: true, balance: false });
   assert.strictEqual(store.user(400).ref, 100);
   assert.strictEqual((await wa.api('me', WebApp.signInitData(cfg.botToken, carol, now - 2 * DAY), {}, now))[0], 401);
   ok('mini app: login by initData, referral from start_param');
@@ -251,7 +252,7 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(rep.gb, 20);
   assert.strictEqual(rep.egressNow, 1);
   assert.ok(rep.income > 0 && rep.costMonth >= 5 + 1);
-  assert.strictEqual(rep.free, Math.round((rep.income - rep.costMonth) * 100) / 100);
+  assert.strictEqual(rep.free, Math.round((rep.income - rep.costMonth - rep.partners) * 100) / 100);
   assert.ok(Money.text(rep).includes('Отложить на Railway'));
   calls.length = 0;
   await bot.handle(msg(admin, '/money'), now);
@@ -298,6 +299,58 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(Quota.usage(store, cfg, store.user(1), now).over, false);
   assert.ok(Quota.allowedUsers(store, cfg, now).some((u) => u.id === 1));
   ok('owner: unlimited');
+
+  // partner program: 20% level 1, 5% level 2, every payment, balance -> subscription or USDT withdrawal approved by admin
+  const pA = { id: 900, first_name: 'A', language_code: 'ru' }, pB = { id: 901, first_name: 'B', language_code: 'ru' }, pC = { id: 902, first_name: 'C', language_code: 'en' };
+  await bot.handle(msg(pA, '/start'), now);
+  await bot.handle(msg(pB, '/start r900'), now);
+  await bot.handle(msg(pC, '/start r901'), now);
+  const tcalls = [];
+  const fakeCb2 = { call: async (m, p) => { tcalls.push({ m, p }); if (m === 'transfer' && p.amount === '999.00') throw new Error('INSUFFICIENT_FUNDS'); return { transfer_id: 1 }; } };
+  const pbot = Bot.create({ cfg, store, tg, cb: fakeCb2, log: quiet });
+  const aExp = store.user(900).expires;
+  await pbot.fulfil({ uid: 902, plan: pbot.planById('m1'), charge: 'p1', usd: 2.99, method: 'crypto' }, now);
+  const net = Math.floor(2.99 * 0.97 * 100); // 290 cents
+  assert.strictEqual(store.user(901).bal, Math.floor(net * 0.2));   // B: level 1
+  assert.strictEqual(store.user(900).bal, Math.floor(net * 0.05));  // A: level 2
+  assert.strictEqual(store.user(900).expires, aExp, 'level 2 gets no days');
+  assert.ok(store.user(901).expires > now, 'level 1 gets +3 days');
+  await pbot.fulfil({ uid: 902, plan: pbot.planById('m1'), charge: 'p1', usd: 2.99, method: 'crypto' }, now); // same payment again
+  assert.strictEqual(store.user(901).bal, Math.floor(net * 0.2));
+  await pbot.fulfil({ uid: 902, plan: pbot.planById('m3'), charge: 'p2', usd: 7.49, method: 'crypto' }, now);
+  assert.ok(store.user(901).bal > Math.floor(net * 0.2), 'commission on every payment');
+  const rs2 = store.refStats(900);
+  assert.strictEqual(rs2.l1, 1); assert.strictEqual(rs2.l2, 1);
+  assert.ok(pbot.referral.text(store.user(901)).includes('20%'));
+  // paying from the balance: no new commission
+  store.credit(901, 1000, 'gift', 0, 'g1', now);
+  const balA = store.user(900).bal, balB = store.user(901).bal;
+  const wpa = WebApp.create({ cfg, store, bot: pbot, tg, cb: fakeCb2, log: quiet });
+  const initB = WebApp.signInitData(cfg.botToken, pB, now);
+  let [c2, rr2] = await wpa.api('pay', initB, { plan: 'm1', method: 'balance' }, now);
+  assert.strictEqual(c2, 200); assert.strictEqual(rr2.kind, 'done');
+  assert.strictEqual(store.user(901).bal, balB - 299);
+  assert.strictEqual(store.user(900).bal, balA);
+  // withdraw: minimum $5, admin approves -> CryptoBot transfer; decline -> money back
+  store.credit(901, 1000, 'gift', 0, 'g2', now);
+  const wbal = store.user(901).bal;
+  [c2, rr2] = await wpa.api('withdraw', initB, {}, now);
+  assert.strictEqual(c2, 200); assert.strictEqual(store.user(901).bal, 0);
+  const wid = Number(/wd_ok:(\d+)/.exec(JSON.stringify(calls.filter((c) => c.m === 'sendMessage' && c.p.chat_id === 1).pop().p.reply_markup))[1]);
+  await pbot.handle(cb(pB, `wd_ok:${wid}`), now); // not an admin: ignored
+  assert.strictEqual(store.withdrawal(wid).status, 'pending');
+  await pbot.handle(cb(admin, `wd_ok:${wid}`), now);
+  assert.strictEqual(store.withdrawal(wid).status, 'paid');
+  const tr = tcalls.find((c) => c.m === 'transfer').p;
+  assert.strictEqual(tr.user_id, 901); assert.strictEqual(tr.asset, 'USDT'); assert.strictEqual(tr.amount, (wbal / 100).toFixed(2)); assert.strictEqual(tr.spend_id, `yurk-wd-${wid}`);
+  assert.strictEqual((await wpa.api('withdraw', initB, {}, now))[0], 400); // nothing left
+  store.credit(901, 700, 'gift', 0, 'g3', now);
+  await wpa.api('withdraw', initB, {}, now);
+  const wid2 = wid + 1;
+  await pbot.handle(cb(admin, `wd_no:${wid2}`), now);
+  assert.strictEqual(store.withdrawal(wid2).status, 'declined'); assert.strictEqual(store.user(901).bal, 700);
+  assert.ok(Money.report(store, cfg, now).partners > 0);
+  ok('partner program: 20% + 5%, balance, withdrawals');
 
   // the page itself is served
   const srv2 = http.createServer(createApp({ cfg, store, bot, webapp: wa, log: quiet })).listen(0);

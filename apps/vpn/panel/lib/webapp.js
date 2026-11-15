@@ -67,8 +67,9 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       sub: active ? subUrl(u) : null,
       usage: (() => { const q = Quota.usage(store, cfg, u, now); return { used: q.usedGb, quota: q.quotaGb, over: q.over }; })(),
       ref: cfg.botUsername ? `https://t.me/${cfg.botUsername}?start=r${u.id}` : null, refDays: cfg.refDays,
+      partner: bot.referral.info(store.user(u.id) || u),
       tier, plans: bot.plansFor(tier).map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, gb: cfg.quotas[p.id] || 0, card: cardOk(u) ? cardAmount(cfg, p) / 100 : null })),
-      methods: { stars: true, crypto: !!cb, card: cardOk(u) }, cardCurrency: cfg.cardCurrency,
+      methods: { stars: true, crypto: !!cb, card: cardOk(u), balance: (store.user(u.id) || u).bal > 0 }, cardCurrency: cfg.cardCurrency,
       nodes: store.enabledNodes().map((n) => n.name),
       support: cfg.support || null,
     };
@@ -112,6 +113,13 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       });
       return { kind: 'invoice', link };
     }
+    if (method === 'balance') {
+      const cents = Math.round(plan.usd * 100);
+      const charge = `bal:${u.id}:${Date.now()}`;
+      if (!store.debit(u.id, cents, 'spend', charge)) return { error: 'balance' };
+      await bot.fulfil({ uid: u.id, plan, charge, usd: plan.usd, method: 'balance' });
+      return { kind: 'done' };
+    }
     if (method === 'crypto') {
       if (!cb) return { error: 'method' };
       const inv = await cb.call('createInvoice', {
@@ -139,6 +147,7 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       return [ok ? 200 : 409, ok ? view(store.user(user.id), now) : { error: 'trial' }];
     }
     if (action === 'reset') return [200, view(store.resetKey(user.id), now)];
+    if (action === 'withdraw') { const r = await bot.referral.requestWithdraw(store.user(user.id), now); return [r.error ? 400 : 200, r.error ? r : view(store.user(user.id), now)]; }
     if (action === 'pay') {
       const r = await pay(user, String(body.plan || ''), String(body.method || ''));
       return [r.error ? 400 : 200, r];

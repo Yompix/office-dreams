@@ -27,6 +27,7 @@ function report(store, cfg, now = Date.now()) {
     else if (p.method === 'card') inc.card += (p.usd || 0) * (1 - m.cardFee);
   }
   const income = inc.stars + inc.crypto + inc.card;
+  const partners = (store.commissionsSince ? store.commissionsSince(start) : 0) / 100; // owed to partners this month
 
   const t = store.trafficSince(day);
   const gb = t.b / GB;
@@ -36,11 +37,11 @@ function report(store, cfg, now = Date.now()) {
   const costNow = egressNow + fixedMonth * part;
   const costMonth = egressMonth + fixedMonth;           // the expected Railway (+VPS) bill for the month
   const reserve = Math.min(income, costMonth);          // keep this for the bill
-  const free = income - costMonth;                      // what is left for the owner
+  const free = income - costMonth - partners;           // what is left for the owner
 
   return {
     month: day.slice(0, 7), sales, starsN, income: r2(income), inc: { stars: r2(inc.stars), crypto: r2(inc.crypto), card: r2(inc.card) },
-    gb: r2(gb), trafficUsers: t.users, gbPerUser: t.users ? r2(gb / t.users) : 0,
+    partners: r2(partners), gb: r2(gb), trafficUsers: t.users, gbPerUser: t.users ? r2(gb / t.users) : 0,
     egressNow: r2(egressNow), egressMonth: r2(egressMonth), fixedMonth: r2(fixedMonth),
     costNow: r2(costNow), costMonth: r2(costMonth), reserve: r2(reserve), free: r2(free), part: r2(part),
   };
@@ -61,6 +62,8 @@ function text(r) {
     `   трафик VPN: ${r.gb} ГБ сейчас → ${$(r.egressNow)}, к концу месяца ≈ ${$(r.egressMonth)}`,
     `   сервер (план + CPU/RAM): ${$(r.fixedMonth)}`,
     r.trafficUsers ? `   в среднем ${r.gbPerUser} ГБ на пользователя (${r.trafficUsers} чел.)` : '   трафика пока нет',
+    '',
+    `🤝 Партнёрам начислено: ${$(r.partners)} (их доля с оплат друзей)`,
     '',
     `🏦 <b>Отложить на Railway: ${$(r.reserve)}</b>`,
     r.free >= 0 ? `✅ <b>Можно забрать себе: ${$(r.free)}</b>` : `⚠️ <b>Пока минус ${$(-r.free)}</b>: доход не покрывает Railway. Нужно больше продаж или VPS вместо трафика Railway.`,

@@ -48,7 +48,7 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
       if (p === '/health') return send(200, 'ok');
 
       if (p === '/app') return send(200, fs.readFileSync(APP_HTML), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' });
-      let a = /^\/api\/(me|trial|pay|reset)$/.exec(p);
+      let a = /^\/api\/(me|trial|pay|reset|withdraw)$/.exec(p);
       if (a && req.method === 'POST' && webapp) {
         let body = {};
         try { body = JSON.parse((await readBody(req, 1e4)) || '{}'); } catch { /* empty */ }
@@ -181,8 +181,9 @@ if (require.main === module) {
   const store = Store.open(cfg.dbPath);
   for (const rn of cfg.railwayNodes) { const n = store.railwayNode(rn); console.log(`railway node #${n.id} ${n.name} ${n.host}${n.rport ? ' + ' + n.rhost + ':' + n.rport : ''}`); }
   const tg = cfg.botToken ? Tg.client(cfg.botToken) : { call: async () => { throw new Error('BOT_TOKEN is not set'); } };
-  const bot = Bot.create({ cfg, store, tg });
-  const webapp = WebApp.create({ cfg, store, bot, tg });
+  const cb = cfg.cryptoToken ? WebApp.cryptoBot(cfg) : null;
+  const bot = Bot.create({ cfg, store, tg, cb });
+  const webapp = WebApp.create({ cfg, store, bot, tg, cb });
   http.createServer(createApp({ cfg, store, bot, webapp })).listen(cfg.port, () => console.log(`${cfg.brand} panel on :${cfg.port}, db ${cfg.dbPath}`));
   if (cfg.botToken) startBot(cfg, tg, bot, console).catch((e) => console.error('bot start:', e.message));
   else console.warn('BOT_TOKEN is not set: the bot is off');

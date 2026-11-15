@@ -181,6 +181,27 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
 .sig i:nth-child(1){height:6px}.sig i:nth-child(2){height:10px;animation-delay:.15s}.sig i:nth-child(3){height:14px;animation-delay:.3s}.sig i:nth-child(4){height:16px;animation-delay:.45s;opacity:.35}
 @keyframes sig{50%{opacity:.35}}
 
+.pt{position:relative;padding:18px 16px 16px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,255,.28),rgba(47,184,255,.12) 55%,rgba(34,227,176,.14));border:1px solid rgba(139,92,255,.45)}
+.pt:before{content:"";position:absolute;width:220px;height:220px;right:-80px;top:-90px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,120,.28),transparent 65%);animation:float 6s ease-in-out infinite}
+.pt .ph{position:relative;display:flex;align-items:center;gap:10px}
+.pt .ph .e{font-size:30px;animation:wiggle 3s ease-in-out infinite}
+.pt .ph b{flex:1;font-size:17px}
+.pt .badge{font-size:12px;font-weight:850;padding:5px 10px;border-radius:99px;background:linear-gradient(120deg,#ffd25a,#ff9b1f);color:#1b1206;box-shadow:0 6px 16px -6px rgba(255,170,60,.9)}
+.pt .pd{position:relative;margin:10px 0 14px;font-size:13.5px;color:#c8cde0;line-height:1.5}
+.pt .pd em{font-style:normal;color:#fff;font-weight:700}
+.pt .ps{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pt .ps div{padding:10px 8px;border-radius:14px;background:rgba(5,6,11,.35);border:1px solid rgba(255,255,255,.08);text-align:center}
+.pt .ps b{display:block;font-size:18px;font-weight:800}
+.pt .ps div:last-child b{background:linear-gradient(120deg,#ffd25a,#22e3b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pt .ps span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.pt .pb{position:relative;display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+.pt .pb button{height:46px;border-radius:14px;font-weight:800;transition:transform .15s}
+.pt .pb button:active{transform:scale(.95)}
+.pt .pb .inviteB{background:var(--tx);color:var(--bg)}
+.pt .pb .outB{padding:0 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+.pt .pb .outB[disabled]{opacity:.45}
+.pt small{position:relative;display:block;margin-top:9px;font-size:11.5px;color:var(--mut);text-align:center}
+.m .ic.b{background:linear-gradient(135deg,#ffd25a,#22e3b0)}
 .inv{position:relative;display:flex;gap:12px;align-items:center;padding:16px;border-radius:var(--r);overflow:hidden;background:linear-gradient(120deg,rgba(139,92,255,.24),rgba(47,184,255,.1));border:1px solid rgba(139,92,255,.4)}
 .inv .e{font-size:28px}
 .inv div{flex:1}
@@ -256,7 +277,13 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
   </div>
 
   <h3 class="rv" style="--d:13" data-t="refH"></h3>
-  <div class="inv rv" style="--d:14"><span class="e">🤝</span><div><b id="refB"></b><span data-t="refS"></span></div><button id="share" data-t="refBtn"></button></div>
+  <div class="pt rv" style="--d:14">
+    <div class="ph"><span class="e">💸</span><b data-t="pH"></b><span class="badge" id="pBadge"></span></div>
+    <div class="pd" id="pDesc"></div>
+    <div class="ps"><div><b id="pL1">0</b><span data-t="pFriends"></span></div><div><b id="pEarn">$0</b><span data-t="pEarned"></span></div><div><b id="pBal">$0</b><span data-t="pBal"></span></div></div>
+    <div class="pb"><button class="inviteB" id="share" data-t="refBtn"></button><button class="outB" id="out" data-t="pOut"></button></div>
+    <small id="pNote"></small>
+  </div>
 
   <h3 class="rv" style="--d:15" data-t="howH"></h3>
   <div class="steps rv" style="--d:16">
@@ -280,6 +307,7 @@ const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurre
 
 const L = {
   ru: {
+    pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафик в этом месяце', gb: 'ГБ', gbMo: 'ГБ/мес', qOver: 'Лимит исчерпан — продлите',
     on: 'Защищено', off: 'Не подключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'),
@@ -298,6 +326,7 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    pH: 'Partner program', pDesc: (a, b, d) => `<em>${a}%</em> of every payment of your friend — forever, <em>${b}%</em> of your friends' friends and <em>+${d} days</em> for a friend's first payment.`, pFriends: 'Friends', pEarned: 'Earned', pBal: 'Balance', pOut: 'Withdraw', pNote: (m) => `Spend the balance on your subscription or withdraw USDT via @CryptoBot from $${m}`, mBal: 'YURK balance', mBalS: (b) => `Partner money · ${b}`, wdOk: 'Withdrawal requested ⏳', refBtn: 'Invite friends',
     online: 'Online · Reality + WebSocket',
     traffic: 'Traffic this month', gb: 'GB', gbMo: 'GB/mo', qOver: 'Limit reached — renew',
     on: 'Protected', off: 'Not connected', daysW: (n) => n === 1 ? 'day' : 'days',
@@ -316,6 +345,7 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    pH: 'Партнерка', pDesc: (a, b, d) => `<em>${a}%</em> з кожної оплати друга — назавжди, <em>${b}%</em> з оплат друзів ваших друзів і <em>+${d} дні</em> підписки за першу оплату друга.`, pFriends: 'Друзів', pEarned: 'Зароблено', pBal: 'Баланс', pOut: 'Вивести', pNote: (m) => `Баланс можна витрачати на підписку або вивести в USDT через @CryptoBot від $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнерські гроші · ${b}`, wdOk: 'Заявку на виведення надіслано ⏳', refBtn: 'Покликати друзів',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафік цього місяця', gb: 'ГБ', gbMo: 'ГБ/міс', qOver: 'Ліміт вичерпано — продовжте',
     on: 'Захищено', off: 'Не підключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дні' : 'днів'),
@@ -334,6 +364,7 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    pH: 'برنامه همکاری', pDesc: (a, b, d) => `<em>${a}٪</em> از هر پرداخت دوست — برای همیشه، <em>${b}٪</em> از دوستانِ دوستان و <em>${d}+ روز</em> برای اولین پرداخت دوست.`, pFriends: 'دوستان', pEarned: 'درآمد', pBal: 'موجودی', pOut: 'برداشت', pNote: (m) => `موجودی را برای اشتراک خرج کنید یا از $${m} به USDT در @CryptoBot برداشت کنید`, mBal: 'موجودی YURK', mBalS: (b) => `پول همکاری · ${b}`, wdOk: 'درخواست برداشت ثبت شد ⏳', refBtn: 'دعوت دوستان',
     online: 'آنلاین · Reality + WebSocket',
     traffic: 'ترافیک این ماه', gb: 'گیگ', gbMo: 'گیگ/ماه', qOver: 'حجم تمام شد — تمدید کنید',
     on: 'محافظت‌شده', off: 'متصل نیست', daysW: () => 'روز',
@@ -352,6 +383,7 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    pH: 'Ortaklık', pDesc: (a, b, d) => `Arkadaşının her ödemesinin <em>%${a}</em>'i — süresiz, arkadaşlarının arkadaşlarından <em>%${b}</em> ve ilk ödemede <em>+${d} gün</em>.`, pFriends: 'Arkadaş', pEarned: 'Kazanç', pBal: 'Bakiye', pOut: 'Çek', pNote: (m) => `Bakiyeyi abonelikte kullanın veya $${m}'dan itibaren @CryptoBot ile USDT çekin`, mBal: 'YURK bakiyesi', mBalS: (b) => `Ortaklık parası · ${b}`, wdOk: 'Çekim talebi gönderildi ⏳', refBtn: 'Arkadaş davet et',
     online: 'Çevrimiçi · Reality + WebSocket',
     traffic: 'Bu ayki trafik', gb: 'GB', gbMo: 'GB/ay', qOver: 'Limit doldu — yenileyin',
     on: 'Korunuyor', off: 'Bağlı değil', daysW: () => 'gün',
@@ -370,6 +402,7 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    pH: '推广计划', pDesc: (a, b, d) => `好友每次付款得 <em>${a}%</em>（永久），二级好友付款得 <em>${b}%</em>，好友首次付款再送 <em>+${d} 天</em>。`, pFriends: '好友', pEarned: '已赚', pBal: '余额', pOut: '提现', pNote: (m) => `余额可用于支付订阅，满 $${m} 可通过 @CryptoBot 提现 USDT`, mBal: 'YURK 余额', mBalS: (b) => `推广收入 · ${b}`, wdOk: '提现申请已提交 ⏳', refBtn: '邀请好友',
     online: '在线 · Reality + WebSocket',
     traffic: '本月流量', gb: 'GB', gbMo: 'GB/月', qOver: '流量已用完 — 请续费',
     on: '已保护', off: '未连接', daysW: () => '天',
@@ -388,6 +421,7 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    pH: 'Programa de socios', pDesc: (a, b, d) => `<em>${a}%</em> de cada pago de tu amigo — para siempre, <em>${b}%</em> de los amigos de tus amigos y <em>+${d} días</em> por el primer pago.`, pFriends: 'Amigos', pEarned: 'Ganado', pBal: 'Saldo', pOut: 'Retirar', pNote: (m) => `Usa el saldo para tu suscripción o retíralo en USDT vía @CryptoBot desde $${m}`, mBal: 'Saldo YURK', mBalS: (b) => `Dinero de socios · ${b}`, wdOk: 'Retiro solicitado ⏳', refBtn: 'Invitar amigos',
     online: 'En línea · Reality + WebSocket',
     traffic: 'Tráfico este mes', gb: 'GB', gbMo: 'GB/mes', qOver: 'Límite agotado — renueva',
     on: 'Protegido', off: 'No conectado', daysW: (n) => n === 1 ? 'día' : 'días',
@@ -424,6 +458,7 @@ async function api(action, body) {
 function price(p, m) {
   if (m === 'stars') return p.stars + ' ⭐';
   if (m === 'crypto') return usd(p.usd);
+  if (m === 'balance') return usd(p.usd);
   if (m === 'card') return p.card ? `${p.card} ${({ RUB: '₽', UAH: '₴', KZT: '₸', EUR: '€' })[S.cardCurrency] || S.cardCurrency}` : '';
 }
 
@@ -479,16 +514,25 @@ function render() {
     { id: 'crypto', ic: 'c', e: '💎', h: T.mCrypto, s: T.mCryptoS, on: S.methods.crypto },
     { id: 'card', ic: 'k', e: '💳', h: T.mCard, s: T.mCardS, on: S.methods.card },
   ];
+  if (S.methods.balance) M.unshift({ id: 'balance', ic: 'b', e: '💰', h: T.mBal, s: T.mBalS('$' + S.partner.bal), on: S.partner.balCents >= Math.round(P.usd * 100) });
+  if (method === 'balance' && !(M[0].id === 'balance' && M[0].on)) method = 'stars';
   $('methods').innerHTML = M.map((m) => `<button class="m${m.id === method ? ' sel' : ''}${m.on ? '' : ' off'}" data-m="${m.id}" ${m.on ? '' : 'disabled'}>
     <span class="ic ${m.ic}">${m.e}</span><span class="tx"><b>${m.h}</b><span>${m.s}</span></span>
-    <span class="am">${m.on ? price(P, m.id) : T.soon}</span>${m.on ? '<span class="rd"></span>' : ''}</button>`).join('');
+    <span class="am">${m.on ? price(P, m.id) : (m.id === 'balance' ? price(P, 'balance') : T.soon)}</span>${m.on ? '<span class="rd"></span>' : ''}</button>`).join('');
 
   $('nodes').innerHTML = S.nodes.length ? S.nodes.map((n) => {
     const m = /^(\S+)\s+(.*)$/.exec(n) || [n, '🌐', n];
     const esc = (x) => x.replace(/</g, '&lt;');
     return `<div class="sv"><span class="fl">${esc(m[1])}</span><span class="nm">${esc(m[2])}<small>${T.online}</small></span><span class="sig"><i></i><i></i><i></i><i></i></span></div>`;
   }).join('') : `<div class="sv"><span class="nm">${T.none}</span></div>`;
-  $('refB').textContent = T.refB(S.refDays);
+  const PT = S.partner || { p1: 20, p2: 5, days: 3, l1: 0, l2: 0, earned: '0.00', bal: '0.00', balCents: 0, min: 5 };
+  $('pBadge').textContent = `${PT.p1}% + ${PT.p2}%`;
+  $('pDesc').innerHTML = T.pDesc(PT.p1, PT.p2, PT.days);
+  $('pL1').textContent = PT.l2 ? `${PT.l1}+${PT.l2}` : PT.l1;
+  $('pEarn').textContent = '$' + PT.earned;
+  $('pBal').textContent = '$' + PT.bal;
+  $('out').disabled = PT.balCents < PT.min * 100;
+  $('pNote').textContent = T.pNote(PT.min);
   $('foot').innerHTML = S.support ? `<a href="#" id="sup">${T.support}</a> · YURK VPN` : 'YURK VPN';
 
   const pay = $('pay');
@@ -523,6 +567,11 @@ $('share').onclick = () => {
   open('https://t.me/share/url?url=' + encodeURIComponent(S.ref) + '&text=' + encodeURIComponent(T.shareTx));
 };
 
+$('out').onclick = async () => {
+  const b = $('out'); b.disabled = true; haptic('medium');
+  try { S = await api('withdraw'); render(); haptic('ok'); toast(T.wdOk); } catch (e) { toast(T.fail); b.disabled = false; }
+};
+
 let watch = null;
 function waitPaid(before) {
   clearInterval(watch);
@@ -544,7 +593,8 @@ $('pay').onclick = async () => {
   const before = S.expires;
   try {
     const r = await api('pay', { plan, method });
-    if (r.kind === 'invoice' && tg && tg.openInvoice) {
+    if (r.kind === 'done') { S = await api('me'); render(); haptic('ok'); toast(T.paid); confetti(); }
+    else if (r.kind === 'invoice' && tg && tg.openInvoice) {
       tg.openInvoice(r.link, (status) => { if (status === 'paid') waitPaid(before); else if (status === 'failed') toast(T.fail); });
     } else {
       open(r.link);
@@ -599,10 +649,11 @@ function demo(action) {
   const now = Date.now();
   if (!demo.s) demo.s = { brand: 'YURK', bot: 'yurkvpn_bot', lang: (new URLSearchParams(location.search).get('lang') || 'ru'), active: /active/.test(location.search), expires: now + 23 * 864e5, daysLeft: 23, trial: !/active/.test(location.search), trialDays: 3,
     usage: { used: 18.4, quota: 60, over: false },
+    partner: { p1: 20, p2: 5, days: 3, l1: 7, l2: 12, earned: '14.80', bal: '6.25', balCents: 625, min: 5, link: '' },
     sub: 'https://example.com/sub/demo', ref: 'https://t.me/yurkvpn_bot?start=r1', refDays: 7,
     plans: /lang=fa/.test(location.search) ? [{ id: 'm1', days: 30, stars: 149, usd: 1.99, gb: 50 }, { id: 'm3', days: 90, stars: 379, usd: 4.99, gb: 60 }, { id: 'y1', days: 365, stars: 1590, usd: 21.99, gb: 80 }]
       : [{ id: 'm1', days: 30, stars: 199, usd: 2.99, card: 299, gb: 50 }, { id: 'm3', days: 90, stars: 499, usd: 7.49, card: 749, gb: 60 }, { id: 'y1', days: 365, stars: 1990, usd: 29.99, card: 2999, gb: 80 }],
-    methods: { stars: true, crypto: true, card: false }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇺🇸 США', '🇸🇬 Сингапур'], support: '@yurk_support' };
+    methods: { stars: true, crypto: true, card: false, balance: /active/.test(location.search) }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇺🇸 США', '🇸🇬 Сингапур'], support: '@yurk_support' };
   if (!demo.s.active) demo.s.sub = null;
   if (action === 'trial') { demo.s.sub = 'https://example.com/sub/demo'; demo.s.trial = false; demo.s.active = true; demo.s.daysLeft = 3; demo.s.expires = now + 3 * 864e5; }
   return Promise.resolve(demo.s);

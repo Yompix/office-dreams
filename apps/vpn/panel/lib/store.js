@@ -21,6 +21,9 @@ function open(file) {
   db.exec(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+    CREATE TABLE IF NOT EXISTS ledger (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL, cents INTEGER NOT NULL, kind TEXT NOT NULL, src INTEGER DEFAULT 0, ref TEXT DEFAULT '', ts INTEGER NOT NULL);
+    CREATE UNIQUE INDEX IF NOT EXISTS ledger_once ON ledger (uid, kind, ref) WHERE ref != '';
+    CREATE TABLE IF NOT EXISTS withdrawals (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL, cents INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', ts INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS traffic (day TEXT NOT NULL, uid INTEGER NOT NULL, up INTEGER DEFAULT 0, down INTEGER DEFAULT 0, PRIMARY KEY (day, uid));
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY, name TEXT DEFAULT '', lang TEXT DEFAULT 'ru', created INTEGER NOT NULL,
@@ -40,6 +43,7 @@ function open(file) {
   const cols = db.prepare('PRAGMA table_info(nodes)').all().map((c) => c.name);
   const ucols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
   if (!ucols.includes('plan')) db.exec("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT ''");
+  if (!ucols.includes('bal')) db.exec('ALTER TABLE users ADD COLUMN bal INTEGER DEFAULT 0'); // partner balance, cents
   if (!ucols.includes('paid_at')) db.exec('ALTER TABLE users ADD COLUMN paid_at INTEGER DEFAULT 0');
   const pcols = db.prepare('PRAGMA table_info(payments)').all().map((c) => c.name);
   if (!pcols.includes('method')) db.exec("ALTER TABLE payments ADD COLUMN method TEXT DEFAULT 'stars'");
@@ -167,6 +171,42 @@ function open(file) {
     trafficSince: (day) => db.prepare('SELECT COALESCE(SUM(up + down), 0) AS b, COUNT(DISTINCT uid) AS users FROM traffic WHERE day >= ?').get(day),
     topTraffic: (day, n = 5) => db.prepare('SELECT uid, SUM(up + down) AS b FROM traffic WHERE day >= ? GROUP BY uid ORDER BY b DESC LIMIT ?').all(day, n),
     paymentsSince: (ts) => db.prepare('SELECT method, COUNT(*) AS n, SUM(stars) AS stars, SUM(usd) AS usd FROM payments WHERE ts >= ? GROUP BY method').all(ts),
+    // partner money. credit() is idempotent per (user, kind, payment)
+    credit(uid, cents, kind, src = 0, ref = '', now = Date.now()) {
+      const r = db.prepare('INSERT OR IGNORE INTO ledger (uid, cents, kind, src, ref, ts) VALUES (?, ?, ?, ?, ?, ?)').run(uid, cents, kind, src, ref, now);
+      if (!r.changes) return false;
+      db.prepare('UPDATE users SET bal = bal + ? WHERE id = ?').run(cents, uid);
+      return true;
+    },
+    debit(uid, cents, kind, ref = '', now = Date.now()) {
+      const r = db.prepare('UPDATE users SET bal = bal - ? WHERE id = ? AND bal >= ?').run(cents, uid, cents);
+      if (!r.changes) return false;
+      db.prepare('INSERT INTO ledger (uid, cents, kind, ref, ts) VALUES (?, ?, ?, ?, ?)').run(uid, -cents, kind, ref, now);
+      return true;
+    },
+    refStats(uid) {
+      const one = (sql, ...a) => Object.values(db.prepare(sql).get(...a))[0] || 0;
+      return {
+        l1: one('SELECT COUNT(*) FROM users WHERE ref = ?', uid),
+        l2: one('SELECT COUNT(*) FROM users WHERE ref IN (SELECT id FROM users WHERE ref = ?)', uid),
+        earned: one("SELECT SUM(cents) FROM ledger WHERE uid = ? AND kind IN ('ref1', 'ref2')", uid),
+      };
+    },
+    commissionsSince: (ts) => (db.prepare("SELECT COALESCE(SUM(cents), 0) AS c FROM ledger WHERE kind IN ('ref1', 'ref2') AND ts >= ?").get(ts).c || 0),
+    withdrawRequest(uid, cents, now = Date.now()) {
+      if (!store.debit(uid, cents, 'withdraw', '', now)) return 0;
+      return Number(db.prepare('INSERT INTO withdrawals (uid, cents, ts) VALUES (?, ?, ?)').run(uid, cents, now).lastInsertRowid);
+    },
+    withdrawal: (id) => db.prepare('SELECT * FROM withdrawals WHERE id = ?').get(id) || null,
+    withdrawPaid: (id) => db.prepare("UPDATE withdrawals SET status = 'paid' WHERE id = ? AND status = 'pending'").run(id).changes > 0,
+    withdrawDecline(id) {
+      const w = store.withdrawal(id);
+      if (!w || w.status !== 'pending') return false;
+      db.prepare("UPDATE withdrawals SET status = 'declined' WHERE id = ?").run(id);
+      store.credit(w.uid, w.cents, 'refund', 0, 'wd' + id);
+      return true;
+    },
+    paidOutSince: (ts) => (db.prepare("SELECT COALESCE(SUM(cents), 0) AS c FROM withdrawals WHERE status = 'paid' AND ts >= ?").get(ts).c || 0),
     kvGet: (k) => (db.prepare('SELECT v FROM kv WHERE k = ?').get(k) || {}).v ?? null,
     kvSet: (k, v) => db.prepare('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v').run(k, String(v)),
 

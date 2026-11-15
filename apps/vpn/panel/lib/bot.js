@@ -5,15 +5,17 @@ const { tierOf, TIERS } = require('./regions.js');
 const { DAY } = require('./store.js');
 const Money = require('./money.js');
 const Quota = require('./quota.js');
+const Referral = require('./referral.js');
 
 const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').reverse().join('.');
 
-function create({ cfg, store, tg, log = console }) {
+function create({ cfg, store, tg, cb = null, log = console }) {
   const subUrl = (u) => `${cfg.publicUrl}/sub/${u.token}`;
   const isAdmin = (id) => cfg.adminIds.includes(id);
   const plansFor = (tier) => cfg.tiers[tier] || cfg.tiers.mid;
   const planById = (id, tier = 'mid') => plansFor(tier).find((p) => p.id === id);
   const send = (chat, text, kb) => tg.call('sendMessage', { chat_id: chat, text, parse_mode: 'HTML', disable_web_page_preview: true, ...(kb ? { reply_markup: { inline_keyboard: kb } } : {}) });
+  const referral = Referral.create({ cfg, store, send, cb, log });
 
   function menu(u, now = Date.now()) {
     const t = pick(u.lang);
@@ -106,7 +108,9 @@ function create({ cfg, store, tg, log = console }) {
     if (d === 'reset') { const nu = store.resetKey(u.id); await send(chat, t.reset); return showKey(chat, nu, now); }
     if (d === 'buy') return send(chat, t.plans, plansKb(u));
     if (d === 'help') return send(chat, t.help, back(t));
-    if (d === 'ref') return send(chat, t.ref(`https://t.me/${cfg.botUsername}?start=r${u.id}`, cfg.refDays), back(t));
+    if (d === 'ref') return send(chat, referral.text(u), [...(cfg.publicUrl.startsWith('https://') ? [[{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]] : []), ...back(t)]);
+    const wd = /^wd_(ok|no):(\d+)$/.exec(d);
+    if (wd && isAdmin(q.from.id)) return referral.decide(chat, Number(wd[2]), wd[1] === 'ok');
     if (d.startsWith('plan:')) {
       const tier = tierOf(u.lang);
       const p = planById(d.slice(5), tier);
@@ -151,10 +155,7 @@ function create({ cfg, store, tg, log = console }) {
     const exp = store.extend(uid, plan.days, now);
     store.setPlan(uid, plan.id, now); // new traffic window with this plan's limit
     await send(uid, pick(before.lang).paid(fmtDate(exp))).catch(() => {});
-    if (!before.paid && before.ref && cfg.refDays > 0) {
-      const r = store.user(before.ref);
-      if (r) { store.extend(r.id, cfg.refDays, now); await send(r.id, pick(r.lang).refBonus(cfg.refDays)).catch(() => {}); }
-    }
+    await referral.onPayment({ uid, method, stars, usd, first: !before.paid, charge }, now).catch((e) => log.error('referral:', e.message));
     const price = method === 'stars' ? `${stars} ⭐` : `$${usd} (${method})`;
     for (const a of cfg.adminIds) send(a, `💰 ${before.name || before.id} купил ${plan.id} за ${price}`).catch(() => {});
     return true;
@@ -192,7 +193,7 @@ function create({ cfg, store, tg, log = console }) {
     }
   }
 
-  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor };
+  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral };
 }
 
 module.exports = { create, fmtDate };

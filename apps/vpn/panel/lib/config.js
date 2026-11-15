@@ -32,7 +32,9 @@ function load(e = process.env) {
     cardRate: Number(e.CARD_RATE || 100), // card currency units per 1 USD
     dbPath: e.DB_PATH || (fs.existsSync('/data') ? '/data/vpn.db' : path.join(__dirname, '..', 'data', 'vpn.db')),
     trialDays: Number(e.TRIAL_DAYS ?? 3),
-    refDays: Number(e.REF_DAYS ?? 7),
+    refDays: Number(e.REF_DAYS ?? 3),
+    // partner program: % of what the owner really got, level 1 and level 2; min withdrawal in USD
+    referral: { l1Pct: Number(e.REF1_PCT ?? 20), l2Pct: Number(e.REF2_PCT ?? 5), minOut: Number(e.REF_MIN_OUT ?? 5) },
     plans,
     tiers,
     // money report: what the owner really gets and what Railway costs
