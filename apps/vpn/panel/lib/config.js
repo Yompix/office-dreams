@@ -5,9 +5,10 @@ const path = require('path');
 const crypto = require('crypto');
 
 const DEFAULT_PLANS = [
-  { id: 'm1', days: 30, stars: 150, usd: 2.5 },
-  { id: 'm3', days: 90, stars: 400, usd: 6.5 },
-  { id: 'y1', days: 365, stars: 1400, usd: 22 },
+  // owner gets ~$0.013 per star; Railway traffic costs $0.05/GB (~$1-2 per active user a month)
+  { id: 'm1', days: 30, stars: 199, usd: 2.99 },
+  { id: 'm3', days: 90, stars: 499, usd: 7.49 },
+  { id: 'y1', days: 365, stars: 1690, usd: 24.99 },
 ];
 
 function load(e = process.env) {

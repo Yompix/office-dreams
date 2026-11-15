@@ -63,21 +63,21 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   // bob buys a month
   await bot.handle(cb(bob, 'plan:m1'), now);
   const inv = last('sendInvoice').p;
-  assert.strictEqual(inv.currency, 'XTR'); assert.strictEqual(inv.prices[0].amount, 150); assert.strictEqual(inv.payload, 'm1:200');
-  await bot.handle({ update_id: 2, pre_checkout_query: { id: 'pc', from: bob, currency: 'XTR', total_amount: 150, invoice_payload: 'm1:200' } }, now);
+  assert.strictEqual(inv.currency, 'XTR'); assert.strictEqual(inv.prices[0].amount, 199); assert.strictEqual(inv.payload, 'm1:200');
+  await bot.handle({ update_id: 2, pre_checkout_query: { id: 'pc', from: bob, currency: 'XTR', total_amount: 199, invoice_payload: 'm1:200' } }, now);
   assert.strictEqual(last('answerPreCheckoutQuery').p.ok, true);
   await bot.handle({ update_id: 3, pre_checkout_query: { id: 'pc2', from: bob, currency: 'XTR', total_amount: 1, invoice_payload: 'm1:200' } }, now);
   assert.strictEqual(last('answerPreCheckoutQuery').p.ok, false);
   ok('invoice + pre-checkout (wrong price refused)');
 
-  const paid = { update_id: 4, message: { message_id: 2, from: bob, chat: { id: 200 }, successful_payment: { currency: 'XTR', total_amount: 150, invoice_payload: 'm1:200', telegram_payment_charge_id: 'ch1' } } };
+  const paid = { update_id: 4, message: { message_id: 2, from: bob, chat: { id: 200 }, successful_payment: { currency: 'XTR', total_amount: 199, invoice_payload: 'm1:200', telegram_payment_charge_id: 'ch1' } } };
   const aliceBefore = store.user(100).expires;
   await bot.handle(paid, now);
   assert.strictEqual(store.user(200).expires, now + 30 * DAY);
   assert.strictEqual(store.user(100).expires, aliceBefore + 7 * DAY, 'inviter gets +7 days');
   await bot.handle(paid, now); // Telegram resent the same update
   assert.strictEqual(store.user(200).expires, now + 30 * DAY);
-  assert.strictEqual(store.stats(now).stars, 150);
+  assert.strictEqual(store.stats(now).stars, 199);
   ok('payment extends once, inviter rewarded');
 
   // second payment: days stack, no second referral bonus
@@ -140,7 +140,7 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
 
   r = await fetch(base + '/admin/stats?key=k');
   const st = await r.json();
-  assert.strictEqual(st.paying, 1); assert.strictEqual(st.stars, 300);
+  assert.strictEqual(st.paying, 1); assert.strictEqual(st.stars, 398);
   assert.strictEqual((await fetch(base + '/admin/stats?key=bad')).status, 403);
   r = await fetch(base + '/tg/hook', { method: 'POST', body: '{}' });
   assert.strictEqual(r.status, 403);
@@ -195,21 +195,21 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   [, r] = await wa.api('pay', init, { plan: 'm1', method: 'stars' }, now);
   assert.strictEqual(r.kind, 'invoice');
   const il = last('createInvoiceLink').p;
-  assert.strictEqual(il.currency, 'XTR'); assert.strictEqual(il.payload, 'm1:400'); assert.strictEqual(il.prices[0].amount, 150);
+  assert.strictEqual(il.currency, 'XTR'); assert.strictEqual(il.payload, 'm1:400'); assert.strictEqual(il.prices[0].amount, 199);
   [, r] = await wa.api('pay', init, { plan: 'm3', method: 'card' }, now);
   const cl = last('createInvoiceLink').p;
-  assert.strictEqual(cl.currency, 'RUB'); assert.strictEqual(cl.prices[0].amount, 65000); assert.strictEqual(cl.payload, 'card:m3:400');
+  assert.strictEqual(cl.currency, 'RUB'); assert.strictEqual(cl.prices[0].amount, 74900); assert.strictEqual(cl.payload, 'card:m3:400');
   const exp0 = store.user(400).expires;
-  await wbot.handle({ update_id: 9, message: { message_id: 3, from: carol, chat: { id: 400 }, successful_payment: { currency: 'RUB', total_amount: 65000, invoice_payload: 'card:m3:400', telegram_payment_charge_id: 'card1' } } }, now);
+  await wbot.handle({ update_id: 9, message: { message_id: 3, from: carol, chat: { id: 400 }, successful_payment: { currency: 'RUB', total_amount: 74900, invoice_payload: 'card:m3:400', telegram_payment_charge_id: 'card1' } } }, now);
   assert.strictEqual(store.user(400).expires, exp0 + 90 * DAY);
   ok('mini app: stars + card invoices, card payment credited');
 
   [, r] = await wa.api('pay', init, { plan: 'y1', method: 'crypto' }, now);
   assert.strictEqual(r.link, 'https://t.me/CryptoBot?start=IV7');
   const ci = cbCalls.find((c) => c.m === 'createInvoice').p;
-  assert.strictEqual(ci.amount, '22'); assert.strictEqual(ci.payload, 'y1:400'); assert.strictEqual(ci.fiat, 'USD');
+  assert.strictEqual(ci.amount, '24.99'); assert.strictEqual(ci.payload, 'y1:400'); assert.strictEqual(ci.fiat, 'USD');
   const exp1 = store.user(400).expires;
-  paidItems = [{ invoice_id: 7, status: 'paid', amount: '22', payload: 'y1:400' }, { invoice_id: 8, payload: 'zz:1' }];
+  paidItems = [{ invoice_id: 7, status: 'paid', amount: '24.99', payload: 'y1:400' }, { invoice_id: 8, payload: 'zz:1' }];
   assert.strictEqual(await wa.pollCrypto(now), 1);
   assert.strictEqual(await wa.pollCrypto(now), 0);
   assert.strictEqual(store.user(400).expires, exp1 + 365 * DAY);
