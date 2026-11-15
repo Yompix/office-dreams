@@ -71,7 +71,7 @@ html,body{width:540px;height:960px;overflow:hidden;background:#05060b;font-famil
   <!-- 2. smash: ЮРКНИ -->
   <div class="sc" id="s2">
     <div class="cap" id="s2a" style="top:300px;font-size:44px;color:#cfd5e6">Хватит ждать.</div>
-    <div class="big grad abs" id="s2b" style="left:0;right:0;top:400px;font-size:140px">ЮРКНИ</div>
+    <div class="big grad abs" id="s2b" style="left:0;right:0;top:410px;font-size:108px">ЮРКНИ</div>
     <div class="cap" id="s2c" style="top:600px;font-size:30px;color:#a7afc4">YURK VPN</div>
   </div>
 
@@ -214,8 +214,8 @@ function frame(t) {
   // falling coins in 5
   const cc = $('coin0');
   if (t > 16.2 && t < 18.4) {
-    if (!cc.dataset.on) { cc.dataset.on = 1; for (let i = 1; i < 14; i++) { const d = cc.cloneNode(); d.id = 'coin' + i; d.textContent = i % 3 ? '🪙' : '💸'; $('stage').appendChild(d); } }
-    for (let i = 1; i < 14; i++) { const d = $('coin' + i), p = t - 16.2 - (i % 5) * .15; set('coin' + i, { left: (20 + (i * 37) % 480) + 'px', top: (-60 + p * (380 + i * 12)) + 'px', opacity: p > 0 && t < 18.3 ? 1 : 0, transform: `rotate(${p * (i % 2 ? 200 : -200)}deg)` }); }
+    if (!cc.dataset.on) { cc.dataset.on = 1; for (let i = 1; i < 14; i++) { const d = cc.cloneNode(); d.id = 'coin' + i; d.textContent = i % 3 ? '🪙' : '💸'; $('s5').insertBefore(d, $('money')); } }
+    for (let i = 1; i < 14; i++) { const d = $('coin' + i), p = t - 16.2 - (i % 5) * .15; set('coin' + i, { left: (10 + (i * 151) % 470) + 'px', top: (300 + p * (300 + i * 10)) + 'px', opacity: p > 0 && t < 18.3 ? .9 : 0, zIndex: 0, transform: `rotate(${p * (i % 2 ? 200 : -200)}deg)` }); }
   } else for (let i = 1; i < 14; i++) if ($('coin' + i)) $('coin' + i).style.opacity = 0;
 
   // 6 CTA
