@@ -250,6 +250,28 @@ public final class GeoRenderers {
             return r;
         });
         EntityRendererRegistry.register(GContent.WATCHER, ctx -> mob(ctx, 0.4f, true));
+        // 1.0: дрезина (GeckoLib) — коромысло качается в темпе скорости
+        EntityRendererRegistry.register(GContent.HANDCAR, ctx -> new GeoEntityRenderer<com.yompix.glukhoman.entity.HandcarEntity>(ctx, new GeoModel<>() {
+            @Override
+            public Identifier getModelResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("geo/handcar.geo.json");
+            }
+
+            @Override
+            public Identifier getTextureResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("textures/entity/handcar.png");
+            }
+
+            @Override
+            public Identifier getAnimationResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("animations/handcar.animation.json");
+            }
+        }) {
+            @Override
+            protected void applyRotations(com.yompix.glukhoman.entity.HandcarEntity e, net.minecraft.client.util.math.MatrixStack m, float age, float rotationYaw, float pt, float nativeScale) {
+                super.applyRotations(e, m, age, net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevYaw, e.getYaw()), pt, nativeScale);
+            }
+        });
         EntityRendererRegistry.register(GContent.PEBBLE_ENTITY, net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
     }
 }

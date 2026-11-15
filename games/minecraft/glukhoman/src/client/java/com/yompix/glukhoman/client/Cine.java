@@ -142,6 +142,11 @@ public final class Cine {
         if (c.currentScreen instanceof CineScreen) c.setScreen(null);
     }
 
+    /** Надпись мира видна в кадре: только собственные надписи сцены и ИК-надписи в сценах про них (ролик главы II). */
+    public static boolean showsWorldText(Entity e) {
+        return PUPPETS.contains(e) || (id.equals("demo_ch2") && e instanceof net.minecraft.entity.decoration.DisplayEntity.TextDisplayEntity t && t.getText().getString().startsWith("‡"));
+    }
+
     /** Для записи видео автотестом: время сцены идёт по тикам (кадр на тик), а не по часам. */
     public static final boolean FIXED = System.getProperty("glukhoman.autotest") != null;
     public static int clockTicks;
@@ -298,6 +303,7 @@ public final class Cine {
             case "c4_rollcall" -> Part3Scenes.rollcall();
             case "c4_face" -> Part3Scenes.face();
             case "demo_ch5" -> Part3Scenes.cars();
+            case "c5_erase" -> Part3Scenes.erase();
             case "end_poimenno" -> Part3Scenes.poimenno();
             case "end_naryad" -> Part3Scenes.naryad();
             case "end_obkh" -> Part3Scenes.obkh();

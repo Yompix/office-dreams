@@ -50,6 +50,8 @@ public class Glukhoman implements ModInitializer {
         Net.init(Glukhoman::onClientMessage);
 
         ServerLifecycleEvents.SERVER_STARTED.register(Story::serverStarted);
+        com.yompix.glukhoman.story.Memory.init();   // 1.0: Память — «???» в чате
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.glukhoman.story.Memory::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> {
             Story.tick(s);
             if (!Story.isOurWorld()) return;
@@ -75,6 +77,12 @@ public class Glukhoman implements ModInitializer {
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+            if (!world.isClient && hit.getBlockPos().equals(new net.minecraft.util.math.BlockPos(-6, 66, 21)) || !world.isClient && hit.getBlockPos().equals(new net.minecraft.util.math.BlockPos(-6, 67, 21))) {
+                if (com.yompix.glukhoman.story.Story.isOurWorld() && com.yompix.glukhoman.story.StoryState.get((net.minecraft.server.world.ServerWorld) world).flag("dispatch_locked")) {
+                    player.sendMessage(net.minecraft.text.Text.literal("Заперто. Гена унёс ключ."), true);
+                    return net.minecraft.util.ActionResult.FAIL;   // 1.0: Гена запер дежурку с перрона
+                }
+            }
             BlockPos pos = hit.getBlockPos();
             BlockState s = world.getBlockState(pos);
             if (world.isClient) return s.getBlock() instanceof PropBlock ? ActionResult.SUCCESS : ActionResult.PASS;

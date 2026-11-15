@@ -255,7 +255,7 @@ final class Part2Scenes {
             var wt = tl.creature(GContent.WATCHER, Gestures.WATCHER, "", v(-60, 40, -60), -90);
             final Entity[] cart = new Entity[1];
             tl.at(0, () -> {
-                cart[0] = Cine.puppet(tl.w, net.minecraft.entity.EntityType.MINECART, 300, 66.2, 16.5, 90);
+                cart[0] = Cine.puppet(tl.w, GContent.HANDCAR, 300, 66.12, 16.5, -90);
                 Cine.key(tl.w, CAMP_W + 31, 74, 33, 12);   // фонарь на вышке
                 Cine.key(tl.w, CAMP_W + 12, 67, 21, 9);    // у барака
                 Cine.key(tl.w, CAMP_W + 30, 67, 14, 9);    // у нарядной
@@ -269,7 +269,8 @@ final class Part2Scenes {
                 Cine.cone = 0.35f;
                 Cine.flash = t >= 22 && t < 22.25 ? 0.5f : 0f;
                 double x = t < 8 ? 300 + 4.0 * t : t < 13 ? 332 : t < 22 ? 332 + 5.2 * (t - 13) : 389 + Math.min(6, (t - 22) * 2);
-                if (cart[0] != null) Cine.place(cart[0], x, 66.2, 16.5, 90);
+                if (cart[0] != null) Cine.place(cart[0], x, 66.12, 16.5, -90);
+                if (cart[0] instanceof com.yompix.glukhoman.entity.HandcarEntity hc) hc.pump(t < 8 || (t >= 13 && t < 22) ? 4f : 0f);
                 if (t >= 8 && t < 13) wt.pos = v(332 - 22 + (t - 9) * 1.2, 66.06, 16.5);
                 else if (t >= 26) wt.pos = v(CAMP_W + 16, 66, 18.5);
                 else wt.pos = v(-60, 40, -60);

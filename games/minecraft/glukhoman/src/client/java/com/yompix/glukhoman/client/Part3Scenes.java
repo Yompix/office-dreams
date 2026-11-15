@@ -147,6 +147,38 @@ final class Part3Scenes {
         });
     }
 
+    // ======================= «Стереть себя» (12 с): номер 1 перезаписывают — вместо тебя Гена =======================
+    static Timeline erase() {
+        return new Timeline(12, tl -> {
+            int x0 = CX + 12;
+            var g = tl.actor("gena", "Гена", v(x0 + 6.5, CY, CZ + 2.6), 180);
+            var me = tl.actor("@me", "", v(-60, 40, -60), 0);
+            var mc = net.minecraft.client.MinecraftClient.getInstance();
+            String nick = mc.player != null ? mc.player.getName().getString().toUpperCase() : "СТОРОЖ";
+            final Entity[] lab = new Entity[2];
+            tl.at(0, () -> {
+                Cine.key(tl.w, x0 + 5, CY + 2, CZ + 2, 12);
+                lab[0] = Part2Scenes.label("1 — " + nick, v(x0 + 5.5, CY + 1.25, CZ + 1.62), 0, 0.5f);
+                lab[1] = Part2Scenes.label("1 — ГЕНА", v(-60, 40, -60), 0, 0.5f);
+            });
+            g.look = Timeline::camPos;
+            tl.sound(2.0, "rewind", v(x0 + 5, CY + 2, CZ + 1), 1f);
+            tl.each.add(t -> {
+                Cine.fog(2f, 20f, 0.05f, 0.04f, 0.04f);
+                Cine.glitch = (float) (0.1 + 0.8 * Math.max(0, 1 - Math.abs(t - 5.2) / 1.2));
+                if (t > 5.2 && lab[0] != null) {
+                    Cine.place(lab[0], -60, 40, -60, 0);
+                    Cine.place(lab[1], x0 + 5.5, CY + 1.25, CZ + 1.62, 0);
+                }
+            });
+            tl.sound(5.2, "tape_click", v(x0 + 5, CY + 2, CZ + 1), 1f);
+            tl.at(7.4, () -> g.an.play(Gestures.UNIFORM));
+            tl.line(8.0, me, "", "На номер 1 — Гена. Он кивнул. Будто ждал.");
+            tl.shot(0, 6.5, (u, t) -> new Vec3d[]{v(x0 + 5.5, CY + 1.4, CZ + 3.0), v(x0 + 5.5, CY + 1.25, CZ + 1.6)}).fov(40, 28).shake(0.2);
+            tl.shot(6.5, 12, (u, t) -> new Vec3d[]{v(x0 + 3.2, CY + 1.6, CZ + 3.2), g.head()}).fov(54, 46).shake(0.3);
+        });
+    }
+
     // ======================= концовки =======================
     static Timeline poimenno() {
         return new Timeline(26, tl -> {

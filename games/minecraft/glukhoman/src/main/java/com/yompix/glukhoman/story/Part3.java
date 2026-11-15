@@ -102,7 +102,23 @@ public final class Part3 {
         }));
     }
 
+    /** Доска объявлений у колонки: фотографии жителей; пропавших — нет (пустые карточки). */
+    static void photoBoard() {
+        StoryState st = st();
+        String[][] who = {{"polya", "Баба Поля"}, {"petrovich", "Глотов В. П."}, {"zina", "Зинаида"}, {"vika", "Вика С."}};
+        for (int i = 0; i < 4; i++) {
+            BlockPos q = st.point("photo_" + i);
+            if (q == null || !(w().getBlockEntity(q) instanceof net.minecraft.block.entity.SignBlockEntity sb)) continue;
+            boolean gone = st.flag("taken:" + who[i][0]);
+            var t = new net.minecraft.block.entity.SignText().withMessage(0, net.minecraft.text.Text.literal("[фото]"))
+                    .withMessage(1, net.minecraft.text.Text.literal(gone ? "" : who[i][1])).withMessage(2, net.minecraft.text.Text.literal(gone ? "(пусто)" : ""));
+            sb.setText(t, true);
+            sb.setText(t, false);
+        }
+    }
+
     static void day4() {
+        photoBoard();
         Story.dayResidents();
         ResidentEntity g = Story.spawnResident("gena", new BlockPos(2, 66, 26));
         if (g != null) g.setYaw(180);
@@ -216,7 +232,11 @@ public final class Part3 {
                     var inv = q.getInventory();
                     for (int k = 0; k < inv.size(); k++) if (inv.getStack(k).isOf(GContent.BATTERY)) inv.setStack(k, ItemStack.EMPTY);
                 }
-                Story.msgAll("Гена забрал батареи. Камера — на том, что осталось.");
+                Story.msgAll("Гена забрал батареи и запер дежурку с перрона. Входи через зал.");
+                st.set("dispatch_locked");
+                BlockPos d = new BlockPos(-6, 66, 21);
+                var bs = w().getBlockState(d);
+                if (bs.getBlock() instanceof net.minecraft.block.DoorBlock door) door.setOpen(null, w(), bs, d, false);
             }
             Sched.after(80, () -> Story.setStep("c4_zakhar"));
         } else if (id.equals("box4") && i == 0) {
@@ -230,7 +250,8 @@ public final class Part3 {
                 st.set("erased_self");
                 st.set("listed:gena");
             }
-            Story.msgAll(i == 0 ? "Гена взял твою кассету. Ушёл с детьми в тамбур. Дверь закрылась." : i == 1 ? "На номер 1 — Гена. Он кивнул. Будто ждал." : "Ты ничего не отдал.");
+            if (i == 1) Story.scene("c5_erase", () -> {});   // 1.0: перезапись номера 1 — сценой
+            else Story.msgAll(i == 0 ? "Гена взял твою кассету. Ушёл с детьми в тамбур. Дверь закрылась." : "Ты ничего не отдал.");
         }
     }
 
@@ -260,6 +281,7 @@ public final class Part3 {
 
     static void rollcall() {
         StoryState st = st();
+        st.flags.remove("dispatch_locked");   // ночью дверь не держит
         Story.fxAll("fade", 40);
         w().setTimeOfDay(13500);
         Story.setStep("c4_rollcall");
@@ -318,6 +340,16 @@ public final class Part3 {
             if (!night4()) return;
             Story.voice("c4_board", null, true);
             for (ServerPlayerEntity p : Story.players()) Net.send(p, Net.msg("chairspin"));
+            BlockPos chair = new BlockPos(-6, 66, 26);   // стул в дежурке крутится сам — 3 с, со скрипом
+            for (int i = 0; i < 16; i++) {
+                final int k = i;
+                Sched.after(i * 4, () -> {
+                    var cs = w().getBlockState(chair);
+                    if (cs.contains(net.minecraft.block.StairsBlock.FACING))
+                        w().setBlockState(chair, cs.with(net.minecraft.block.StairsBlock.FACING, net.minecraft.util.math.Direction.fromHorizontal(k % 4)));
+                    if (k % 2 == 0) Story.sound(chair, "door_creak", 0.5f, 1.6f + k * 0.02f);
+                });
+            }
         });
     }
 
@@ -338,7 +370,7 @@ public final class Part3 {
                 }
             }
             if (t == null) return false;
-            r.getMoveControl().moveTo(t.getX(), t.getY(), t.getZ(), 0.55);
+            if (r.age % 20 == 0 || r.getNavigation().isIdle()) r.getNavigation().startMovingTo(t, 0.9);   // 1.0: поиск пути (обходят дома, двери)
             if (r.squaredDistanceTo(t) < 1.6 * 1.6) {
                 Sanity.add(t, -30);
                 Story.tug(t, r.getEyePos());

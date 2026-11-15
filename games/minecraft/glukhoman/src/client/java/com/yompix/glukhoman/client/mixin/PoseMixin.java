@@ -36,6 +36,19 @@ public class PoseMixin<T extends LivingEntity> {
     @Inject(method = "setAngles(Lnet/minecraft/entity/LivingEntity;FFFFF)V", at = @At("TAIL"))
     private void glukhoman$camPose(T e, float limbAngle, float limbDistance, float age, float headYaw, float headPitch, CallbackInfo ci) {
         if (!(e instanceof PlayerEntity p)) return;
+        if (p.getVehicle() instanceof com.yompix.glukhoman.entity.HandcarEntity hc) {   // 1.0: обе руки на рычаге дрезины, стоя
+            BipedEntityModel<?> mm = (BipedEntityModel<?>) (Object) this;
+            float s = (float) Math.sin(hc.phase());
+            mm.rightArm.pitch = mm.leftArm.pitch = -1.15f - 0.45f * s;
+            mm.rightArm.yaw = -0.2f;
+            mm.leftArm.yaw = 0.2f;
+            mm.rightArm.roll = mm.leftArm.roll = 0;
+            mm.body.pitch = 0.18f + 0.12f * s;
+            mm.rightLeg.pitch = -0.1f;
+            mm.leftLeg.pitch = 0.15f;
+            mm.rightLeg.yaw = mm.leftLeg.yaw = 0;
+            return;
+        }
         boolean main = p.getMainHandStack().isOf(GContent.CAMCORDER), off = p.getOffHandStack().isOf(GContent.CAMCORDER);
         if (!main && !off) return;
         BipedEntityModel<?> m = (BipedEntityModel<?>) (Object) this;

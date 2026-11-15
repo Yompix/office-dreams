@@ -10,7 +10,7 @@ import com.yompix.glukhoman.world.MapBuilder;
 import com.yompix.glukhoman.world.Part2Map;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.vehicle.MinecartEntity;
+import com.yompix.glukhoman.entity.HandcarEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -289,7 +289,7 @@ public final class Part2 {
     }
 
     // ===================== глава III «Перегон» =====================
-    static MinecartEntity cart;
+    static HandcarEntity cart;
     static double cartX, v, slowT, stopT, jointT;
     static boolean leftSwitch;
 
@@ -311,12 +311,12 @@ public final class Part2 {
 
     static void spawnCart() {
         if (cart != null && !cart.isRemoved()) cart.discard();
-        for (MinecartEntity m : w().getEntitiesByClass(MinecartEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> e.getCommandTags().contains("glk_handcar"))) m.discard();
+        for (HandcarEntity m : w().getEntitiesByClass(HandcarEntity.class, new Box(BlockPos.ORIGIN).expand(700), e -> e.getCommandTags().contains("glk_handcar"))) m.discard();
         BlockPos q = st().point("c3_cart");
-        cart = EntityType.MINECART.create(w());
+        cart = GContent.HANDCAR.create(w());
         if (cart == null || q == null) return;
         cartX = q.getX() + 0.5;
-        cart.refreshPositionAndAngles(cartX, q.getY() + 0.2, q.getZ() + 0.5, 90, 0);
+        cart.refreshPositionAndAngles(cartX, q.getY() + 0.12, q.getZ() + 0.5, -90, 0);
         cart.setNoGravity(true);
         cart.setCustomName(Text.literal("Дрезина"));
         cart.addCommandTag("glk_handcar");
@@ -362,9 +362,8 @@ public final class Part2 {
             v = 0;
         }
         cartX = nx;
-        cart.refreshPositionAndAngles(cartX, cart.getY(), cart.getZ(), 90, 0);
-        cart.setVelocity(v / 20, 0, 0);
-        cart.velocityModified = true;
+        cart.refreshPositionAndAngles(cartX, cart.getY(), cart.getZ(), -90, 0);
+        cart.pump((float) v);
         // стук на стыках: есть рельс — тук-тук под тобой; стоишь на голых шпалах — тук-тук СЗАДИ
         jointT += dt;
         if (rail && v > 1.5 && jointT > 3.0) {
@@ -537,7 +536,7 @@ public final class Part2 {
     public static ServerPlayerEntity testDriver;
 
 
-    public static MinecartEntity qaCart() {
+    public static HandcarEntity qaCart() {
         return cart;
     }
 }

@@ -20,6 +20,7 @@
     "geckolib": ">=4.8.4"
   },
   "mixins": [
-    {"config": "glukhoman.client.mixins.json", "environment": "client"}
+    {"config": "glukhoman.client.mixins.json", "environment": "client"},
+    {"config": "glukhoman.mixins.json", "environment": "*"}
   ]
 }

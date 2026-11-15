@@ -108,6 +108,8 @@ public final class GContent {
             .dimensions(0.6f, 1.8f).maxTrackingRange(12));
     public static final EntityType<com.yompix.glukhoman.entity.TrainEntity> TRAIN = entity("train", EntityType.Builder.<com.yompix.glukhoman.entity.TrainEntity>create(com.yompix.glukhoman.entity.TrainEntity::new, SpawnGroup.MISC)
             .dimensions(2.4f, 3.4f).maxTrackingRange(24).trackingTickInterval(1));
+    public static final EntityType<com.yompix.glukhoman.entity.HandcarEntity> HANDCAR = entity("handcar", EntityType.Builder.<com.yompix.glukhoman.entity.HandcarEntity>create(com.yompix.glukhoman.entity.HandcarEntity::new, SpawnGroup.MISC)
+            .dimensions(1.6f, 0.9f).maxTrackingRange(16).trackingTickInterval(1));
     public static final EntityType<com.yompix.glukhoman.entity.WatcherEntity> WATCHER = entity("watcher", EntityType.Builder.create(com.yompix.glukhoman.entity.WatcherEntity::new, SpawnGroup.MONSTER)
             .dimensions(0.7f, 3.2f).maxTrackingRange(12));
     public static final EntityType<PebbleEntity> PEBBLE_ENTITY = entity("pebble", EntityType.Builder.<PebbleEntity>create(PebbleEntity::new, SpawnGroup.MISC)

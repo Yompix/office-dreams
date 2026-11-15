@@ -70,6 +70,44 @@ public final class Part3Map {
         st.markDirty();
     }
 
+    /** 1.0: доска объявлений с фотографиями у колонки; детали вагонов (магнитофоны, багаж, лампы). Флаг «v5». */
+    public static void build5(ServerWorld w, StoryState st) {
+        B b = new B(w, st);
+        w.getChunk(0, 1);
+        // доска: два столба, щит, четыре «фотокарточки» (таблички — их текст меняет сюжет)
+        int bx = 6, bz = 30;
+        for (int y = 66; y <= 68; y++) {
+            b.set(bx - 1, y, bz, Blocks.SPRUCE_FENCE.getDefaultState());
+            b.set(bx + 4, y, bz, Blocks.SPRUCE_FENCE.getDefaultState());
+        }
+        b.fill(bx - 1, 69, bz, bx + 4, 69, bz, Blocks.SPRUCE_SLAB.getDefaultState());
+        b.fill(bx, 67, bz, bx + 3, 68, bz, Blocks.SPRUCE_PLANKS.getDefaultState());
+        for (int i = 0; i < 4; i++) {
+            b.set(bx + i, 67, bz - 1, Blocks.SPRUCE_WALL_SIGN.getDefaultState().with(net.minecraft.block.WallSignBlock.FACING, net.minecraft.util.math.Direction.NORTH));
+            b.point("photo_" + i, bx + i, 67, bz - 1);
+        }
+        // вагоны: убрать «музыкальные автоматы», поставить магнитофоны рядами, багаж, лампы
+        for (int k = 0; k < 4; k++) {
+            int x0 = CX + k * 12;
+            for (int x = x0 + 1; x <= x0 + 9; x++) if (w.getBlockState(new net.minecraft.util.math.BlockPos(x, CY + 2, CZ + 1)).isOf(Blocks.JUKEBOX)) b.set(x, CY + 2, CZ + 1, Blocks.AIR.getDefaultState());
+            b.lantern(x0 + 2, CY + 4, CZ + 3, true);
+            b.lantern(x0 + 8, CY + 4, CZ + 3, true);
+            if (k == 0 || k == 2) {   // багаж: мешки, чемоданы
+                b.set(x0 + 9, CY + 1, CZ + 1, Blocks.BARREL.getDefaultState());
+                b.set(x0 + 9, CY + 1, CZ + 2, Blocks.CHEST.getDefaultState());
+                b.set(x0 + 1, CY + 1, CZ + 1, Blocks.BROWN_WOOL.getDefaultState());
+            }
+            if (k == 1) for (int x = x0 + 1; x <= x0 + 9; x++) {   // магнитофоны на полках в два ряда
+                b.set(x, CY + 1, CZ + 1, Blocks.SPRUCE_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+                b.prop(x, CY + 2, CZ + 1, com.yompix.glukhoman.GContent.RADIO, net.minecraft.util.math.Direction.SOUTH);
+                b.set(x, CY + 3, CZ + 1, Blocks.SPRUCE_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+                if (x % 2 == 0) b.prop(x, CY + 4, CZ + 1, com.yompix.glukhoman.GContent.RADIO, net.minecraft.util.math.Direction.SOUTH);
+            }
+        }
+        st.set("v5");
+        st.markDirty();
+    }
+
     static void text(ServerWorld w, String s, double x, double y, double z, float pitch, float scale, String billboard) {
         DisplayEntity.TextDisplayEntity t = EntityType.TEXT_DISPLAY.create(w);
         if (t == null) return;

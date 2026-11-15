@@ -94,6 +94,7 @@ public final class Story {
         if (!st.built) MapBuilder.build(w(), st);
         if (st.built && !st.flag("v3")) com.yompix.glukhoman.world.Part2Map.build(w(), st);   // 0.6: часть вторая — и в старых мирах
         if (st.built && !st.flag("v4")) com.yompix.glukhoman.world.Part3Map.build(w(), st);   // 0.7: имена сорока, вагоны изнутри
+        if (st.built && !st.flag("v5")) com.yompix.glukhoman.world.Part3Map.build5(w(), st);  // 1.0: доска с фото, детали вагонов
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);

@@ -15,6 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class VisibilityMixin {
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
     private <E extends Entity> void glukhoman$seen(E entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
+        if (entity instanceof net.minecraft.entity.decoration.DisplayEntity.TextDisplayEntity tdc && com.yompix.glukhoman.client.Cine.active
+                && !com.yompix.glukhoman.client.Cine.showsWorldText(tdc)) {   // 1.0: в кат-сценах — без бирок и надписей мира (кроме тех, что ставит сама сцена)
+            cir.setReturnValue(false);
+            return;
+        }
         if (entity instanceof net.minecraft.entity.decoration.DisplayEntity.TextDisplayEntity td && td.getText().getString().startsWith("‡")) {
             // 0.6: надписи на шпалах «вырезаны» — видны только в видоискателе в ИК (и на плёнке)
             boolean ok = (Viewfinder.view() && Viewfinder.ir) || (com.yompix.glukhoman.client.Cine.active && com.yompix.glukhoman.client.Cine.replay);
