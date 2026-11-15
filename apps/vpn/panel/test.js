@@ -237,6 +237,31 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.ok(last('sendMessage').p.text.includes('hızlı VPN'));
   ok('regional prices + languages');
 
+  // traffic from the node + money report
+  const { saveTraffic, dailyMoney } = require('./server.js');
+  const Money = require('./lib/money.js');
+  const GB = 1024 ** 3;
+  assert.strictEqual(saveTraffic(store, JSON.stringify({ stat: [
+    { name: 'user>>>u200>>>traffic>>>uplink', value: String(1 * GB) }, { name: 'user>>>u200>>>traffic>>>downlink', value: String(9 * GB) },
+    { name: 'user>>>u100>>>traffic>>>downlink', value: 10 * GB }, { name: 'inbound>>>ws>>>traffic>>>downlink', value: '5' }] }), now), 2);
+  const xs = NodeCfg.xray(node, []);
+  assert.ok(xs.stats && xs.api.services.includes('StatsService') && xs.policy.levels[0].statsUserDownlink);
+  assert.ok(!NodeCfg.xray(node, [], { stats: false }).stats);
+  const rep = Money.report(store, cfg, now);
+  assert.strictEqual(rep.gb, 20);
+  assert.strictEqual(rep.egressNow, 1);
+  assert.ok(rep.income > 0 && rep.costMonth >= 5 + 1);
+  assert.strictEqual(rep.free, Math.round((rep.income - rep.costMonth) * 100) / 100);
+  assert.ok(Money.text(rep).includes('Отложить на Railway'));
+  calls.length = 0;
+  await bot.handle(msg(admin, '/money'), now);
+  assert.ok(last('sendMessage').p.text.includes('Финансы'));
+  const morning = Date.UTC(2026, 10, 16, 7);
+  assert.strictEqual(await dailyMoney(cfg, store, tg, morning), true);
+  assert.strictEqual(await dailyMoney(cfg, store, tg, morning + 3600e3), false);
+  assert.strictEqual(await dailyMoney(cfg, store, tg, Date.UTC(2026, 10, 17, 3)), false);
+  ok('traffic counters + money report (/money, daily)');
+
   // the page itself is served
   const srv2 = http.createServer(createApp({ cfg, store, bot, webapp: wa, log: quiet })).listen(0);
   const b2 = `http://127.0.0.1:${srv2.address().port}`;

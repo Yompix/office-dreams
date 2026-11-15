@@ -11,6 +11,7 @@ const NodeCfg = require('./lib/nodecfg.js');
 const Bot = require('./lib/bot.js');
 const Tg = require('./lib/tg.js');
 const WebApp = require('./lib/webapp.js');
+const Money = require('./lib/money.js');
 const APP_HTML = path.join(__dirname, 'public', 'app.html');
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -82,8 +83,15 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         const pin = String(req.headers['x-hy2-pin'] || '').trim();
         store.touchNode(n.id, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/i.test(pin) ? pin.toUpperCase() : '');
         const users = n.enabled ? store.activeUsers() : [];
-        if (m[1] === 'xray.json') return send(200, JSON.stringify(NodeCfg.xray(n, users), null, 1), { 'content-type': 'application/json' });
+        if (m[1] === 'xray.json') return send(200, JSON.stringify(NodeCfg.xray(n, users, { stats: url.searchParams.get('stats') !== '0' }), null, 1), { 'content-type': 'application/json' });
         return send(200, NodeCfg.hysteria(n, users), { 'content-type': 'text/yaml' });
+      }
+      // node agent reports `xray api statsquery -reset` output: bytes per user since the last report
+      if (p === '/node/traffic' && req.method === 'POST') {
+        const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+        if (!tok || !store.nodeBySecret(tok)) return send(403, 'no');
+        const n = saveTraffic(store, await readBody(req, 2e6));
+        return send(200, String(n));
       }
       m = /^\/node\/(install\.sh|agent\.sh)$/.exec(p);
       if (m) return send(200, fs.readFileSync(path.join(__dirname, 'node', m[1])), { 'content-type': 'text/x-shellscript' });
@@ -101,6 +109,34 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
       if (!res.headersSent) send(500, 'error');
     }
   };
+}
+
+// {"stat":[{"name":"user>>>u123>>>traffic>>>uplink","value":"456"}]} -> traffic table
+function saveTraffic(store, body, now = Date.now()) {
+  let j; try { j = JSON.parse(body || '{}'); } catch { return 0; }
+  const per = new Map();
+  for (const s of j.stat || []) {
+    const mm = /^user>>>u(\d+)>>>traffic>>>(uplink|downlink)$/.exec(s.name || '');
+    const v = Number(s.value) || 0;
+    if (!mm || v <= 0) continue;
+    const o = per.get(mm[1]) || { up: 0, down: 0 };
+    o[mm[2] === 'uplink' ? 'up' : 'down'] += v;
+    per.set(mm[1], o);
+  }
+  const day = new Date(now).toISOString().slice(0, 10);
+  for (const [uid, o] of per) store.addTraffic(day, Number(uid), o.up, o.down);
+  return per.size;
+}
+
+// daily money report to admins at 06:xx UTC (09:xx Moscow / Kyiv summer)
+async function dailyMoney(cfg, store, tg, now = Date.now()) {
+  const d = new Date(now);
+  const today = d.toISOString().slice(0, 10);
+  if (d.getUTCHours() < 6 || store.kvGet('moneyDay') === today) return false;
+  store.kvSet('moneyDay', today);
+  const txt = Money.text(Money.report(store, cfg, now));
+  for (const a of cfg.adminIds) await tg.call('sendMessage', { chat_id: a, text: txt, parse_mode: 'HTML' }).catch(() => {});
+  return true;
 }
 
 function readBody(req, max) {
@@ -149,7 +185,8 @@ if (require.main === module) {
   if (cfg.botToken) startBot(cfg, tg, bot, console).catch((e) => console.error('bot start:', e.message));
   else console.warn('BOT_TOKEN is not set: the bot is off');
   setInterval(() => bot.remind().catch(() => {}), 3600e3).unref();
+  setInterval(() => dailyMoney(cfg, store, tg).catch((e) => console.error('money:', e.message)), 600e3).unref();
   if (cfg.cryptoToken) setInterval(() => webapp.pollCrypto().catch((e) => console.error(e.message)), 60e3).unref();
 }
 
-module.exports = { createApp, subPage };
+module.exports = { createApp, subPage, saveTraffic, dailyMoney };

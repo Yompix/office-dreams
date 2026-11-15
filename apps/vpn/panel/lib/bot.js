@@ -3,6 +3,7 @@
 const { pick } = require('./texts.js');
 const { tierOf, TIERS } = require('./regions.js');
 const { DAY } = require('./store.js');
+const Money = require('./money.js');
 
 const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10).split('-').reverse().join('.');
 
@@ -43,6 +44,7 @@ function create({ cfg, store, tg, log = console }) {
       const s = store.stats();
       return send(chat, `📊 Пользователей: ${s.users} (+${s.new24h} за сутки)\nАктивных: ${s.active}\nПлатили: ${s.paying}\nОплат: ${s.payments}, звёзд всего: ${s.stars}, за 30 дн.: ${s.stars30d}\nУзлов: ${s.nodes}`);
     }
+    if (cmd === '/money') return send(chat, Money.text(Money.report(store, cfg)));
     if (cmd === '/nodes') {
       const L = store.nodes().map((n) => `#${n.id} ${n.enabled ? '🟢' : '⚪'} <b>${n.name}</b> ${n.host} · ${n.sni} · ${n.seen ? 'связь ' + Math.round((Date.now() - n.seen) / 60000) + ' мин назад' : 'ещё не подключался'}${n.pin ? '' : ' · без Hysteria2'}`);
       return send(chat, L.join('\n') || 'Узлов нет. /addnode Имя IP [сайт-маска]');
@@ -62,7 +64,7 @@ function create({ cfg, store, tg, log = console }) {
       if (!store.user(id) || !(days > 0)) return send(chat, 'Формат: /give <telegram id> <дней>');
       return send(chat, `Готово, до ${fmtDate(store.extend(id, days))}.`);
     }
-    return send(chat, 'Админ: /stats, /nodes, /addnode, /node_off N, /node_on N, /give id дней');
+    return send(chat, 'Админ: /stats, /money, /nodes, /addnode, /node_off N, /node_on N, /give id дней');
   }
 
   async function onMessage(m, now) {
@@ -75,7 +77,7 @@ function create({ cfg, store, tg, log = console }) {
     if (sp) ref = Number(sp[1]);
     const { user } = store.ensureUser(m.from, ref, now);
     const t = pick(user.lang);
-    if (isAdmin(m.from.id) && /^\/(stats|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
+    if (isAdmin(m.from.id) && /^\/(stats|money|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
     if (text.startsWith('/key')) return showKey(chat, user, now);
     if (text.startsWith('/buy')) return send(chat, t.plans, plansKb(user));
     if (text.startsWith('/help')) return send(chat, t.help, back(t));

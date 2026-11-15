@@ -21,6 +21,7 @@ function open(file) {
   db.exec(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+    CREATE TABLE IF NOT EXISTS traffic (day TEXT NOT NULL, uid INTEGER NOT NULL, up INTEGER DEFAULT 0, down INTEGER DEFAULT 0, PRIMARY KEY (day, uid));
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY, name TEXT DEFAULT '', lang TEXT DEFAULT 'ru', created INTEGER NOT NULL,
       expires INTEGER NOT NULL DEFAULT 0, token TEXT UNIQUE NOT NULL, uuid TEXT NOT NULL, pass TEXT NOT NULL,
@@ -145,6 +146,13 @@ function open(file) {
     },
     markWarned: (id, exp) => db.prepare('UPDATE users SET warned = ? WHERE id = ?').run(exp, id),
 
+    // bytes since the node's last report (counters are reset on every read)
+    addTraffic(day, uid, up, down) {
+      db.prepare('INSERT INTO traffic (day, uid, up, down) VALUES (?, ?, ?, ?) ON CONFLICT(day, uid) DO UPDATE SET up = up + excluded.up, down = down + excluded.down').run(day, uid, up, down);
+    },
+    trafficSince: (day) => db.prepare('SELECT COALESCE(SUM(up + down), 0) AS b, COUNT(DISTINCT uid) AS users FROM traffic WHERE day >= ?').get(day),
+    topTraffic: (day, n = 5) => db.prepare('SELECT uid, SUM(up + down) AS b FROM traffic WHERE day >= ? GROUP BY uid ORDER BY b DESC LIMIT ?').all(day, n),
+    paymentsSince: (ts) => db.prepare('SELECT method, COUNT(*) AS n, SUM(stars) AS stars, SUM(usd) AS usd FROM payments WHERE ts >= ? GROUP BY method').all(ts),
     kvGet: (k) => (db.prepare('SELECT v FROM kv WHERE k = ?').get(k) || {}).v ?? null,
     kvSet: (k, v) => db.prepare('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v').run(k, String(v)),
 

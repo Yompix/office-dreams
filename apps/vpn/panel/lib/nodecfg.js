@@ -16,7 +16,20 @@ function realityInbound(n, users, port) {
   };
 }
 
-function xray(n, users) {
+// traffic counters per user (the agent reads them with `xray api statsquery` and sends them to the panel)
+function withStats(c) {
+  c.stats = {};
+  c.api = { tag: 'api', listen: '127.0.0.1:10085', services: ['StatsService'] };
+  c.policy = { levels: { 0: { statsUserUplink: true, statsUserDownlink: true } } };
+  return c;
+}
+
+function xray(n, users, opts = {}) {
+  const c = xrayBase(n, users);
+  return opts.stats === false ? c : withStats(c);
+}
+
+function xrayBase(n, users) {
   const base = xrayVps(n, users);
   if (n.kind !== 'railway') return base;
   base.inbounds = [{

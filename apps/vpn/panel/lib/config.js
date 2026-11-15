@@ -35,6 +35,15 @@ function load(e = process.env) {
     refDays: Number(e.REF_DAYS ?? 7),
     plans,
     tiers,
+    // money report: what the owner really gets and what Railway costs
+    money: {
+      starUsd: Number(e.STAR_USD || 0.013),          // owner's share per Telegram Star
+      cryptoFee: Number(e.CRYPTO_FEE || 0.03),       // CryptoBot fee
+      cardFee: Number(e.CARD_FEE || 0.04),           // card provider fee
+      egressUsdPerGb: Number(e.EGRESS_USD_GB || 0.05), // Railway traffic price
+      fixedUsd: Number(e.COST_FIXED_USD || 5),       // per month: Railway plan + CPU/RAM of panel and node
+      extraUsd: Number(e.COST_EXTRA_USD || 0),       // per month: VPS, domain…
+    },
     // card payments only for these Telegram languages (the card provider works in cardCurrency)
     cardLangs: (e.CARD_LANGS || 'ru,be,kk').split(',').map((s) => s.trim()),
     // a node running as a Railway service (see apps/vpn/railway-node); TCP is "host:port" of its TCP proxy
