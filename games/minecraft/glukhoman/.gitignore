@@ -6,3 +6,6 @@ out/
 .idea/
 # корневой .gitignore прячет data/ — у нас там тип мира, биом и теги, их нужно хранить
 !src/main/resources/data/
+# сэмплы Splice — только как сырьё для генерации, в репозиторий не кладём
+tools/splice_src/
+tools/sound_src/

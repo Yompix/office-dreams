@@ -50,19 +50,23 @@ public class Glukhoman implements ModInitializer {
         Net.init(Glukhoman::onClientMessage);
 
         ServerLifecycleEvents.SERVER_STARTED.register(Story::serverStarted);
+        com.yompix.glukhoman.story.Memory.init();   // 1.0: Память — «???» в чате
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.glukhoman.story.Memory::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> {
             Story.tick(s);
             if (!Story.isOurWorld()) return;
             Light.tick(s);
             Sanity.tick(s);
-            Director.tick(s);
         });
         ServerPlayConnectionEvents.JOIN.register((h, sender, s) -> {
             if (Boolean.getBoolean("glukhoman.devop")) s.getPlayerManager().addToOperators(h.player.getGameProfile()); // только для автотеста
             if (Story.isOurWorld() && h.player.interactionManager.getGameMode() == GameMode.SURVIVAL) h.player.changeGameMode(GameMode.ADVENTURE);
             Story.join(h.player);
         });
-        ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> Light.off(h.player));
+        ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> {
+            Light.off(h.player);
+            Story.leave(h.player);
+        });
         ServerPlayerEvents.AFTER_RESPAWN.register((oldP, p, alive) -> {
             if (!Story.isOurWorld()) return;
             BlockPos cp = Story.checkpoint();
@@ -73,6 +77,12 @@ public class Glukhoman implements ModInitializer {
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+            if (!world.isClient && hit.getBlockPos().equals(new net.minecraft.util.math.BlockPos(-6, 66, 21)) || !world.isClient && hit.getBlockPos().equals(new net.minecraft.util.math.BlockPos(-6, 67, 21))) {
+                if (com.yompix.glukhoman.story.Story.isOurWorld() && com.yompix.glukhoman.story.StoryState.get((net.minecraft.server.world.ServerWorld) world).flag("dispatch_locked")) {
+                    player.sendMessage(net.minecraft.text.Text.literal("Заперто. Гена унёс ключ."), true);
+                    return net.minecraft.util.ActionResult.FAIL;   // 1.0: Гена запер дежурку с перрона
+                }
+            }
             BlockPos pos = hit.getBlockPos();
             BlockState s = world.getBlockState(pos);
             if (world.isClient) return s.getBlock() instanceof PropBlock ? ActionResult.SUCCESS : ActionResult.PASS;
@@ -93,7 +103,7 @@ public class Glukhoman implements ModInitializer {
                     c.getSource().sendFeedback(() -> Text.literal(Story.status()), false);
                     return 1;
                 }))
-                .then(literal("chapter").requires(src -> src.hasPermissionLevel(2)).then(argument("n", IntegerArgumentType.integer(1, 5)).executes(c -> {
+                .then(literal("chapter").requires(src -> src.hasPermissionLevel(2)).then(argument("n", IntegerArgumentType.integer(1, 2)).executes(c -> {
                     Story.jump(IntegerArgumentType.getInteger(c, "n"));
                     return 1;
                 })))
@@ -106,20 +116,23 @@ public class Glukhoman implements ModInitializer {
                     c.getSource().sendFeedback(() -> Text.literal("Сюжет сброшен. Перезайди в мир — появится выбор сложности."), false);
                     return 1;
                 }))
-                .then(literal("scare").requires(src -> src.hasPermissionLevel(2)).executes(c -> {
-                    if (c.getSource().getPlayer() != null) Director.apparition(c.getSource().getPlayer(), false);
+                .then(literal("night").requires(src -> src.hasPermissionLevel(2)).executes(c -> {
+                    com.yompix.glukhoman.story.Night.start();
                     return 1;
                 }))));
 
         if (Boolean.getBoolean("glukhoman.servertest")) com.yompix.glukhoman.story.ServerTest.init();
-        LOG.info("Глухомань загружена: тайга, посёлок, станция, шахта, три существа");
+        LOG.info("Глухомань: Порожняк, часть 1 — станция Еловый, мёртвая линия, Обходчик");
     }
 
     static void onClientMessage(ServerPlayerEntity p, NbtCompound m) {
         switch (m.getString("t")) {
             case "light" -> Light.toggle(p);
-            case "choice" -> Story.choose(p, m.getString("c"));
-            case "difficulty" -> Story.chooseDifficulty(p, m.getInt("d"));
+            case "skip" -> Story.skip(p);
+            case "ir" -> com.yompix.glukhoman.story.Cam.setIr(p, m.getBoolean("on"));
+            case "answer" -> Story.answer(p, m.getString("id"), m.getInt("i"));
+            case "tape" -> com.yompix.glukhoman.story.Tapes.action(p, m.getInt("n"), m.getInt("slot"), m.getString("act"));
+            case "difficulty" -> Story.chooseDifficulty(p, m.getInt("d"), m.getInt("chapter"));
             case "prefs" -> {
                 if (m.getBoolean("noScares")) Director.NO_SCARES.add(p.getUuid());
                 else Director.NO_SCARES.remove(p.getUuid());

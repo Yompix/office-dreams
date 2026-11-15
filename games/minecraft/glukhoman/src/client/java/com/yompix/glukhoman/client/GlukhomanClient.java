@@ -2,7 +2,6 @@ package com.yompix.glukhoman.client;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
-import com.yompix.glukhoman.client.screen.ChoiceScreen;
 import com.yompix.glukhoman.client.screen.DifficultyScreen;
 import com.yompix.glukhoman.client.screen.SettingsScreen;
 import com.yompix.glukhoman.entity.PoleEntity;
@@ -46,13 +45,15 @@ public class GlukhomanClient implements ClientModInitializer {
     // ---- состояние, присланное сервером ----
     public static boolean inWorld;
     public static int chapter, difficulty = 1;
-    public static String title = "", objective = "", step = "", ending = "";
+    public static String title = "", objective = "", step = "", ending = "", tape = "";
     public static float sanity = 100, shownSanity = 100;
     public static boolean lightOn, chase;
     public static long objectiveChanged;
     // ---- эффекты ----
     public static String cardA = "", cardB = "", cardC = "";
     public static int cardT;
+    /** 0.7: в главе V поезд видно глазами. */
+    public static boolean trainVisible;
     public static final List<String[]> SUBS = new ArrayList<>(); // who, text, ticksLeft
     public static int fadeT, fadeTotal, fadeColor;
     public static float shake;
@@ -61,7 +62,7 @@ public class GlukhomanClient implements ClientModInitializer {
     // ---- туман (читает FogMixin) ----
     public static float fogStart = 30, fogEnd = 90, fogR = 0.3f, fogG = 0.32f, fogB = 0.38f;
 
-    static KeyBinding FLASH, HINT;
+    static KeyBinding FLASH, HINT, IR;
     static int stepsArmed, stepsToPlay, stepsDelay, heartT, halluCd = 600, halluLife;
     static PoleEntity hallu;
     static boolean wasMoving, askedChoose;
@@ -74,19 +75,42 @@ public class GlukhomanClient implements ClientModInitializer {
     public void onInitializeClient() {
         com.yompix.glukhoman.client.render.GeoRenderers.init();
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(ctx -> FearFx.render(ctx.tickCounter().getTickDelta(false)));
-        net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(net.minecraft.client.render.RenderLayer.getCutout(), GContent.NOTE, GContent.CHALK_MARK);
+        net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(net.minecraft.client.render.RenderLayer.getCutout(), GContent.NOTE, GContent.CHALK_MARK,
+                GContent.BLOOD, GContent.POSTER, GContent.SCRATCHES, GContent.PHOTO, GContent.DOLL, GContent.REMAINS);
         FLASH = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.flashlight", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.glukhoman"));
         HINT = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.hint", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.categories.glukhoman"));
+        IR = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glukhoman.ir", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.categories.glukhoman"));
         ClientPlayNetworking.registerGlobalReceiver(Net.S2C.ID, (p, ctx) -> ctx.client().execute(() -> onMessage(p.data())));
         HudRenderCallback.EVENT.register(Hud::render);
         ClientTickEvents.END_CLIENT_TICK.register(GlukhomanClient::tick);
-        ClientPlayConnectionEvents.JOIN.register((h, s, c) -> sendPrefs());
+        ClientTickEvents.END_CLIENT_TICK.register(c0 -> com.yompix.glukhoman.client.anim.Creatures.tick());   // 0.5.1: «следы» Обходчика
+        ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
+            sendPrefs();
+            if (com.yompix.glukhoman.client.ui.CoopScreen.hostOnJoin) {   // «Вместе → позвать друзей»: открыть смену по сети сразу
+                com.yompix.glukhoman.client.ui.CoopScreen.hostOnJoin = false;
+                c.execute(() -> com.yompix.glukhoman.client.ui.CoopScreen.openLan(c, null));
+            }
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> leave(c));
         ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
             if (screen instanceof GameMenuScreen && inWorld)
                 Screens.getButtons(screen).add(ButtonWidget.builder(Text.literal("Глухомань"), b -> c.setScreen(new SettingsScreen(screen)))
                         .dimensions(4, 4, 96, 20).build());
         });
+        // 18+: встроенный пакет «меньше жестокости» (останки → кровь), включается переключателем в настройках
+        net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(Glukhoman.MOD_ID).ifPresent(mc ->
+                net.fabricmc.fabric.api.resource.ResourceManagerHelper.registerBuiltinResourcePack(Glukhoman.id("reduced_gore"), mc,
+                        Text.literal("Глухомань: меньше жестокости"), net.fabricmc.fabric.api.resource.ResourcePackActivationType.NORMAL));
+        // предупреждение 18+ при первом запуске
+        ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
+            if (screen instanceof com.yompix.glukhoman.client.menu.TitleMenuScreen && !GConfig.get().ageAck && System.getProperty("glukhoman.autotest") == null)
+                c.execute(() -> c.setScreen(new com.yompix.glukhoman.client.screen.AgeScreen(screen)));
+        });
+        // экран загрузки: тёмный фон вместо красного Mojang (логотип подменяет SplashMixin)
+        try {
+            MinecraftClient.getInstance().options.getMonochromeLogo().setValue(true);
+        } catch (Exception ignored) {
+        }
         Autotest.init();
     }
 
@@ -94,6 +118,7 @@ public class GlukhomanClient implements ClientModInitializer {
         c.execute(() -> {
             Cine.stop();
             FearFx.reset();
+            Viewfinder.reset();
         });
         inWorld = false;
         askedChoose = false;
@@ -101,12 +126,24 @@ public class GlukhomanClient implements ClientModInitializer {
         chase = false;
         creditsT = -1;
         SUBS.clear();
+        com.yompix.glukhoman.client.ui.Subtitles.clear();
         for (Loop l : LOOPS.values()) c.getSoundManager().stop(l);
         LOOPS.clear();
         if (savedGamma >= 0) {
             c.options.getGamma().setValue(savedGamma);
             savedGamma = -1;
         }
+    }
+
+    /** Включить/выключить пакет «меньше жестокости» и перезагрузить ресурсы. */
+    public static void applyGore(MinecraftClient c) {
+        var mgr = c.getResourcePackManager();
+        String id = "glukhoman:reduced_gore";
+        boolean on = mgr.getEnabledIds().contains(id);
+        if (GConfig.get().goreReduced == on) return;
+        if (GConfig.get().goreReduced) mgr.enable(id);
+        else mgr.disable(id);
+        c.options.refreshResourcePacks(mgr);
     }
 
     public static void sendPrefs() {
@@ -136,6 +173,7 @@ public class GlukhomanClient implements ClientModInitializer {
                 objective = obj;
                 step = m.getString("step");
                 ending = m.getString("ending");
+                tape = m.getString("tape");
             }
             case "sanity" -> sanity = m.getFloat("v");
             case "difficulty" -> difficulty = m.getInt("d");
@@ -145,10 +183,61 @@ public class GlukhomanClient implements ClientModInitializer {
                 cardB = m.getString("b");
                 cardC = m.getString("c");
                 cardT = 160;
+                if (m.contains("ch") && m.getInt("ch") > GConfig.get().chapterReached && m.getInt("ch") <= 9) {
+                    GConfig.get().chapterReached = m.getInt("ch");
+                    GConfig.get().save();
+                }
+                for (int n = 1; n <= 9; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
+                    String ct = com.yompix.glukhoman.story.Texts.get().chapterTitle(n);
+                    String lc = ct.toLowerCase();   // 0.7: точное совпадение («Глава II» не открывает «Главу III»)
+                    if (!ct.isEmpty() && (!cardA.isEmpty() && lc.startsWith(cardA.toLowerCase() + " ·") || !cardB.isEmpty() && lc.endsWith("· " + cardB.toLowerCase())
+                            || lc.equals(cardA.toLowerCase()))
+                            && n > GConfig.get().chapterReached) {
+                        GConfig.get().chapterReached = n;
+                        GConfig.get().save();
+                    }
+                }
             }
+            case "gest" -> {   // 0.5.1: жест с сервера — одинаково у всех игроков
+                var en = c.world == null ? null : c.world.getEntityById(m.getInt("e"));
+                if (en instanceof net.minecraft.entity.LivingEntity le) {
+                    var an = com.yompix.glukhoman.client.anim.Animator.get(le);
+                    if (an != null) {
+                        String g = m.getString("g");
+                        if (m.contains("x")) an.pointAt = new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z"));
+                        if (g.startsWith("w_")) an.base(g, m.getDouble("hold") > 0 ? m.getDouble("hold") : 1.5);
+                        else {
+                            var clip = com.yompix.glukhoman.client.anim.Gestures.byName(g, m.getDouble("hold"));
+                            if (clip != null) an.play(clip);
+                        }
+                    }
+                }
+            }
+            case "ghost" -> {   // 0.6: в вагоне на лавке — житель, который сейчас спит дома (виден только в видоискателе)
+                if (c.world != null) {
+                    var r = com.yompix.glukhoman.GContent.RESIDENT.create(c.world);
+                    if (r != null) {
+                        r.setId(-660000 - (int) (c.world.getTime() % 1000));
+                        r.who(m.getString("who"));
+                        r.cameraOnly = true;
+                        r.setNoGravity(true);
+                        r.noClip = true;
+                        r.refreshPositionAndAngles(m.getDouble("x"), m.getDouble("y"), m.getDouble("z"), 180, 0);
+                        r.bodyYaw = r.prevBodyYaw = r.headYaw = r.prevHeadYaw = 180;
+                        r.act("slowwave");
+                        c.world.addEntity(r);
+                        final int id = r.getId();
+                        com.yompix.glukhoman.client.anim.Creatures.later(20 * 40, () -> { if (c.world != null) c.world.removeEntity(id, net.minecraft.entity.Entity.RemovalReason.DISCARDED); });
+                    }
+                }
+            }
+            case "trainvis" -> trainVisible = m.getBoolean("on");
+            case "chairspin" -> com.yompix.glukhoman.client.ui.Notify.show("Табло: «станция» занята. В дежурке — пусто. Стул ещё качается.");
+            case "tug" -> Moments.tug(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
+            case "turn" -> Moments.turn(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
             case "voice" -> {
                 SoundEvent e = m.getString("id").isEmpty() ? null : sound("voice." + m.getString("id"));
-                if (e != null) {
+                if (e != null && c.getSoundManager().get(e.getId()) != null) {
                     if (m.getBoolean("global") || !m.contains("x"))
                         c.getSoundManager().play(PositionedSoundInstance.master(e, 1f, 1f));
                     else
@@ -157,6 +246,9 @@ public class GlukhomanClient implements ClientModInitializer {
                 if (GConfig.get().subtitles) {
                     SUBS.add(new String[]{m.getString("who"), m.getString("text"), Integer.toString(m.getInt("dur"))});
                     while (SUBS.size() > 3) SUBS.remove(0);
+                    String id = m.getString("id"), key = id.isEmpty() ? "" : com.yompix.glukhoman.story.Texts.get().lineWhoKey(id);
+                    com.yompix.glukhoman.client.ui.Subtitles.push(key, com.yompix.glukhoman.client.ui.StoryLang.who(key, m.getString("who")),
+                            com.yompix.glukhoman.client.ui.StoryLang.text(id, m.getString("text")), m.getInt("dur") / 20.0 * 0.85);
                 }
             }
             case "snd" -> {
@@ -176,14 +268,35 @@ public class GlukhomanClient implements ClientModInitializer {
                 askedChoose = true;
                 c.setScreen(new DifficultyScreen());
             }
-            case "choice" -> c.setScreen(new ChoiceScreen());
+            case "filmers" -> {
+                Viewfinder.FILMERS.clear();
+                NbtList l = m.getList("u", 8);
+                for (int i = 0; i < l.size(); i++) Viewfinder.FILMERS.add(java.util.UUID.fromString(l.getString(i)));
+            }
+            case "cam" -> {
+                Viewfinder.up = m.getBoolean("up");
+                Viewfinder.ir = m.getBoolean("ir");
+            }
+            case "ask" -> {
+                List<String> o = new ArrayList<>();
+                NbtList l = m.getList("opts", 8);
+                for (int i = 0; i < l.size(); i++) o.add(l.getString(i));
+                c.setScreen(new com.yompix.glukhoman.client.screen.AskScreen(m.getString("id"), m.getString("title"), o));
+            }
+            case "tapes" -> c.setScreen(new com.yompix.glukhoman.client.screen.TapeScreen(m.getList("list", 10)));
+            case "playback" -> {
+                List<String> o = new ArrayList<>();
+                NbtList l = m.getList("lines", 8);
+                for (int i = 0; i < l.size(); i++) o.add(l.getString(i));
+                c.setScreen(new com.yompix.glukhoman.client.screen.PlaybackScreen(m.getString("title"), o));
+            }
             case "credits" -> creditsT = 0;
             case "hint" -> {
                 hint = new Vec3d(m.getInt("x") + 0.5, m.getInt("y"), m.getInt("z") + 0.5);
                 hintT = 100;
             }
             case "fx" -> fx(m.getString("k"), m.getInt("t"));
-            case "cut" -> Cine.play(m.getString("id"));
+            case "cut" -> Cine.play(m.getString("id"), m.getCompound("args"));
             case "cutend" -> Cine.stop();
             case "hush" -> hushT = m.getInt("t");
             case "jumpscare" -> Jumpscare.start(m.getString("k"));
@@ -224,6 +337,14 @@ public class GlukhomanClient implements ClientModInitializer {
     static void tick(MinecraftClient c) {
         if (c.player == null || c.world == null) return;
         while (FLASH.wasPressed()) if (inWorld) send(Net.msg("light"));
+        while (IR.wasPressed()) {
+            if (inWorld && Viewfinder.up) {
+                NbtCompound m = Net.msg("ir");
+                m.putBoolean("on", !Viewfinder.ir);
+                send(m);
+            } else if (inWorld) c.player.sendMessage(Text.literal("ИК-режим — только с камерой у глаза"), true);
+        }
+        Viewfinder.tick(c);
         while (HINT.wasPressed()) {
             if (inWorld && GConfig.get().hints) send(Net.msg("hint"));
             else if (inWorld) c.player.sendMessage(Text.literal("Подсказки выключены в настройках"), true);
@@ -238,7 +359,8 @@ public class GlukhomanClient implements ClientModInitializer {
         if (chapter > 0) askedChoose = false;
         // тёмные ночи: своя яркость на время игры в Глухомани
         double g = new double[]{0.0, 0.35, 0.7}[Math.max(0, Math.min(2, GConfig.get().brightness))];
-        if (Cine.active) g = Math.max(g, 0.8);   // «экспозиция» кино: в кадре видно, но темнота остаётся
+        if (Cine.active) g = Math.max(g, 1.0);   // «экспозиция» кино: в кадре видно, но темнота остаётся
+        else if (Viewfinder.up) g = Math.max(g, 1.0);   // автоусиление камеры: в видоискателе светлее, но зернистее
         if (savedGamma < 0) savedGamma = c.options.getGamma().getValue();
         if (Math.abs(c.options.getGamma().getValue() - g) > 0.001) c.options.getGamma().setValue(g);
 
@@ -258,7 +380,6 @@ public class GlukhomanClient implements ClientModInitializer {
         ambience(c);
         heartbeat(c);
         mimicSteps(c);
-        hallucinate(c);
     }
 
     static void fog(MinecraftClient c) {
@@ -269,16 +390,17 @@ public class GlukhomanClient implements ClientModInitializer {
         else if (ending.equals("B")) { s = 8; e = 48; r = 0.12f; gg = 0.05f; b = 0.05f; }
         else if (y < 52) { s = 2; e = 22; r = 0.01f; gg = 0.01f; b = 0.012f; }
         else switch (chapter) {
-            case 0, 1 -> { s = night ? 10 : 22; e = night ? 52 : 80; r = night ? 0.06f : 0.30f; gg = night ? 0.07f : 0.30f; b = night ? 0.10f : 0.36f; }
-            case 2 -> { s = 8; e = 46; r = 0.04f; gg = 0.05f; b = 0.08f; }
-            case 3 -> { boolean st = Terrain.zone((int) c.player.getX(), (int) c.player.getZ()).equals("Метеостанция"); s = st ? 6 : 2; e = st ? 48 : 28; r = 0.16f; gg = 0.17f; b = 0.19f; }
-            case 5 -> { s = 6; e = 40; r = 0.07f; gg = 0.03f; b = 0.09f; }
-            default -> { s = 6; e = 38; r = 0.05f; gg = 0.05f; b = 0.06f; }
+            default -> {   // ночь — туман из тайги к самому перрону; утро — серое, сырое
+                boolean line = Terrain.zone((int) c.player.getX(), (int) c.player.getZ()).equals("Линия");
+                s = night ? (line ? 1 : 3) : 10; e = night ? (line ? 18 : 30) : 64;
+                r = night ? 0.055f : 0.30f; gg = night ? 0.062f : 0.32f; b = night ? 0.075f : 0.35f;
+            }
         }
         if (chase) { s *= 0.7f; e *= 0.8f; }
         if (lostT > 0) { s = 0.5f; e = 10; r = 0.55f; gg = 0.57f; b = 0.6f; }
         if (sanity < 30) e *= 0.6f + sanity / 75f;
-        float k = 0.04f;
+        if (Cine.active && Cine.fogS > 0) { s = Cine.fogS; e = Cine.fogE; r = Cine.fogR; gg = Cine.fogG; b = Cine.fogB; }
+        float k = Cine.active && Cine.fogS > 0 ? 1f : 0.04f;
         fogStart += (s - fogStart) * k;
         fogEnd += (e - fogEnd) * k;
         fogR += (r - fogR) * k;
@@ -315,7 +437,7 @@ public class GlukhomanClient implements ClientModInitializer {
             if (y < 52) want.put(x > -2 && x < 30 && z < -240 && z > -282 ? "amb.bunker" : "amb.mine", 0.8f);
             else {
                 String zone = Terrain.zone((int) x, (int) z);
-                want.put(zone.equals("Посёлок") ? "amb.village" : zone.equals("Метеостанция") ? "amb.station" : "amb.forest", 0.7f);
+                want.put(zone.equals("Посёлок") ? "amb.village" : "amb.forest", 0.7f);
             }
             if (chase) want.put("amb.chase", 0.75f);
             if (sanity < 45) want.put("amb.dread", (45 - sanity) / 45f * 0.8f);
@@ -386,7 +508,7 @@ public class GlukhomanClient implements ClientModInitializer {
         double ang = Math.toRadians(70) * (RND.nextBoolean() ? 1 : -1);
         Vec3d dir = new Vec3d(look.x * Math.cos(ang) - look.z * Math.sin(ang), 0, look.x * Math.sin(ang) + look.z * Math.cos(ang));
         Vec3d at = c.player.getPos().add(dir.multiply(14));
-        int top = c.world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MathHelper.floor(at.x), MathHelper.floor(at.z));
+        int top = c.world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(at.x), MathHelper.floor(at.z));
         e.setId(-777000 - RND.nextInt(1000));
         e.refreshPositionAndAngles(at.x, top, at.z, (float) Math.toDegrees(Math.atan2(-dir.x, dir.z)) + 180, 0);
         c.world.addEntity(e);

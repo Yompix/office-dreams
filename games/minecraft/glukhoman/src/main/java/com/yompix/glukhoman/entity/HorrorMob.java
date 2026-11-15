@@ -74,8 +74,11 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
         actTicks = ticks;
     }
 
+    /** Пока идёт расправа — существо стоит на месте. */
+    public int hold;
+
     public boolean vanishing() {
-        return act().equals("vanish");
+        return act().equals("vanish") || hold > 0;
     }
 
     /** Плавно исчезнуть (анимация, потом удаление). */
@@ -91,6 +94,7 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
             started = true;
             if (spawnActTicks() > 0 && act().isEmpty()) act(spawnAct(), spawnActTicks());
         }
+        if (hold > 0) hold--;
         if (actTicks > 0 && --actTicks == 0) {
             if (vanishing()) {
                 discard();
@@ -123,9 +127,10 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 3, state -> {
+        controllers.add(new AnimationController<>(this, "main", 6, state -> {
             String a = act();
             if (a.isEmpty()) a = baseAnim();
+            if (ANIM != null) a = ANIM.apply(this, a);
             return state.setAndContinue(raw("animation." + animSet() + "." + a));
         }));
     }
@@ -134,6 +139,9 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
     protected String animSet() {
         return geoName();
     }
+
+    /** Клиент: выбор клипа новой системой анимации (client/anim); на сервере не используется. */
+    public static java.util.function.BiFunction<HorrorMob, String, String> ANIM;
 
     /** Клиентские «куклы» кат-сцен: своё время анимации (в тиках) — для замедленной съёмки. */
     public double animClock = -1;
@@ -146,6 +154,16 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return geo;
+    }
+
+    /** Удар по игроку: брызги крови (стилизованные частицы). */
+    @Override
+    public boolean tryAttack(net.minecraft.entity.Entity target) {
+        boolean hit = super.tryAttack(target);
+        if (hit && getWorld() instanceof ServerWorld w)
+            w.spawnParticles(new net.minecraft.particle.DustParticleEffect(new org.joml.Vector3f(0.45f, 0.03f, 0.04f), 1.4f),
+                    target.getX(), target.getY() + 1.2, target.getZ(), 26, 0.3, 0.4, 0.3, 0.05);
+        return hit;
     }
 
     @Override

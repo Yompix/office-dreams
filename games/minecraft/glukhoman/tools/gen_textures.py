@@ -238,11 +238,44 @@ def decor():
         d.line([x, 2, x - 2 + rnd.randint(0, 2), 14], fill=(60, 50, 46, 210))
     d.line([2, 6, 14, 9], fill=(70, 60, 56, 160))
     save(sc, *B, 'scratches.png')
-    for nm, col in (('doll_side', (170, 120, 120)), ('doll_top', (226, 210, 196)), ('photo_side', (70, 46, 30))):
+    for nm, col in (('poster_side', (180, 172, 150)), ('poster_top', (180, 172, 150)), ('scratches_side', (90, 80, 70)), ('scratches_top', (90, 80, 70)), ('doll_side', (170, 120, 120)), ('doll_top', (226, 210, 196)), ('photo_side', (70, 46, 30))):
         save(noisy((16, 16), col, 8), *B, nm + '.png')
     dl = noisy((16, 16), (226, 210, 196), 6); d = ImageDraw.Draw(dl)
     d.point((6, 5), fill=(10, 10, 10, 255)); d.point((9, 5), fill=(10, 10, 10, 255)); d.line([6, 9, 9, 9], fill=(130, 60, 60, 255))
     d.rectangle([0, 0, 15, 2], fill=(150, 100, 40, 255)); save(dl, *B, 'doll.png')
+    # кровь на полу: 0 — брызги, 1 — лужа, 2 — следы волочения (к лесу)
+    for v in range(3):
+        bl = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(bl)
+        if v == 0:
+            for _ in range(14):
+                x, y = rnd.randint(1, 14), rnd.randint(1, 14); r = rnd.choice([0, 0, 1])
+                d.ellipse([x - r, y - r, x + r, y + r], fill=(96, 12, 14, 230))
+        elif v == 1:
+            d.ellipse([3, 4, 12, 12], fill=(80, 8, 10, 235)); d.ellipse([9, 2, 14, 7], fill=(80, 8, 10, 235))
+            d.point((6, 6), fill=(160, 50, 50, 255)); d.point((7, 6), fill=(150, 40, 40, 255))
+        else:
+            for x0 in (5, 10):
+                for y in range(16):
+                    if rnd.random() < 0.8: d.line([x0 + rnd.randint(-1, 1), y, x0 + 1, y], fill=(86, 14, 14, 200))
+        save(bl, *B, f'blood_{v}.png')
+    # 18+: останки и куски
+    for nm, col, var in (('remains_cloth', (64, 74, 58), 14), ('remains_skin', (196, 168, 150), 8), ('remains_bone', (222, 214, 196), 6)):
+        im = noisy((16, 16), col, var); d = ImageDraw.Draw(im)
+        for _ in range(10 if nm != 'remains_bone' else 3):
+            x, y = rnd.randint(0, 15), rnd.randint(0, 15); d.point((x, y), fill=(110, 14, 16, 255))
+        save(im, *B, nm + '.png')
+    fl = noisy((16, 16), (138, 30, 34), 18); d = ImageDraw.Draw(fl)
+    for _ in range(6):
+        y = rnd.randint(0, 15); d.line([0, y, 15, y + rnd.randint(-2, 2)], fill=(176, 80, 86, 255))   # кишечные складки
+    for _ in range(8): d.point((rnd.randint(0, 15), rnd.randint(0, 15)), fill=(210, 120, 120, 255))       # влажный блеск
+    save(fl, *B, 'remains_flesh.png')
+    gc = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(gc)
+    d.rectangle([5, 5, 10, 10], fill=(150, 34, 38, 255)); d.rectangle([7, 6, 9, 8], fill=(214, 200, 180, 255)); d.point((6, 9), fill=(90, 10, 12, 255))
+    save(gc, 'textures', 'item', 'gore_chunk.png')
+    bd = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(bd); d.ellipse([5, 6, 10, 11], fill=(110, 12, 14, 255)); d.polygon([(7, 2), (6, 7), (9, 7)], fill=(110, 12, 14, 255))
+    save(bd, 'textures', 'item', 'blood_drop.png')
+    for nm in ('blood_side', 'blood_top'):
+        save(Image.new('RGBA', (16, 16), (86, 14, 14, 200)), *B, nm + '.png')
     for v in range(3):
         ph = Image.new('RGBA', (16, 16), (70, 46, 30, 255)); d = ImageDraw.Draw(ph)
         d.rectangle([1, 1, 14, 14], fill=(176, 166, 140, 255))

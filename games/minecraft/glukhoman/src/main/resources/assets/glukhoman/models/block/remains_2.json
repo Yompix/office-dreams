@@ -1,0 +1,139 @@
+{
+ "textures": {
+  "cloth": "glukhoman:block/remains_cloth",
+  "flesh": "glukhoman:block/remains_flesh",
+  "skin": "glukhoman:block/remains_skin",
+  "bone": "glukhoman:block/remains_bone",
+  "particle": "glukhoman:block/remains_flesh"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    0,
+    4
+   ],
+   "to": [
+    8,
+    2,
+    9
+   ],
+   "faces": {
+    "north": {
+     "texture": "#flesh"
+    },
+    "south": {
+     "texture": "#flesh"
+    },
+    "east": {
+     "texture": "#flesh"
+    },
+    "west": {
+     "texture": "#flesh"
+    },
+    "up": {
+     "texture": "#flesh"
+    },
+    "down": {
+     "texture": "#flesh"
+    }
+   }
+  },
+  {
+   "from": [
+    7,
+    0,
+    7
+   ],
+   "to": [
+    12,
+    1.6,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#flesh"
+    },
+    "south": {
+     "texture": "#flesh"
+    },
+    "east": {
+     "texture": "#flesh"
+    },
+    "west": {
+     "texture": "#flesh"
+    },
+    "up": {
+     "texture": "#flesh"
+    },
+    "down": {
+     "texture": "#flesh"
+    }
+   }
+  },
+  {
+   "from": [
+    5,
+    0,
+    10
+   ],
+   "to": [
+    9,
+    1.2,
+    14
+   ],
+   "faces": {
+    "north": {
+     "texture": "#flesh"
+    },
+    "south": {
+     "texture": "#flesh"
+    },
+    "east": {
+     "texture": "#flesh"
+    },
+    "west": {
+     "texture": "#flesh"
+    },
+    "up": {
+     "texture": "#flesh"
+    },
+    "down": {
+     "texture": "#flesh"
+    }
+   }
+  },
+  {
+   "from": [
+    9,
+    0,
+    3
+   ],
+   "to": [
+    13,
+    1.4,
+    7
+   ],
+   "faces": {
+    "north": {
+     "texture": "#flesh"
+    },
+    "south": {
+     "texture": "#flesh"
+    },
+    "east": {
+     "texture": "#flesh"
+    },
+    "west": {
+     "texture": "#flesh"
+    },
+    "up": {
+     "texture": "#flesh"
+    },
+    "down": {
+     "texture": "#flesh"
+    }
+   }
+  }
+ ]
+}

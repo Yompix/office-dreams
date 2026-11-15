@@ -2,7 +2,11 @@ package com.yompix.glukhoman.client.render;
 
 import com.yompix.glukhoman.GContent;
 import com.yompix.glukhoman.Glukhoman;
-import com.yompix.glukhoman.entity.AnnaEntity;
+import com.yompix.glukhoman.entity.ResidentEntity;
+import com.yompix.glukhoman.client.anim.AnimSet;
+import com.yompix.glukhoman.client.anim.Animator;
+import com.yompix.glukhoman.client.anim.Gestures;
+import com.yompix.glukhoman.entity.TrainEntity;
 import com.yompix.glukhoman.entity.DoppelEntity;
 import com.yompix.glukhoman.entity.HorrorMob;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -37,7 +41,10 @@ public final class GeoRenderers {
         public Identifier getTextureResource(T e) {
             if (e instanceof DoppelEntity d) {
                 String m = d.mimic();
-                if (m.equals("@anna")) return id("textures/entity/anna.png");
+                if (m.equals("@anna")) {   // Двойник Анны: моргает медленно и не вовремя
+                    long t = d.getWorld().getTime() + d.getId() * 13L;
+                    return id(t % 97 < 16 ? "textures/entity/anna_double_blink.png" : "textures/entity/anna_double.png");
+                }
                 SkinTextures s = skin(m);
                 if (s != null) return s.texture();
                 return id("textures/entity/doppel.png");
@@ -48,6 +55,18 @@ public final class GeoRenderers {
         @Override
         public Identifier getAnimationResource(T e) {
             return id("animations/" + (e instanceof DoppelEntity ? "human" : e.geoName()) + ".animation.json");
+        }
+
+        /** Обходчик: тело поворачивает по ходу, а голова неотрывно на игроке — слишком далеко, до 110°. */
+        @Override
+        public void setCustomAnimations(T e, long instanceId, AnimationState<T> state) {
+            AnimSet set = mobSet(e);
+            if (set != null) {   // 0.5.1: Обходчик и Двойник на новом аниматоре
+                Animator.of(e, set).apply(getAnimationProcessor(), state.getPartialTick());
+                return;
+            }
+            if (e instanceof com.yompix.glukhoman.entity.WatcherEntity && !com.yompix.glukhoman.client.Cine.active)
+                headLook(getAnimationProcessor().getBone("head"), e, state.getPartialTick(), 110);
         }
 
         static boolean slim(DoppelEntity d) {
@@ -64,36 +83,96 @@ public final class GeoRenderers {
         }
     }
 
-    /** Анна: моргает, на испуге — другое лицо, в кат-сцене «говорит» (рот), голова следит за камерой. */
-    static class AnnaModel extends GeoModel<AnnaEntity> {
+    /** Жители: скин по имени, моргают, «говорят» в кат-сцене; Вика — ниже ростом. */
+    static class ResidentModel extends GeoModel<ResidentEntity> {
         @Override
-        public Identifier getModelResource(AnnaEntity e) {
-            return id("geo/human_slim.geo.json");
+        public Identifier getModelResource(ResidentEntity e) {
+            String w = e.who();
+            if (w.equals("@me")) return id("geo/" + (meSkin().model() == net.minecraft.client.util.SkinTextures.Model.SLIM ? "human_slim" : "human") + ".geo.json");
+            return id("geo/" + (w.equals("vika") || w.equals("zina") || w.equals("polya") || w.equals("nyura") || w.equals("lyuba") || w.equals("mitya") || w.equals("kid_a") ? "human_slim" : "human") + ".geo.json");
         }
 
         @Override
-        public Identifier getTextureResource(AnnaEntity e) {
+        public Identifier getTextureResource(ResidentEntity e) {
+            if (e.who().equals("@me")) return meSkin().texture();   // «я» в кат-сцене — скин игрока (раскладка как у человека)
+            String base = "textures/entity/res_" + e.who();
+            Animator an = live(e);
+            if (an != null) return id(base + an.face() + ".png");
             long t = e.getWorld().getTime() + e.getId() * 7L;
-            if (e.act().equals("upset")) return id("textures/entity/anna_fear.png");
-            if (e.talking && (t / 3) % 2 == 0) return id("textures/entity/anna_talk.png");
-            if (t % 80 < 3) return id("textures/entity/anna_blink.png");
-            return id("textures/entity/anna.png");
+            if (e.talking && (t / 3) % 2 == 0) return id(base + "_talk.png");
+            if (!e.sleepwalking() && t % 80 < 3) return id(base + "_blink.png");
+            if (e.sleepwalking() && t % 300 < 120) return id(base + "_blink.png");   // идёт с закрытыми глазами
+            return id(base + ".png");
         }
 
         @Override
-        public Identifier getAnimationResource(AnnaEntity e) {
+        public Identifier getAnimationResource(ResidentEntity e) {
             return id("animations/human.animation.json");
         }
 
+        /** Голова смотрит туда, куда смотрит житель (на игрока, по сторонам), поверх анимации тела. */
         @Override
-        public void setCustomAnimations(AnnaEntity e, long instanceId, AnimationState<AnnaEntity> state) {
-            if (!com.yompix.glukhoman.client.Cine.active || !e.talking) return;
-            GeoBone head = getAnimationProcessor().getBone("head");
-            if (head == null) return;
-            var c = MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
-            double dx = c.x - e.getX(), dz = c.z - e.getZ();
-            float want = (float) (Math.atan2(dx, dz)) - (float) Math.toRadians(-e.bodyYaw);
-            head.setRotY(head.getRotY() + Math.max(-0.9f, Math.min(0.9f, (float) Math.atan2(Math.sin(want), Math.cos(want)))) * 0.6f);
+        public void setCustomAnimations(ResidentEntity e, long instanceId, AnimationState<ResidentEntity> state) {
+            AnimSet set = handles(e) ? residentSet(e) : null;
+            if (set != null) {
+                Animator.of(e, set).apply(getAnimationProcessor(), state.getPartialTick());
+                return;
+            }
+            if (e.sleepwalking() || com.yompix.glukhoman.client.Cine.active) return;
+            headLook(getAnimationProcessor().getBone("head"), e, state.getPartialTick(), 60);
+        }
+    }
+
+    /** Новая система (этап 1): Захар Ильич, Вика и «я» в кат-сценах; выключается в настройках. */
+    static boolean handles(ResidentEntity e) {
+        return com.yompix.glukhoman.client.GConfig.get().liveAnim && (e.sleepwalking() || Gestures.SETS.containsKey(e.who()));
+    }
+
+    static AnimSet residentSet(ResidentEntity e) {
+        return e.sleepwalking() ? Gestures.SLEEP : Gestures.SETS.get(e.who());
+    }
+
+    static AnimSet mobSet(net.minecraft.entity.Entity e) {
+        if (!com.yompix.glukhoman.client.GConfig.get().liveAnim) return null;
+        if (e instanceof com.yompix.glukhoman.entity.WatcherEntity) return Gestures.WATCHER;
+        if (e instanceof DoppelEntity) return Gestures.DOPPEL;
+        return null;
+    }
+
+    static Animator live(ResidentEntity e) {
+        Animator a = handles(e) ? Animator.get(e) : null;
+        return a != null && a.set == residentSet(e) ? a : null;   // лунатик проснулся — набор сменился, аниматор пересоздастся
+    }
+
+    static net.minecraft.client.util.SkinTextures meSkin() {
+        var c = net.minecraft.client.MinecraftClient.getInstance();
+        return c.player != null ? c.player.getSkinTextures() : net.minecraft.client.util.DefaultSkinHelper.getSkinTextures(java.util.UUID.randomUUID());
+    }
+
+    static void headLook(GeoBone head, LivingEntity e, float pt, float limit) {
+        if (head == null) return;
+        float body = net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevBodyYaw, e.bodyYaw);
+        float hy = net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevHeadYaw, e.headYaw);
+        float d = net.minecraft.util.math.MathHelper.clamp(net.minecraft.util.math.MathHelper.wrapDegrees(hy - body), -limit, limit);
+        float pitch = net.minecraft.util.math.MathHelper.lerp(pt, e.prevPitch, e.getPitch());
+        head.setRotY(head.getRotY() + d * net.minecraft.util.math.MathHelper.RADIANS_PER_DEGREE);
+        head.setRotX(head.getRotX() + pitch * net.minecraft.util.math.MathHelper.RADIANS_PER_DEGREE * 0.7f);
+    }
+
+    static class TrainModel extends GeoModel<TrainEntity> {
+        @Override
+        public Identifier getModelResource(TrainEntity e) {
+            return id("geo/train.geo.json");
+        }
+
+        @Override
+        public Identifier getTextureResource(TrainEntity e) {
+            return id("textures/entity/train.png");
+        }
+
+        @Override
+        public Identifier getAnimationResource(TrainEntity e) {
+            return id("animations/train.animation.json");
         }
     }
 
@@ -104,11 +183,95 @@ public final class GeoRenderers {
     }
 
     public static void init() {
+        ResidentEntity.ANIM = (e, a) -> {
+            Animator an = live(e);
+            if (an == null) return a;
+            return e.act().isEmpty() || a.equals("sleepwalk") ? an.base() : a.equals("walk") ? an.set.walk() : a.equals("idle") ? an.set.idle() : a;
+        };
+        com.yompix.glukhoman.entity.HorrorMob.ANIM = (e, a) -> {
+            AnimSet set = mobSet(e);
+            Animator an = set == null ? null : Animator.get(e);
+            if (an == null || an.set != set) return a;
+            if (an.overriding()) return an.base();
+            if (!e.act().isEmpty() && !(e instanceof com.yompix.glukhoman.entity.WatcherEntity && (a.equals("idle") || a.equals("walk") || a.equals("stalk")))) return a;
+            if (e.getId() < 0 && a.equals("still")) return a;   // куклы старых сцен: «still» — нарочно замер
+            return an.base();
+        };
         EntityRendererRegistry.register(GContent.POLE, ctx -> mob(ctx, 0.4f, true));
         EntityRendererRegistry.register(GContent.LISTENER, ctx -> mob(ctx, 0.6f, false));
         EntityRendererRegistry.register(GContent.CHOIR, ctx -> mob(ctx, 1.2f, true));
         EntityRendererRegistry.register(GContent.DOPPEL, ctx -> mob(ctx, 0.5f, false));
-        EntityRendererRegistry.register(GContent.ANNA, ctx -> new GeoEntityRenderer<>(ctx, new AnnaModel()));
+        EntityRendererRegistry.register(GContent.RESIDENT, ctx -> {
+            GeoEntityRenderer<ResidentEntity> r = new GeoEntityRenderer<>(ctx, new ResidentModel()) {
+                @Override
+                public void scaleModelForRender(float widthScale, float heightScale, net.minecraft.client.util.math.MatrixStack poseStack, ResidentEntity animatable,
+                                                software.bernie.geckolib.cache.object.BakedGeoModel model, boolean isReRender, float partialTick, int packedLight, int packedOverlay) {
+                    float k = animatable.who().equals("vika") ? 0.86f : animatable.who().equals("mitya") || animatable.who().startsWith("kid") ? 0.74f : 1f;
+                    super.scaleModelForRender(widthScale * k, heightScale * k, poseStack, animatable, model, isReRender, partialTick, packedLight, packedOverlay);
+                }
+            };
+            // вещь в руке (камера, которую Захар передаёт): из аниматора, на кости right_hand / left_hand
+            r.addRenderLayer(new software.bernie.geckolib.renderer.layer.BlockAndItemGeoLayer<>(r) {
+                @Override
+                protected net.minecraft.item.ItemStack getStackForBone(GeoBone bone, ResidentEntity e) {
+                    Animator a = Animator.get(e);
+                    if (a == null || a.held.isEmpty() || !bone.getName().equals(a.heldBone)) return null;
+                    return a.held;
+                }
+
+                @Override
+                protected net.minecraft.client.render.model.json.ModelTransformationMode getTransformTypeForStack(GeoBone bone, net.minecraft.item.ItemStack stack, ResidentEntity e) {
+                    return bone.getName().startsWith("left") ? net.minecraft.client.render.model.json.ModelTransformationMode.THIRD_PERSON_LEFT_HAND
+                            : net.minecraft.client.render.model.json.ModelTransformationMode.THIRD_PERSON_RIGHT_HAND;
+                }
+
+                @Override
+                protected void renderStackForBone(net.minecraft.client.util.math.MatrixStack m, GeoBone bone, net.minecraft.item.ItemStack stack, ResidentEntity e,
+                                                  net.minecraft.client.render.VertexConsumerProvider buf, float pt, int light, int overlay) {
+                    m.push();
+                    m.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_X.rotationDegrees(-90));   // кисть «смотрит» вниз, как рука игрока
+                    m.translate(0, 0.0, -0.06);
+                    super.renderStackForBone(m, bone, stack, e, buf, pt, light, overlay);
+                    m.pop();
+                }
+            });
+            return r;
+        });
+        EntityRendererRegistry.register(GContent.TRAIN, ctx -> {
+            // GeckoLib берёт поворот только у «живых» сущностей; поезд — не живой, поэтому поворот по пути задаём сами,
+            // иначе состав всегда стоит вдоль оси Z — поперёк путей (баг 0.4.0)
+            GeoEntityRenderer<TrainEntity> r = new GeoEntityRenderer<>(ctx, new TrainModel()) {
+                @Override
+                protected void applyRotations(TrainEntity e, net.minecraft.client.util.math.MatrixStack m, float age, float rotationYaw, float pt, float nativeScale) {
+                    super.applyRotations(e, m, age, net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevYaw, e.getYaw()), pt, nativeScale);
+                }
+            };
+            r.addRenderLayer(new AutoGlowingGeoLayer<>(r));
+            return r;
+        });
+        EntityRendererRegistry.register(GContent.WATCHER, ctx -> mob(ctx, 0.4f, true));
+        // 1.0: дрезина (GeckoLib) — коромысло качается в темпе скорости
+        EntityRendererRegistry.register(GContent.HANDCAR, ctx -> new GeoEntityRenderer<com.yompix.glukhoman.entity.HandcarEntity>(ctx, new GeoModel<>() {
+            @Override
+            public Identifier getModelResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("geo/handcar.geo.json");
+            }
+
+            @Override
+            public Identifier getTextureResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("textures/entity/handcar.png");
+            }
+
+            @Override
+            public Identifier getAnimationResource(com.yompix.glukhoman.entity.HandcarEntity e) {
+                return id("animations/handcar.animation.json");
+            }
+        }) {
+            @Override
+            protected void applyRotations(com.yompix.glukhoman.entity.HandcarEntity e, net.minecraft.client.util.math.MatrixStack m, float age, float rotationYaw, float pt, float nativeScale) {
+                super.applyRotations(e, m, age, net.minecraft.util.math.MathHelper.lerpAngleDegrees(pt, e.prevYaw, e.getYaw()), pt, nativeScale);
+            }
+        });
         EntityRendererRegistry.register(GContent.PEBBLE_ENTITY, net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
     }
 }

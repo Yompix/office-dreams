@@ -159,6 +159,38 @@
    "values": [
     1
    ]
+  },
+  {
+   "name": "Cone",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Crush",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Vhs",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Glitch",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
   }
  ]
 }

@@ -1,0 +1,74 @@
+{
+ "textures": {
+  "side": "glukhoman:block/box",
+  "front": "glukhoman:block/box_front",
+  "top": "glukhoman:block/box_top",
+  "particle": "glukhoman:block/box"
+ },
+ "elements": [
+  {
+   "from": [
+    2,
+    0,
+    0
+   ],
+   "to": [
+    14,
+    14,
+    7
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#front"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  },
+  {
+   "from": [
+    1,
+    14,
+    0
+   ],
+   "to": [
+    15,
+    15,
+    8
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#side"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

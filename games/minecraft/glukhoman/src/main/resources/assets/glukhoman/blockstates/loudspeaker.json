@@ -1,0 +1,20 @@
+{
+ "variants": {
+  "facing=south": {
+   "model": "glukhoman:block/loudspeaker",
+   "y": 0
+  },
+  "facing=west": {
+   "model": "glukhoman:block/loudspeaker",
+   "y": 90
+  },
+  "facing=north": {
+   "model": "glukhoman:block/loudspeaker",
+   "y": 180
+  },
+  "facing=east": {
+   "model": "glukhoman:block/loudspeaker",
+   "y": 270
+  }
+ }
+}

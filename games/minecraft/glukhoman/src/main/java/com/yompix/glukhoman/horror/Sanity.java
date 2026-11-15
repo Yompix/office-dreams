@@ -61,13 +61,17 @@ public final class Sanity {
             boolean safe = Story.inSafe(p);
             if (safe) d += 2.0f;
             else if (Light.isOn(p)) d += light >= 9 ? 0.2f : 0f;
-            else if (light <= 4) d -= 0.55f * mult * (friend ? 0.5f : 1f);
+            else if (light <= 4) d -= (v0(p) > 45 ? 0.15f : 0f) * mult * (friend ? 0.5f : 1f);   // темнота сама по себе не съедает Память ниже середины
             else if (light >= 10) d += 0.35f;
             if (friend) d += 0.25f;
             Box near = p.getBoundingBox().expand(20);
             for (LivingEntity e : p.getServerWorld().getEntitiesByClass(LivingEntity.class, near,
-                    e -> e instanceof PoleEntity || e instanceof ListenerEntity || e instanceof ChoirEntity)) {
+                    e -> e instanceof PoleEntity || e instanceof ListenerEntity || e instanceof ChoirEntity || e instanceof com.yompix.glukhoman.entity.WatcherEntity)) {
                 if (!p.canSee(e)) continue;
+                if (e instanceof com.yompix.glukhoman.entity.WatcherEntity) {
+                    d -= 0.6f * mult;
+                    continue;
+                }
                 d -= (e instanceof ChoirEntity ? 2.0f : e instanceof PoleEntity pe && !pe.isApparition() ? 1.5f : 0.8f) * mult;
             }
             float v = Math.max(0, Math.min(100, get(p) + d));
@@ -78,6 +82,10 @@ public final class Sanity {
                 p.getServerWorld().playSound(null, p.getBlockPos(), GContent.sound("breath"), SoundCategory.PLAYERS, 0.4f, 1f);
         }
         st.markDirty();
+    }
+
+    static float v0(ServerPlayerEntity p) {
+        return get(p);
     }
 
     static void panic(ServerPlayerEntity p) {

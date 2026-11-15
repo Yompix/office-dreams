@@ -1,0 +1,27 @@
+{
+ "textures": {
+  "side": "glukhoman:block/blood_side",
+  "top": "glukhoman:block/blood_top",
+  "front": "glukhoman:block/blood_0",
+  "particle": "glukhoman:block/blood_side"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    0.1,
+    16
+   ],
+   "faces": {
+    "up": {
+     "texture": "#front"
+    }
+   }
+  }
+ ]
+}

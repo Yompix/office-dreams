@@ -34,6 +34,8 @@ public class StoryState extends PersistentState {
     /** Группы ламп: village, station, bunker, house… */
     public final Map<String, List<Long>> lamps = new HashMap<>();
     public final Map<UUID, Float> sanity = new HashMap<>();
+    /** 0.4: кассеты (Tapes), тепловая карта Обходчика и прочее, что удобнее хранить деревом NBT. */
+    public NbtCompound data = new NbtCompound();
 
     public static final PersistentState.Type<StoryState> TYPE = new PersistentState.Type<>(StoryState::new, StoryState::fromNbt, null);
 
@@ -114,6 +116,7 @@ public class StoryState extends PersistentState {
         NbtCompound sn = new NbtCompound();
         sanity.forEach((k, v) -> sn.putFloat(k.toString(), v));
         nbt.put("sanity", sn);
+        nbt.put("data", data);
         return nbt;
     }
 
@@ -141,6 +144,7 @@ public class StoryState extends PersistentState {
         }
         NbtCompound sn = nbt.getCompound("sanity");
         for (String k : sn.getKeys()) s.sanity.put(UUID.fromString(k), sn.getFloat(k));
+        s.data = nbt.getCompound("data");
         return s;
     }
 }
