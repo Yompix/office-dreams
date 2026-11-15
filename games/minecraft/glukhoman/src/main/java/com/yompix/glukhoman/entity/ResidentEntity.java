@@ -44,6 +44,8 @@ public class ResidentEntity extends PathAwareEntity implements GeoEntity {
     public int hold;
     public boolean talking;
     public double animClock = -1;
+    /** Клиент: виден только в видоискателе (Зина на лавке в вагоне, ночь 3). */
+    public boolean cameraOnly;
     /** Клиент: выбор базового клипа новой системой анимации (client/anim/Animator); на сервере не используется. */
     public static java.util.function.BiFunction<ResidentEntity, String, String> ANIM;
 

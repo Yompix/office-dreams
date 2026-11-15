@@ -181,7 +181,7 @@ public class GlukhomanClient implements ClientModInitializer {
                 cardB = m.getString("b");
                 cardC = m.getString("c");
                 cardT = 160;
-                for (int n = 1; n <= 3; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
+                for (int n = 1; n <= 6; n++) {   // карточка главы → запомнить, до какой дошли (экран «Главы»)
                     String ct = com.yompix.glukhoman.story.Texts.get().chapterTitle(n);
                     if (!ct.isEmpty() && (ct.contains(cardB) && !cardB.isEmpty() || ct.contains(cardA) && !cardA.isEmpty() || (cardA + " · " + cardB).contains(ct))
                             && n > GConfig.get().chapterReached) {
@@ -202,6 +202,24 @@ public class GlukhomanClient implements ClientModInitializer {
                             var clip = com.yompix.glukhoman.client.anim.Gestures.byName(g, m.getDouble("hold"));
                             if (clip != null) an.play(clip);
                         }
+                    }
+                }
+            }
+            case "ghost" -> {   // 0.6: в вагоне на лавке — житель, который сейчас спит дома (виден только в видоискателе)
+                if (c.world != null) {
+                    var r = com.yompix.glukhoman.GContent.RESIDENT.create(c.world);
+                    if (r != null) {
+                        r.setId(-660000 - (int) (c.world.getTime() % 1000));
+                        r.who(m.getString("who"));
+                        r.cameraOnly = true;
+                        r.setNoGravity(true);
+                        r.noClip = true;
+                        r.refreshPositionAndAngles(m.getDouble("x"), m.getDouble("y"), m.getDouble("z"), 180, 0);
+                        r.bodyYaw = r.prevBodyYaw = r.headYaw = r.prevHeadYaw = 180;
+                        r.act("slowwave");
+                        c.world.addEntity(r);
+                        final int id = r.getId();
+                        com.yompix.glukhoman.client.anim.Creatures.later(20 * 40, () -> { if (c.world != null) c.world.removeEntity(id, net.minecraft.entity.Entity.RemovalReason.DISCARDED); });
                     }
                 }
             }

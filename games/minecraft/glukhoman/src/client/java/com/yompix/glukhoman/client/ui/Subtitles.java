@@ -46,6 +46,7 @@ public final class Subtitles {
 
     static final Map<String, Integer> COLORS = Map.of("zakhar", 0xFFD7B072, "zakhar_r", 0xFFD7B072, "vika", 0xFF9CC8EC, "gena", 0xFF9FD48F,
             "ls", 0xFFE0A8A8, "petrovich", 0xFFE6A46A, "zina", 0xFFD8A6D4, "polya", 0xFFC8C8C8, "me", 0xFFA8DCC4, "lyokha", 0xFFA8DCC4);
+    static final Map<String, Integer> COLORS2 = Map.of("gena_p", 0xFF9FD48F);
 
     public static double now() {
         return MenuClock.now();
@@ -101,7 +102,7 @@ public final class Subtitles {
     static Text compose(Line l) {
         MutableText out = Text.empty();
         if (!l.who.isEmpty()) {
-            int col = COLORS.getOrDefault(l.key, 0xFFE6E6E6);
+            int col = COLORS.getOrDefault(l.key, COLORS2.getOrDefault(l.key, 0xFFE6E6E6));
             out.append(Text.literal(l.who + ": ").setStyle(Style.EMPTY.withBold(true).withColor(col & 0xFFFFFF)));
         }
         out.append(Text.literal(l.text).setStyle(Style.EMPTY.withColor(textColor() & 0xFFFFFF)));

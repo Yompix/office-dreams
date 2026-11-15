@@ -135,6 +135,7 @@ public final class ServerTest {
             STEPS.add(new Step("поезд ушёл → утро", () -> {}, () -> step("c1_replay") && !Night.running, 4000));
             add("пересмотр ночной записи → конец части 1", () -> { int s = slotOf("night"); if (s >= 0) Tapes.action(fake, s / 100, s % 100, "play"); },
                     () -> st().ending.equals("1") && step("end1"));
+            part2();
             return;
         }
         add("колокол и стрелка", () -> { use("bell"); use("switch_e"); }, () -> st().flag("bell_used") && Night.phase() == 4);
@@ -148,6 +149,52 @@ public final class ServerTest {
         add("ночь кончилась → утро", Night::finish, () -> step("c1_replay") && !Night.running && count(TrainEntity.class) == 0 && Tapes.has(st(), "night", null));
         add("пересмотр ночной записи → конец части 1", () -> { int s = slotOf("night"); if (s >= 0) Tapes.action(fake, s / 100, s % 100, "play"); },
                 () -> st().ending.equals("1") && step("end1"));
+        part2();
+    }
+
+    /** 0.6: часть вторая целиком — глава II (Гена, улики, ложное правило, ночь 3) и глава III (дрезина, 41-й км, нарядная). */
+    static void part2() {
+        STEPS.add(new Step("конец части 1 → глава II: Гена на перроне", () -> {}, () -> st().chapter == 4 && step("c2_board") && resident("gena") != null, 3000));
+        add("Захар: табло горит без тока", () -> { ResidentEntity z = resident("zakhar"); tpAt(z.getX() + 1, z.getY(), z.getZ()); Story.resident(fake, z); },
+                () -> step("c2_clues"));
+        add("снял расписание в доме Поли (сквозь доски)", () -> { Cam.lower(fake, true); film("c2_schedule", 16.5, 37.5); }, () -> st().flag("clue_schedule"));
+        if (BOARD) add("ИК: снял ложное имя — внёс Петровича в список", () -> { Cam.lower(fake, true); film("carve_false", 84.5, 19.5); Cam.setIr(fake, true); },
+                () -> st().flag("listed:petrovich"));
+        add("ИК: имя на шпале 1", () -> { Cam.lower(fake, true); film("carve_1", 76.5, 19.5); Cam.setIr(fake, true); }, () -> st().flag("name:carve_1"));
+        add("ИК: имя на шпале 2 → вечер", () -> { Cam.lower(fake, true); film("carve_2", 93.5, 19.5); Cam.setIr(fake, true); }, () -> step("c2_evening"));
+        add("стул → правила ночи 3 (одно ложное)", () -> { Cam.lower(fake, true); Cam.setIr(fake, false); use("wait"); }, () -> step("c2_wait")
+                && st().data.getString("false_rule").equals("rule_n3_2"));
+        add("стул → ночь 3: двое лунатиков, Безымянные, Обходчик", () -> use("wait"),
+                () -> Night.running && st().data.getInt("night") == 3 && Night.walkersList().size() >= 2 && count(ResidentEntity.class) >= 4
+                        && (!BOARD || st().flag("taken:petrovich") || Night.walkersList().stream().anyMatch(r -> r.who().equals("petrovich"))));
+        add("03:14 → звонок, поезд", () -> Night.skipTo(190), () -> step("n2_night") && count(TrainEntity.class) == 1);
+        if (BOARD) STEPS.add(new Step("никто не будит (поверил ложному правилу): поезд забрал", () -> tp("cp_dispatch"), () -> st().count("taken") >= 2, 6000));
+        else {
+            for (int k = 0; k < 2; k++) {
+                final int need = k + 1;
+                add("будить лунатика " + (k + 1) + " (ложное правило — не слушать)", () -> {
+                    ResidentEntity r = Night.walkersList().stream().filter(ResidentEntity::sleepwalking).findFirst().orElse(null);
+                    if (r == null) return;
+                    tpAt(r.getX() + 1, r.getY(), r.getZ());
+                    Story.resident(fake, r);
+                }, () -> Night.walkersList().stream().filter(r -> !r.sleepwalking()).count() >= need);
+            }
+            add("ночь 3 кончилась", Night::finish, () -> !Night.running);
+        }
+        STEPS.add(new Step("«Проход поезда» → утро", () -> {}, () -> step("c2_morning") && !Night.running, 6000));
+        add("Захар: схема Саввы → глава III, дрезина", () -> { ResidentEntity z = resident("zakhar"); tpAt(z.getX() + 1, z.getY(), z.getZ()); Story.resident(fake, z); },
+                () -> st().chapter == 5 && step("c3_start") && Part2.qaCart() != null && fake.getInventory().count(net.minecraft.item.Items.PAPER) >= 1);
+        STEPS.add(new Step("дрезина: качаю (W), у 3-й стрелки влево (A), не стою на 58-м", () -> {
+            var c = Part2.qaCart();
+            fake.refreshPositionAndAngles(c.getX(), c.getY(), c.getZ(), 90, 0);
+            if (!fake.startRiding(c, true)) Part2.testDriver = fake;
+            fake.forwardSpeed = 1;
+            fake.sidewaysSpeed = 1;
+        }, () -> step("c3_camp"), 4000));
+        add("41-й км → нарядная: кассеты, имя на свежей", () -> { fake.forwardSpeed = 0; fake.sidewaysSpeed = 0; tp("naryad_in"); }, () -> step("c3_choice")
+                && fake.getInventory().count(GContent.CASSETTE) >= 1);
+        add(BOARD ? "сжечь нарядную → конец части 2" : "забрать кассеты → конец части 2", () -> Story.answer(fake, "naryad", BOARD ? 1 : 0),
+                () -> st().chapter == 6 && step("end2") && st().ending.equals("2") && st().flag(BOARD ? "burned_naryad" : "took_tapes"));
     }
 
     static void tick(MinecraftServer s) {
@@ -163,7 +210,7 @@ public final class ServerTest {
             Story.testPlayer = fake;
             Story.reset();
             // у «призрака» нет клиента, который грузит чанки, — держим сюжетные места загруженными сами
-            int[][] areas = {{-80, -8, 120, 140}, {120, 0, 340, 32}};
+            int[][] areas = {{-80, -8, 120, 140}, {120, 0, 460, 40}};
             for (int[] a : areas)
                 for (int x = a[0] >> 4; x <= a[2] >> 4; x++)
                     for (int z = a[1] >> 4; z <= a[3] >> 4; z++) s.getOverworld().setChunkForced(x, z, true);
@@ -185,7 +232,7 @@ public final class ServerTest {
         idx++;
         wait = 0;
         if (idx >= STEPS.size()) {
-            Glukhoman.LOG.info("SERVERTEST PASS: пролог и ночи 1–2 пройдены{}, конец части {}", BOARD ? " (вариант: никто не будит, забрали " + st().count("taken") + ")" : "", st().ending);
+            Glukhoman.LOG.info("SERVERTEST PASS: пролог, ночи 1–3 и перегон пройдены{}, конец части {}", BOARD ? " (вариант: никто не будит, забрали " + st().count("taken") + ")" : "", st().ending);
             s.stop(false);
             return;
         }

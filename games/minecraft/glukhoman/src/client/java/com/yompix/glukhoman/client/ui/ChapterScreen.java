@@ -17,23 +17,23 @@ public class ChapterScreen extends KitScreen {
 
     @Override
     protected int rows() {
-        return 6;
+        return 9;
     }
 
     @Override
     protected void build() {
         int reached = GConfig.get().chapterReached;
-        for (int n = 1; n <= 3; n++) {
+        for (int n = 1; n <= 6; n++) {
             String t = Texts.get().chapterTitle(n);
             if (t.isEmpty()) continue;
-            if (n == 1) {
-                item(t, b -> com.yompix.glukhoman.client.menu.WorldStart.newShift());
-            } else if (n == 2 && n <= reached) {   // 0.5.1: «Глава I» — новая смена с начала главы (пролог пропускается на сервере)
+            final int ch = n;
+            if (n == 1) item(t, b -> com.yompix.glukhoman.client.menu.WorldStart.newShift());
+            else if ((n == 2 || n == 4 || n == 5) && n <= reached) {   // новая смена с начала главы (прошлое «пройдено» на сервере)
                 item(t, b -> {
-                    com.yompix.glukhoman.client.menu.WorldStart.pendingChapter = 2;
+                    com.yompix.glukhoman.client.menu.WorldStart.pendingChapter = ch;
                     com.yompix.glukhoman.client.menu.WorldStart.newShift();
                 });
-            } else if (n == 3) item(t, b -> {}).off(n <= reached ? "финал части — пересмотреть нельзя" : "ещё не дошли");
+            } else if (n == 3 || n == 6) item(t, b -> {}).off(n <= reached ? "конец части" : "ещё не дошли");
             else item(t, b -> {}).off("ещё не дошли");
         }
         gap();

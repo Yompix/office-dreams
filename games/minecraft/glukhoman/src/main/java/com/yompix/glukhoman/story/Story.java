@@ -92,6 +92,7 @@ public final class Story {
         StoryState st = st();
         if (!isOurWorld()) return;
         if (!st.built) MapBuilder.build(w(), st);
+        if (st.built && !st.flag("v3")) com.yompix.glukhoman.world.Part2Map.build(w(), st);   // 0.6: часть вторая — и в старых мирах
         GameRules r = w().getGameRules();
         r.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, s);
         r.get(GameRules.DO_MOB_SPAWNING).set(false, s);
@@ -118,10 +119,12 @@ public final class Story {
             return;
         }
         if (st.step.startsWith("n2")) {
-            setStep("c1_wait");
+            setStep(st.chapter == 4 ? "c2_wait" : "c1_wait");
             w().setTimeOfDay(16000);
         }
         if (st.chapter == 2) dayResidents();
+        if (st.chapter == 4) dayResidents();
+        Part2.loaded(st);
     }
 
     public static boolean isOurWorld() {
@@ -169,6 +172,11 @@ public final class Story {
         boolean fresh = st().chapter == 0;
         chooseDifficulty(p, d, false);
         StoryState st = st();
+        if (fresh && (chapter == 4 || chapter == 5) && st.chapter == 1) {
+            Part2.jump(chapter);
+            msgAll("Новая смена — сразу с главы " + (chapter == 4 ? "II «Порожняк»" : "III «Перегон»") + ".");
+            return;
+        }
         if (fresh && chapter == 2 && st.chapter == 1) {
             st.set("p_scene");
             Tapes.commit(st, "prologue", "rec", titleOf("prologue"), Map.of("polya", 400, "train", 300));
@@ -379,6 +387,10 @@ public final class Story {
 
     public static void answer(ServerPlayerEntity p, String id, int i) {
         StoryState st = st();
+        if (id.equals("naryad")) {
+            Part2.answer(p, i);
+            return;
+        }
         if (!id.equals("box") || st.flag("box_day1")) return;
         st.set("box_day1");
         if (i == 0) {
@@ -418,6 +430,7 @@ public final class Story {
             Night.wake(p, r);
             return;
         }
+        if (st.chapter >= 4 && Part2.resident(p, r)) return;
         if (st.chapter == 2 && who.equals("zakhar") && st.step.equals("c1_zakhar")) {
             if (sceneRunning()) return;   // сцена уже идёт (после перезагрузки посреди сцены шаг тот же — заговори снова)
             // 0.5.1: «Сдача смены» — кат-сцена (реплики c1_zakhar_1–3 внутри неё); логика после — как раньше
@@ -453,6 +466,7 @@ public final class Story {
     /** Стул в дежурке: ждать вечера / ночи. */
     static void waitChair(ServerPlayerEntity p) {
         StoryState st = st();
+        if (st.chapter >= 4 && Part2.chair(p)) return;
         switch (st.step) {
             case "c1_evening" -> evening();
             case "c1_wait" -> {
@@ -495,6 +509,10 @@ public final class Story {
 
     public static void nightOver() {
         StoryState st = st();
+        if (st.chapter == 4) {
+            Part2.night3Over();
+            return;
+        }
         w().setTimeOfDay(1000);
         lamps("station", false);
         fxAll("fade", 80);
@@ -533,7 +551,8 @@ public final class Story {
                 NbtList lines = new NbtList();
                 String ctx = slot.getString("ctx");
                 if (kind.equals("interview") || kind.equals("announce")) {
-                    for (String l : Texts.get().sequence(kind.equals("announce") ? "rules_n2" : ctx)) {
+                    String rules = st.data.contains("rules_seq") ? st.data.getString("rules_seq") : "rules_n2";
+                    for (String l : Texts.get().sequence(kind.equals("announce") ? rules : ctx)) {
                         String text = Texts.get().lineText(l);
                         if (l.equals(st.data.getString("false_rule"))) text = "[тишина. На плёнке громкоговоритель молчит — а ты помнишь голос.]";
                         lines.add(NbtString.of(Texts.get().lineWho(l) + ": " + text));
@@ -554,7 +573,8 @@ public final class Story {
         setStep("end1");
         int d = seq("end1", st.find("radio"), true);
         Sched.after(d + 20, () -> {
-            titleAll("Конец первой части", "ПОРОЖНЯК", "Продолжение — глава II: табло горит без тока");
+            titleAll("Конец первой части", "ПОРОЖНЯК", "Дальше — глава II: табло горит без тока");
+            Sched.after(300, Part2::startChapter2);   // 0.6: часть вторая
             Glukhoman.LOG.info("Глухомань: часть 1 пройдена. Сдано кассет {}, интервью {}, забрал поезд {}", st.count("deposits"), st.count("interviews"), st.count("taken"));
         });
     }
@@ -562,6 +582,12 @@ public final class Story {
     /** Стёрли сюжет: всё, что держала эта запись, больше ничто не держит. */
     static void erased(NbtCompound old) {
         Glukhoman.LOG.info("Глухомань: стёрт сюжет «{}»", old.getString("title"));
+        // 0.6: ставка перезаписи — видно всем, кого ты только что стёр (их якорь пропал: ночью линия может их позвать)
+        String who = subjText(old.getCompound("subj"));
+        if (!who.isEmpty()) {
+            msgAll("Поверх «" + old.getString("title") + "» — новая запись. Стёрто: " + who + ". Их больше ничто не держит.");
+            for (ServerPlayerEntity p : players()) sound(p.getBlockPos(), "rewind", 0.5f, 0.6f);
+        }
     }
 
     // ===================== «что пишет камера» =====================
@@ -789,6 +815,8 @@ public final class Story {
         StoryState st = st();
         String t = Texts.get().objective(st.step);
         return switch (st.step) {
+            case "c3_ride" -> Part2.rideHud();
+            case "c2_clues" -> t + " · имён " + st.count("names") + "/2" + (st.flag("clue_schedule") ? " · расписание есть" : "");
             case "p_rec" -> {
                 int n = 0;
                 for (String x : new String[]{"t_platform", "t_switch", "t_crossing"}) if (st.flag("rec_" + x)) n++;
@@ -983,8 +1011,10 @@ public final class Story {
         if (sceneLock > 0) sceneLock--;
         if (st.chapter == 0) return;
         if (t % 5 == 0) for (ServerPlayerEntity p : players()) Noise.playerStep(p);
+        if (st.chapter == 5 && (st.step.equals("c3_start") || st.step.equals("c3_ride"))) Part2.rideTick(st);   // дрезина — каждый тик
         if (t % 10 != 0) return;
         if (st.chapter == 1) prologueTick(st);
+        if (st.chapter == 4 || st.chapter == 5) Part2.tick(st);
         for (ServerPlayerEntity p : players()) area(p, st);
         if (t % 20 == 0 && st.ending.isEmpty()) for (ServerPlayerEntity p : players()) bounds(p, st);
         if (t % 40 == 0 && st.step.equals("n2_night")) hudAll();

@@ -288,6 +288,13 @@ public final class Cine {
             case "pr_board" -> StoryScenes.prBoard();
             case "rp_night" -> StoryScenes.rpNight();
             case "c1_handover" -> StoryScenes.handover();
+            case "c2_gena" -> Part2Scenes.gena(false);      // 0.6: часть вторая
+            case "c2_gena_ok" -> Part2Scenes.gena(true);
+            case "c2_pass" -> Part2Scenes.pass();
+            case "c3_naryad" -> Part2Scenes.naryad();
+            case "c3_savva" -> Part2Scenes.savva();
+            case "demo_ch2" -> Part2Scenes.demoCh2();
+            case "demo_ch3" -> Part2Scenes.demoCh3();
             case "demo_watcher" -> StoryScenes.demoWatcher();
             case "demo_residents" -> StoryScenes.demoResidents();
             case "demo_moments" -> StoryScenes.demoMoments();

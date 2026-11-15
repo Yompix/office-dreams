@@ -146,6 +146,33 @@ if __name__ == '__main__':
                 ('pr_train', 'scene_pr_train.mp4', g_n, True, 'Сюжетная сцена: пролог, поезд из тумана (Timeline)')):
             if os.path.exists(f'{CLIPS}/{clip}.mp4'):
                 proto(clip, out, gr, night, label)
+    if what == 'v060':
+        g_n = 'eq=gamma=1.45:saturation=0.8:contrast=1.04,vignette=angle=PI/5'
+        g_d = 'eq=gamma=1.18:saturation=0.9:contrast=1.03'
+        parts = (('demo_ch2', 'p_ch2a.mp4', g_n, True, 'Глава II «Порожняк» · лучшие моменты'),
+                 ('c2_pass', 'scene_c2_pass.mp4', g_n, True, 'Глава II · «Проход поезда» (Timeline)'),
+                 ('c2_gena', 'scene_c2_gena.mp4', g_d, False, 'Глава II · Гена приехал (Timeline)'),
+                 ('demo_ch3', 'p_ch3a.mp4', g_n, True, 'Глава III «Перегон» · лучшие моменты'),
+                 ('c3_naryad', 'scene_c3_naryad.mp4', g_n, True, 'Глава III · «Нарядная» (Timeline)'),
+                 ('c3_savva', 'scene_c3_savva.mp4', g_d, False, 'Глава III · кассета Саввы, 1991 (Timeline)'))
+        for clip, out, gr, night, label in parts:
+            if os.path.exists(f'{CLIPS}/{clip}.mp4'):
+                proto(clip, out, gr, night, label)
+        for out, ins in (('ch2.mp4', ('p_ch2a.mp4', 'scene_c2_pass.mp4')), ('ch3.mp4', ('p_ch3a.mp4', 'scene_c3_naryad.mp4'))):
+            src = [f'{OUT}/{x}' for x in ins if os.path.exists(f'{OUT}/{x}')]
+            if not src:
+                continue
+            cmd = ['ffmpeg', '-y', '-loglevel', 'error']
+            for x in src:
+                cmd += ['-i', x]
+            n = len(src)
+            fc = ''.join(f'[{i}:v][{i}:a]' for i in range(n)) + f'concat=n={n}:v=1:a=1[v][a]'
+            run(cmd + ['-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', '-pix_fmt', 'yuv420p',
+                       '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', f'{OUT}/{out}'])
+            print(out)
+        for x in ('p_ch2a.mp4', 'p_ch3a.mp4'):
+            if os.path.exists(f'{OUT}/{x}'):
+                os.remove(f'{OUT}/{x}')
     if what in ('ui', 'all'):
         ui(['yompix_intro'], 'yompix_intro.mp4', bed=0.0)
         ui(['ui_tour', 'ui_loading', 'ui_tour2'], 'ui_tour.mp4')
