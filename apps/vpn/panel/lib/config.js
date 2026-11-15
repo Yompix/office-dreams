@@ -5,9 +5,9 @@ const path = require('path');
 const crypto = require('crypto');
 
 const DEFAULT_PLANS = [
-  { id: 'm1', days: 30, stars: 150 },
-  { id: 'm3', days: 90, stars: 400 },
-  { id: 'y1', days: 365, stars: 1400 },
+  { id: 'm1', days: 30, stars: 150, usd: 2.5 },
+  { id: 'm3', days: 90, stars: 400, usd: 6.5 },
+  { id: 'y1', days: 365, stars: 1400, usd: 22 },
 ];
 
 function load(e = process.env) {
@@ -23,6 +23,14 @@ function load(e = process.env) {
     adminIds: (e.ADMIN_IDS || '').split(',').map((s) => Number(s.trim())).filter((n) => n > 0),
     adminKey: e.ADMIN_KEY || '',
     support: e.SUPPORT || '',
+    // @CryptoBot -> Crypto Pay -> Create App -> API token. Empty = crypto hidden
+    cryptoToken: e.CRYPTOBOT_TOKEN || '',
+    cryptoTestnet: e.CRYPTOBOT_TESTNET === '1',
+    cryptoAssets: e.CRYPTOBOT_ASSETS || 'USDT,TON,BTC,ETH,LTC,TRX',
+    // card provider token from @BotFather -> Payments (YooKassa etc.). Empty = cards shown as 'soon'
+    cardToken: e.CARD_PROVIDER_TOKEN || '',
+    cardCurrency: e.CARD_CURRENCY || 'RUB',
+    cardRate: Number(e.CARD_RATE || 100), // card currency units per 1 USD
     dbPath: e.DB_PATH || (fs.existsSync('/data') ? '/data/vpn.db' : path.join(__dirname, '..', 'data', 'vpn.db')),
     trialDays: Number(e.TRIAL_DAYS ?? 3),
     refDays: Number(e.REF_DAYS ?? 7),

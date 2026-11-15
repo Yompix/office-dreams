@@ -20,6 +20,7 @@ function open(file) {
   const db = new DatabaseSync(file);
   db.exec(`
     PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY, name TEXT DEFAULT '', lang TEXT DEFAULT 'ru', created INTEGER NOT NULL,
       expires INTEGER NOT NULL DEFAULT 0, token TEXT UNIQUE NOT NULL, uuid TEXT NOT NULL, pass TEXT NOT NULL,
@@ -36,6 +37,9 @@ function open(file) {
   `);
   // columns added after the first release
   const cols = db.prepare('PRAGMA table_info(nodes)').all().map((c) => c.name);
+  const pcols = db.prepare('PRAGMA table_info(payments)').all().map((c) => c.name);
+  if (!pcols.includes('method')) db.exec("ALTER TABLE payments ADD COLUMN method TEXT DEFAULT 'stars'");
+  if (!pcols.includes('usd')) db.exec('ALTER TABLE payments ADD COLUMN usd REAL DEFAULT 0');
   for (const [c, def] of [['kind', "TEXT DEFAULT 'vps'"], ['ws_path', "TEXT DEFAULT ''"], ['rhost', "TEXT DEFAULT ''"], ['rport', 'INTEGER DEFAULT 0']]) {
     if (!cols.includes(c)) db.exec(`ALTER TABLE nodes ADD COLUMN ${c} ${def}`);
   }
@@ -48,7 +52,7 @@ function open(file) {
     updName: q('UPDATE users SET name = ?, lang = ? WHERE id = ?'),
     setExp: q('UPDATE users SET expires = ? WHERE id = ?'),
     active: q('SELECT id, uuid, pass FROM users WHERE expires > ? AND banned = 0 ORDER BY id'),
-    insPay: q('INSERT OR IGNORE INTO payments (charge, uid, plan, stars, days, ts) VALUES (?, ?, ?, ?, ?, ?)'),
+    insPay: q('INSERT OR IGNORE INTO payments (charge, uid, plan, stars, days, ts, method, usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
     insNode: q('INSERT INTO nodes (name, host, secret, priv, pub, sid, sni) VALUES (?, ?, ?, ?, ?, ?, ?)'),
     nodes: q('SELECT * FROM nodes ORDER BY id'),
   };
@@ -97,8 +101,8 @@ function open(file) {
     activeUsers: (now = Date.now()) => s.active.all(now),
 
     // true only the first time a charge id is seen (Telegram may resend an update)
-    recordPayment(charge, uid, plan, stars, days, now = Date.now()) {
-      const r = s.insPay.run(charge, uid, plan, stars, days, now);
+    recordPayment(charge, uid, plan, stars, days, now = Date.now(), method = 'stars', usd = 0) {
+      const r = s.insPay.run(charge, uid, plan, stars, days, now, method, usd);
       if (!r.changes) return false;
       db.prepare('UPDATE users SET paid = paid + 1 WHERE id = ?').run(uid);
       return true;
@@ -141,6 +145,9 @@ function open(file) {
     },
     markWarned: (id, exp) => db.prepare('UPDATE users SET warned = ? WHERE id = ?').run(exp, id),
 
+    kvGet: (k) => (db.prepare('SELECT v FROM kv WHERE k = ?').get(k) || {}).v ?? null,
+    kvSet: (k, v) => db.prepare('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v').run(k, String(v)),
+
     stats(now = Date.now()) {
       const one = (sql, ...a) => Object.values(db.prepare(sql).get(...a))[0] || 0;
       return {
@@ -151,6 +158,7 @@ function open(file) {
         payments: one('SELECT COUNT(*) FROM payments'),
         stars: one('SELECT SUM(stars) FROM payments'),
         stars30d: one('SELECT SUM(stars) FROM payments WHERE ts > ?', now - 30 * DAY),
+        usd: Math.round(one('SELECT SUM(usd) FROM payments') * 100) / 100,
         nodes: one('SELECT COUNT(*) FROM nodes WHERE enabled = 1'),
       };
     },

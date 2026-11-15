@@ -10,6 +10,8 @@ const Links = require('./lib/links.js');
 const NodeCfg = require('./lib/nodecfg.js');
 const Bot = require('./lib/bot.js');
 const Tg = require('./lib/tg.js');
+const WebApp = require('./lib/webapp.js');
+const APP_HTML = path.join(__dirname, 'public', 'app.html');
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const same = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
@@ -35,13 +37,22 @@ button{width:100%;margin:10px 0;padding:14px;border:0;border-radius:12px;backgro
 <p class="s">${ru ? 'Не делитесь ссылкой — по ней подключается любой.' : "Don't share this link — anyone can connect with it."}</p></main></body></html>`;
 }
 
-function createApp({ cfg, store, bot, log = console }) {
+function createApp({ cfg, store, bot, webapp, log = console }) {
   return async function app(req, res) {
     const url = new URL(req.url, 'http://x');
     const p = url.pathname;
     const send = (code, body, headers = {}) => { res.writeHead(code, { 'content-type': 'text/plain; charset=utf-8', ...headers }); res.end(body); };
     try {
       if (p === '/health') return send(200, 'ok');
+
+      if (p === '/app') return send(200, fs.readFileSync(APP_HTML), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' });
+      let a = /^\/api\/(me|trial|pay|reset)$/.exec(p);
+      if (a && req.method === 'POST' && webapp) {
+        let body = {};
+        try { body = JSON.parse((await readBody(req, 1e4)) || '{}'); } catch { /* empty */ }
+        const [code, out] = await webapp.api(a[1], String(req.headers['x-init-data'] || ''), body);
+        return send(code, JSON.stringify(out), { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      }
 
       if (p === '/tg/hook' && req.method === 'POST') {
         if (!cfg.hookSecret || !same(req.headers['x-telegram-bot-api-secret-token'] || '', cfg.hookSecret)) return send(403, 'no');
@@ -106,6 +117,9 @@ async function startBot(cfg, tg, bot, log) {
     { command: 'start', description: 'Меню' }, { command: 'key', description: 'Мой ключ' },
     { command: 'buy', description: 'Купить / продлить' }, { command: 'help', description: 'Как подключить' },
   ] }).catch((e) => log.error(e.message));
+  if (cfg.publicUrl.startsWith('https://')) {
+    await tg.call('setChatMenuButton', { menu_button: { type: 'web_app', text: cfg.brand, web_app: { url: `${cfg.publicUrl}/app` } } }).catch((e) => log.error(e.message));
+  }
   const updates = ['message', 'callback_query', 'pre_checkout_query'];
   if (cfg.publicUrl.startsWith('https://')) {
     await tg.call('setWebhook', { url: `${cfg.publicUrl}/tg/hook`, secret_token: cfg.hookSecret, allowed_updates: updates, drop_pending_updates: false });
@@ -130,10 +144,12 @@ if (require.main === module) {
   if (cfg.railwayNode) { const n = store.railwayNode(cfg.railwayNode); console.log(`railway node #${n.id} ${n.host}${n.rport ? ' + ' + n.rhost + ':' + n.rport : ''}`); }
   const tg = cfg.botToken ? Tg.client(cfg.botToken) : { call: async () => { throw new Error('BOT_TOKEN is not set'); } };
   const bot = Bot.create({ cfg, store, tg });
-  http.createServer(createApp({ cfg, store, bot })).listen(cfg.port, () => console.log(`${cfg.brand} panel on :${cfg.port}, db ${cfg.dbPath}`));
+  const webapp = WebApp.create({ cfg, store, bot, tg });
+  http.createServer(createApp({ cfg, store, bot, webapp })).listen(cfg.port, () => console.log(`${cfg.brand} panel on :${cfg.port}, db ${cfg.dbPath}`));
   if (cfg.botToken) startBot(cfg, tg, bot, console).catch((e) => console.error('bot start:', e.message));
   else console.warn('BOT_TOKEN is not set: the bot is off');
   setInterval(() => bot.remind().catch(() => {}), 3600e3).unref();
+  if (cfg.cryptoToken) setInterval(() => webapp.pollCrypto().catch((e) => console.error(e.message)), 60e3).unref();
 }
 
 module.exports = { createApp, subPage };

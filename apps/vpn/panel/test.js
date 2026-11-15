@@ -168,5 +168,63 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.ok(rs[1].includes('@x.proxy.rlwy.net:23456?') && rs[1].includes('security=reality'));
   ok('railway node (ws + reality over tcp proxy)');
 
+  // Mini App: Telegram login, trial, Stars / crypto / card payments
+  const WebApp = require('./lib/webapp.js');
+  const cbCalls = [];
+  let paidItems = [];
+  const fakeCb = { call: async (m, p) => { cbCalls.push({ m, p }); return m === 'createInvoice' ? { invoice_id: 7, bot_invoice_url: 'https://t.me/CryptoBot?start=IV7' } : { items: paidItems }; } };
+  const wcfg = { ...cfg, cardToken: 'prov:1', cardCurrency: 'RUB', cardRate: 100 };
+  const wbot = Bot.create({ cfg: wcfg, store, tg, log: quiet });
+  const wa = WebApp.create({ cfg: wcfg, store, bot: wbot, tg, cb: fakeCb, log: quiet });
+  const carol = { id: 400, first_name: 'Carol', language_code: 'ru' };
+  const init = WebApp.signInitData(cfg.botToken, carol, now, { start_param: 'r100' });
+  let [code, me] = await wa.api('me', 'hash=bad', {}, now);
+  assert.strictEqual(code, 401);
+  [code, me] = await wa.api('me', init, {}, now);
+  assert.strictEqual(code, 200); assert.strictEqual(me.trial, true); assert.strictEqual(me.active, false);
+  assert.deepStrictEqual(me.methods, { stars: true, crypto: true, card: true });
+  assert.strictEqual(store.user(400).ref, 100);
+  assert.strictEqual((await wa.api('me', WebApp.signInitData(cfg.botToken, carol, now - 2 * DAY), {}, now))[0], 401);
+  ok('mini app: login by initData, referral from start_param');
+
+  [code, me] = await wa.api('trial', init, {}, now);
+  assert.strictEqual(code, 200); assert.strictEqual(me.active, true); assert.strictEqual(me.daysLeft, 3); assert.ok(me.sub.includes('/sub/'));
+  assert.strictEqual((await wa.api('trial', init, {}, now))[0], 409);
+  ok('mini app: trial once');
+
+  [, r] = await wa.api('pay', init, { plan: 'm1', method: 'stars' }, now);
+  assert.strictEqual(r.kind, 'invoice');
+  const il = last('createInvoiceLink').p;
+  assert.strictEqual(il.currency, 'XTR'); assert.strictEqual(il.payload, 'm1:400'); assert.strictEqual(il.prices[0].amount, 150);
+  [, r] = await wa.api('pay', init, { plan: 'm3', method: 'card' }, now);
+  const cl = last('createInvoiceLink').p;
+  assert.strictEqual(cl.currency, 'RUB'); assert.strictEqual(cl.prices[0].amount, 65000); assert.strictEqual(cl.payload, 'card:m3:400');
+  const exp0 = store.user(400).expires;
+  await wbot.handle({ update_id: 9, message: { message_id: 3, from: carol, chat: { id: 400 }, successful_payment: { currency: 'RUB', total_amount: 65000, invoice_payload: 'card:m3:400', telegram_payment_charge_id: 'card1' } } }, now);
+  assert.strictEqual(store.user(400).expires, exp0 + 90 * DAY);
+  ok('mini app: stars + card invoices, card payment credited');
+
+  [, r] = await wa.api('pay', init, { plan: 'y1', method: 'crypto' }, now);
+  assert.strictEqual(r.link, 'https://t.me/CryptoBot?start=IV7');
+  const ci = cbCalls.find((c) => c.m === 'createInvoice').p;
+  assert.strictEqual(ci.amount, '22'); assert.strictEqual(ci.payload, 'y1:400'); assert.strictEqual(ci.fiat, 'USD');
+  const exp1 = store.user(400).expires;
+  paidItems = [{ invoice_id: 7, status: 'paid', amount: '22', payload: 'y1:400' }, { invoice_id: 8, payload: 'zz:1' }];
+  assert.strictEqual(await wa.pollCrypto(now), 1);
+  assert.strictEqual(await wa.pollCrypto(now), 0);
+  assert.strictEqual(store.user(400).expires, exp1 + 365 * DAY);
+  assert.strictEqual((await wa.api('pay', init, { plan: 'm1', method: 'paypal' }, now))[0], 400);
+  ok('mini app: crypto invoice paid once via CryptoBot poll');
+
+  // the page itself is served
+  const srv2 = http.createServer(createApp({ cfg, store, bot, webapp: wa, log: quiet })).listen(0);
+  const b2 = `http://127.0.0.1:${srv2.address().port}`;
+  const html = await (await fetch(b2 + '/app')).text();
+  assert.ok(html.includes('telegram-web-app.js') && html.includes('YURK'));
+  const rr = await fetch(b2 + '/api/me', { method: 'POST', headers: { 'x-init-data': init }, body: '{}' });
+  assert.strictEqual(rr.status, 200);
+  srv2.close();
+  ok('mini app: page + api over http');
+
   console.log(`\n${n} tests passed`);
 })().catch((e) => { console.error(e); process.exit(1); });

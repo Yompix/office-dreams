@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>YURK VPN</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#07080d;--bg2:#0d1018;--card:#121622;--card2:#171c2b;--line:#222a3d;--line2:#2c3650;
+  --tx:#eef1f8;--mut:#8b93a8;--dim:#5d667c;
+  --a1:#8b5cff;--a2:#22e3b0;--a3:#2fb8ff;--warn:#ffb547;--bad:#ff5d73;
+  --grad:linear-gradient(135deg,var(--a1),var(--a3) 55%,var(--a2));
+  --r:18px;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif}
+body{min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:-30% -20% auto;height:70vh;z-index:-1;
+  background:radial-gradient(40% 50% at 25% 40%,rgba(139,92,255,.28),transparent 70%),radial-gradient(35% 45% at 80% 30%,rgba(34,227,176,.18),transparent 70%);filter:blur(10px)}
+main{max-width:520px;margin:0 auto;padding:14px 16px calc(110px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.top{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.06em;font-size:22px}
+.logo i{width:34px;height:34px;border-radius:11px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 24px rgba(139,92,255,.45)}
+.logo i svg{width:20px;height:20px}
+.logo small{font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--mut);margin-left:-4px;align-self:flex-end;padding-bottom:3px}
+.pill{font-size:12px;font-weight:600;padding:6px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.pill b{width:7px;height:7px;border-radius:50%;background:var(--bad);box-shadow:0 0 10px var(--bad)}
+.pill.on b{background:var(--a2);box-shadow:0 0 10px var(--a2)}
+
+.hero{position:relative;border-radius:24px;padding:20px;background:linear-gradient(160deg,#151a2a,#0e111b);border:1px solid var(--line);overflow:hidden}
+.hero:after{content:"";position:absolute;inset:0;border-radius:24px;padding:1px;background:linear-gradient(140deg,rgba(139,92,255,.6),transparent 40%,rgba(34,227,176,.45));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.hrow{display:flex;gap:18px;align-items:center}
+.ring{position:relative;width:104px;height:104px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .v b{display:block;font-size:30px;line-height:1;font-weight:800}
+.ring .v span{font-size:11px;color:var(--mut)}
+.ring.off .v b{font-size:34px}
+.st h2{margin:0 0 4px;font-size:20px}
+.st p{margin:0;color:var(--mut);font-size:14px}
+.btns[hidden]{display:none}.btns{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:18px}
+.btn{height:52px;border-radius:16px;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.main{background:var(--grad);color:#08101a;box-shadow:0 10px 30px -8px rgba(47,184,255,.6)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line2);padding:0 16px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+.gift{margin-top:12px;display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);background:linear-gradient(120deg,rgba(255,181,71,.16),rgba(255,93,115,.10));border:1px solid rgba(255,181,71,.35)}
+.gift .e{font-size:28px}
+.gift div:nth-child(2){flex:1}
+.gift b{display:block}
+.gift span{font-size:13px;color:var(--mut)}
+.gift button{background:var(--warn);color:#1b1206;font-weight:800;padding:10px 14px;border-radius:12px}
+
+h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:26px 4px 10px;font-weight:700}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.plan{position:relative;text-align:left;padding:14px 12px 12px;border-radius:var(--r);background:var(--card);border:1.5px solid var(--line);transition:border-color .2s,background .2s}
+.plan.sel{border-color:transparent;background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--grad) border-box}
+.plan .d{font-weight:800;font-size:17px}
+.plan .pm{font-size:12px;color:var(--mut);margin-top:2px}
+.plan .pr{margin-top:12px;font-weight:700;font-size:15px}
+.tag{position:absolute;top:-9px;right:8px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:99px;background:var(--a2);color:#04130e;letter-spacing:.02em}
+.tag.p{background:var(--a1);color:#fff}
+
+.methods{display:grid;gap:8px}
+.m{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);background:var(--card);border:1.5px solid var(--line);text-align:left;width:100%;transition:border-color .2s}
+.m.sel{border-color:var(--a3);background:var(--card2)}
+.m .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none}
+.m .ic.s{background:linear-gradient(135deg,#ffcf4a,#ff9b1f)}
+.m .ic.c{background:linear-gradient(135deg,#2fb8ff,#1d6bff)}
+.m .ic.k{background:linear-gradient(135deg,#8b5cff,#d14bff)}
+.m .tx{flex:1;min-width:0}
+.m .tx b{display:block}
+.m .tx span{font-size:12.5px;color:var(--mut)}
+.m .am{font-weight:700;white-space:nowrap}
+.m .rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);flex:none}
+.m.sel .rd{border:6px solid var(--a3)}
+.m.off{opacity:.5}
+.m.off .am{font-size:11px;font-weight:700;color:var(--warn);background:rgba(255,181,71,.12);padding:4px 8px;border-radius:99px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:14px;display:flex;gap:8px;align-items:center}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--a2);box-shadow:0 0 8px var(--a2)}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.f{padding:14px;border-radius:var(--r);background:var(--card);border:1px solid var(--line)}
+.f b{display:block;font-size:14px;margin:6px 0 2px}
+.f span{font-size:12.5px;color:var(--mut)}
+.f em{font-style:normal;font-size:20px}
+
+.inv{display:flex;gap:12px;align-items:center;padding:16px;border-radius:var(--r);background:linear-gradient(120deg,rgba(139,92,255,.18),rgba(47,184,255,.08));border:1px solid rgba(139,92,255,.35)}
+.inv div{flex:1}
+.inv b{display:block}
+.inv span{font-size:13px;color:var(--mut)}
+.inv button{background:var(--tx);color:var(--bg);font-weight:800;padding:10px 14px;border-radius:12px}
+
+.steps{counter-reset:s;display:grid;gap:8px}
+.step{display:flex;gap:12px;padding:12px 14px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);font-size:14px}
+.step:before{counter-increment:s;content:counter(s);width:24px;height:24px;border-radius:8px;background:var(--card2);border:1px solid var(--line2);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.step span{color:var(--mut)}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:22px}
+.foot a{color:var(--mut)}
+
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(7,8,13,.92) 30%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.bar .btn{max-width:488px;margin:0 auto;width:100%;height:56px;font-size:17px}
+.bar small{display:block;text-align:center;color:var(--dim);font-size:11.5px;margin-top:6px}
+.toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-80px);background:var(--card2);border:1px solid var(--line2);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;transition:transform .3s;z-index:9;max-width:90vw}
+.toast.on{transform:translate(-50%,0)}
+.sk{color:transparent!important;background:linear-gradient(90deg,var(--card),var(--card2),var(--card));background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px}
+@keyframes sk{to{background-position:-200% 0}}
+@media (max-width:360px){.plans{gap:6px}.plan{padding:12px 9px 10px}.plan .d{font-size:15px}.ring{width:88px;height:88px}}
+</style>
+</head>
+<body>
+<main id="app">
+  <div class="top">
+    <div class="logo"><i><svg viewBox="0 0 24 24" fill="none" stroke="#08101a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5l5 7-5 7"/><path d="M12 5l5 7-5 7" opacity=".55"/></svg></i>YURK<small>VPN</small></div>
+    <div class="pill" id="pill"><b></b><span id="pillTx">…</span></div>
+  </div>
+
+  <section class="hero">
+    <div class="hrow">
+      <div class="ring" id="ring">
+        <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cff"/><stop offset=".55" stop-color="#2fb8ff"/><stop offset="1" stop-color="#22e3b0"/></linearGradient></defs>
+          <circle cx="50" cy="50" r="42" stroke="#1d2436" stroke-width="9" fill="none"/>
+          <circle id="arc" cx="50" cy="50" r="42" stroke="url(#g)" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" style="transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"/></svg>
+        <div class="v"><div><b id="days">–</b><span id="daysTx"></span></div></div>
+      </div>
+      <div class="st"><h2 id="stH" class="sk">Загрузка</h2><p id="stP" class="sk">подождите</p></div>
+    </div>
+    <div class="btns">
+      <button class="btn main" id="connect" disabled>⚡ <span data-t="connect"></span></button>
+      <button class="btn ghost" id="copy" disabled title="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button>
+    </div>
+  </section>
+
+  <div class="gift" id="gift" hidden><div class="e">🎁</div><div><b id="giftH"></b><span data-t="giftP"></span></div><button id="trial" data-t="giftB"></button></div>
+
+  <h3 data-t="plansH"></h3>
+  <div class="plans" id="plans"></div>
+
+  <h3 data-t="payH"></h3>
+  <div class="methods" id="methods"></div>
+
+  <h3 data-t="whyH"></h3>
+  <div class="feat">
+    <div class="f"><em>🥷</em><b data-t="f1"></b><span data-t="f1s"></span></div>
+    <div class="f"><em>⚡</em><b data-t="f2"></b><span data-t="f2s"></span></div>
+    <div class="f"><em>📱</em><b data-t="f3"></b><span data-t="f3s"></span></div>
+    <div class="f"><em>🔒</em><b data-t="f4"></b><span data-t="f4s"></span></div>
+  </div>
+
+  <h3 data-t="srvH"></h3>
+  <div class="chips" id="nodes"></div>
+
+  <h3 data-t="refH"></h3>
+  <div class="inv"><div><b id="refB"></b><span data-t="refS"></span></div><button id="share" data-t="refBtn"></button></div>
+
+  <h3 data-t="howH"></h3>
+  <div class="steps">
+    <div class="step"><div><b data-t="s1"></b><br><span data-t="s1s"></span></div></div>
+    <div class="step"><div><b data-t="s2"></b><br><span data-t="s2s"></span></div></div>
+    <div class="step"><div><b data-t="s3"></b><br><span data-t="s3s"></span></div></div>
+  </div>
+  <p class="foot" id="foot"></p>
+</main>
+
+<div class="bar"><button class="btn main" id="pay" disabled>…</button><small id="payNote"></small></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const tg = window.Telegram && Telegram.WebApp;
+const initData = tg ? tg.initData : '';
+const DEMO = !initData && /demo/.test(location.search);
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#07080d'); tg.setBackgroundColor('#07080d'); tg.setBottomBarColor && tg.setBottomBarColor('#07080d'); } catch (e) {} }
+const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred(k || 'light'); } catch (e) {} };
+
+const L = {
+  ru: {
+    on: 'Защищено', off: 'Не подключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'),
+    actH: 'Подписка активна', actP: (d) => `до ${d} · все серверы и устройства`, offH: 'Нет подписки', offP: 'Выберите тариф ниже — включится сразу после оплаты',
+    connect: 'Подключить', copied: 'Ссылка скопирована', giftH: (n) => `${n} дня бесплатно`, giftP: 'Без оплаты, без карты', giftB: 'Взять',
+    trialOk: 'Пробный период включён 🎉', plansH: 'Тариф', payH: 'Способ оплаты', mo: 'мес', perMo: (v) => `${v} / мес`,
+    d30: '1 месяц', d90: '3 месяца', d365: '1 год', pop: 'Хит', best: (p) => `−${p}%`,
+    mStars: 'Telegram Stars', mStarsS: 'Мгновенно, прямо в Telegram', mCrypto: 'Криптовалюта', mCryptoS: 'USDT, TON, BTC и другие · @CryptoBot',
+    mCard: 'Банковская карта', mCardS: 'Visa, Mastercard, МИР', soon: 'Скоро',
+    pay: (a) => `Оплатить ${a}`, renew: (a) => `Продлить за ${a}`, payNote: 'Дни добавляются к текущей подписке',
+    paid: 'Оплачено! Подписка продлена ✅', wait: 'Ждём подтверждение оплаты…', fail: 'Не получилось, попробуйте ещё раз',
+    whyH: 'Почему YURK', f1: 'Невидим для DPI', f1s: 'Reality маскирует трафик под обычный сайт', f2: 'Быстро', f2s: 'Без ограничений скорости', f3: 'Все устройства', f3s: 'Android, iPhone, Windows, Mac', f4: 'Без логов', f4s: 'Не храним историю сайтов',
+    srvH: 'Серверы', none: 'Скоро появятся', refH: 'Друзьям', refB: (n) => `+${n} дней за друга`, refS: 'Когда друг оплатит подписку', refBtn: 'Позвать',
+    shareTx: 'YURK — VPN, который работает, где другие блокируют. Попробуй бесплатно:',
+    howH: 'Как подключить', s1: 'Установите приложение', s1s: 'Happ или v2RayTun — в App Store и Google Play', s2: 'Нажмите «Подключить»', s2s: 'Выберите приложение — подписка добавится сама', s3: 'Включите VPN', s3s: 'Если сервер не отвечает — выберите другой',
+    support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @',
+  },
+  en: {
+    on: 'Protected', off: 'Not connected', daysW: (n) => n === 1 ? 'day' : 'days',
+    actH: 'Subscription active', actP: (d) => `until ${d} · all servers and devices`, offH: 'No subscription', offP: 'Pick a plan below — it turns on right after payment',
+    connect: 'Connect', copied: 'Link copied', giftH: (n) => `${n} days free`, giftP: 'No payment, no card', giftB: 'Get it',
+    trialOk: 'Free trial is on 🎉', plansH: 'Plan', payH: 'Payment method', mo: 'mo', perMo: (v) => `${v} / mo`,
+    d30: '1 month', d90: '3 months', d365: '1 year', pop: 'Hit', best: (p) => `−${p}%`,
+    mStars: 'Telegram Stars', mStarsS: 'Instant, right in Telegram', mCrypto: 'Crypto', mCryptoS: 'USDT, TON, BTC and more · @CryptoBot',
+    mCard: 'Bank card', mCardS: 'Visa, Mastercard', soon: 'Soon',
+    pay: (a) => `Pay ${a}`, renew: (a) => `Renew for ${a}`, payNote: 'Days are added to your current subscription',
+    paid: 'Paid! Subscription extended ✅', wait: 'Waiting for the payment…', fail: 'Something went wrong, try again',
+    whyH: 'Why YURK', f1: 'Invisible to DPI', f1s: 'Reality makes traffic look like a normal site', f2: 'Fast', f2s: 'No speed limits', f3: 'All devices', f3s: 'Android, iPhone, Windows, Mac', f4: 'No logs', f4s: "We don't keep browsing history",
+    srvH: 'Servers', none: 'Coming soon', refH: 'Friends', refB: (n) => `+${n} days per friend`, refS: 'When a friend buys a subscription', refBtn: 'Invite',
+    shareTx: 'YURK — a VPN that works where others get blocked. Try it free:',
+    howH: 'How to connect', s1: 'Install an app', s1s: 'Happ or v2RayTun — App Store and Google Play', s2: 'Tap "Connect"', s2s: 'Pick your app — the subscription is added automatically', s3: 'Turn the VPN on', s3s: "If a server doesn't answer, pick another",
+    support: 'Support', openTg: 'Open the app in Telegram: @',
+  },
+};
+const RU = ['ru', 'uk', 'be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka'];
+let T = L.ru, S = null, plan = 'm3', method = 'stars';
+const $ = (id) => document.getElementById(id);
+const toast = (m) => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2400); };
+const fmt = (ms) => new Date(ms).toLocaleDateString(T === L.ru ? 'ru-RU' : 'en-GB', { day: 'numeric', month: 'long' });
+const usd = (v) => '$' + (Math.round(v * 100) / 100).toString();
+
+async function api(action, body) {
+  if (DEMO) return demo(action);
+  const r = await fetch('api/' + action, { method: 'POST', headers: { 'content-type': 'application/json', 'x-init-data': initData }, body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || r.status), { data: j });
+  return j;
+}
+
+function price(p, m) {
+  if (m === 'stars') return p.stars + ' ⭐';
+  if (m === 'crypto') return usd(p.usd);
+  if (m === 'card') return p.card ? `${p.card} ${S.cardCurrency === 'RUB' ? '₽' : S.cardCurrency}` : '';
+}
+
+function render() {
+  const lang = (S.lang || (tg && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'ru').slice(0, 2);
+  T = RU.includes(lang) ? L.ru : L.en;
+  document.documentElement.lang = T === L.ru ? 'ru' : 'en';
+  document.querySelectorAll('[data-t]').forEach((e) => { const v = T[e.dataset.t]; if (typeof v === 'string') e.textContent = v; });
+
+  $('pill').classList.toggle('on', S.active);
+  $('pillTx').textContent = S.active ? T.on : T.off;
+  $('stH').className = $('stP').className = '';
+  $('stH').textContent = S.active ? T.actH : T.offH;
+  $('stP').textContent = S.active ? T.actP(fmt(S.expires)) : T.offP;
+  const ring = $('ring');
+  ring.classList.toggle('off', !S.active);
+  $('days').textContent = S.active ? S.daysLeft : '⏻';
+  $('daysTx').textContent = S.active ? T.daysW(S.daysLeft) : '';
+  const total = Math.max(30, S.daysLeft);
+  requestAnimationFrame(() => { $('arc').style.strokeDashoffset = S.active ? 264 * (1 - Math.min(1, S.daysLeft / total)) : 264; });
+  $('connect').disabled = $('copy').disabled = !S.sub;
+  document.querySelector('.btns').hidden = !S.sub;
+
+  $('gift').hidden = !S.trial;
+  $('giftH').textContent = T.giftH(S.trialDays);
+
+  const base = S.plans.find((p) => p.days === 30) || S.plans[0];
+  const perDay = base.stars / base.days;
+  $('plans').innerHTML = S.plans.map((p) => {
+    const save = Math.round((1 - p.stars / p.days / perDay) * 100);
+    const tag = p.days === 90 ? `<span class="tag p">${T.pop}</span>` : save >= 10 ? `<span class="tag">${T.best(save)}</span>` : '';
+    const name = T['d' + p.days] || p.days + 'd';
+    const pm = method === 'stars' ? Math.round(p.stars / (p.days / 30)) + ' ⭐' : method === 'card' && p.card ? Math.round(p.card / (p.days / 30)) + ' ₽' : usd(p.usd / (p.days / 30));
+    return `<button class="plan${p.id === plan ? ' sel' : ''}" data-p="${p.id}">${tag}<div class="d">${name}</div><div class="pm">${T.perMo(pm)}</div><div class="pr">${price(p, method) || usd(p.usd)}</div></button>`;
+  }).join('');
+
+  const P = S.plans.find((p) => p.id === plan) || S.plans[0];
+  const M = [
+    { id: 'stars', ic: 's', e: '⭐', h: T.mStars, s: T.mStarsS, on: S.methods.stars },
+    { id: 'crypto', ic: 'c', e: '💎', h: T.mCrypto, s: T.mCryptoS, on: S.methods.crypto },
+    { id: 'card', ic: 'k', e: '💳', h: T.mCard, s: T.mCardS, on: S.methods.card },
+  ];
+  $('methods').innerHTML = M.map((m) => `<button class="m${m.id === method ? ' sel' : ''}${m.on ? '' : ' off'}" data-m="${m.id}" ${m.on ? '' : 'disabled'}>
+    <span class="ic ${m.ic}">${m.e}</span><span class="tx"><b>${m.h}</b><span>${m.s}</span></span>
+    <span class="am">${m.on ? price(P, m.id) : T.soon}</span>${m.on ? '<span class="rd"></span>' : ''}</button>`).join('');
+
+  $('nodes').innerHTML = S.nodes.length ? S.nodes.map((n) => `<span class="chip"><i></i>${n.replace(/</g, '&lt;')}</span>`).join('') : `<span class="chip">${T.none}</span>`;
+  $('refB').textContent = T.refB(S.refDays);
+  $('foot').innerHTML = S.support ? `<a href="#" id="sup">${T.support}</a> · YURK VPN` : 'YURK VPN';
+
+  const pay = $('pay');
+  pay.disabled = false;
+  pay.textContent = (S.active ? T.renew : T.pay)(price(P, method));
+  $('payNote').textContent = T.payNote;
+}
+
+document.addEventListener('click', async (e) => {
+  const p = e.target.closest('[data-p]'), m = e.target.closest('[data-m]');
+  if (p) { plan = p.dataset.p; haptic(); render(); }
+  if (m && !m.disabled) { method = m.dataset.m; haptic(); render(); }
+  if (e.target.closest('#sup')) { e.preventDefault(); const s = S.support; open(s.startsWith('http') ? s : 'https://t.me/' + s.replace('@', '')); }
+});
+
+function open(url) {
+  if (tg && /^https:\/\/t\.me\//.test(url)) return tg.openTelegramLink(url);
+  if (tg) return tg.openLink(url);
+  window.open(url, '_blank');
+}
+
+$('connect').onclick = () => { haptic('medium'); open(S.sub); };
+$('copy').onclick = async () => {
+  try { await navigator.clipboard.writeText(S.sub); } catch (e) { const t = document.createElement('textarea'); t.value = S.sub; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  haptic('ok'); toast(T.copied);
+};
+$('trial').onclick = async () => {
+  try { S = await api('trial'); haptic('ok'); toast(T.trialOk); render(); } catch (e) { toast(T.fail); }
+};
+$('share').onclick = () => {
+  if (!S.ref) return;
+  open('https://t.me/share/url?url=' + encodeURIComponent(S.ref) + '&text=' + encodeURIComponent(T.shareTx));
+};
+
+let watch = null;
+function waitPaid(before) {
+  clearInterval(watch);
+  let n = 0;
+  toast(T.wait);
+  watch = setInterval(async () => {
+    n++;
+    try {
+      const s = await api('me', { check: method === 'crypto' });
+      if (s.expires > before) { clearInterval(watch); S = s; render(); haptic('ok'); toast(T.paid); }
+    } catch (e) {}
+    if (n > 40) clearInterval(watch);
+  }, 4000);
+}
+
+$('pay').onclick = async () => {
+  const btn = $('pay');
+  btn.disabled = true; haptic('medium');
+  const before = S.expires;
+  try {
+    const r = await api('pay', { plan, method });
+    if (r.kind === 'invoice' && tg && tg.openInvoice) {
+      tg.openInvoice(r.link, (status) => { if (status === 'paid') waitPaid(before); else if (status === 'failed') toast(T.fail); });
+    } else {
+      open(r.link);
+      waitPaid(before);
+    }
+  } catch (e) { toast(T.fail); }
+  btn.disabled = false;
+};
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden && S && method === 'crypto') api('me', { check: true }).then((s) => { if (s.expires !== S.expires) { S = s; render(); } }).catch(() => {}); });
+
+function demo(action) {
+  const now = Date.now();
+  if (!demo.s) demo.s = { brand: 'YURK', bot: 'yurkvpn_bot', lang: (new URLSearchParams(location.search).get('lang') || 'ru'), active: /active/.test(location.search), expires: now + 23 * 864e5, daysLeft: 23, trial: !/active/.test(location.search), trialDays: 3,
+    sub: 'https://example.com/sub/demo', ref: 'https://t.me/yurkvpn_bot?start=r1', refDays: 7,
+    plans: [{ id: 'm1', days: 30, stars: 150, usd: 2.5, card: 250 }, { id: 'm3', days: 90, stars: 400, usd: 6.5, card: 650 }, { id: 'y1', days: 365, stars: 1400, usd: 22, card: 2200 }],
+    methods: { stars: true, crypto: true, card: false }, cardCurrency: 'RUB', nodes: ['🇳🇱 Нидерланды', '🇫🇮 Финляндия', '🇩🇪 Германия'], support: '@yurk_support' };
+  if (!demo.s.active) demo.s.sub = null;
+  if (action === 'trial') { demo.s.sub = 'https://example.com/sub/demo'; demo.s.trial = false; demo.s.active = true; demo.s.daysLeft = 3; demo.s.expires = now + 3 * 864e5; }
+  return Promise.resolve(demo.s);
+}
+
+(async () => {
+  if (!initData && !DEMO) {
+    $('stH').className = $('stP').className = '';
+    $('stH').textContent = 'YURK VPN';
+    $('stP').innerHTML = 'Откройте приложение в Telegram';
+    return;
+  }
+  try { S = await api('me', { check: true }); render(); } catch (e) { $('stH').className = $('stP').className = ''; $('stH').textContent = 'Ошибка'; $('stP').textContent = 'Закройте и откройте приложение ещё раз'; }
+})();
+</script>
+</body>
+</html>

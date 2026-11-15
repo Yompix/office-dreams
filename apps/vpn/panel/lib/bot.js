@@ -16,6 +16,7 @@ function create({ cfg, store, tg, log = console }) {
     const names = store.enabledNodes().map((n) => n.name).join(', ');
     const status = u.expires > now ? t.active(fmtDate(u.expires)) : t.none;
     const kb = [];
+    if (cfg.publicUrl.startsWith('https://')) kb.push([{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]);
     if (!u.trial && u.expires <= now && cfg.trialDays > 0) kb.push([{ text: t.bTrial(cfg.trialDays), callback_data: 'trial' }]);
     kb.push([{ text: t.bKey, callback_data: 'key' }, { text: t.bBuy, callback_data: 'buy' }]);
     kb.push([{ text: t.bHelp, callback_data: 'help' }, { text: t.bRef, callback_data: 'ref' }]);
@@ -110,12 +111,15 @@ function create({ cfg, store, tg, log = console }) {
     }
   }
 
-  // payload is "<plan>:<user id>"; price and currency must match the plan as it is now
+  // payload is "<plan>:<user id>" (Stars) or "card:<plan>:<user id>"; price and currency must match the plan as it is now
   function checkPayload(payload, currency, amount) {
-    const [pid, uid] = String(payload || '').split(':');
+    const parts = String(payload || '').split(':');
+    const card = parts[0] === 'card';
+    const [pid, uid] = card ? parts.slice(1) : parts;
     const p = planById(pid);
-    if (!p || currency !== 'XTR' || amount !== p.stars || !store.user(Number(uid))) return null;
-    return { plan: p, uid: Number(uid) };
+    if (!p || !store.user(Number(uid))) return null;
+    if (card ? !(cfg.cardToken && currency === cfg.cardCurrency && amount === Math.round(p.usd * cfg.cardRate) * 100) : (currency !== 'XTR' || amount !== p.stars)) return null;
+    return { plan: p, uid: Number(uid), card };
   }
 
   async function onPreCheckout(q) {
@@ -127,16 +131,24 @@ function create({ cfg, store, tg, log = console }) {
     const sp = m.successful_payment;
     const c = checkPayload(sp.invoice_payload, sp.currency, sp.total_amount);
     if (!c) { log.error('payment with bad payload', sp.invoice_payload, sp.telegram_payment_charge_id); return; }
-    const before = store.user(c.uid);
-    if (!store.recordPayment(sp.telegram_payment_charge_id, c.uid, c.plan.id, sp.total_amount, c.plan.days, now)) return; // already counted
-    const exp = store.extend(c.uid, c.plan.days, now);
-    await send(m.chat.id, pick(before.lang).paid(fmtDate(exp)));
-    // first payment of an invited user rewards the inviter
+    if (c.card) await fulfil({ uid: c.uid, plan: c.plan, charge: sp.telegram_payment_charge_id, usd: c.plan.usd, method: 'card' }, now);
+    else await fulfil({ uid: c.uid, plan: c.plan, charge: sp.telegram_payment_charge_id, stars: sp.total_amount, method: 'stars' }, now);
+  }
+
+  // one place for every payment method: count once, add days, reward the inviter, tell admins
+  async function fulfil({ uid, plan, charge, stars = 0, usd = 0, method }, now = Date.now()) {
+    const before = store.user(uid);
+    if (!before) return false;
+    if (!store.recordPayment(charge, uid, plan.id, stars, plan.days, now, method, usd)) return false; // already counted
+    const exp = store.extend(uid, plan.days, now);
+    await send(uid, pick(before.lang).paid(fmtDate(exp))).catch(() => {});
     if (!before.paid && before.ref && cfg.refDays > 0) {
       const r = store.user(before.ref);
       if (r) { store.extend(r.id, cfg.refDays, now); await send(r.id, pick(r.lang).refBonus(cfg.refDays)).catch(() => {}); }
     }
-    for (const a of cfg.adminIds) send(a, `💰 ${before.name || before.id} купил ${c.plan.id} за ${sp.total_amount} ⭐`).catch(() => {});
+    const price = method === 'stars' ? `${stars} ⭐` : `$${usd} (${method})`;
+    for (const a of cfg.adminIds) send(a, `💰 ${before.name || before.id} купил ${plan.id} за ${price}`).catch(() => {});
+    return true;
   }
 
   async function handle(upd, now = Date.now()) {
@@ -156,7 +168,7 @@ function create({ cfg, store, tg, log = console }) {
     }
   }
 
-  return { handle, remind, menu };
+  return { handle, remind, menu, fulfil, planById };
 }
 
 module.exports = { create, fmtDate };
