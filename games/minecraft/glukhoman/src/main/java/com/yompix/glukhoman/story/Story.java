@@ -135,6 +135,14 @@ public final class Story {
             sendHud(p);
             Sanity.set(p, Sanity.get(p));
             sendDifficulty(p);
+            if (sceneLock > 0 && !sceneId.isEmpty()) {   // 0.5.1: зашёл посреди кат-сцены — догоняет с того же места
+                NbtCompound m = Net.msg("cut");
+                m.putString("id", sceneId);
+                NbtCompound a = new NbtCompound();
+                a.putDouble("t", (server.getTicks() - sceneStart) / 20.0);
+                m.put("args", a);
+                Net.send(p, m);
+            }
             if (st.chapter == 0 && !st.flag("asked")) {
                 Net.send(p, Net.msg("choose"));
             } else if (st.chapter > 0 && st.set("joined:" + p.getUuid())) {
@@ -154,6 +162,20 @@ public final class Story {
 
     public static void chooseDifficulty(ServerPlayerEntity p, int d) {
         chooseDifficulty(p, d, false);
+    }
+
+    /** 0.5.1: выбор главы в новом мире (только «Глава I», если игрок её уже открыл): пролог проходится мгновенно. */
+    public static void chooseDifficulty(ServerPlayerEntity p, int d, int chapter) {
+        boolean fresh = st().chapter == 0;
+        chooseDifficulty(p, d, false);
+        StoryState st = st();
+        if (fresh && chapter == 2 && st.chapter == 1) {
+            st.set("p_scene");
+            Tapes.commit(st, "prologue", "rec", titleOf("prologue"), Map.of("polya", 400, "train", 300));
+            clearResidents();
+            morning();
+            msgAll("Глава I «Еловый» — с начала. Пролог пропущен: кассета пролога уже в камере.");
+        }
     }
 
     public static void chooseDifficulty(ServerPlayerEntity p, int d, boolean force) {
@@ -223,7 +245,9 @@ public final class Story {
         prologueT = 0;
         setStep("p_rec");
         for (ServerPlayerEntity p : ps) if (has(p, GContent.CAMCORDER)) Sched.after(30, () -> Cam.raise(p));
-        Sched.after(60, () -> seq("p_gena", st.find("radio"), true));
+        Sched.after(60, () -> {
+            if (st().step.startsWith("p_")) seq("p_gena", st.find("radio"), true);   // при выборе главы пролог пропущен — без реплик пролога
+        });
     }
 
     static void prologueTick(StoryState st) {
@@ -282,6 +306,7 @@ public final class Story {
             for (BlockPos q : lampsOf("signal")) lampSet(q, false);
         });
         msgAll("Звонит переезд. Ветку закрыли пять лет назад. Подними камеру.");
+        for (ServerPlayerEntity p : players()) if (!Cam.up(p)) turn(p, Vec3d.ofCenter(st.point("crossing")).add(0, 1, 0));   // 0.5.1: резко обернуться на звонок
         voice("p_bell", st.point("crossing"), true);
     }
 
@@ -322,6 +347,12 @@ public final class Story {
         if (!st.step.equals("c1_house")) return;
         setStep("c1_zina");
         int d = seq("c1_zina", st.point("zina_day"), true);
+        ResidentEntity zi = resident("zina");   // 0.5.1: Зина берёт за плечо, потом отступает от двери пустого дома
+        if (zi != null) {
+            gesture(zi, "reach", null, 0);
+            for (ServerPlayerEntity q : players()) if (q.squaredDistanceTo(zi) < 36) tug(q, zi.getEyePos());
+            Sched.after(Math.max(40, d / 2), () -> gesture(zi, "recoil", null, 0));
+        }
         Sched.after(d + 20, () -> {
             titleAll("", "ГЛУХОМАНЬ", "Еловый. 14 октября 1996-го. Помнит только кассета.");
             Sched.after(140, () -> {
@@ -388,12 +419,17 @@ public final class Story {
             return;
         }
         if (st.chapter == 2 && who.equals("zakhar") && st.step.equals("c1_zakhar")) {
-            int d = seq("c1_zakhar", r.getBlockPos(), false);
-            if (st.flag("kept1") && st.set("zakhar_battery")) Sched.after(d, () -> {
-                give(p, new ItemStack(GContent.BATTERY, 1));
-                msg(p, "Захар Ильич сунул тебе батарейку из ящика стола. «Только Гене не говори».");
+            if (sceneRunning()) return;   // сцена уже идёт (после перезагрузки посреди сцены шаг тот же — заговори снова)
+            // 0.5.1: «Сдача смены» — кат-сцена (реплики c1_zakhar_1–3 внутри неё); логика после — как раньше
+            scene("c1_handover", () -> {
+                if (st.flag("kept1") && st.set("zakhar_battery")) {
+                    give(p, new ItemStack(GContent.BATTERY, 1));
+                    msg(p, "Захар Ильич сунул тебе батарейку из ящика стола. «Только Гене не говори».");
+                }
+                ResidentEntity z = resident("zakhar");   // показывает дорогу — к стулу в дежурке, ждать вечера
+                if (z != null) gesture(z, "point", Vec3d.ofCenter(new BlockPos(-6, 66, 26)), 1.8);
+                Sched.after(10, () -> setStep("c1_evening"));
             });
-            Sched.after(d + 10, () -> setStep("c1_evening"));
             return;
         }
         if (Cam.up(p) && st.chapter == 2 && !st.flag("int_" + who) && !Texts.get().sequence("int_" + who).isEmpty()) {
@@ -622,7 +658,82 @@ public final class Story {
     private static Runnable sceneAfter;
     private static final java.util.Set<UUID> SKIPPED = new java.util.HashSet<>();
 
+    // ===================== 0.5.1: жесты и моменты (синхронно у всех игроков) =====================
+    static String sceneId = "";
+    static long sceneStart;
+
+    /** Житель по имени (первый найденный). */
+    public static ResidentEntity resident(String who) {
+        for (ResidentEntity e : w().getEntitiesByClass(ResidentEntity.class, new Box(BlockPos.ORIGIN).expand(700), x -> x.who().equals(who))) return e;
+        return null;
+    }
+
+    /** Жест на сущности у всех клиентов: имя жеста (client/anim/Gestures.byName) или базовый клип «w_…»; target — куда показать. */
+    public static void gesture(Entity e, String name, Vec3d target, double hold) {
+        NbtCompound m = Net.msg("gest");
+        m.putInt("e", e.getId());
+        m.putString("g", name);
+        m.putDouble("hold", hold);
+        if (target != null) {
+            m.putDouble("x", target.x);
+            m.putDouble("y", target.y);
+            m.putDouble("z", target.z);
+        }
+        Net.all(server, m);
+    }
+
+    /** Рывок камеры игрока (схватили за плечо) — от точки. */
+    public static void tug(ServerPlayerEntity p, Vec3d from) {
+        NbtCompound m = Net.msg("tug");
+        m.putDouble("x", from.x);
+        m.putDouble("y", from.y);
+        m.putDouble("z", from.z);
+        Net.send(p, m);
+    }
+
+    /** Резко обернуться к точке. */
+    public static void turn(ServerPlayerEntity p, Vec3d at) {
+        NbtCompound m = Net.msg("turn");
+        m.putDouble("x", at.x);
+        m.putDouble("y", at.y);
+        m.putDouble("z", at.z);
+        Net.send(p, m);
+    }
+
+    // ---------- автотест 0.5.1: кат-сцена в сюжете, перезагрузка посреди сцены, «зашёл посреди сцены» ----------
+    /** Поставить шаг «Захар в дежурке» и заговорить с ним — запускается «Сдача смены». */
+    public static boolean qaStartHandover(ServerPlayerEntity p) {
+        StoryState st = st();
+        st.chapter = 2;
+        setStep("c1_zakhar");
+        dayResidents();
+        ResidentEntity z = resident("zakhar");
+        if (z == null) return false;
+        resident(p, z);
+        return sceneRunning() && sceneId.equals("c1_handover");
+    }
+
+    public static void qaRejoin(ServerPlayerEntity p) {
+        join(p);
+    }
+
+    /** Как перезапуск сервера посреди сцены: отложенные действия теряются, шаг сюжета — из сохранения. */
+    public static String qaReload() {
+        serverStarted(server);
+        return st().step + (sceneRunning() ? " (сцена идёт)" : "");
+    }
+
+    public static void qaFinishScene() {
+        finishScene();
+    }
+
+    public static String qaStep() {
+        return st().step;
+    }
+
     public static void scene(String id, Runnable after) {
+        sceneId = id;
+        sceneStart = server.getTicks();
         int len = Scenes.ticks(id);
         int token = ++sceneSeq;
         sceneAfter = after;

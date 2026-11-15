@@ -24,6 +24,9 @@ public final class WorldStart {
     }
 
     /** Есть ли хоть одно сохранение (для «Продолжить» и подтверждения «Новой смены»). */
+    /** Выбранная в «Главах» глава для нового мира (уходит на сервер вместе со сложностью). */
+    public static int pendingChapter;
+
     public static boolean hasSave(MinecraftClient c) {
         try {
             return !c.getLevelStorage().getLevelList().levels().isEmpty();

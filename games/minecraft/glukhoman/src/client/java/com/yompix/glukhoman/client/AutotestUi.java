@@ -299,6 +299,28 @@ final class AutotestUi {
             check(probe != null && probe.activeLayers() == 0, "аниматор: после кашля (2.3 с) слоёв не осталось — " + (probe == null ? "?" : probe.activeLayers()));
             Cine.stop();
         }));
+        // 0.5.1: «Сдача смены» в сюжете — старт, «зашёл посреди сцены», перезагрузка посреди сцены, продолжение
+        STEPS.add(new Autotest.Step(5, c -> Autotest.server(c, s -> {
+            boolean ok = com.yompix.glukhoman.story.Story.qaStartHandover(Autotest.pl(s));
+            check(ok, "сюжет: разговор с Захаром запускает «Сдачу смены» на сервере");
+        })));
+        STEPS.add(new Autotest.Step(80, c -> check(Cine.active && Cine.id.equals("c1_handover"), "клиент: «Сдача смены» идёт")));
+        STEPS.add(new Autotest.Step(5, c -> Autotest.server(c, s -> com.yompix.glukhoman.story.Story.qaRejoin(Autotest.pl(s)))));
+        STEPS.add(new Autotest.Step(40, c -> check(Cine.active && Cine.time() > 3.5,
+                "совместная игра: зашёл посреди сцены — сцена с того же места (" + String.format(java.util.Locale.ROOT, "%.1f", Cine.time()) + " с)")));
+        STEPS.add(new Autotest.Step(5, c -> Autotest.server(c, s -> {
+            String st = com.yompix.glukhoman.story.Story.qaReload();
+            check(st.equals("c1_zakhar"), "перезагрузка посреди сцены: шаг сюжета сохранён, сцена не «висит» — " + st);
+        })));
+        STEPS.add(new Autotest.Step(5, c -> Cine.stop()));
+        STEPS.add(new Autotest.Step(5, c -> Autotest.server(c, s -> {
+            boolean ok = com.yompix.glukhoman.story.Story.qaStartHandover(Autotest.pl(s));
+            check(ok, "после перезагрузки: заговорить снова — сцена запускается заново");
+            com.yompix.glukhoman.story.Story.qaFinishScene();
+        })));
+        STEPS.add(new Autotest.Step(40, c -> Autotest.server(c, s -> check(com.yompix.glukhoman.story.Story.qaStep().equals("c1_evening"),
+                "конец сцены → шаг c1_evening, как раньше: " + com.yompix.glukhoman.story.Story.qaStep()))));
+        STEPS.add(new Autotest.Step(5, c -> Cine.stop()));
         STEPS.add(new Autotest.Step(5, c -> {
             REPORT.add(0, "QA «Порожняк» — " + (fails == 0 ? "всё прошло" : "ошибок: " + fails));
             try {

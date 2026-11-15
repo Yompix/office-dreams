@@ -15,6 +15,10 @@ public final class Scenes {
         LEN.put("rp_night", 15f);
         LEN.put("proto_npc", 21f);    // прототипы новой анимации/режиссёра (только просмотр и запись, в сюжете нет)
         LEN.put("proto_cut", 40f);
+        LEN.put("c1_handover", 34f);   // 0.5.1: «Сдача смены» в сюжете (Захар в дежурке)
+        LEN.put("demo_watcher", 30f);   // ролики 0.5.1 (только запись)
+        LEN.put("demo_residents", 26f);
+        LEN.put("demo_moments", 30f);
         for (String k : new String[]{"pole", "watcher", "listener", "choir"}) LEN.put("tt_" + k, 12f);
         // трейлер 0.4 (только автотест-съёмка)
         LEN.put("t3_rails", 6.5f);

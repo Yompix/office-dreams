@@ -95,10 +95,10 @@ final class ProtoScenes {
             me.look = () -> z.head();
             me.face = () -> z.pos;
             // Вика возится с рацией (фон), на скрип двери отвлекается
-            tl.at(0, () -> vika.e.act("rummage"));
-            tl.at(5.9, () -> vika.e.act(""));
-            tl.at(16.0, () -> vika.e.act("rummage"));
-            tl.at(24.6, () -> vika.e.act(""));
+            tl.at(0, () -> ((com.yompix.glukhoman.entity.ResidentEntity) vika.e).act("rummage"));
+            tl.at(5.9, () -> ((com.yompix.glukhoman.entity.ResidentEntity) vika.e).act(""));
+            tl.at(16.0, () -> ((com.yompix.glukhoman.entity.ResidentEntity) vika.e).act("rummage"));
+            tl.at(24.6, () -> ((com.yompix.glukhoman.entity.ResidentEntity) vika.e).act(""));
             tl.sound(0.2, "wind_gust", v(0, 70, 14), 0.6f);
             tl.door(5.3, door, true, true);
             // Захар у табло; на скрип — сначала глаза, потом голова, потом корпус

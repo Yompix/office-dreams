@@ -30,7 +30,8 @@ public class GConfig {
     public boolean fxTear = true;         // «разрыв» кадра
     public int cineShake = 100;           // дрожь камеры в кат-сценах, %
     public boolean noShake = false;       // доступность: без тряски вообще (руки и кат-сцены)
-    public boolean hudObjective = true;   // цель на экране          // свои пауза и экран провала (выкл. — ванильные)        // до какой главы дошёл (для экрана «Главы»)
+    public boolean hudObjective = true;
+    public boolean camGlance = true;      // «Направленный взгляд»: резко обернуться к событию (звонок, стук)   // цель на экране          // свои пауза и экран провала (выкл. — ванильные)        // до какой главы дошёл (для экрана «Главы»)
     // субтитры (этап 4)
     public String subLang = "auto";       // auto — как язык игры; ru_ru / uk_ua / en_us
     public int subSize = 100;             // %, 75–200

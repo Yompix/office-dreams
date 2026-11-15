@@ -336,7 +336,7 @@ final class Trailer3 {
 
     /** 1:01 Пересмотр пролога: старушка в двери вагона оборачивается и смотрит в объектив (наезд). */
     static class Look implements Scene {
-        final Scene inner = new Cine.PrBoard();
+        final Scene inner = StoryScenes.prBoard();
 
         public void start(ClientWorld w) {
             inner.start(w);

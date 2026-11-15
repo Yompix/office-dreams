@@ -28,10 +28,13 @@ public class ChapterScreen extends KitScreen {
             if (t.isEmpty()) continue;
             if (n == 1) {
                 item(t, b -> com.yompix.glukhoman.client.menu.WorldStart.newShift());
-            } else if (n <= reached) {
-                var it = item(t, b -> {});
-                it.off("пройдено · запуск с главы — позже");
-            } else item(t, b -> {}).off("ещё не дошли");
+            } else if (n == 2 && n <= reached) {   // 0.5.1: «Глава I» — новая смена с начала главы (пролог пропускается на сервере)
+                item(t, b -> {
+                    com.yompix.glukhoman.client.menu.WorldStart.pendingChapter = 2;
+                    com.yompix.glukhoman.client.menu.WorldStart.newShift();
+                });
+            } else if (n == 3) item(t, b -> {}).off(n <= reached ? "финал части — пересмотреть нельзя" : "ещё не дошли");
+            else item(t, b -> {}).off("ещё не дошли");
         }
         gap();
         var cont = item("Продолжить последнюю смену", b -> com.yompix.glukhoman.client.menu.WorldStart.continueLatest());

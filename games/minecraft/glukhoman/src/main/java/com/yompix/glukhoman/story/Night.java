@@ -270,6 +270,7 @@ public final class Night {
         wakeAt = p.getPos();
         wakeWho = r.who();
         Story.msg(p, "Берёшь за плечо. Не отходи и не беги…");
+        Story.gesture(r, "sleepjerk", null, 0);
         if (Cam.up(p)) {   // руки нужны обе: камеру — на перрон, она пишет дальше
             Cam.lower(p, true);
             Story.msg(p, "Положил камеру на перрон. Она пишет.");
@@ -400,6 +401,8 @@ public final class Night {
     /** Обходчик поймал одного вне кадра: первый раз — вырвал плёнку, потом (на «Страшно» и выше) — забрал. */
     public static void grab(ServerPlayerEntity p, WatcherEntity wch) {
         int n = GRABS.merge(p.getUuid(), 1, Integer::sum);
+        Story.gesture(wch, "w_grab", null, 1.4);   // 0.5.1: видно всем — бросок и захват
+        Story.tug(p, wch.getEyePos());
         Story.fx(p, "black", 50);
         Story.sound(p.getBlockPos(), "breath_close", 1f, 0.8f);
         if (n == 1 || Story.difficulty() == 0) {

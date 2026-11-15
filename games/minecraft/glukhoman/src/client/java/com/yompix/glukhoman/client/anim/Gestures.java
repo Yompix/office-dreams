@@ -160,10 +160,74 @@ public final class Gestures {
         p.rot("chest", 2 * s, 2 * slow, 0);
     });
 
+    /** Сделать шаг назад (от двери), протянуть руку к плечу (схватить за плечо), отпрянуть — жесты для «моментов» сюжета. */
+    public static final Clip REACH = Clip.of("reach", 1.8, 0.1, 0.5, 6, 1, RARM, (t, p, a) -> {
+        double u = k(t, 0, 0, 0.25, 1, 1.1, 1, 1.7, 0);
+        p.rot("right_arm", 72 * u, -16 * u, 0).rot("right_forearm", 28 * u, 0, 0).rot("chest", 7 * u, -6 * u, 0).pos("root", 0, 0, -0.6 * u);
+    });
+
+    /** Нервный жест (Гена): быстро глянуть на часы и одёрнуть рукав. */
+    public static final Clip WATCH = Clip.of("watch", 1.6, 0.08, 0.25, 2, 0.2, LARM, (t, p, a) -> {
+        double u = k(t, 0, 0, 0.18, 1, 1.15, 1, 1.5, 0);
+        p.rot("left_arm", 58 * u, 34 * u, 0).rot("left_forearm", 96 * u, 0, 0).rot("head", 26 * u, 14 * u, 0);
+    });
+
+    /** Петрович: потереть шею, махнуть рукой. */
+    public static final Clip WAVE_OFF = Clip.of("waveoff", 2.2, 0.1, 0.3, 2, 0.8, RARM, (t, p, a) -> {
+        double up = k(t, 0, 0, 0.4, 1, 1.4, 1, 2.1, 0);
+        double flick = Math.max(0, Math.sin((t - 0.6) * 6)) * (t > 0.6 && t < 1.4 ? 1 : 0);
+        p.rot("right_arm", 40 * up, -10 * up, 0).rot("right_forearm", 50 * up + 25 * flick, 0, 0).rot("head", -3 * flick, -8 * flick, 0);
+    });
+
+    /** Голова лунатика: рывок на звук и снова клонится. */
+    public static final Clip SLEEP_JERK = Clip.of("sleepjerk", 2.0, 0.02, 0.8, 3, 1, Set.of(), (t, p, a) -> {
+        double f = punch(t, 0, 0.08, 2.2);
+        p.rot("head", -24 * f, 0, 0).rot("neck", -8 * f, 0, 0).rot("chest", -3 * f, 0, 0);
+    });
+
     public static final AnimSet ZAKHAR = new AnimSet("z_walk", "z_idle", List.of(COUGH, UNIFORM, GLANCE, UNIFORM, BACK), BACK, TALK, SETTLE, 0.22);
     /** «Я» в кат-сцене (скин игрока): обычная ходьба и стойка, без случайных жестов. */
     public static final AnimSet PLAYER = new AnimSet("walk", "idle", List.of(), null, null, SETTLE, 0.3);
     public static final AnimSet GENERIC = new AnimSet("walk", "idle", List.of(GLANCE), null, TALK, SETTLE, 0.27);
+    public static final AnimSet VIKA = new AnimSet("walk", "v_idle", List.of(GLANCE), null, TALK, SETTLE, 0.3);
+    /** Гена: уверенно, но нервно — быстрый взгляд, резкие реакции. */
+    public static final AnimSet GENA = new AnimSet("g_walk", "g_idle", List.of(WATCH, GLANCE, WATCH), null, TALK, SETTLE, 0.34).withLook(85, 0.85, 12, 0);
+    /** Петрович: расслабленный, шатается, взгляд ленивый. */
+    public static final AnimSet PETROVICH = new AnimSet("p_walk", "p_idle", List.of(WAVE_OFF, GLANCE), BACK, TALK, SETTLE, 0.2).withLook(70, 1, 4, 0);
+    public static final AnimSet POLYA = new AnimSet("o_walk", "o_idle", List.of(GLANCE), null, TALK, SETTLE, 0.2).withLook(60, 1, 4.5, 0);
+    public static final AnimSet ZINA = new AnimSet("walk", "zi_idle", List.of(GLANCE), null, TALK, SETTLE, 0.3).withLook(80, 1, 8, 0);
+    /** Лунатики: идут во сне, стоят — качаются; на звук голова дёргается; глаза закрыты. */
+    public static final AnimSet SLEEP = new AnimSet("sleepwalk", "s_idle", List.of(), null, null, null, 0.12).withLook(25, 1, 1.5, 0)
+            .pick(a -> a.walking ? "sleepwalk" : "s_idle");
+    /** Двойник: смотрит с опозданием и перелётом, не моргает, голова набок. */
+    public static final AnimSet DOPPEL = new AnimSet("walk", "idle", List.of(), null, null, null, 0.0).withLook(100, 0.45, 3.2, 14).noBlink();
+    /** Обходчик: см. {@link Creatures#watcher}. Не дышит, не моргает, взгляд перелетает за 90° и медленно возвращается, голова кренится. */
+    public static final AnimSet WATCHER = new AnimSet("w_walk", "w_observe", List.of(), null, null, null, 0.0).withLook(150, 0.32, 4.2, 22).noBlink()
+            .pick(Creatures::watcher);
 
-    public static final Map<String, AnimSet> SETS = Map.of("zakhar", ZAKHAR, "@me", PLAYER, "vika", GENERIC);
+    public static final Map<String, AnimSet> SETS = Map.ofEntries(Map.entry("zakhar", ZAKHAR), Map.entry("@me", PLAYER), Map.entry("vika", VIKA),
+            Map.entry("gena", GENA), Map.entry("petrovich", PETROVICH), Map.entry("polya", POLYA), Map.entry("zina", ZINA),
+            Map.entry("nyura", POLYA), Map.entry("kolya", PETROVICH), Map.entry("lyuba", ZINA), Map.entry("mitya", VIKA));
+
+    /** Жесты по имени — для синхронизации с сервера (S2C «gest»). */
+    public static Clip byName(String n, double hold) {
+        return switch (n) {
+            case "cough" -> COUGH;
+            case "uniform" -> UNIFORM;
+            case "back" -> BACK;
+            case "glance" -> GLANCE;
+            case "point" -> point(hold > 0 ? hold : 1.6);
+            case "give" -> GIVE;
+            case "take" -> TAKE;
+            case "raise" -> RAISE;
+            case "lean" -> LEAN;
+            case "recoil" -> RECOIL;
+            case "flinch" -> FLINCH;
+            case "reach" -> REACH;
+            case "watch" -> WATCH;
+            case "waveoff" -> WAVE_OFF;
+            case "sleepjerk" -> SLEEP_JERK;
+            default -> null;
+        };
+    }
 }

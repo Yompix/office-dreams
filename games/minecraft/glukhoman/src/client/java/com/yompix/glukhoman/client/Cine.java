@@ -109,8 +109,13 @@ public final class Cine {
         savedHud = c.options.hudHidden;
         c.options.hudHidden = true;
         c.chunkCullingEnabled = false;   // камера сцены не там, где игрок: без отсечения пещер, иначе внутри домов — пустое небо
+        if (a.contains("t")) {   // 0.5.1: зашёл посреди сцены — догоняем с того же места (совместная игра)
+            double off = Math.min(a.getDouble("t"), len - 0.5);
+            startNs -= (long) (off * 1e9);
+            clockTicks += (int) (off * 20);
+        }
         scene.start(c.world);
-        scene.frame(0);
+        scene.frame(time());
         c.setScreen(new CineScreen());
         Glukhoman.LOG.info("Кат-сцена {}", sid);
     }
@@ -279,9 +284,13 @@ public final class Cine {
     // ======================= сцены =======================
     static Scene make(String sid) {
         return switch (sid) {
-            case "pr_train" -> new PrTrain();
-            case "pr_board" -> new PrBoard();
-            case "rp_night" -> new RpNight();
+            case "pr_train" -> StoryScenes.prTrain();      // 0.5.1: на режиссёре Timeline
+            case "pr_board" -> StoryScenes.prBoard();
+            case "rp_night" -> StoryScenes.rpNight();
+            case "c1_handover" -> StoryScenes.handover();
+            case "demo_watcher" -> StoryScenes.demoWatcher();
+            case "demo_residents" -> StoryScenes.demoResidents();
+            case "demo_moments" -> StoryScenes.demoMoments();
             case "pano" -> new Pano();
             case "in_ir" -> new InIr();
             case "proto_npc" -> ProtoScenes.npc();
@@ -403,159 +412,6 @@ public final class Cine {
         ResidentEntity r = puppet(w, GContent.RESIDENT, x, y, z, yaw);
         if (r != null) r.who(who);
         return r;
-    }
-
-    /** Пролог. Видоискатель у конца рельсов: из тумана по голым шпалам бесшумно идёт состав. В окнах — лица. Проходит вплотную. */
-    static class PrTrain implements Scene {
-        ClientWorld w;
-        TrainEntity tr;
-
-        public void start(ClientWorld w) {
-            this.w = w;
-            vf = true;
-            tr = puppet(w, GContent.TRAIN, 160, TrainEntity.Y, 16.5, 90);
-            Viewfinder.ghostRails(w, true);
-        }
-
-        public void frame(double t) {
-            night();
-            cone = 0;
-            crush = 0.4f;
-            fog(1.5f, 34f, 0.05f, 0.06f, 0.07f);
-            Vec3d p = v(60.5, 67.5, 20.6).add(hand(t, 0).multiply(1.4));
-            double tx = t < 2.5 ? 160 : 160 - 12.5 * (t - 2.5);
-            float yw = (float) MathHelper.lerp(ease(seg(t, 7.0, 11.0)), -84, 20);   // за составом
-            float pt = (float) MathHelper.lerp(ease(seg(t, 7.0, 11.0)), 2, 6);
-            cam(p, p.add(dirOf(yw, pt)));
-            fov = (float) MathHelper.lerp(ease(seg(t, 0, 7)), 40, 58);
-            glitch = (float) (0.08 + 0.5 * Math.max(0, 1 - Math.abs(tx - 60.5) / 25));
-            crossing(w, t, 0);
-            motor(t);
-            act(tr, "idle", t);
-            place(tr, tx, TrainEntity.Y, 16.5, 90);
-            if (Math.abs(tx - 60.5) < 30) key(w, (int) Math.floor(tx), 68, 18, 7);
-        }
-    }
-
-    /** Пролог. С переезда, в видоискатель: поезд стоит у перрона. Баба Поля в ночной рубашке идёт к нему, входит, оборачивается — в объектив. */
-    static class PrBoard implements Scene {
-        ClientWorld w;
-        TrainEntity tr;
-        ResidentEntity polya;
-
-        public void start(ClientWorld w) {
-            this.w = w;
-            vf = true;
-            tr = puppet(w, GContent.TRAIN, 8, TrainEntity.Y, 16.5, 90);
-            polya = resident(w, "polya", 13.5, 65, 32, 180);
-            Viewfinder.ghostRails(w, true);
-            key(w, 11, 68, 18, 9);
-        }
-
-        public void frame(double t) {
-            night();
-            cone = 0;
-            crush = 0.4f;
-            fog(2f, 40f, 0.05f, 0.06f, 0.07f);
-            // идёт к краю перрона → медлит → оборачивается и смотрит в объектив → отворачивается и шагает в вагон
-            Vec3d a = v(13.5, 65, 32), b = v(12.8, 66, 21.2), c = v(12.6, 66, 18.7), d = v(12.6, TrainEntity.Y + 0.15, 17.4);
-            Vec3d camP = v(25.5, 67.7, 21.8);
-            float toLens = yawTo(c, camP);
-            Vec3d pos;
-            float yaw;
-            if (t < 6.2) {
-                double u = ease(seg(t, 0, 6.2)) * 0.85 + seg(t, 0, 6.2) * 0.15;
-                pos = rail(u, a, v(13.2, 65, 26), b, c);
-                Vec3d ahead = rail(Math.min(1, u + 0.03), a, v(13.2, 65, 26), b, c);
-                yaw = ahead.squaredDistanceTo(pos) > 1e-6 ? yawTo(pos, ahead) : 180;
-                act(polya, "walk", t);
-            } else if (t < 7.6) {
-                pos = c;
-                yaw = 180;
-                act(polya, "hesitate", t - 6.2);
-            } else if (t < 11.2) {
-                pos = c;
-                yaw = MathHelper.lerpAngleDegrees((float) ease(seg(t, 7.6, 8.9)), 180, toLens);
-                act(polya, "idle", t - 7.6);
-                if (polya != null) polya.talking = false;
-            } else if (t < 12.0) {
-                pos = c;
-                yaw = MathHelper.lerpAngleDegrees((float) ease(seg(t, 11.2, 12.0)), toLens, 180);
-                act(polya, "idle", t - 7.6);
-            } else {
-                pos = c.lerp(d, ease(seg(t, 12.0, 13.0)));
-                yaw = 180;
-                act(polya, "walk", t - 12);
-            }
-            if (polya != null) place(polya, pos.x, pos.y, pos.z, yaw);
-            place(tr, 8, TrainEntity.Y, 16.5, 90);
-            act(tr, "idle", t);
-            Vec3d face = c.add(0, 1.62, 0);
-            Vec3d p = camP.add(hand(t, 0));
-            Vec3d track = pos.add(0, 1.3, 0);
-            Vec3d look = t < 8.6 ? track : track.lerp(face, ease(seg(t, 8.6, 9.3)));
-            if (t >= 11.6) look = face.lerp(d.add(0, 1.4, 0), ease(seg(t, 11.6, 12.8)));
-            cam(p, look);
-            fov = t < 9.0 ? 46 : t < 11.6 ? (float) MathHelper.lerp(ease(seg(t, 9.0, 11.2)), 46, 15) : (float) MathHelper.lerp(ease(seg(t, 11.6, 12.4)), 15, 30);
-            glitch = (float) (0.1 + (t > 10 && t < 11.6 ? 0.25 * seg(t, 10, 11.2) : 0) + (t > 12.6 ? 0.3 : 0));
-            crossing(w, t, 0);
-            motor(t);
-            if (t > 13.4) {   // обрыв плёнки
-                glitch = 1f;
-                tintR = tintG = tintB = 0.05f;
-            }
-        }
-    }
-
-    /** Пересмотр ночной записи: камера лежала на перроне. Ты будишь человека — и всё это время за твоей спиной стоит он. */
-    static class RpNight implements Scene {
-        ClientWorld w;
-        Entity me, res, watcher;
-        Vec3d at;
-
-        public void start(ClientWorld w) {
-            this.w = w;
-            vf = true;
-            replay = true;
-            at = args.contains("x") ? v(args.getDouble("x"), args.getDouble("y"), args.getDouble("z")) : v(4.5, 66, 19.5);
-            if (at.z > 20.2 || at.z < 17.8 || at.x < -10 || at.x > 21) at = v(MathHelper.clamp(at.x, -8, 19), 66, 19.3);
-            DoppelEntity d = puppet(w, GContent.DOPPEL, at.x, at.y, at.z, -90);
-            if (d != null) {
-                d.setMimic(args.getString("me"));
-                d.setCustomNameVisible(false);
-            }
-            me = d;
-            String who = args.getString("who");
-            if (!who.isEmpty()) res = resident(w, who, at.x + 1.1, at.y, at.z - 0.2, 90);
-            watcher = puppet(w, GContent.WATCHER, at.x - 1.0, at.y, at.z - 0.55, -90);
-            key(w, (int) Math.floor(at.x - 1.6), (int) at.y + 1, (int) Math.floor(at.z), 5);
-        }
-
-        public void frame(double t) {
-            night();
-            cone = 0;
-            crush = 0.42f;
-            fog(1.2f, 26f, 0.04f, 0.05f, 0.055f);
-            Vec3d p = v(at.x - 3.2, at.y + 0.28, at.z + 1.25);
-            cam(p, v(at.x + 0.2, at.y + 1.05, at.z - 0.3));
-            fov = (float) (52 + (t > 10.5 && t < 12 ? Math.sin(t * 40) * 1.5 : 0));   // автофокус «ищет»
-            glitch = (float) (0.1 + 0.15 * seg(t, 9, 14));
-            if (me != null) {
-                act(me, res != null ? "idle" : "idle", t);
-                place(me, at.x, at.y, at.z, res != null ? -90 : 180);
-            }
-            if (res != null) {
-                act(res, "idle_shift", t);
-                place(res, at.x + 1.1, at.y, at.z - 0.2, 90);
-            }
-            act(watcher, t < 10.5 ? "idle" : "lean", t < 10.5 ? t : t - 10.5);
-            Vec3d wpos = v(at.x - 1.0, at.y, at.z - 0.55);
-            place(watcher, wpos.x, wpos.y, wpos.z, MathHelper.lerpAngleDegrees((float) ease(seg(t, 10.5, 12.5)), -90, yawTo(wpos, p)));
-            if (t > 14.3) {
-                glitch = 1f;
-                tintR = tintG = tintB = 0.05f;
-            }
-        }
     }
 
     /** Грани панорамы главного меню: ночная станция с перрона, угол 90°, без пост-эффекта (стыки должны совпасть). */

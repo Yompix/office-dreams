@@ -26,7 +26,9 @@ public final class HandCam {
     static double lastT = -1;
     static float yawS, pitchS, yawV, pitchV;     // пружина поворота (критически задемпфированная — без звона)
     static float lastYawIn, lastPitchIn;
-    static double joltY, joltV;                  // толчок приземления: провал и мягкий возврат (~250 мс)
+    static double joltY, joltV;
+    static double raiseT = 1;
+    static boolean wasUp;                  // толчок приземления: провал и мягкий возврат (~250 мс)
     public static double gait, runB, crouchB, airB;     // сглаженные множители: шаг, бег, присед, в воздухе
     static float breath;                         // одышка 0..1
     static boolean wasGround = true;
@@ -148,10 +150,15 @@ public final class HandCam {
             }
         }
 
+        // медленный подъём к глазу: камера приходит снизу и «досаживается» (~0.5 с)
+        if (Viewfinder.up && !wasUp) raiseT = 0;
+        wasUp = Viewfinder.up;
+        raiseT = Math.min(1, raiseT + dt / 0.5);
+        double rs = 1 - raiseT * raiseT * (3 - 2 * raiseT);
         ox = side * k;
-        oy = (vert + breathY + joltY * 0.1) * k;
+        oy = (vert + breathY + joltY * 0.1) * k - 0.14 * rs * rs;
         dYaw = (lagY + drift * 0.5f + jitterY) * k;
-        dPitch = (lagP + stepPitch + breathP + drift * 0.3f + jitterP + (float) (joltY * 2)) * k;
+        dPitch = (lagP + stepPitch + breathP + drift * 0.3f + jitterP + (float) (joltY * 2)) * k + (float) (7 * rs * rs);
         roll = (stepRoll - lagY * 0.04f) * k;
         hudX = (float) (side * 40 + lagY * 0.5) * k;
         hudY = (float) (-vert * 40 + lagP * 0.4) * k;

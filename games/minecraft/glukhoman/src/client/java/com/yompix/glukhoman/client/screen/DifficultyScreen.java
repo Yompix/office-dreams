@@ -27,6 +27,8 @@ public class DifficultyScreen extends Screen {
             addDrawableChild(new com.yompix.glukhoman.client.ui.Kit.Item(width / 2 - 75, y + i * 18, 150, D[i][0], i, b -> {   // стиль интерфейса мода (этап 5)
                 NbtCompound m = Net.msg("difficulty");
                 m.putInt("d", d);
+                m.putInt("chapter", com.yompix.glukhoman.client.menu.WorldStart.pendingChapter);   // 0.5.1: выбор главы
+                com.yompix.glukhoman.client.menu.WorldStart.pendingChapter = 0;
                 GlukhomanClient.send(m);
                 close();
             }));

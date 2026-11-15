@@ -124,7 +124,7 @@ public class Glukhoman implements ModInitializer {
             case "ir" -> com.yompix.glukhoman.story.Cam.setIr(p, m.getBoolean("on"));
             case "answer" -> Story.answer(p, m.getString("id"), m.getInt("i"));
             case "tape" -> com.yompix.glukhoman.story.Tapes.action(p, m.getInt("n"), m.getInt("slot"), m.getString("act"));
-            case "difficulty" -> Story.chooseDifficulty(p, m.getInt("d"));
+            case "difficulty" -> Story.chooseDifficulty(p, m.getInt("d"), m.getInt("chapter"));
             case "prefs" -> {
                 if (m.getBoolean("noScares")) Director.NO_SCARES.add(p.getUuid());
                 else Director.NO_SCARES.remove(p.getUuid());

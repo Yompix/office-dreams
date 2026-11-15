@@ -178,6 +178,7 @@ def human_extra():
         'chest': {'rotation': [wob(t, 0.35, 2), 0, 0]}}, 1.6, loop=False)
     zakhar_clips(an)
     json.dump(data, open(path, 'w'), separators=(',', ':'))
+    residents_clips()
 
 
 def zakhar_clips(an):
@@ -227,6 +228,195 @@ def zakhar_clips(an):
             'left_arm': {'rotation': [3 - b, 0, -6]}, 'left_forearm': {'rotation': [-10, 0, 0]},
         }
     an['animation.human.z_idle'] = anim(idle, 28)
+
+
+def residents_clips():
+    """0.5.1: свои базовые клипы у жителей (добавляются в human.animation.json). Знаки — авторские (как у Захара)."""
+    import json
+    path = f'{A}/animations/human.animation.json'
+    data = json.load(open(path))
+    an = data['animations']
+    sm = lambda u: u * u * (3 - 2 * u)
+    # Петрович: расслабленная сутулость, походка «враскачку», заносит то влево, то вправо
+    def p_walk(t):
+        P = 1.15
+        u = (t % P) / P
+        s = math.sin(2 * math.pi * u)
+        drift = math.sin(2 * math.pi * t / 4.6)          # медленный занос всего тела
+        return {'root': {'position': [0.6 * drift, 0.15 * abs(math.sin(2 * math.pi * u * 2)), 0]},
+                'waist': {'rotation': [-4, 6 * s, 7 * drift + 3 * s]}, 'chest': {'rotation': [9, -7 * s, -5 * drift]},
+                'head': {'rotation': [4 + 3 * abs(s), 4 * drift, 6 * drift]},
+                'right_leg': {'rotation': [-24 * math.sin(2 * math.pi * u), 0, 3 * drift]}, 'left_leg': {'rotation': [24 * math.sin(2 * math.pi * u), 0, 3 * drift]},
+                'right_shin': {'rotation': [max(0, 22 * math.sin(2 * math.pi * u + 1.9)), 0, 0]}, 'left_shin': {'rotation': [max(0, -22 * math.sin(2 * math.pi * u + 1.9)), 0, 0]},
+                'right_arm': {'rotation': [22 * s, 0, 10 + 4 * drift]}, 'left_arm': {'rotation': [-22 * s, 0, -10 + 4 * drift]},
+                'right_forearm': {'rotation': [-6, 0, 0]}, 'left_forearm': {'rotation': [-6, 0, 0]}}
+    an['animation.human.p_walk'] = anim(p_walk, 9.2)
+    def p_idle(t):
+        sw = math.sin(2 * math.pi * t / 5.5)
+        return {'root': {'position': [0.5 * sw, -0.2, 0]}, 'waist': {'rotation': [-3, 0, 4 * sw]}, 'chest': {'rotation': [12, 3 * sw, -3 * sw]},
+                'head': {'rotation': [6, 6 * sw, 4 * sw]}, 'right_leg': {'rotation': [-3, 0, -3]}, 'left_leg': {'rotation': [4, 0, 4]},
+                'right_arm': {'rotation': [4, 0, 9]}, 'left_arm': {'rotation': [4, 0, -9]}}
+    an['animation.human.p_idle'] = anim(p_idle, 11)
+    # Гена: уверенная стойка (руки на поясе), но всё время переминается и дёргает плечом
+    def g_idle(t):
+        tw = max(0, math.sin(2 * math.pi * t / 2.3)) ** 6
+        return {'chest': {'rotation': [-3, 3 * math.sin(t * 2.1), 0]}, 'head': {'rotation': [-4, 10 * math.sin(t * 0.9), 0]},
+                'right_arm': {'rotation': [-14, 0, 32]}, 'right_forearm': {'rotation': [-80, 0, 0]},
+                'left_arm': {'rotation': [-14, 0, -32]}, 'left_forearm': {'rotation': [-80, 0, 0]},
+                'right_leg': {'rotation': [0, 0, 5 * math.sin(t * 1.7)]}, 'left_leg': {'rotation': [0, 0, -5 * math.sin(t * 1.7)]},
+                'waist': {'rotation': [0, 4 * math.sin(t * 1.7), 2 * math.sin(t * 1.7)], 'position': [0.3 * math.sin(t * 1.7), 0, 0]},
+                'neck': {'rotation': [0, 0, 6 * tw]}}
+    an['animation.human.g_idle'] = anim(g_idle, 6.9)
+    def g_walk(t):
+        P = 0.86
+        u = (t % P) / P
+        s = math.sin(2 * math.pi * u)
+        return {'root': {'position': [0, 0.3 * abs(math.sin(2 * math.pi * u * 2)), 0]}, 'chest': {'rotation': [-2, -6 * s, 0]}, 'head': {'rotation': [-5, 5 * s, 0]},
+                'right_leg': {'rotation': [-30 * s, 0, 0]}, 'left_leg': {'rotation': [30 * s, 0, 0]},
+                'right_shin': {'rotation': [max(0, 30 * math.sin(2 * math.pi * u + 1.9)), 0, 0]}, 'left_shin': {'rotation': [max(0, -30 * math.sin(2 * math.pi * u + 1.9)), 0, 0]},
+                'right_arm': {'rotation': [28 * s, 0, 6]}, 'left_arm': {'rotation': [-28 * s, 0, -6]},
+                'right_forearm': {'rotation': [-20, 0, 0]}, 'left_forearm': {'rotation': [-20, 0, 0]}}
+    an['animation.human.g_walk'] = anim(g_walk, 3.44)
+    # баба Поля: шаркает мелко, руки сцеплены впереди, голова вперёд
+    def o_walk(t):
+        P = 1.0
+        u = (t % P) / P
+        s = math.sin(2 * math.pi * u)
+        return {'waist': {'rotation': [-6, 3 * s, 2 * s]}, 'chest': {'rotation': [16, 0, 0]}, 'neck': {'rotation': [-8, 0, 0]}, 'head': {'rotation': [-10, 2 * s, 0]},
+                'right_leg': {'rotation': [-11 * s, 0, 0]}, 'left_leg': {'rotation': [11 * s, 0, 0]},
+                'right_shin': {'rotation': [max(0, 8 * math.sin(2 * math.pi * u + 1.9)), 0, 0]}, 'left_shin': {'rotation': [max(0, -8 * math.sin(2 * math.pi * u + 1.9)), 0, 0]},
+                'right_arm': {'rotation': [-34, -24, 0]}, 'right_forearm': {'rotation': [-52, 0, 0]},
+                'left_arm': {'rotation': [-34, 24, 0]}, 'left_forearm': {'rotation': [-52, 0, 0]}, 'root': {'position': [0, -0.4, 0]}}
+    an['animation.human.o_walk'] = anim(o_walk, 4)
+    def o_idle(t):
+        b = math.sin(2 * math.pi * t / 4.5)
+        return {'chest': {'rotation': [15 + b, 0, 0]}, 'neck': {'rotation': [-8, 0, 0]}, 'head': {'rotation': [-8, 4 * math.sin(t * 0.5), 0]},
+                'right_arm': {'rotation': [-30, -26, 0]}, 'right_forearm': {'rotation': [-55, 0, 0]},
+                'left_arm': {'rotation': [-30, 26, 0]}, 'left_forearm': {'rotation': [-55, 0, 0]}, 'root': {'position': [0, -0.4, 0]}}
+    an['animation.human.o_idle'] = anim(o_idle, 9)
+    # Зина: вытирает руки о фартук, оглядывается на дом
+    def zi_idle(t):
+        rub = math.sin(t * 9) * sm(min(1, (t % 6) / 0.4)) * (1 if (t % 6) < 2.4 else 0)
+        look = math.sin(2 * math.pi * t / 6)
+        return {'right_arm': {'rotation': [-22 + 3 * rub, -14, 0]}, 'right_forearm': {'rotation': [-48 + 6 * rub, 0, 0]},
+                'left_arm': {'rotation': [-22 - 3 * rub, 14, 0]}, 'left_forearm': {'rotation': [-48 - 6 * rub, 0, 0]},
+                'head': {'rotation': [2, 30 * max(0, look) ** 3, 0]}, 'chest': {'rotation': [3, 8 * max(0, look) ** 3, 0]}}
+    an['animation.human.zi_idle'] = anim(zi_idle, 12)
+    # Вика: руки в карманах, покачивается на носках
+    def v_idle(t):
+        r = math.sin(2 * math.pi * t / 2.6)
+        return {'right_arm': {'rotation': [8, 0, 6]}, 'right_forearm': {'rotation': [-38, -20, 0]}, 'left_arm': {'rotation': [8, 0, -6]},
+                'left_forearm': {'rotation': [-38, 20, 0]}, 'root': {'position': [0, 0.25 * max(0, r), 0]}, 'head': {'rotation': [3, 8 * math.sin(t * 0.7), 4 * math.sin(t * 0.5)]},
+                'chest': {'rotation': [-2 * r, 0, 0]}}
+    an['animation.human.v_idle'] = anim(v_idle, 7.8)
+    # лунатик стоит (поезд не пришёл): качается, голова клонится и вздрагивает
+    def s_idle(t):
+        sw = math.sin(2 * math.pi * t / 3.7)
+        jerk = max(0, math.sin(2 * math.pi * t / 5.3)) ** 14
+        return {'root': {'position': [0.4 * sw, 0, 0.2 * sw]}, 'chest': {'rotation': [8, 0, 3 * sw]},
+                'head': {'rotation': [30 - 18 * jerk, 6 * sw, 8 * sw]}, 'neck': {'rotation': [10, 0, 0]},
+                'right_arm': {'rotation': [2, 0, 3 + 2 * sw]}, 'left_arm': {'rotation': [2, 0, -3 + 2 * sw]}}
+    an['animation.human.s_idle'] = anim(s_idle, 10.6)
+    json.dump(data, open(path, 'w'), separators=(',', ':'))
+
+
+def watcher_extra():
+    """0.5.1: Обходчик на новой системе — пластика вместо «дешёвых» движений. Кости watcher.geo; знаки — авторские
+    (spine/chest/neck/head/pelvis в FLIP: плюс — наклон вперёд; руки/ноги: минус — вперёд)."""
+    import json
+    path = f'{A}/animations/watcher.animation.json'
+    data = json.load(open(path))
+    an = data['animations']
+    sm = lambda u: u * u * (3 - 2 * u)
+    cl = lambda x: max(0.0, min(1.0, x))
+
+    def hitch(t, P, stall=0.22):
+        """Фаза шага с «запинкой»: на 22 % периода всё замирает (не ровная синусоида)."""
+        u = (t % P) / P
+        if u < 0.5:
+            return u / 0.5 * 0.5
+        if u < 0.5 + stall:
+            return 0.5
+        return 0.5 + (u - 0.5 - stall) / (0.5 - stall) * 0.5
+    # походка: левая нога шагает длинно, правая отстаёт и подволакивается, правая рука висит с запозданием, запинка
+    def walk(t):
+        P = 3.0
+        ph = hitch(t, P)
+        a = 2 * math.pi * ph
+        lag = 2 * math.pi * hitch(t - 0.35, P)
+        return {'left_leg': {'rotation': [34 * math.sin(a), 0, 0]}, 'left_shin': {'rotation': [max(0, -40 * math.sin(a + 1.2)), 0, 0]},
+                'right_leg': {'rotation': [-20 * math.sin(lag), 4, 0]}, 'right_shin': {'rotation': [max(0, 12 * math.sin(lag + 1.2)), 0, 0]},
+                'right_foot': {'rotation': [18, 0, 0]},
+                'pelvis': {'position': [0.6 * math.sin(a), 1.2 * abs(math.sin(a)) - 0.6, 0], 'rotation': [4, 5 * math.sin(a), 6 * math.sin(a)]},
+                'spine': {'rotation': [10, -4 * math.sin(a), -5 * math.sin(a)]}, 'chest': {'rotation': [4, 0, 3 * math.sin(lag)]},
+                'neck': {'rotation': [-6, 0, 0]}, 'head': {'rotation': [-4, 0, 18]}, 'jaw': {'rotation': [34, 0, 0]},
+                'left_arm': {'rotation': [-8 * math.sin(a), 0, 0]}, 'right_arm': {'rotation': [10 * math.sin(lag - 1.0), 0, 0]},
+                'right_forearm': {'rotation': [-6, 0, 0]}, 'lantern': {'rotation': [14 * math.sin(a + 1), 0, 0]}}
+    an['animation.watcher.w_walk'] = anim(walk, 6.0, fps=15)
+    # наблюдает: ни дыхания, ни покачивания — только голова медленно кренится, и раз в 7 с дёргается палец
+    def observe(t):
+        tilt = 12 + 20 * sm(cl((t % 7) / 5.0))
+        f = 1 if (t % 7) > 6.6 else 0
+        return {'spine': {'rotation': [8, 0, 0]}, 'neck': {'rotation': [6, 0, 0]}, 'head': {'rotation': [2, 0, tilt]},
+                'jaw': {'rotation': [30 + 8 * sm(cl((t % 7) / 5.0)), 0, 0]}, 'right_hand': {'rotation': [24 * f, 0, 0]},
+                'right_arm': {'rotation': [2, 0, 0]}, 'left_arm': {'rotation': [2, 0, 0]}}
+    an['animation.watcher.w_observe'] = anim(observe, 7.0, fps=15)
+    # медленное приближение: колени согнуты, корпус вперёд, голова держится ровно (шея гасит качку)
+    def creep(t):
+        P = 4.4
+        a = 2 * math.pi * (t % P) / P
+        return {'left_leg': {'rotation': [26 * math.sin(a) - 14, 0, 0]}, 'right_leg': {'rotation': [-26 * math.sin(a) - 14, 0, 0]},
+                'left_shin': {'rotation': [30 + max(0, -18 * math.sin(a + 1.2)), 0, 0]}, 'right_shin': {'rotation': [30 + max(0, 18 * math.sin(a + 1.2)), 0, 0]},
+                'pelvis': {'position': [0, -2.4 + 0.5 * abs(math.sin(a)), 0]}, 'spine': {'rotation': [24, 0, 3 * math.sin(a)]}, 'chest': {'rotation': [12, 0, 0]},
+                'neck': {'rotation': [-22, 0, -3 * math.sin(a)]}, 'head': {'rotation': [-12, 0, 10]}, 'jaw': {'rotation': [36, 0, 0]},
+                'left_arm': {'rotation': [-20 + 6 * math.sin(a), 0, 0]}, 'right_arm': {'rotation': [-26 - 6 * math.sin(a), 0, 0]},
+                'left_forearm': {'rotation': [-10, 0, 0]}, 'right_forearm': {'rotation': [-14, 0, 0]}}
+    an['animation.watcher.w_creep'] = anim(creep, 8.8, fps=15)
+    # погоня: рывки — три быстрых шага и замер на полсекунды; руки тянутся вперёд
+    def chase(t):
+        P = 1.6
+        u = (t % P) / P
+        run_ = u < 0.68
+        a = 2 * math.pi * (u / 0.68 * 1.5 if run_ else 1.5)
+        return {'left_leg': {'rotation': [44 * math.sin(a), 0, 0]}, 'right_leg': {'rotation': [-44 * math.sin(a), 0, 0]},
+                'left_shin': {'rotation': [max(0, -50 * math.sin(a + 1.2)), 0, 0]}, 'right_shin': {'rotation': [max(0, 50 * math.sin(a + 1.2)), 0, 0]},
+                'pelvis': {'position': [0, 1.0 * abs(math.sin(a)) - 1, 0]}, 'spine': {'rotation': [26, 0, 0]}, 'chest': {'rotation': [8, 0, 0]},
+                'neck': {'rotation': [-18, 0, 0]}, 'head': {'rotation': [-10, 0, 8 if run_ else 26]}, 'jaw': {'rotation': [44, 0, 0]},
+                'left_arm': {'rotation': [-70 + 14 * math.sin(a), 0, -6]}, 'right_arm': {'rotation': [-74 - 14 * math.sin(a), 0, 6]},
+                'left_forearm': {'rotation': [-8, 0, 0]}, 'right_forearm': {'rotation': [-8, 0, 0]}}
+    an['animation.watcher.w_chase'] = anim(chase, 3.2, fps=20)
+    # хватает: замах длинными руками, корпус бросается вперёд, руки смыкаются
+    def grab(t):
+        r = sm(cl(t / 0.25))
+        c = sm(cl((t - 0.25) / 0.2))
+        return {'spine': {'rotation': [30 * r, 0, 0]}, 'chest': {'rotation': [18 * r, 0, 0]}, 'neck': {'rotation': [-20 * r, 0, 0]}, 'head': {'rotation': [-8, 0, 6]},
+                'jaw': {'rotation': [34 + 20 * r, 0, 0]}, 'left_arm': {'rotation': [-100 * r, -30 * c, -30 * (1 - c)]}, 'right_arm': {'rotation': [-100 * r, 30 * c, 30 * (1 - c)]},
+                'left_forearm': {'rotation': [-20 * c, 0, 0]}, 'right_forearm': {'rotation': [-20 * c, 0, 0]}, 'pelvis': {'position': [0, -1.5 * r, 0]}}
+    an['animation.watcher.w_grab'] = anim(grab, 1.4, loop=False, fps=20)
+    # наклон в объектив: медленно, по позвонку, голова кренится и подаётся вперёд, челюсть отвисает
+    def lean(t):
+        u = sm(cl(t / 3.2))
+        return {'spine': {'rotation': [34 * u, 0, 0]}, 'chest': {'rotation': [28 * sm(cl((t - 0.4) / 3.0)), 0, 0]},
+                'neck': {'rotation': [24 * sm(cl((t - 0.9) / 2.4)), 0, 0]}, 'head': {'rotation': [-14 * u, 0, 10 + 26 * sm(cl((t - 1.4) / 2.0))]},
+                'jaw': {'rotation': [32 + 18 * sm(cl((t - 2.0) / 1.4)), 0, 0]}, 'left_arm': {'rotation': [-6 * u, 0, 0]}, 'right_arm': {'rotation': [-6 * u, 0, 0]}}
+    an['animation.watcher.w_lean'] = anim(lean, 3.6, loop=False, fps=15)
+    # появление: из присяда у кромки леса раскрывается сустав за суставом — ноги, спина, шея, голова последней
+    def unfold(t):
+        legs_ = sm(cl(t / 0.9)); sp = sm(cl((t - 0.6) / 0.8)); nk = sm(cl((t - 1.2) / 0.6)); hd = sm(cl((t - 1.9) / 0.15))
+        return {'pelvis': {'position': [0, -14 * (1 - legs_), 0]}, 'left_leg': {'rotation': [-80 * (1 - legs_), 0, -10 * (1 - legs_)]},
+                'right_leg': {'rotation': [-80 * (1 - legs_), 0, 10 * (1 - legs_)]}, 'left_shin': {'rotation': [120 * (1 - legs_), 0, 0]},
+                'right_shin': {'rotation': [120 * (1 - legs_), 0, 0]}, 'spine': {'rotation': [80 * (1 - sp) + 8, 0, 0]}, 'chest': {'rotation': [30 * (1 - sp), 0, 0]},
+                'neck': {'rotation': [40 * (1 - nk), 0, 0]}, 'head': {'rotation': [50 * (1 - hd), 0, 18 * hd]}, 'jaw': {'rotation': [34, 0, 0]},
+                'left_arm': {'rotation': [-30 * (1 - sp), 0, 0]}, 'right_arm': {'rotation': [-30 * (1 - sp), 0, 0]}}
+    an['animation.watcher.w_unfold'] = anim(unfold, 2.4, loop=False, fps=20)
+    # уход: шаг назад в темноту — кадрами (4 к/с, без сглаживания), лицом к тебе
+    def back(t):
+        a = 2 * math.pi * t / 1.25
+        return {'left_leg': {'rotation': [-22 * math.sin(a), 0, 0]}, 'right_leg': {'rotation': [22 * math.sin(a), 0, 0]},
+                'pelvis': {'position': [0, -0.6 * abs(math.sin(a)), 0]}, 'spine': {'rotation': [6, 0, 0]}, 'head': {'rotation': [0, 0, 22]},
+                'jaw': {'rotation': [34, 0, 0]}}
+    an['animation.watcher.w_back'] = anim(back, 2.5, jerk=True, fps=4)
+    json.dump(data, open(path, 'w'), separators=(',', ':'))
 
 
 def zakhar_sounds():
@@ -491,6 +681,8 @@ def residents():
     skin('nyura', hair=(160, 156, 150), coat=(70, 60, 54), legs=(50, 46, 44), boots=(36, 30, 28), face=(194, 164, 146), scarf=(110, 46, 50), old=True)
     skin('kolya', hair=(52, 44, 38), coat=(46, 52, 60), legs=(36, 38, 42), boots=(28, 26, 24), face=(190, 148, 128), beard=(60, 50, 44))
     skin('lyuba', hair=(150, 110, 70), coat=(84, 62, 52), legs=(52, 48, 52), boots=(40, 34, 32), face=(204, 170, 150))
+    # Гена — бригадир с мотовоза (пока только по рации; набор анимации готов к появлению): кепка, оранжевый жилет
+    skin('gena', hair=(80, 62, 48), coat=(196, 104, 40), legs=(40, 44, 56), boots=(30, 28, 26), face=(200, 160, 140), cap=(52, 58, 70))
     skin('mitya', hair=(120, 96, 66), coat=(60, 84, 70), legs=(44, 46, 60), boots=(36, 32, 30), face=(210, 178, 158), girl=True)
 
 
@@ -660,7 +852,7 @@ def sounds():
 
 
 if __name__ == '__main__':
-    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'human_extra', 'blocks', 'sounds', 'zakhar_sounds', 'yompix_sound']
+    which = sys.argv[1:] or ['watcher', 'train', 'residents', 'human_extra', 'blocks', 'sounds', 'zakhar_sounds', 'yompix_sound', 'residents_clips', 'watcher_extra']
     for n in which:
         globals()[n]()
         print('ok', n)

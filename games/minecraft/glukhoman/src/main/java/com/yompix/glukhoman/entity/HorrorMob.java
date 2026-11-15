@@ -130,6 +130,7 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
         controllers.add(new AnimationController<>(this, "main", 6, state -> {
             String a = act();
             if (a.isEmpty()) a = baseAnim();
+            if (ANIM != null) a = ANIM.apply(this, a);
             return state.setAndContinue(raw("animation." + animSet() + "." + a));
         }));
     }
@@ -138,6 +139,9 @@ public abstract class HorrorMob extends HostileEntity implements GeoEntity {
     protected String animSet() {
         return geoName();
     }
+
+    /** Клиент: выбор клипа новой системой анимации (client/anim); на сервере не используется. */
+    public static java.util.function.BiFunction<HorrorMob, String, String> ANIM;
 
     /** Клиентские «куклы» кат-сцен: своё время анимации (в тиках) — для замедленной съёмки. */
     public double animClock = -1;

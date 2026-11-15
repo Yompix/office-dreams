@@ -58,7 +58,7 @@ def master(a, path_raw):
 AF = 'loudnorm=I=-16:TP=-2:LRA=11,aresample=192000,alimiter=limit=0.7:level=0,aresample=48000'
 
 
-def proto(name, out, grade, night):
+def proto(name, out, grade, night, label='Прототип · новая система анимации и кат-сцен'):
     clip = f'{CLIPS}/{name}.mp4'
     D = dur(clip)
     lines, snds = events(f'{CLIPS}/{name}.events.tsv')
@@ -79,7 +79,7 @@ def proto(name, out, grade, night):
     with tempfile.TemporaryDirectory(dir='/tmp/claude-0') as tdir:
         master(a, f'{tdir}/a.raw')
         vf = ','.join([grade] + subs(lines, 1920) + [
-            f"drawtext=fontfile={FONT}:text='Прототип · новая система анимации и кат-сцен':fontsize=22:fontcolor=white@0.45:x=40:y=36",
+            f"drawtext=fontfile={FONT}:text='{esc(label)}':fontsize=22:fontcolor=white@0.45:x=40:y=36",
             f"drawtext=fontfile={FONT}:text='Не связано с Mojang':fontsize=20:fontcolor=white@0.35:x=w-text_w-40:y=h-50"])
         run(['ffmpeg', '-y', '-loglevel', 'error', '-i', clip, '-f', 's16le', '-ar', str(SR), '-ac', '2', '-i', f'{tdir}/a.raw',
              '-vf', vf, '-af', AF, '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
@@ -134,6 +134,18 @@ if __name__ == '__main__':
     if what in ('proto', 'all'):
         proto('proto_npc', 'npc_proto.mp4', 'eq=gamma=1.18:saturation=0.9:contrast=1.03', False)
         proto('proto_cut', 'cutscene_proto.mp4', 'eq=gamma=1.45:saturation=0.8:contrast=1.04,vignette=angle=PI/5', True)
+    if what == 'v051':
+        g_n = 'eq=gamma=1.45:saturation=0.8:contrast=1.04,vignette=angle=PI/5'
+        g_d = 'eq=gamma=1.18:saturation=0.9:contrast=1.03'
+        for clip, out, gr, night, label in (
+                ('demo_watcher', 'obkhodchik.mp4', g_n, True, 'Обходчик · новая анимация (0.5.1)'),
+                ('demo_residents', 'residents.mp4', g_d, False, 'Жители Елового · своя пластика у каждого (0.5.1)'),
+                ('demo_moments', 'interactive.mp4', g_d, False, 'Интерактивные моменты · как в игре (0.5.1)'),
+                ('pr_board', 'scene_pr_board.mp4', g_n, True, 'Сюжетная сцена: пролог, баба Поля (Timeline)'),
+                ('c1_handover', 'scene_handover.mp4', g_d, False, 'Сюжетная сцена: «Сдача смены» (Timeline)'),
+                ('pr_train', 'scene_pr_train.mp4', g_n, True, 'Сюжетная сцена: пролог, поезд из тумана (Timeline)')):
+            if os.path.exists(f'{CLIPS}/{clip}.mp4'):
+                proto(clip, out, gr, night, label)
     if what in ('ui', 'all'):
         ui(['yompix_intro'], 'yompix_intro.mp4', bed=0.0)
         ui(['ui_tour', 'ui_loading', 'ui_tour2'], 'ui_tour.mp4')

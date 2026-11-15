@@ -55,7 +55,10 @@ final class Timeline implements Cine.Scene {
     // ======================= актёры =======================
     final class Actor {
         final String who, name;
-        ResidentEntity e;
+        net.minecraft.entity.LivingEntity e;
+        /** Не житель: существо (Обходчик, Двойник) — тип и набор анимации. */
+        net.minecraft.entity.EntityType<? extends net.minecraft.entity.LivingEntity> type;
+        AnimSet set;
         Animator an;
         final List<double[]> path = new ArrayList<>();   // {t0, t1, индекс точек} — отрезки ходьбы
         final List<Vec3d[]> legs = new ArrayList<>();
@@ -119,7 +122,8 @@ final class Timeline implements Cine.Scene {
             Cine.place(e, p.x, p.y, p.z, yaw);
             an.forcedSpeed = moving ? speed : 0;
             an.lookAt = look != null ? look.get() : null;
-            e.animClock = t * 20;
+            if (e instanceof ResidentEntity r) r.animClock = t * 20;
+            else if (e instanceof com.yompix.glukhoman.entity.HorrorMob m) m.animClock = t * 20;
         }
 
         Vec3d pos0;
@@ -132,6 +136,14 @@ final class Timeline implements Cine.Scene {
         if (u < a) return v * u * u / (2 * a);
         if (u > 1 - a) return 1 - v * (1 - u) * (1 - u) / (2 * a);
         return v * (u - a / 2);
+    }
+
+    /** Существо-актёр (Обходчик, Двойник): свой тип сущности и набор анимации. who у Двойника — чей скин. */
+    Actor creature(net.minecraft.entity.EntityType<? extends net.minecraft.entity.LivingEntity> type, AnimSet set, String who, Vec3d at, float yaw) {
+        Actor a = actor(who, "", at, yaw);
+        a.type = type;
+        a.set = set;
+        return a;
     }
 
     Actor actor(String who, String name, Vec3d at, float yaw) {
@@ -159,6 +171,14 @@ final class Timeline implements Cine.Scene {
             this.t0 = t0;
             this.t1 = t1;
             this.fn = fn;
+        }
+
+        java.util.function.DoubleUnaryOperator fovFn;
+
+        /** FOV как функция времени сцены (наезд в объективе, «ищущий» автофокус). */
+        Shot fovFn(java.util.function.DoubleUnaryOperator f) {
+            fovFn = f;
+            return this;
         }
 
         Shot fov(float a, float b) {
@@ -268,8 +288,10 @@ final class Timeline implements Cine.Scene {
         Animator.onSound = (n, at, v) -> log("SND", String.format(Locale.ROOT, "%s\t%.2f\t%.1f", n, v, at.distanceTo(new Vec3d(Cine.cx, Cine.cy, Cine.cz))));
         setup.accept(this);
         for (Actor a : actors) {
-            a.e = Cine.resident(w, a.who, a.pos.x, a.pos.y, a.pos.z, a.yaw);
-            AnimSet set = Gestures.SETS.getOrDefault(a.who, Gestures.GENERIC);
+            a.e = a.type != null ? Cine.puppet(w, a.type, a.pos.x, a.pos.y, a.pos.z, a.yaw) : Cine.resident(w, a.who, a.pos.x, a.pos.y, a.pos.z, a.yaw);
+            if (a.e == null) continue;
+            if (a.e instanceof com.yompix.glukhoman.entity.DoppelEntity d) d.setMimic(a.who);
+            AnimSet set = a.set != null ? a.set : Gestures.SETS.getOrDefault(a.who, Gestures.GENERIC);
             a.an = Animator.of(a.e, set);
             a.an.clock = Cine::time;
             a.an.autoIdle = false;
@@ -286,7 +308,7 @@ final class Timeline implements Cine.Scene {
             if (at <= now && at > prevT) ((Runnable) ev[1]).run();
         }
         prevT = now;
-        for (Actor a : actors) a.frame(now);
+        for (Actor a : actors) if (a.e != null) a.frame(now);
         for (DoubleConsumer c : each) c.accept(now);
         Shot s = null;
         for (Shot x : shots) if (now >= x.t0 && now < x.t1) s = x;
@@ -300,8 +322,36 @@ final class Timeline implements Cine.Scene {
         p = p.add(k * (Math.sin(now * 0.83) + 0.5 * Math.sin(now * 2.07 + 1)), k * (Math.sin(now * 1.11 + 2) + 0.4 * Math.sin(now * 2.9)), k * Math.sin(now * 0.67 + 4));
         if (s.avoid) p = avoid(look, p);
         Cine.cam(p, look.add(k * 0.6 * Math.sin(now * 0.51), k * 0.6 * Math.sin(now * 0.73 + 1), 0));
-        Cine.fov = (float) MathHelper.lerp(Cine.ease(u), s.fov0, s.fov1) * Cine.fovScale;
+        // рывок камеры (схватили за плечо) и резкий разворот — те же пружины, что в игре (Moments)
+        double dt = lastCam < 0 ? 0 : Math.max(0, Math.min(0.05, now - lastCam));
+        lastCam = now;
+        for (int i = 0; i < 4; i++) {
+            double h = dt / 4, w = 11;
+            tyv += (-w * w * ty - 2 * 0.45 * w * tyv) * h;
+            ty += tyv * h;
+            tpv += (-w * w * tp - 2 * 0.45 * w * tpv) * h;
+            tp += tpv * h;
+        }
+        Cine.yaw += (float) ty;
+        Cine.pitch += (float) tp;
+        Cine.fov = (float) (s.fovFn != null ? s.fovFn.applyAsDouble(now) : MathHelper.lerp(Cine.ease(u), s.fov0, s.fov1)) * Cine.fovScale;
         Cine.roll = s.roll + (float) (s.shake * shakeMul() * 0.25 * Math.sin(now * 0.47));
+    }
+
+    double ty, tp, tyv, tpv, lastCam = -1;
+
+    /** Схватили за плечо: камера дёргается в сторону (side: -1 влево, 1 вправо). */
+    Timeline tug(double time, double side) {
+        return at(time, () -> {
+            if (GConfig.get().noShake) return;
+            tyv += side * 70;
+            tpv += 40;
+        });
+    }
+
+    /** Текущая точка камеры (для «смотреть в объектив»). */
+    static Vec3d camPos() {
+        return new Vec3d(Cine.cx, Cine.cy, Cine.cz);
     }
 
     /** Настройки: «Дрожь камеры в кат-сценах» и «Без тряски». */
@@ -327,6 +377,19 @@ final class Timeline implements Cine.Scene {
         if (log != null) log.close();
         log = null;
         Animator.onSound = null;
+        for (var e : hidden) e.setInvisible(false);
+        hidden.clear();
+    }
+
+    /** Настоящие жители (не куклы) на время сцены прячутся — иначе в кадре два Захара. */
+    final List<net.minecraft.entity.Entity> hidden = new ArrayList<>();
+
+    void hideReal() {
+        for (var e : w.getEntities())
+            if (e instanceof ResidentEntity r && r.getId() >= 0 && !r.isInvisible()) {
+                r.setInvisible(true);
+                hidden.add(r);
+            }
     }
 
     // ======================= мир на время сцены =======================

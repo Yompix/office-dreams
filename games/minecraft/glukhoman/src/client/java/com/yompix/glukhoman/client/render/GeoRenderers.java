@@ -60,6 +60,11 @@ public final class GeoRenderers {
         /** Обходчик: тело поворачивает по ходу, а голова неотрывно на игроке — слишком далеко, до 110°. */
         @Override
         public void setCustomAnimations(T e, long instanceId, AnimationState<T> state) {
+            AnimSet set = mobSet(e);
+            if (set != null) {   // 0.5.1: Обходчик и Двойник на новом аниматоре
+                Animator.of(e, set).apply(getAnimationProcessor(), state.getPartialTick());
+                return;
+            }
             if (e instanceof com.yompix.glukhoman.entity.WatcherEntity && !com.yompix.glukhoman.client.Cine.active)
                 headLook(getAnimationProcessor().getBone("head"), e, state.getPartialTick(), 110);
         }
@@ -108,7 +113,7 @@ public final class GeoRenderers {
         /** Голова смотрит туда, куда смотрит житель (на игрока, по сторонам), поверх анимации тела. */
         @Override
         public void setCustomAnimations(ResidentEntity e, long instanceId, AnimationState<ResidentEntity> state) {
-            AnimSet set = live(e) != null || handles(e) ? Gestures.SETS.get(e.who()) : null;
+            AnimSet set = handles(e) ? residentSet(e) : null;
             if (set != null) {
                 Animator.of(e, set).apply(getAnimationProcessor(), state.getPartialTick());
                 return;
@@ -120,11 +125,23 @@ public final class GeoRenderers {
 
     /** Новая система (этап 1): Захар Ильич, Вика и «я» в кат-сценах; выключается в настройках. */
     static boolean handles(ResidentEntity e) {
-        return com.yompix.glukhoman.client.GConfig.get().liveAnim && !e.sleepwalking() && Gestures.SETS.containsKey(e.who());
+        return com.yompix.glukhoman.client.GConfig.get().liveAnim && (e.sleepwalking() || Gestures.SETS.containsKey(e.who()));
+    }
+
+    static AnimSet residentSet(ResidentEntity e) {
+        return e.sleepwalking() ? Gestures.SLEEP : Gestures.SETS.get(e.who());
+    }
+
+    static AnimSet mobSet(net.minecraft.entity.Entity e) {
+        if (!com.yompix.glukhoman.client.GConfig.get().liveAnim) return null;
+        if (e instanceof com.yompix.glukhoman.entity.WatcherEntity) return Gestures.WATCHER;
+        if (e instanceof DoppelEntity) return Gestures.DOPPEL;
+        return null;
     }
 
     static Animator live(ResidentEntity e) {
-        return handles(e) ? Animator.get(e) : null;
+        Animator a = handles(e) ? Animator.get(e) : null;
+        return a != null && a.set == residentSet(e) ? a : null;   // лунатик проснулся — набор сменился, аниматор пересоздастся
     }
 
     static net.minecraft.client.util.SkinTextures meSkin() {
@@ -169,7 +186,16 @@ public final class GeoRenderers {
         ResidentEntity.ANIM = (e, a) -> {
             Animator an = live(e);
             if (an == null) return a;
-            return e.act().isEmpty() ? an.base() : a.equals("walk") ? an.set.walk() : a.equals("idle") ? an.set.idle() : a;
+            return e.act().isEmpty() || a.equals("sleepwalk") ? an.base() : a.equals("walk") ? an.set.walk() : a.equals("idle") ? an.set.idle() : a;
+        };
+        com.yompix.glukhoman.entity.HorrorMob.ANIM = (e, a) -> {
+            AnimSet set = mobSet(e);
+            Animator an = set == null ? null : Animator.get(e);
+            if (an == null || an.set != set) return a;
+            if (an.overriding()) return an.base();
+            if (!e.act().isEmpty() && !(e instanceof com.yompix.glukhoman.entity.WatcherEntity && (a.equals("idle") || a.equals("walk") || a.equals("stalk")))) return a;
+            if (e.getId() < 0 && a.equals("still")) return a;   // куклы старых сцен: «still» — нарочно замер
+            return an.base();
         };
         EntityRendererRegistry.register(GContent.POLE, ctx -> mob(ctx, 0.4f, true));
         EntityRendererRegistry.register(GContent.LISTENER, ctx -> mob(ctx, 0.6f, false));

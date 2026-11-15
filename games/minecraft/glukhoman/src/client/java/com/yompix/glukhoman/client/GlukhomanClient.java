@@ -81,6 +81,7 @@ public class GlukhomanClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(Net.S2C.ID, (p, ctx) -> ctx.client().execute(() -> onMessage(p.data())));
         HudRenderCallback.EVENT.register(Hud::render);
         ClientTickEvents.END_CLIENT_TICK.register(GlukhomanClient::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(c0 -> com.yompix.glukhoman.client.anim.Creatures.tick());   // 0.5.1: «следы» Обходчика
         ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
             sendPrefs();
             if (com.yompix.glukhoman.client.ui.CoopScreen.hostOnJoin) {   // «Вместе → позвать друзей»: открыть смену по сети сразу
@@ -189,6 +190,23 @@ public class GlukhomanClient implements ClientModInitializer {
                     }
                 }
             }
+            case "gest" -> {   // 0.5.1: жест с сервера — одинаково у всех игроков
+                var en = c.world == null ? null : c.world.getEntityById(m.getInt("e"));
+                if (en instanceof net.minecraft.entity.LivingEntity le) {
+                    var an = com.yompix.glukhoman.client.anim.Animator.get(le);
+                    if (an != null) {
+                        String g = m.getString("g");
+                        if (m.contains("x")) an.pointAt = new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z"));
+                        if (g.startsWith("w_")) an.base(g, m.getDouble("hold") > 0 ? m.getDouble("hold") : 1.5);
+                        else {
+                            var clip = com.yompix.glukhoman.client.anim.Gestures.byName(g, m.getDouble("hold"));
+                            if (clip != null) an.play(clip);
+                        }
+                    }
+                }
+            }
+            case "tug" -> Moments.tug(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
+            case "turn" -> Moments.turn(new net.minecraft.util.math.Vec3d(m.getDouble("x"), m.getDouble("y"), m.getDouble("z")));
             case "voice" -> {
                 SoundEvent e = m.getString("id").isEmpty() ? null : sound("voice." + m.getString("id"));
                 if (e != null && c.getSoundManager().get(e.getId()) != null) {

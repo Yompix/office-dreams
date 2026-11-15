@@ -43,7 +43,7 @@ public final class Animator {
 
     public static Animator of(LivingEntity e, AnimSet set) {
         Animator a = ALL.get(e.getId());
-        if (a == null || a.e != e) {
+        if (a == null || a.e != e || a.set != set) {
             if (ALL.size() > 64) ALL.values().removeIf(x -> x.e.isRemoved());
             a = new Animator(e, set);
             ALL.put(e.getId(), a);
@@ -71,6 +71,18 @@ public final class Animator {
     public boolean autoLook = true;
     /** Скорость поворота головы (рад/с пружины); вздрогнул — быстрее. */
     public double lookSpeed = 7;
+    /** Замер «намертво»: время аниматора стоит, поза не меняется ни на волос (Обходчик в объективе). */
+    public boolean frozen;
+    /** Базовый клип поверх выбора (появление, наклон, захват) — до времени ovrUntil. */
+    String ovr;
+    double ovrUntil;
+    /** Последняя позиция (для «телепорта» — исчез здесь, появился там). */
+    public double jumpX = Double.NaN, jumpY, jumpZ;
+    public Runnable onJump;
+    double leanAt = -1;
+    boolean leaned;
+    String lastBase = "";
+    boolean sawWatcher;
     double hy, hp, hyv, hpv, lookW = 1;
     int eyes;           // -1 влево, 0 прямо, 1 вправо (для самого персонажа)
     double eyesUntil;
@@ -109,6 +121,12 @@ public final class Animator {
         this.set = set;
         this.rnd = new Random(e.getId() * 31L + 7);
         nextBlink = 1 + rnd.nextDouble() * 2;
+        lookSpeed = set.lookSpeed();
+        if (e.getId() < 0) {   // кукла кат-сцены: время сцены, без самодеятельности (режиссёр скажет, куда смотреть)
+            autoLook = false;
+            autoIdle = false;
+            clock = com.yompix.glukhoman.client.Cine::time;
+        }
         nextIdle = 3 + rnd.nextDouble() * 3;
     }
 
@@ -159,6 +177,20 @@ public final class Animator {
     }
 
     /** Сказать реплику: рот по слогам, кивки и жесты руками на ударениях. Возвращает длительность, с. */
+    /** Базовый клип на время (сек): появление, наклон в объектив, захват — с плавным переходом GeckoLib. */
+    public void base(String clip, double secs) {
+        ovr = clip;
+        ovrUntil = now + secs;
+    }
+
+    public boolean overriding() {
+        return ovr != null && now < ovrUntil;
+    }
+
+    public double now() {
+        return now;
+    }
+
     public double say(String text) {
         line = text;
         mouth.clear();
@@ -209,6 +241,7 @@ public final class Animator {
     /** Из GeoModel.setCustomAnimations: база уже наложена GeckoLib, добавляем слои. */
     public void apply(AnimationProcessor<?> proc, float pt) {
         now = time(pt);
+        if (frozen && last >= 0) now = last;   // замер: время аниматора стоит
         double dt = last < 0 ? 0 : MathHelper.clamp(now - last, 0, 0.1);
         boolean fresh = now != last;
         last = now;
@@ -264,7 +297,7 @@ public final class Animator {
         double ly = hy * lookW, lp = hp * lookW;
         add(proc, "chest", 0, ly * 0.15, 0);
         add(proc, "neck", lp * 0.3, ly * 0.25, 0);
-        add(proc, "head", lp * 0.7 - jaw * 1.2 + stress * 2.5, ly * 0.6, 0);   // челюсть чуть поднимает подбородок, ударение — кивок
+        add(proc, "head", lp * 0.7 - jaw * 1.2 + stress * 2.5, ly * 0.6, set.tilt() * MathHelper.clamp(Math.abs(hy) / 90, 0, 1.6) * Math.signum(hy));   // челюсть чуть поднимает подбородок, ударение — кивок
 
         for (GeoBone b : touched) b.resetStateChanges();   // иначе GeckoLib не вернёт кость в позу клипа на следующем кадре
     }
@@ -290,6 +323,11 @@ public final class Animator {
     void update(double dt, float pt) {
         // --- движение и состояние ---
         double x = MathHelper.lerp(pt, e.prevX, e.getX()), z = MathHelper.lerp(pt, e.prevZ, e.getZ());
+        if (!Double.isNaN(jumpX) && Math.abs(e.getX() - jumpX) + Math.abs(e.getZ() - jumpZ) > 4 && onJump != null) onJump.run();   // исчез там — появился здесь
+        jumpX = e.getX();
+        jumpY = e.getY();
+        jumpZ = e.getZ();
+        if (!Double.isNaN(lastX) && Math.abs(x - lastX) + Math.abs(z - lastZ) > 4) lastX = Double.NaN;
         if (forcedSpeed >= 0) speed = forcedSpeed;
         else if (!Double.isNaN(lastX) && dt > 0) {
             double v = Math.hypot(x - lastX, z - lastZ) / dt;
@@ -340,6 +378,18 @@ public final class Animator {
         float body = MathHelper.lerpAngleDegrees(pt, e.prevBodyYaw, e.bodyYaw);
         Vec3d eye = new Vec3d(x, MathHelper.lerp(pt, e.prevY, e.getY()) + e.getStandingEyeHeight(), z);
         Vec3d tgt = lookAt;
+        if (tgt == null && autoLook && e instanceof com.yompix.glukhoman.entity.ResidentEntity) {
+            // житель замечает Обходчика (игрок может его и не видеть): вздрагивает и смотрит на него, пока тот рядом
+            var ws = e.getWorld().getEntitiesByClass(com.yompix.glukhoman.entity.WatcherEntity.class, e.getBoundingBox().expand(22), q -> true);
+            if (!ws.isEmpty()) {
+                tgt = ws.get(0).getEyePos();
+                if (!sawWatcher) {
+                    sawWatcher = true;
+                    startle(tgt);
+                    lookAt = null;
+                }
+            } else sawWatcher = false;
+        }
         if (tgt == null && autoLook) {
             PlayerEntity best = null;
             double bd = 64;
@@ -357,8 +407,9 @@ public final class Animator {
             Vec3d d = tgt.subtract(eye);
             double yawTo = Math.toDegrees(Math.atan2(-d.x, d.z));
             wy = MathHelper.wrapDegrees(yawTo - body);
-            if (Math.abs(wy) > 115) wy = 0;          // за спиной — не выворачиваем шею
-            wy = MathHelper.clamp(wy, -80, 80);
+            double lim = set.lookLimit();
+            if (Math.abs(wy) > lim + 35) wy = 0;      // за спиной — не выворачиваем шею
+            wy = MathHelper.clamp(wy, -lim, lim);
             wp = MathHelper.clamp(Math.toDegrees(Math.atan2(-d.y, Math.hypot(d.x, d.z))), -35, 40);
         }
         // глаза — сразу, голова догоняет пружиной (без перелёта); большой поворот — моргнуть
@@ -370,17 +421,17 @@ public final class Animator {
             eyesUntil = now + 0.15;
         }
         int n = Math.max(1, (int) Math.ceil(dt * 240));
-        double h = dt / n, w = lookSpeed;
+        double h = dt / n, w = lookSpeed, zt = set.lookZeta();
         for (int i = 0; i < n; i++) {
-            hyv += (w * w * (wy - hy) - 2 * w * hyv) * h;
+            hyv += (w * w * (wy - hy) - 2 * zt * w * hyv) * h;
             hy += hyv * h;
             hpv += (w * w * (wp - hp) - 2 * w * hpv) * h;
             hp += hpv * h;
         }
-        lookSpeed += (7 - lookSpeed) * Math.min(1, dt * 1.5);
+        lookSpeed += (set.lookSpeed() - lookSpeed) * Math.min(1, dt * 1.5);
 
         // --- моргание: 2–6 с, иногда двойное ---
-        if (now >= nextBlink) {
+        if (now >= nextBlink && set.blinks()) {
             blinkEnd = now + 0.12;
             blink2 = rnd.nextDouble() < 0.18 ? now + 0.3 : 0;
             nextBlink = now + 1.8 + rnd.nextDouble() * 4.2;
@@ -401,6 +452,7 @@ public final class Animator {
 
     /** Суффикс текстуры лица: моргание важнее рта, рот важнее глаз. */
     public String face() {
+        if (e instanceof com.yompix.glukhoman.entity.ResidentEntity r && r.sleepwalking()) return now % 9 < 8.6 ? "_blink" : "_eyes_l";   // идёт с закрытыми глазами, иногда приоткрывает
         if (now < blinkEnd) return "_blink";
         if (speaking()) {
             if (jaw > 0.7) return "_talk";
@@ -411,7 +463,13 @@ public final class Animator {
 
     /** Базовый клип GeckoLib (ходьба/стойка) — плавный переход между ними делает контроллер. */
     public String base() {
+        if (overriding()) return ovr;
+        if (set.picker() != null) return set.picker().apply(this);
         return walking ? set.walk() : set.idle();
+    }
+
+    public double speed() {
+        return speed;
     }
 
     public double speech() {
