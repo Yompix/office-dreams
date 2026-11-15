@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<!-- YURK ad #1 «ЮРКНИ» (9:16). Every frame is a pure function of time: render.js calls frame(t) and takes a screenshot. -->
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:540px;height:960px;overflow:hidden;background:#05060b;font-family:-apple-system,"SF Pro Display","Segoe UI",Roboto,"Noto Sans",system-ui,sans-serif;color:#f1f3fb;-webkit-font-smoothing:antialiased}
+#stage{position:relative;width:540px;height:960px;overflow:hidden}
+.abs{position:absolute}
+.blob{position:absolute;border-radius:50%;filter:blur(60px)}
+.sc{position:absolute;inset:0;opacity:0}
+.big{font-weight:900;letter-spacing:-.02em;line-height:.95;text-align:center}
+.grad{background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cap{position:absolute;left:28px;right:28px;text-align:center;font-weight:850;font-size:40px;line-height:1.08;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.cap em{font-style:normal;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* hook */
+.browser{position:absolute;left:50px;right:50px;top:300px;height:330px;border-radius:24px;background:#12151f;border:1px solid #2a3046;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.browser .bar{height:44px;background:#1a1e2c;display:flex;align-items:center;gap:7px;padding:0 16px}
+.browser .bar i{width:11px;height:11px;border-radius:50%;background:#3a4157}
+.browser .bar span{margin-left:10px;flex:1;height:22px;border-radius:11px;background:#262b3d}
+.spin{position:absolute;left:50%;top:160px;width:84px;height:84px;margin-left:-42px;border-radius:50%;border:8px solid #2a3046;border-top-color:#ff5d73}
+.err{position:absolute;left:0;right:0;top:270px;text-align:center;color:#ff5d73;font-weight:800;font-size:22px}
+/* phone */
+.phone{position:absolute;left:105px;top:250px;width:330px;height:640px;border-radius:52px;background:#0a0c14;border:10px solid #1c2030;box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 2px #2b3146;overflow:hidden}
+.phone .notch{position:absolute;left:50%;top:10px;width:110px;height:28px;margin-left:-55px;border-radius:20px;background:#000}
+.ph-top{position:absolute;left:22px;right:22px;top:52px;display:flex;justify-content:space-between;align-items:center;font-weight:850;letter-spacing:.08em;font-size:17px}
+.ph-top i{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);margin-right:8px;vertical-align:middle;color:#06101c;font-style:normal;font-size:14px}
+.pill{font-size:11px;font-weight:700;padding:6px 10px;border-radius:99px;background:#151a28;border:1px solid #232a40;letter-spacing:0}
+.pill b{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.orbw{position:absolute;left:50%;top:115px;width:230px;height:230px;margin-left:-115px}
+.halo{position:absolute;inset:8px;border-radius:50%;filter:blur(18px)}
+.rip{position:absolute;inset:34px;border-radius:50%;border:2px solid rgba(47,184,255,.6)}
+.core{position:absolute;left:50%;top:50%;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 2px 0 rgba(255,255,255,.1),0 20px 50px -10px rgba(0,0,0,.8)}
+.core b{font-size:56px;font-weight:850}
+.ph-title{position:absolute;left:0;right:0;top:372px;text-align:center;font-weight:800;font-size:22px}
+.ph-sub{position:absolute;left:0;right:0;top:404px;text-align:center;color:#8f97ad;font-size:13px}
+.ph-btn{position:absolute;left:22px;right:22px;top:446px;height:54px;border-radius:17px;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);display:grid;place-items:center;color:#06101c;font-weight:850;font-size:17px;overflow:hidden}
+.ph-srv{position:absolute;left:22px;right:22px;top:516px;display:grid;gap:7px}
+.ph-srv div{height:40px;border-radius:12px;background:#121726;border:1px solid #20283e;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:14px;font-weight:650}
+.ph-srv span{margin-left:auto;color:#22e3b0;font-size:12px}
+.finger{position:absolute;width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.22);border:3px solid rgba(255,255,255,.85);box-shadow:0 0 30px rgba(255,255,255,.5)}
+/* features */
+.card{position:absolute;left:40px;right:40px;height:150px;border-radius:30px;padding:26px 28px;display:flex;align-items:center;gap:22px;background:rgba(20,24,38,.8);border:1px solid rgba(140,160,220,.2);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.card em{font-style:normal;font-size:58px}
+.card b{display:block;font-size:30px;font-weight:850;line-height:1.05}
+.card span{display:block;color:#a7afc4;font-size:18px;margin-top:6px}
+/* money */
+.coin{position:absolute;font-size:46px}
+.gift{position:absolute;left:50%;top:250px;font-size:150px;margin-left:-80px}
+.money{position:absolute;left:40px;right:40px;top:560px;border-radius:30px;padding:24px;background:linear-gradient(135deg,rgba(139,92,255,.35),rgba(47,184,255,.15) 55%,rgba(34,227,176,.18));border:1px solid rgba(139,92,255,.5);text-align:center}
+.money b{display:block;font-size:64px;font-weight:900;background:linear-gradient(120deg,#ffd25a,#22e3b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.money span{font-size:20px;color:#d6dae8;font-weight:650}
+/* cta */
+.logo{position:absolute;left:50%;top:300px;width:200px;height:200px;margin-left:-100px;border-radius:56px;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);display:grid;place-items:center;box-shadow:0 30px 90px rgba(80,120,255,.6)}
+.tgbtn{position:absolute;left:60px;right:60px;top:740px;height:86px;border-radius:26px;background:#2aa3ea;display:flex;align-items:center;justify-content:center;gap:14px;font-size:30px;font-weight:850;box-shadow:0 20px 60px rgba(42,163,234,.55)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.prog{position:absolute;left:0;top:0;height:5px;background:linear-gradient(90deg,#8b5cff,#22e3b0)}
+</style></head>
+<body><div id="stage">
+  <div class="blob" id="b1" style="width:520px;height:520px;background:#6c3dff"></div>
+  <div class="blob" id="b2" style="width:480px;height:480px;background:#14c99a"></div>
+  <div class="blob" id="b3" style="width:560px;height:560px;background:#1f6bff"></div>
+  <canvas id="stars" width="1080" height="1920" style="position:absolute;inset:0;width:540px;height:960px"></canvas>
+
+  <!-- 1. hook: nothing loads -->
+  <div class="sc" id="s1">
+    <div class="cap" id="s1t" style="top:120px">Сайт не грузится?<br>Видео тормозит?</div>
+    <div class="browser" id="s1b"><div class="bar"><i></i><i></i><i></i><span></span></div><div class="spin" id="spin"></div><div class="err" id="s1e">Не удаётся открыть страницу</div></div>
+    <div class="cap" id="s1x" style="top:700px;font-size:30px;color:#ff8a9a">⏳ 0:47 … 0:48 … 0:49</div>
+  </div>
+
+  <!-- 2. smash: ЮРКНИ -->
+  <div class="sc" id="s2">
+    <div class="cap" id="s2a" style="top:300px;font-size:44px;color:#cfd5e6">Хватит ждать.</div>
+    <div class="big grad abs" id="s2b" style="left:0;right:0;top:400px;font-size:140px">ЮРКНИ</div>
+    <div class="cap" id="s2c" style="top:600px;font-size:30px;color:#a7afc4">YURK VPN</div>
+  </div>
+
+  <!-- 3. phone: one tap -->
+  <div class="sc" id="s3">
+    <div class="cap" id="s3t" style="top:80px">Одна кнопка —<br><em>и всё открывается</em></div>
+    <div class="phone" id="phone">
+      <div class="notch"></div>
+      <div class="ph-top"><span><i>»</i>YURK</span><span class="pill" id="ppill"><b id="pdot"></b><span id="ptx">Не подключено</span></span></div>
+      <div class="orbw"><div class="halo" id="halo"></div><div class="rip" id="r1"></div><div class="rip" id="r2"></div><div class="rip" id="r3"></div>
+        <svg width="230" height="230" style="position:absolute;inset:0;transform:rotate(-90deg)"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cff"/><stop offset=".55" stop-color="#2fb8ff"/><stop offset="1" stop-color="#22e3b0"/></linearGradient></defs>
+          <circle cx="115" cy="115" r="105" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none"/>
+          <circle id="arc" cx="115" cy="115" r="105" stroke="url(#g)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="660" stroke-dashoffset="660"/></svg>
+        <div class="core" id="core"><b id="corev">⏻</b></div></div>
+      <div class="ph-title" id="pht">Нет защиты</div>
+      <div class="ph-sub" id="phs">нажми, чтобы включить</div>
+      <div class="ph-btn" id="phb">⚡ Включить</div>
+      <div class="ph-srv"><div>🇳🇱 Нидерланды <span>● онлайн</span></div><div>🇺🇸 США <span>● онлайн</span></div><div>🇸🇬 Сингапур <span>● онлайн</span></div></div>
+    </div>
+    <div class="finger" id="finger"></div>
+  </div>
+
+  <!-- 4. features -->
+  <div class="sc" id="s4">
+    <div class="cap" style="top:110px">Почему <em>YURK</em>?</div>
+    <div class="card" id="c1" style="top:250px"><em>⚡</em><div><b>Без лимита скорости</b><span>видео в 4K без буферинга</span></div></div>
+    <div class="card" id="c2" style="top:425px"><em>🥷</em><div><b>Тебя не видно</b><span>для провайдера — обычный сайт</span></div></div>
+    <div class="card" id="c3" style="top:600px"><em>📱</em><div><b>Все устройства</b><span>телефон, ПК, Mac — одна подписка</span></div></div>
+  </div>
+
+  <!-- 5. free + money -->
+  <div class="sc" id="s5">
+    <div class="cap" id="s5a" style="top:100px"><em>3 дня</em> бесплатно</div>
+    <div class="gift" id="gift">🎁</div>
+    <div class="money" id="money"><span>Зови друзей — получай</span><b id="pct">20%</b><span>с каждой их оплаты 💸</span></div>
+  </div>
+
+  <!-- 6. CTA -->
+  <div class="sc" id="s6">
+    <div class="logo" id="logo"><svg width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#06101c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5l5 7-5 7"/><path d="M12 5l5 7-5 7" opacity=".55"/></svg></div>
+    <div class="big abs" id="s6n" style="left:0;right:0;top:540px;font-size:84px;letter-spacing:.06em">YURK</div>
+    <div class="cap" id="s6s" style="top:650px;font-size:28px;color:#a7afc4">VPN · юркни куда угодно</div>
+    <div class="tgbtn" id="tg"><svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.2-8.3c.4-.4-.1-.6-.6-.2L6 13.6 1.1 12c-1.1-.3-1.1-1.1.2-1.6L20.5 3c.9-.3 1.7.2 1.4 1.3z"/></svg>@yurkvpn_bot</div>
+  </div>
+  <div class="coin" id="coin0"></div>
+  <div class="flash" id="flash"></div>
+  <div class="prog" id="prog"></div>
+</div>
+<script>
+'use strict';
+const DUR = 22;
+const $ = (id) => document.getElementById(id);
+const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = (x) => { x = cl(x); return 1 - Math.pow(1 - x, 3); };
+const back = (x) => { x = cl(x); const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const k = (t, a, b) => cl((t - a) / (b - a)); // 0..1 between a and b
+// scene windows [start, end] with short fades
+const SC = { s1: [0, 2.6], s2: [2.6, 4.8], s3: [4.8, 10.2], s4: [10.2, 14.6], s5: [14.6, 18.4], s6: [18.4, 22] };
+function vis(id, t) { const [a, b] = SC[id]; const o = cl(Math.min((t - a) / 0.18, (b - t) / 0.18)); $(id).style.opacity = o; return t >= a && t <= b; }
+const set = (id, css) => Object.assign($(id).style, css);
+
+// stars, deterministic
+const S = Array.from({ length: 90 }, (_, i) => { const r = (n) => { const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453; return x - Math.floor(x); }; return { x: r(1) * 1080, y: r(2) * 1920, r: r(3) * 2.2 + .6, p: r(4) * 6.28, v: r(5) * 30 + 10 }; });
+function stars(t) {
+  const c = $('stars').getContext('2d'); c.clearRect(0, 0, 1080, 1920);
+  for (const s of S) { c.globalAlpha = .25 + .5 * (.5 + .5 * Math.sin(s.p + t * 2)); c.fillStyle = '#d6e4ff'; c.beginPath(); c.arc(s.x, (s.y - s.v * t + 1920 * 4) % 1920, s.r, 0, 6.283); c.fill(); }
+}
+
+function frame(t) {
+  $('prog').style.width = (t / DUR * 100) + '%';
+  // background: red-ish anxious at the hook, then aurora
+  const calm = ease(k(t, 2.4, 3.2));
+  set('b1', { left: (-140 + 60 * Math.sin(t * .5)) + 'px', top: (-120 + 40 * Math.cos(t * .4)) + 'px', background: calm ? '#6c3dff' : '#ff3d5a', opacity: .45 + .2 * calm });
+  set('b2', { left: (260 + 50 * Math.cos(t * .45)) + 'px', top: (260 + 60 * Math.sin(t * .35)) + 'px', opacity: .3 * calm });
+  set('b3', { left: (-60 + 70 * Math.sin(t * .3)) + 'px', top: (560 + 50 * Math.cos(t * .5)) + 'px', opacity: .35 * calm + .1 });
+  stars(t);
+
+  // 1 hook
+  if (vis('s1', t)) {
+    const a = ease(k(t, 0, .35));
+    set('s1t', { transform: `scale(${.8 + .2 * back(k(t, 0, .4))})`, opacity: a });
+    set('s1b', { transform: `translateY(${(1 - ease(k(t, .15, .6))) * 80}px) rotate(${Math.sin(t * 30) * (t > 1.6 ? 1.2 : 0)}deg)`, opacity: ease(k(t, .15, .5)) });
+    $('spin').style.transform = `rotate(${t * 520}deg)`;
+    $('s1e').style.opacity = t > 1.2 ? 1 : 0;
+    const sec = 47 + Math.floor(t * 3);
+    $('s1x').textContent = `⏳ 0:${sec} … 0:${sec + 1} … 0:${sec + 2}`;
+    $('s1x').style.opacity = ease(k(t, .9, 1.2));
+  }
+  // flash between hook and smash
+  const fl = Math.max(cl(1 - Math.abs(t - 3.35) / .12), cl(1 - Math.abs(t - 7.0) / .1) * .5);
+  $('flash').style.opacity = fl;
+
+  // 2 ЮРКНИ
+  if (vis('s2', t)) {
+    set('s2a', { opacity: ease(k(t, 2.6, 2.9)) * (1 - ease(k(t, 4.4, 4.7))), transform: `translateY(${(1 - ease(k(t, 2.6, 2.9))) * 30}px)` });
+    const z = back(k(t, 3.3, 3.75));
+    set('s2b', { opacity: t > 3.3 ? 1 : 0, transform: `scale(${t > 3.3 ? .3 + .7 * z + .03 * Math.sin((t - 3.3) * 9) * (1 - k(t, 3.8, 4.6)) : .3}) translateX(${t > 3.3 ? (Math.sin(t * 60) * 6 * (1 - k(t, 3.3, 3.6))) : 0}px)`, filter: `drop-shadow(0 0 ${30 + 20 * Math.sin(t * 6)}px rgba(47,184,255,.6))` });
+    set('s2c', { opacity: ease(k(t, 3.9, 4.2)), letterSpacing: (.1 + .3 * ease(k(t, 3.9, 4.6))) + 'em' });
+  }
+
+  // 3 phone
+  if (vis('s3', t)) {
+    set('s3t', { opacity: ease(k(t, 4.9, 5.3)), transform: `translateY(${(1 - ease(k(t, 4.9, 5.3))) * 30}px)` });
+    set('phone', { transform: `translateY(${(1 - back(k(t, 4.8, 5.5))) * 500}px) rotate(${(1 - ease(k(t, 4.8, 5.6))) * -6}deg)` });
+    // finger moves to the button and taps at 6.9
+    const fx = 240 - 60 * (1 - ease(k(t, 5.6, 6.6))), fy = 720 + 200 * (1 - ease(k(t, 5.6, 6.6)));
+    const press = t > 6.8 && t < 7.15 ? .82 : 1;
+    set('finger', { left: (fx - 37) + 'px', top: (fy - 37) + 'px', opacity: ease(k(t, 5.6, 5.9)) * (1 - ease(k(t, 7.6, 8))), transform: `scale(${press})` });
+    const on = t > 7.0;
+    const kon = ease(k(t, 7.0, 8.2));
+    $('ppill').style.borderColor = on ? '#1d6b55' : '#232a40';
+    $('pdot').style.background = on ? '#22e3b0' : '#ff5d73';
+    $('pdot').style.boxShadow = on ? '0 0 10px #22e3b0' : '0 0 10px #ff5d73';
+    $('ptx').textContent = on ? 'Защищено' : 'Не подключено';
+    set('halo', { background: `conic-gradient(from ${t * 120}deg,#8b5cff,#2fb8ff,#22e3b0,#8b5cff)`, opacity: .8 * kon });
+    for (const [i, id] of ['r1', 'r2', 'r3'].entries()) { const ph = ((t - 7 + i * .55) % 1.65) / 1.65; set(id, { opacity: on ? (1 - ph) * .9 : 0, transform: `scale(${.85 + ph * .7})` }); }
+    $('arc').style.strokeDashoffset = 660 * (1 - kon);
+    set('core', { background: on ? 'radial-gradient(circle at 35% 28%,#2c3a6e 0,#141d3a 48%,#0a0f22 100%)' : 'radial-gradient(circle at 35% 28%,#2a3150 0,#141a2b 45%,#0b0e18 100%)', boxShadow: on ? `0 0 ${50 + 15 * Math.sin(t * 4)}px rgba(47,184,255,.55)` : '0 20px 50px -10px rgba(0,0,0,.8)', transform: `scale(${t > 6.85 && t < 7.15 ? .94 : 1 + .02 * Math.sin(t * 2)})` });
+    $('corev').innerHTML = on ? '<span style="font-size:60px">✓</span>' : '⏻';
+    $('corev').style.color = on ? '#22e3b0' : '#5d6785';
+    $('pht').textContent = on ? 'Защищено ✨' : 'Нет защиты';
+    $('phs').textContent = on ? 'всё открывается · 0 тормозов' : 'нажми, чтобы включить';
+    $('phb').textContent = on ? '✅ Подключено' : '⚡ Включить';
+  }
+
+  // 4 features slide in one by one
+  if (vis('s4', t)) {
+    ['c1', 'c2', 'c3'].forEach((id, i) => { const a = back(k(t, 10.3 + i * 1.1, 10.8 + i * 1.1)); set(id, { opacity: cl(a * 1.4), transform: `translateX(${(1 - a) * (i % 2 ? -600 : 600)}px) scale(${.9 + .1 * a})` }); });
+  }
+
+  // 5 gift + money
+  if (vis('s5', t)) {
+    set('s5a', { opacity: ease(k(t, 14.6, 14.9)), transform: `scale(${.7 + .3 * back(k(t, 14.6, 15))})` });
+    const g = back(k(t, 14.8, 15.3));
+    set('gift', { transform: `scale(${g}) rotate(${Math.sin(t * 8) * 10 * (1 - k(t, 15.3, 16.2))}deg)` });
+    const m = back(k(t, 16.0, 16.5));
+    set('money', { opacity: cl(m * 1.3), transform: `translateY(${(1 - m) * 200}px)` });
+    $('pct').textContent = Math.round(20 * ease(k(t, 16.2, 17.0))) + '%';
+  }
+  // falling coins in 5
+  const cc = $('coin0');
+  if (t > 16.2 && t < 18.4) {
+    if (!cc.dataset.on) { cc.dataset.on = 1; for (let i = 1; i < 14; i++) { const d = cc.cloneNode(); d.id = 'coin' + i; d.textContent = i % 3 ? '🪙' : '💸'; $('stage').appendChild(d); } }
+    for (let i = 1; i < 14; i++) { const d = $('coin' + i), p = t - 16.2 - (i % 5) * .15; set('coin' + i, { left: (20 + (i * 37) % 480) + 'px', top: (-60 + p * (380 + i * 12)) + 'px', opacity: p > 0 && t < 18.3 ? 1 : 0, transform: `rotate(${p * (i % 2 ? 200 : -200)}deg)` }); }
+  } else for (let i = 1; i < 14; i++) if ($('coin' + i)) $('coin' + i).style.opacity = 0;
+
+  // 6 CTA
+  if (vis('s6', t)) {
+    const l = back(k(t, 18.4, 18.95));
+    set('logo', { transform: `scale(${l}) rotate(${(1 - l) * -30}deg)`, boxShadow: `0 30px ${90 + 30 * Math.sin(t * 5)}px rgba(80,120,255,.65)` });
+    set('s6n', { opacity: ease(k(t, 18.8, 19.1)), letterSpacing: (.3 - .24 * ease(k(t, 18.8, 19.4))) + 'em' });
+    set('s6s', { opacity: ease(k(t, 19.2, 19.5)) });
+    const b = back(k(t, 19.6, 20.1));
+    set('tg', { opacity: cl(b * 1.4), transform: `translateY(${(1 - b) * 120}px) scale(${1 + .04 * Math.sin((t - 20) * 7) * (t > 20.1 ? 1 : 0)})` });
+  }
+}
+window.frame = frame; window.DUR = DUR;
+if (!/render/.test(location.search)) { const t0 = performance.now(); const loop = () => { frame(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); }; loop(); }
+</script></body></html>
