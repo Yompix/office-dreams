@@ -17,7 +17,7 @@ function load(e = process.env) {
   return {
     port: Number(e.PORT) || 8080,
     publicUrl: (e.PUBLIC_URL || '').replace(/\/+$/, ''),
-    brand: e.BRAND || 'Лазейка',
+    brand: e.BRAND || 'YURK',
     botToken,
     botUsername: (e.BOT_USERNAME || '').replace(/^@/, ''),
     adminIds: (e.ADMIN_IDS || '').split(',').map((s) => Number(s.trim())).filter((n) => n > 0),
