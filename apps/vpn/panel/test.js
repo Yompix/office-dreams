@@ -292,6 +292,13 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.ok(Quota.allowedUsers(store, cfg, now + 3600e3).some((u) => u.id === 800));
   ok('traffic limits by plan');
 
+  // the owner (admin) has no traffic limit and no expiry
+  store.ensureUser(admin, 0, now);
+  store.addTraffic(today, 1, 500 * GB, 0);
+  assert.strictEqual(Quota.usage(store, cfg, store.user(1), now).over, false);
+  assert.ok(Quota.allowedUsers(store, cfg, now).some((u) => u.id === 1));
+  ok('owner: unlimited');
+
   // the page itself is served
   const srv2 = http.createServer(createApp({ cfg, store, bot, webapp: wa, log: quiet })).listen(0);
   const b2 = `http://127.0.0.1:${srv2.address().port}`;

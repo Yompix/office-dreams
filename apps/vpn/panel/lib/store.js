@@ -102,7 +102,16 @@ function open(file) {
       return store.user(id);
     },
 
-    activeUsers: (now = Date.now()) => s.active.all(now),
+    // admins (the owner) always get access, without paying
+    activeUsers: (now = Date.now(), admins = []) => {
+      const list = s.active.all(now);
+      for (const id of admins) {
+        if (list.some((u) => u.id === id)) continue;
+        const u = store.user(id);
+        if (u && !u.banned) list.push({ id: u.id, uuid: u.uuid, pass: u.pass, plan: u.plan, paid_at: u.paid_at });
+      }
+      return list;
+    },
 
     // true only the first time a charge id is seen (Telegram may resend an update)
     recordPayment(charge, uid, plan, stars, days, now = Date.now(), method = 'stars', usd = 0) {

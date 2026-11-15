@@ -57,6 +57,7 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
   const cardOk = (u) => !!cfg.cardToken && cfg.cardLangs.includes(String(u.lang).slice(0, 2));
 
   function view(u, now = Date.now()) {
+    if (cfg.adminIds.includes(u.id)) u = { ...u, expires: Math.max(u.expires, now + 3650 * 86400000) }; // the owner: always on
     const active = u.expires > now && !u.banned;
     const tier = tierOf(u.lang);
     return {

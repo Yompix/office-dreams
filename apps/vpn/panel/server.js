@@ -71,7 +71,8 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         const now = Date.now();
         const full = `${cfg.publicUrl}/sub/${u.token}`;
         if (isBrowser(req)) return send(200, subPage(cfg, u, full, now), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-        const s = Links.subscription(u, store.enabledNodes(), cfg, now, Quota.usage(store, cfg, u, now));
+        const uu = cfg.adminIds.includes(u.id) ? { ...u, expires: Math.max(u.expires, now + 3650 * 86400000) } : u;
+        const s = Links.subscription(uu, store.enabledNodes(), cfg, now, Quota.usage(store, cfg, u, now));
         return send(200, s.body, s.headers);
       }
 

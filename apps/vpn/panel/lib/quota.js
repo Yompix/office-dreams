@@ -10,6 +10,7 @@ const monthDay = (now) => dayOf(Date.UTC(new Date(now).getUTCFullYear(), new Dat
 const windowStart = (u, now) => { const m = monthDay(now); const p = u.paid_at ? dayOf(u.paid_at) : ''; return p > m ? p : m; };
 
 const quotaGb = (cfg, u) => {
+  if (cfg.adminIds.includes(u.id)) return 0; // the owner: no limit
   const q = cfg.quotas[u.plan || 'm1'];
   return q === undefined ? cfg.quotas.m1 : q;
 };
@@ -23,7 +24,7 @@ function usage(store, cfg, u, now = Date.now()) {
 
 // users who may connect right now: paid / trial and inside their traffic limit
 function allowedUsers(store, cfg, now = Date.now()) {
-  return store.activeUsers(now).filter((u) => !usage(store, cfg, u, now).over);
+  return store.activeUsers(now, cfg.adminIds).filter((u) => !usage(store, cfg, u, now).over);
 }
 
 module.exports = { GB, usage, allowedUsers, quotaGb, windowStart, monthDay };
