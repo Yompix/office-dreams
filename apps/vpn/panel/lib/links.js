@@ -12,6 +12,15 @@ function vless(u, n, brand) {
   return `vless://${u.uuid}@${n.host}:${n.port}?${p}#${label(brand, n)}`;
 }
 
+// VLESS over WebSocket behind the Railway https domain (real certificate, port 443)
+function vlessWs(u, n, brand) {
+  const p = new URLSearchParams({ encryption: 'none', security: 'tls', sni: n.host, fp: 'chrome', type: 'ws', host: n.host, path: n.ws_path });
+  return `vless://${u.uuid}@${n.host}:443?${p}#${label(brand, n)}`;
+}
+
+// Reality through a Railway TCP proxy (random public port)
+const vlessRailwayReality = (u, n, brand) => vless(u, { ...n, host: n.rhost, port: n.rport }, brand).replace(/#.*$/, `#${label(brand, n)}%20R`);
+
 // Hysteria2 (QUIC/UDP): fastest on lossy mobile networks; self-signed cert pinned by its SHA-256
 function hy2(u, n, brand) {
   const p = new URLSearchParams({ sni: n.sni, insecure: '1' });
@@ -26,8 +35,11 @@ function subscription(u, nodes, cfg, now = Date.now()) {
   const active = u.expires > now && !u.banned;
   const lines = [];
   if (active) {
-    for (const n of nodes) lines.push(vless(u, n, cfg.brand));
-    for (const n of nodes) if (n.pin) lines.push(hy2(u, n, cfg.brand));
+    for (const n of nodes) {
+      if (n.kind === 'railway') { lines.push(vlessWs(u, n, cfg.brand)); if (n.rport && n.rhost) lines.push(vlessRailwayReality(u, n, cfg.brand)); }
+      else lines.push(vless(u, n, cfg.brand));
+    }
+    for (const n of nodes) if (n.pin && n.kind !== 'railway') lines.push(hy2(u, n, cfg.brand));
   }
   if (!active) lines.push(notice(u.lang === 'ru' || u.lang === 'uk' ? '⛔ Подписка закончилась — продлите в боте' : '⛔ Subscription ended — renew in the bot'));
   else if (!lines.length) lines.push(notice('⏳ Servers are being set up'));
@@ -57,4 +69,4 @@ function appLinks(url, brand) {
   ];
 }
 
-module.exports = { vless, hy2, subscription, appLinks };
+module.exports = { vless, vlessWs, hy2, subscription, appLinks };

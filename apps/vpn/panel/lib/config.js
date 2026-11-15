@@ -27,6 +27,11 @@ function load(e = process.env) {
     trialDays: Number(e.TRIAL_DAYS ?? 3),
     refDays: Number(e.REF_DAYS ?? 7),
     plans,
+    // a node running as a Railway service (see apps/vpn/railway-node); TCP is "host:port" of its TCP proxy
+    railwayNode: e.RAILWAY_NODE_SECRET && e.RAILWAY_NODE_HOST ? {
+      name: e.RAILWAY_NODE_NAME || '🌐 Railway', secret: e.RAILWAY_NODE_SECRET, host: e.RAILWAY_NODE_HOST,
+      rhost: (e.RAILWAY_NODE_TCP || '').split(':')[0] || '', rport: Number((e.RAILWAY_NODE_TCP || '').split(':')[1]) || 0,
+    } : null,
     // Telegram sends this back in X-Telegram-Bot-Api-Secret-Token, so we know a webhook call is real
     hookSecret: botToken ? crypto.createHash('sha256').update('hook:' + botToken).digest('hex').slice(0, 48) : '',
   };

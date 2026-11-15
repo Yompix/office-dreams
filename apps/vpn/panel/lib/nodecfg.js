@@ -1,7 +1,35 @@
 'use strict';
 /* Configs the node agent downloads: Xray (VLESS Reality on TCP 443) and Hysteria2 (UDP 443). */
 
+const RAILWAY_WS_PORT = 8080;   // Railway https domain -> this port (TLS ends at Railway's edge)
+const RAILWAY_REALITY_PORT = 9443; // Railway TCP proxy -> this port
+
+function realityInbound(n, users, port) {
+  return {
+    listen: '0.0.0.0', port, protocol: 'vless', tag: 'reality',
+    settings: { clients: users.map((u) => ({ id: u.uuid, flow: 'xtls-rprx-vision', email: `u${u.id}` })), decryption: 'none' },
+    streamSettings: {
+      network: 'tcp', security: 'reality',
+      realitySettings: { show: false, dest: `${n.sni}:443`, xver: 0, serverNames: [n.sni], privateKey: n.priv, shortIds: [n.sid] },
+    },
+    sniffing: { enabled: true, destOverride: ['http', 'tls', 'quic'] },
+  };
+}
+
 function xray(n, users) {
+  const base = xrayVps(n, users);
+  if (n.kind !== 'railway') return base;
+  base.inbounds = [{
+    listen: '0.0.0.0', port: RAILWAY_WS_PORT, protocol: 'vless', tag: 'ws',
+    settings: { clients: users.map((u) => ({ id: u.uuid, email: `u${u.id}` })), decryption: 'none' },
+    streamSettings: { network: 'ws', wsSettings: { path: n.ws_path } },
+    sniffing: { enabled: true, destOverride: ['http', 'tls', 'quic'] },
+  }];
+  if (n.rport) base.inbounds.push(realityInbound(n, users, RAILWAY_REALITY_PORT));
+  return base;
+}
+
+function xrayVps(n, users) {
   return {
     log: { loglevel: 'warning' },
     inbounds: [{
@@ -48,4 +76,4 @@ function hysteria(n, users) {
   return L.join('\n');
 }
 
-module.exports = { xray, hysteria };
+module.exports = { xray, hysteria, RAILWAY_WS_PORT, RAILWAY_REALITY_PORT };

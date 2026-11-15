@@ -34,6 +34,11 @@ function open(file) {
       port INTEGER DEFAULT 443, hy2_port INTEGER DEFAULT 443, pin TEXT DEFAULT '', seen INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1
     );
   `);
+  // columns added after the first release
+  const cols = db.prepare('PRAGMA table_info(nodes)').all().map((c) => c.name);
+  for (const [c, def] of [['kind', "TEXT DEFAULT 'vps'"], ['ws_path', "TEXT DEFAULT ''"], ['rhost', "TEXT DEFAULT ''"], ['rport', 'INTEGER DEFAULT 0']]) {
+    if (!cols.includes(c)) db.exec(`ALTER TABLE nodes ADD COLUMN ${c} ${def}`);
+  }
 
   const q = (sql) => db.prepare(sql);
   const s = {
@@ -104,6 +109,21 @@ function open(file) {
       const secret = crypto.randomBytes(24).toString('hex');
       const r = s.insNode.run(name, host, secret, k.priv, k.pub, crypto.randomBytes(4).toString('hex'), sni);
       return store.node(Number(r.lastInsertRowid));
+    },
+    // a node that runs as a Railway service (no own server): WebSocket via the Railway https domain
+    // + optional Reality via a Railway TCP proxy. Found by its secret, created on first sight.
+    railwayNode({ name, host, rhost = '', rport = 0, secret }) {
+      let n = store.nodeBySecret(secret);
+      const wsPath = '/' + crypto.createHash('sha256').update('ws:' + secret).digest('hex').slice(0, 20);
+      if (!n) {
+        const k = realityKeys();
+        const r = db.prepare("INSERT INTO nodes (name, host, secret, priv, pub, sid, sni, kind, ws_path) VALUES (?, ?, ?, ?, ?, ?, ?, 'railway', ?)")
+          .run(name, host, secret, k.priv, k.pub, crypto.randomBytes(4).toString('hex'), 'www.microsoft.com', wsPath);
+        n = store.node(Number(r.lastInsertRowid));
+      }
+      db.prepare("UPDATE nodes SET name = ?, host = ?, rhost = ?, rport = ?, kind = 'railway', ws_path = ? WHERE id = ?")
+        .run(name, host, rhost, Number(rport) || 0, wsPath, n.id);
+      return store.node(n.id);
     },
     node: (id) => db.prepare('SELECT * FROM nodes WHERE id = ?').get(id) || null,
     nodeBySecret: (secret) => db.prepare('SELECT * FROM nodes WHERE secret = ?').get(secret) || null,

@@ -154,5 +154,19 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(calls.filter((c) => c.m === 'sendMessage' && c.p.chat_id === 100).length, 1);
   ok('expiry reminder once');
 
+  // Railway node: WebSocket via the https domain + Reality via the TCP proxy, no Hysteria2
+  const rn = store.railwayNode({ name: 'RW', host: 'node.up.railway.app', rhost: 'x.proxy.rlwy.net', rport: 12345, secret: 's'.repeat(40) });
+  const rn2 = store.railwayNode({ name: 'RW', host: 'node.up.railway.app', rhost: 'x.proxy.rlwy.net', rport: 23456, secret: 's'.repeat(40) });
+  assert.strictEqual(rn.id, rn2.id); assert.strictEqual(rn2.rport, 23456); assert.strictEqual(rn2.priv, rn.priv);
+  const rc = NodeCfg.xray(rn2, store.activeUsers(now));
+  assert.deepStrictEqual(rc.inbounds.map((i) => i.port), [8080, 9443]);
+  assert.strictEqual(rc.inbounds[0].streamSettings.wsSettings.path, rn2.ws_path);
+  store.setNodeEnabled(node.id, false);
+  const rs = Links.subscription(store.user(200), store.enabledNodes(), cfg, now).lines;
+  assert.strictEqual(rs.length, 2);
+  assert.ok(rs[0].includes('@node.up.railway.app:443?') && rs[0].includes('type=ws') && rs[0].includes('security=tls'));
+  assert.ok(rs[1].includes('@x.proxy.rlwy.net:23456?') && rs[1].includes('security=reality'));
+  ok('railway node (ws + reality over tcp proxy)');
+
   console.log(`\n${n} tests passed`);
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -127,6 +127,7 @@ async function startBot(cfg, tg, bot, log) {
 if (require.main === module) {
   const cfg = Config.load();
   const store = Store.open(cfg.dbPath);
+  if (cfg.railwayNode) { const n = store.railwayNode(cfg.railwayNode); console.log(`railway node #${n.id} ${n.host}${n.rport ? ' + ' + n.rhost + ':' + n.rport : ''}`); }
   const tg = cfg.botToken ? Tg.client(cfg.botToken) : { call: async () => { throw new Error('BOT_TOKEN is not set'); } };
   const bot = Bot.create({ cfg, store, tg });
   http.createServer(createApp({ cfg, store, bot })).listen(cfg.port, () => console.log(`${cfg.brand} panel on :${cfg.port}, db ${cfg.dbPath}`));
