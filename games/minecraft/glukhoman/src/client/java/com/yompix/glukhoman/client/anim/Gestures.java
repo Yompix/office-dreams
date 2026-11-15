@@ -199,6 +199,8 @@ public final class Gestures {
     /** Лунатики: идут во сне, стоят — качаются; на звук голова дёргается; глаза закрыты. */
     public static final AnimSet SLEEP = new AnimSet("sleepwalk", "s_idle", List.of(), null, null, null, 0.12).withLook(25, 1, 1.5, 0)
             .pick(a -> a.walking ? "sleepwalk" : "s_idle");
+    /** Безымянные: стоят, не моргают, голова набок, следят медленно. */
+    public static final AnimSet NAMELESS = new AnimSet("sleepwalk", "s_idle", List.of(), null, null, null, 0.0).withLook(90, 0.6, 2.0, 18).noBlink();
     /** Двойник: смотрит с опозданием и перелётом, не моргает, голова набок. */
     public static final AnimSet DOPPEL = new AnimSet("walk", "idle", List.of(), null, null, null, 0.0).withLook(100, 0.45, 3.2, 14).noBlink();
     /** Обходчик: см. {@link Creatures#watcher}. Не дышит, не моргает, взгляд перелетает за 90° и медленно возвращается, голова кренится. */
@@ -207,7 +209,7 @@ public final class Gestures {
 
     public static final Map<String, AnimSet> SETS = Map.ofEntries(Map.entry("zakhar", ZAKHAR), Map.entry("@me", PLAYER), Map.entry("vika", VIKA),
             Map.entry("gena", GENA), Map.entry("petrovich", PETROVICH), Map.entry("polya", POLYA), Map.entry("zina", ZINA),
-            Map.entry("nyura", POLYA), Map.entry("kolya", PETROVICH), Map.entry("lyuba", ZINA), Map.entry("mitya", VIKA));
+            Map.entry("nyura", POLYA), Map.entry("nameless", NAMELESS), Map.entry("kolya", PETROVICH), Map.entry("lyuba", ZINA), Map.entry("mitya", VIKA));
 
     /** Жесты по имени — для синхронизации с сервера (S2C «gest»). */
     public static Clip byName(String n, double hold) {

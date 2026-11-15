@@ -683,6 +683,17 @@ def residents():
     skin('lyuba', hair=(150, 110, 70), coat=(84, 62, 52), legs=(52, 48, 52), boots=(40, 34, 32), face=(204, 170, 150))
     # Гена — бригадир с мотовоза (пока только по рации; набор анимации готов к появлению): кепка, оранжевый жилет
     skin('gena', hair=(80, 62, 48), coat=(196, 104, 40), legs=(40, 44, 56), boots=(30, 28, 26), face=(200, 160, 140), cap=(52, 58, 70))
+    # Безымянные (0.6): сошедшие пассажиры без лиц — серая гладкая кожа на месте глаз и рта, ватник 1953-го
+    skin('nameless', hair=(40, 40, 42), coat=(52, 54, 50), legs=(44, 44, 42), boots=(26, 24, 22), face=(150, 146, 140), scarf=(44, 44, 46))
+    from PIL import Image as _I
+    for suf in ('', '_blink', '_talk', '_half', '_eyes_l', '_eyes_r'):
+        f = f'{A}/textures/entity/res_nameless{suf}.png'
+        im = _I.open(f).convert('RGBA')
+        px = im.load()
+        for x in range(9, 15):
+            for y in range(10, 16):
+                px[x, y] = (150 - (y - 10) * 4, 146 - (y - 10) * 4, 140 - (y - 10) * 4, 255)
+        im.save(f)
     skin('mitya', hair=(120, 96, 66), coat=(60, 84, 70), legs=(44, 46, 60), boots=(36, 32, 30), face=(210, 178, 158), girl=True)
 
 

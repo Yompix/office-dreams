@@ -171,6 +171,11 @@ public final class Cam {
             BlockPos q = st.point(t);
             if (q != null && inFrame(p, Vec3d.ofCenter(q), 45, true)) s.subj.merge(t, 5, Integer::sum);
         }
+        for (String t : Part2.targets()) {   // 0.6: расписание Поли (сквозь щель), надписи на шпалах — только в ИК
+            BlockPos q = st.point(t);
+            if (q == null || (t.startsWith("carve") && !s.ir)) continue;
+            if (inFrame(p, Vec3d.ofCenter(q), t.startsWith("carve") ? 9 : 14, true)) s.subj.merge(t, 5, Integer::sum);
+        }
     }
 
     /** Точка в кадре: в пределах дальности, в угле видоискателя, без стены между (сквозь стекло и листву — видно). */

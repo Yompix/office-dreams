@@ -84,9 +84,23 @@ public final class Creatures {
         GHOSTS.add(new Ghost(g, mc.world.getTime()));
     }
 
+    static final List<Object[]> LATER = new ArrayList<>();
+
+    /** Отложенное действие на клиенте (через n тиков). */
+    public static void later(int ticks, Runnable r) {
+        LATER.add(new Object[]{ticks, r});
+    }
+
     /** Из клиентского тика: «след» отступает назад и через 2.5 с исчезает. */
     public static void tick() {
         var mc = MinecraftClient.getInstance();
+        LATER.removeIf(o -> {
+            int n = (Integer) o[0] - 1;
+            o[0] = n;
+            if (n > 0) return false;
+            ((Runnable) o[1]).run();
+            return true;
+        });
         if (mc.world == null) {
             GHOSTS.clear();
             return;

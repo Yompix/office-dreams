@@ -460,7 +460,9 @@ public final class Autotest {
                 {"t3_bogie", 10, 66, 19, 18000L, 4.0}, {"t3_house", 8, 65, 40, 1000L, 5.0},
                 {"proto_npc", 1, 66, 27, 6000L, 21.2}, {"proto_cut", 1, 66, 27, 18000L, 40.2},
                 {"demo_watcher", 1, 66, 27, 18000L, 30.2}, {"demo_residents", 1, 66, 27, 6000L, 26.2}, {"demo_moments", 1, 66, 27, 6000L, 30.2},
-                {"pr_board", 1, 66, 27, 18000L, 14.2}, {"c1_handover", 1, 66, 27, 6000L, 34.2}, {"pr_train", 1, 66, 27, 18000L, 12.2}};
+                {"pr_board", 1, 66, 27, 18000L, 14.2}, {"c1_handover", 1, 66, 27, 6000L, 34.2}, {"pr_train", 1, 66, 27, 18000L, 12.2},
+                {"c2_gena", 1, 66, 27, 1500L, 24.2}, {"c2_pass", 1, 66, 27, 18000L, 16.2}, {"c3_savva", 1, 66, 27, 6000L, 16.2},
+                {"demo_ch2", 40, 66, 25, 13000L, 34.2}, {"c3_naryad", 418, 66, 20, 18000L, 22.2}, {"demo_ch3", 330, 66, 22, 18000L, 34.2}};
         String only = System.getProperty("glukhoman.only", "");
         for (Object[] sh : shots) {
             String id = (String) sh[0];

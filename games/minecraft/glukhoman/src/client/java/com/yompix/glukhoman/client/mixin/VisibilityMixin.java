@@ -15,6 +15,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class VisibilityMixin {
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
     private <E extends Entity> void glukhoman$seen(E entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
+        if (entity instanceof net.minecraft.entity.decoration.DisplayEntity.TextDisplayEntity td && td.getText().getString().startsWith("‡")) {
+            // 0.6: надписи на шпалах «вырезаны» — видны только в видоискателе в ИК (и на плёнке)
+            boolean ok = (Viewfinder.view() && Viewfinder.ir) || (com.yompix.glukhoman.client.Cine.active && com.yompix.glukhoman.client.Cine.replay);
+            if (!ok) cir.setReturnValue(false);
+            return;
+        }
+        if (entity instanceof com.yompix.glukhoman.entity.ResidentEntity r && r.cameraOnly) {
+            cir.setReturnValue(Viewfinder.view());
+            return;
+        }
         if (!(entity instanceof Seen s)) return;
         if (com.yompix.glukhoman.client.Cine.active && com.yompix.glukhoman.client.Cine.replay) {   // на плёнке видно то, чего не было в кадре
             cir.setReturnValue(true);

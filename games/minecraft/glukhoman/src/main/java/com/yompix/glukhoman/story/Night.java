@@ -64,6 +64,7 @@ public final class Night {
     }
 
     static int need() {
+        if (st().data.getInt("night") == 3) return Math.max(2, Math.min(3, Story.players().size() + 1));   // ночь 3: двое и больше
         return Math.max(1, Math.min(3, Story.players().size()));
     }
 
@@ -75,7 +76,9 @@ public final class Night {
         Map<String, Integer> own = Tapes.weight(st, false);
         List<String> pool = new ArrayList<>(List.of("petrovich", "zina", "vika"));
         pool.removeIf(x -> st.flag("taken:" + x));
+        if (st.flag("listed:petrovich") && pool.contains("petrovich") && !Tapes.anchored(st, "petrovich")) out.add("petrovich");   // снял его имя на шпале — внёс в список
         List<String> byList = new ArrayList<>(pool);
+        byList.removeAll(out);
         byList.removeIf(x -> listed.getOrDefault(x, 0) <= 0 || Tapes.anchored(st, x));
         byList.sort((a, b) -> listed.getOrDefault(b, 0) - listed.getOrDefault(a, 0));
         for (String x : byList) if (out.size() < need()) out.add(x);
@@ -118,7 +121,7 @@ public final class Night {
             r.speed = 0.55;
             WALKERS.add(r);
         }
-        Glukhoman.LOG.info("Глухомань: ночь 2, лунатики {}", who);
+        Glukhoman.LOG.info("Глухомань: ночь {}, лунатики {}", st.data.getInt("night") == 3 ? 3 : 2, who);
         watcher = Story.spawn(GContent.WATCHER, st.point("w_post"));
         if (watcher != null) {
             watcher.posted = true;
@@ -127,6 +130,7 @@ public final class Night {
         Story.lamps("station", true);
         Story.setStep("n2_wait");
         Story.voice("n2_zakhar_1", null, true);
+        if (st.data.getInt("night") == 3) Part2.night3Start();
         roles();
     }
 

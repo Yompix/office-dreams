@@ -24,6 +24,6 @@ public final class Watch {
     }
 
     public static boolean playable(ServerPlayerEntity p) {
-        return p.isAlive() && !p.isSpectator() && !p.isCreative();
+        return p.isAlive() && !p.isSpectator() && !p.isCreative() && !com.yompix.glukhoman.story.Part2.hidden(p);
     }
 }
