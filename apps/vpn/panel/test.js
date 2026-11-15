@@ -331,24 +331,35 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(c2, 200); assert.strictEqual(rr2.kind, 'done');
   assert.strictEqual(store.user(901).bal, balB - 299);
   assert.strictEqual(store.user(900).bal, balA);
-  // withdraw: minimum $5, admin approves -> CryptoBot transfer; decline -> money back
+  // withdraw: up to $50 paid at once; above that or if CryptoBot fails -> admin buttons; decline -> money back
   store.credit(901, 1000, 'gift', 0, 'g2', now);
   const wbal = store.user(901).bal;
   [c2, rr2] = await wpa.api('withdraw', initB, {}, now);
   assert.strictEqual(c2, 200); assert.strictEqual(store.user(901).bal, 0);
-  const wid = Number(/wd_ok:(\d+)/.exec(JSON.stringify(calls.filter((c) => c.m === 'sendMessage' && c.p.chat_id === 1).pop().p.reply_markup))[1]);
-  await pbot.handle(cb(pB, `wd_ok:${wid}`), now); // not an admin: ignored
-  assert.strictEqual(store.withdrawal(wid).status, 'pending');
-  await pbot.handle(cb(admin, `wd_ok:${wid}`), now);
-  assert.strictEqual(store.withdrawal(wid).status, 'paid');
-  const tr = tcalls.find((c) => c.m === 'transfer').p;
-  assert.strictEqual(tr.user_id, 901); assert.strictEqual(tr.asset, 'USDT'); assert.strictEqual(tr.amount, (wbal / 100).toFixed(2)); assert.strictEqual(tr.spend_id, `yurk-wd-${wid}`);
+  const tr = tcalls.filter((c) => c.m === 'transfer').pop().p;
+  assert.strictEqual(tr.user_id, 901); assert.strictEqual(tr.asset, 'USDT'); assert.strictEqual(tr.amount, (wbal / 100).toFixed(2));
+  const wid = Number(tr.spend_id.replace('yurk-wd-', ''));
+  assert.strictEqual(store.withdrawal(wid).status, 'paid', 'small withdrawal is paid automatically');
   assert.strictEqual((await wpa.api('withdraw', initB, {}, now))[0], 400); // nothing left
-  store.credit(901, 700, 'gift', 0, 'g3', now);
-  await wpa.api('withdraw', initB, {}, now);
+  // CryptoBot fails (999.00 in the fake) -> stays pending, admin can retry or decline
+  store.credit(901, 99900 - 0, 'gift', 0, 'g3', now);
+  const big = { ...cfg, referral: { ...cfg.referral, autoMax: 1000 } };
+  const pbot2 = Bot.create({ cfg: big, store, tg, cb: fakeCb2, log: quiet });
+  const wpa2 = WebApp.create({ cfg: big, store, bot: pbot2, tg, cb: fakeCb2, log: quiet });
+  [c2, rr2] = await wpa2.api('withdraw', initB, {}, now);
   const wid2 = wid + 1;
-  await pbot.handle(cb(admin, `wd_no:${wid2}`), now);
-  assert.strictEqual(store.withdrawal(wid2).status, 'declined'); assert.strictEqual(store.user(901).bal, 700);
+  assert.strictEqual(store.withdrawal(wid2).status, 'pending');
+  assert.ok(JSON.stringify(last('sendMessage').p).includes(`wd_ok:${wid2}`) || calls.some((c) => JSON.stringify(c.p).includes(`wd_ok:${wid2}`)));
+  await pbot2.handle(cb(pB, `wd_no:${wid2}`), now); // not an admin: ignored
+  assert.strictEqual(store.withdrawal(wid2).status, 'pending');
+  await pbot2.handle(cb(admin, `wd_no:${wid2}`), now);
+  assert.strictEqual(store.withdrawal(wid2).status, 'declined'); assert.strictEqual(store.user(901).bal, 99900);
+  // above the auto limit ($50) -> waits for the admin, approve pays
+  [c2, rr2] = await wpa.api('withdraw', initB, {}, now);
+  const wid3 = wid2 + 1;
+  assert.strictEqual(store.withdrawal(wid3).status, 'pending');
+  await pbot.handle(cb(admin, `wd_ok:${wid3}`), now);
+  assert.strictEqual(store.withdrawal(wid3).status, 'pending', 'failed transfer keeps it pending');
   assert.ok(Money.report(store, cfg, now).partners > 0);
   ok('partner program: 20% + 5%, balance, withdrawals');
 

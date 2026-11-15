@@ -34,7 +34,8 @@ function load(e = process.env) {
     trialDays: Number(e.TRIAL_DAYS ?? 3),
     refDays: Number(e.REF_DAYS ?? 3),
     // partner program: % of what the owner really got, level 1 and level 2; min withdrawal in USD
-    referral: { l1Pct: Number(e.REF1_PCT ?? 20), l2Pct: Number(e.REF2_PCT ?? 5), minOut: Number(e.REF_MIN_OUT ?? 5) },
+    referral: { l1Pct: Number(e.REF1_PCT ?? 20), l2Pct: Number(e.REF2_PCT ?? 5), minOut: Number(e.REF_MIN_OUT ?? 5),
+      autoMax: Number(e.REF_AUTO_MAX ?? 50) }, // withdrawals up to this many $ are paid at once; bigger ones wait for the owner
     plans,
     tiers,
     // money report: what the owner really gets and what Railway costs

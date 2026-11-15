@@ -307,7 +307,8 @@ const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurre
 
 const L = {
   ru: {
-    pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
+    wdDone: "Деньги отправлены в @CryptoBot ✅",
+    pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или моментально вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафик в этом месяце', gb: 'ГБ', gbMo: 'ГБ/мес', qOver: 'Лимит исчерпан — продлите',
     on: 'Защищено', off: 'Не подключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'),
@@ -326,6 +327,7 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    wdDone: "Sent to your @CryptoBot ✅",
     pH: 'Partner program', pDesc: (a, b, d) => `<em>${a}%</em> of every payment of your friend — forever, <em>${b}%</em> of your friends' friends and <em>+${d} days</em> for a friend's first payment.`, pFriends: 'Friends', pEarned: 'Earned', pBal: 'Balance', pOut: 'Withdraw', pNote: (m) => `Spend the balance on your subscription or withdraw USDT via @CryptoBot from $${m}`, mBal: 'YURK balance', mBalS: (b) => `Partner money · ${b}`, wdOk: 'Withdrawal requested ⏳', refBtn: 'Invite friends',
     online: 'Online · Reality + WebSocket',
     traffic: 'Traffic this month', gb: 'GB', gbMo: 'GB/mo', qOver: 'Limit reached — renew',
@@ -345,6 +347,7 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    wdDone: "Гроші надіслано в @CryptoBot ✅",
     pH: 'Партнерка', pDesc: (a, b, d) => `<em>${a}%</em> з кожної оплати друга — назавжди, <em>${b}%</em> з оплат друзів ваших друзів і <em>+${d} дні</em> підписки за першу оплату друга.`, pFriends: 'Друзів', pEarned: 'Зароблено', pBal: 'Баланс', pOut: 'Вивести', pNote: (m) => `Баланс можна витрачати на підписку або вивести в USDT через @CryptoBot від $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнерські гроші · ${b}`, wdOk: 'Заявку на виведення надіслано ⏳', refBtn: 'Покликати друзів',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафік цього місяця', gb: 'ГБ', gbMo: 'ГБ/міс', qOver: 'Ліміт вичерпано — продовжте',
@@ -364,6 +367,7 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    wdDone: "به @CryptoBot ارسال شد ✅",
     pH: 'برنامه همکاری', pDesc: (a, b, d) => `<em>${a}٪</em> از هر پرداخت دوست — برای همیشه، <em>${b}٪</em> از دوستانِ دوستان و <em>${d}+ روز</em> برای اولین پرداخت دوست.`, pFriends: 'دوستان', pEarned: 'درآمد', pBal: 'موجودی', pOut: 'برداشت', pNote: (m) => `موجودی را برای اشتراک خرج کنید یا از $${m} به USDT در @CryptoBot برداشت کنید`, mBal: 'موجودی YURK', mBalS: (b) => `پول همکاری · ${b}`, wdOk: 'درخواست برداشت ثبت شد ⏳', refBtn: 'دعوت دوستان',
     online: 'آنلاین · Reality + WebSocket',
     traffic: 'ترافیک این ماه', gb: 'گیگ', gbMo: 'گیگ/ماه', qOver: 'حجم تمام شد — تمدید کنید',
@@ -383,6 +387,7 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    wdDone: "@CryptoBot'a gönderildi ✅",
     pH: 'Ortaklık', pDesc: (a, b, d) => `Arkadaşının her ödemesinin <em>%${a}</em>'i — süresiz, arkadaşlarının arkadaşlarından <em>%${b}</em> ve ilk ödemede <em>+${d} gün</em>.`, pFriends: 'Arkadaş', pEarned: 'Kazanç', pBal: 'Bakiye', pOut: 'Çek', pNote: (m) => `Bakiyeyi abonelikte kullanın veya $${m}'dan itibaren @CryptoBot ile USDT çekin`, mBal: 'YURK bakiyesi', mBalS: (b) => `Ortaklık parası · ${b}`, wdOk: 'Çekim talebi gönderildi ⏳', refBtn: 'Arkadaş davet et',
     online: 'Çevrimiçi · Reality + WebSocket',
     traffic: 'Bu ayki trafik', gb: 'GB', gbMo: 'GB/ay', qOver: 'Limit doldu — yenileyin',
@@ -402,6 +407,7 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    wdDone: "已转入 @CryptoBot ✅",
     pH: '推广计划', pDesc: (a, b, d) => `好友每次付款得 <em>${a}%</em>（永久），二级好友付款得 <em>${b}%</em>，好友首次付款再送 <em>+${d} 天</em>。`, pFriends: '好友', pEarned: '已赚', pBal: '余额', pOut: '提现', pNote: (m) => `余额可用于支付订阅，满 $${m} 可通过 @CryptoBot 提现 USDT`, mBal: 'YURK 余额', mBalS: (b) => `推广收入 · ${b}`, wdOk: '提现申请已提交 ⏳', refBtn: '邀请好友',
     online: '在线 · Reality + WebSocket',
     traffic: '本月流量', gb: 'GB', gbMo: 'GB/月', qOver: '流量已用完 — 请续费',
@@ -421,6 +427,7 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    wdDone: "Enviado a tu @CryptoBot ✅",
     pH: 'Programa de socios', pDesc: (a, b, d) => `<em>${a}%</em> de cada pago de tu amigo — para siempre, <em>${b}%</em> de los amigos de tus amigos y <em>+${d} días</em> por el primer pago.`, pFriends: 'Amigos', pEarned: 'Ganado', pBal: 'Saldo', pOut: 'Retirar', pNote: (m) => `Usa el saldo para tu suscripción o retíralo en USDT vía @CryptoBot desde $${m}`, mBal: 'Saldo YURK', mBalS: (b) => `Dinero de socios · ${b}`, wdOk: 'Retiro solicitado ⏳', refBtn: 'Invitar amigos',
     online: 'En línea · Reality + WebSocket',
     traffic: 'Tráfico este mes', gb: 'GB', gbMo: 'GB/mes', qOver: 'Límite agotado — renueva',
@@ -569,7 +576,7 @@ $('share').onclick = () => {
 
 $('out').onclick = async () => {
   const b = $('out'); b.disabled = true; haptic('medium');
-  try { S = await api('withdraw'); render(); haptic('ok'); toast(T.wdOk); } catch (e) { toast(T.fail); b.disabled = false; }
+  try { S = await api('withdraw'); render(); haptic('ok'); toast(S.paidOut ? T.wdDone : T.wdOk); if (S.paidOut) confetti(); } catch (e) { toast(T.fail); b.disabled = false; }
 };
 
 let watch = null;

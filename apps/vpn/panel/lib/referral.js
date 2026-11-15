@@ -66,6 +66,7 @@ const R = {
 const RU_LIKE = new Set(['be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka']);
 const rt = (lang) => { const l = String(lang || '').slice(0, 2); return R[l] || (RU_LIKE.has(l) ? R.ru : R.en); };
 const usd = (cents) => (cents / 100).toFixed(2);
+const HINT = 'Частые причины: в @CryptoBot → Crypto Pay → приложение → Security не включены Transfers; на балансе приложения мало USDT; человек ни разу не запускал @CryptoBot.';
 
 // what the owner really received for a payment, in cents
 function netCents(cfg, { method, stars = 0, usd: u = 0 }) {
@@ -115,8 +116,23 @@ function create({ cfg, store, send, cb = null, log = console }) {
     if (cents < ref.minOut * 100) return { error: 'min' };
     const id = store.withdrawRequest(u.id, cents, now);
     if (!id) return { error: 'balance' };
-    await send(u.id, rt(u.lang).wdReq(usd(cents))).catch(() => {});
     const who = u.name || u.id;
+    // small withdrawals are paid right away
+    if (cb && cents <= ref.autoMax * 100) {
+      const err = await pay(id);
+      if (!err) {
+        await send(u.id, rt(u.lang).wdPaid(usd(cents))).catch(() => {});
+        for (const a of cfg.adminIds) send(a, `🤖 Автовыплата #${id}: $${usd(cents)} USDT → ${who} (id ${u.id}).`).catch(() => {});
+        return { ok: true, id, amount: usd(cents), paid: true };
+      }
+      for (const a of cfg.adminIds) {
+        await send(a, `⚠️ Автовыплата #${id} ($${usd(cents)} → ${who}) не прошла: ${err}\n\n${HINT}`,
+          [[{ text: '🔁 Повторить', callback_data: `wd_ok:${id}` }, { text: '❌ Отклонить', callback_data: `wd_no:${id}` }]]).catch(() => {});
+      }
+      await send(u.id, rt(u.lang).wdReq(usd(cents))).catch(() => {});
+      return { ok: true, id, amount: usd(cents), paid: false };
+    }
+    await send(u.id, rt(u.lang).wdReq(usd(cents))).catch(() => {});
     for (const a of cfg.adminIds) {
       await send(a, `💸 Вывод #${id}: <b>$${usd(cents)}</b> USDT для ${who} (id ${u.id}).\nЗаработал всего $${info(store.user(u.id)).earned}. Деньги уйдут с баланса вашего приложения в @CryptoBot.`,
         [[{ text: '✅ Выплатить', callback_data: `wd_ok:${id}` }, { text: '❌ Отклонить', callback_data: `wd_no:${id}` }]]).catch(() => {});
@@ -135,14 +151,25 @@ function create({ cfg, store, send, cb = null, log = console }) {
       return send(adminChat, `❌ Вывод #${id} отклонён, $${usd(w.cents)} вернулись пользователю на баланс.`);
     }
     if (!cb) return send(adminChat, '⚠️ CryptoBot не подключён (CRYPTOBOT_TOKEN).');
+    const err = await pay(id);
+    if (!err) {
+      await send(w.uid, rt(u.lang).wdPaid(usd(w.cents))).catch(() => {});
+      return send(adminChat, `✅ Вывод #${id}: $${usd(w.cents)} USDT отправлены.`);
+    }
+    return send(adminChat, `⚠️ CryptoBot не отправил вывод #${id}: ${err}\n\n${HINT} Заявка осталась в ожидании — нажмите кнопку ещё раз, когда исправите.`);
+  }
+
+  // CryptoBot transfer; the spend_id makes a repeated call safe (CryptoBot pays it only once). Returns an error text or ''
+  async function pay(id) {
+    const w = store.withdrawal(id);
+    if (!w || w.status !== 'pending' || !cb) return 'нет заявки или CryptoBot';
     try {
       await cb.call('transfer', { user_id: w.uid, asset: 'USDT', amount: usd(w.cents), spend_id: `yurk-wd-${id}`, comment: 'YURK partner payout' });
       store.withdrawPaid(id);
-      await send(w.uid, rt(u.lang).wdPaid(usd(w.cents))).catch(() => {});
-      return send(adminChat, `✅ Вывод #${id}: $${usd(w.cents)} USDT отправлены.`);
+      return '';
     } catch (e) {
       log.error('withdraw', id, e.message);
-      return send(adminChat, `⚠️ CryptoBot не отправил вывод #${id}: ${e.message}\n\nЧастые причины: в @CryptoBot → Crypto Pay → приложение → Security не включены Transfers; на балансе приложения мало USDT; пользователь ни разу не запускал @CryptoBot. Заявка осталась в ожидании — нажмите кнопку ещё раз, когда исправите.`);
+      return e.message;
     }
   }
 
