@@ -1,0 +1,4 @@
+#version 120
+#define FSH
+#define BLOOM_PASS 1
+#include "/program/bloom.glsl"

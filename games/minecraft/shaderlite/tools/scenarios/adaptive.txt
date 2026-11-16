@@ -1,0 +1,18 @@
+wait 10
+cmd time set 1000
+hud off
+cmd gamemode spectator
+cmd tp @s -32 80 0 90 15
+wait 20
+log
+bench before 10
+wait 40
+log
+bench after 10
+screen com.yompix.shaderlite.ConfigScreen
+wait 3
+hud on
+shot config
+screen none
+wait 2
+quit

@@ -1,0 +1,13 @@
+{
+  "shaderlite_adaptive.title": "Адаптивное качество (ShaderLite)",
+  "shaderlite_adaptive.hint": "Держит нужный FPS: на время снижает облака, дальность, частицы",
+  "shaderlite_adaptive.enabled": "Адаптивное качество",
+  "shaderlite_adaptive.target": "Держать FPS",
+  "shaderlite_adaptive.minview": "Не ниже дальности",
+  "shaderlite_adaptive.chunks": "%s чанков",
+  "shaderlite_adaptive.clouds": "Снижать облака",
+  "shaderlite_adaptive.particles": "Снижать частицы",
+  "shaderlite_adaptive.entities": "Снижать сущности",
+  "shaderlite_adaptive.messages": "Писать в игре",
+  "shaderlite_adaptive.msg": "Адаптивное качество: дальность %s (ступень %s из %s)"
+}

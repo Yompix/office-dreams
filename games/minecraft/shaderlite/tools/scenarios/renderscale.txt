@@ -1,0 +1,16 @@
+wait 10
+cmd time set 1000
+hud off
+cmd gamemode spectator
+cmd tp @s -32 80 0 90 15
+wait 30
+bench overview 20
+shot rs_overview
+cmd gamemode creative
+cmd tp @s -19.5 100 10.5
+wait 6
+look 180 2
+wait 6
+bench forest 20
+shot rs_forest
+quit

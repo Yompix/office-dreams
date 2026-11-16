@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "shaderlite_adaptive",
+  "version": "${version}",
+  "name": "ShaderLite: Adaptive Quality",
+  "description": "Keeps a target FPS by changing render distance, clouds, particles and entity distance on the fly. Работает и с шейдерами Iris, и без них.",
+  "authors": ["YOMPIX"],
+  "license": "MIT",
+  "icon": "assets/shaderlite_adaptive/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.yompix.shaderlite.AdaptiveQuality"],
+    "modmenu": ["com.yompix.shaderlite.ModMenuIntegration"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "1.21.1",
+    "fabric-lifecycle-events-v1": "*",
+    "fabric-rendering-v1": "*"
+  },
+  "suggests": { "modmenu": "*", "iris": "*", "sodium": "*" }
+}

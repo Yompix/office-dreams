@@ -1,0 +1,13 @@
+{
+  "shaderlite_adaptive.title": "Адаптивна якість (ShaderLite)",
+  "shaderlite_adaptive.hint": "Тримає потрібний FPS: тимчасово знижує хмари, дальність, частинки",
+  "shaderlite_adaptive.enabled": "Адаптивна якість",
+  "shaderlite_adaptive.target": "Тримати FPS",
+  "shaderlite_adaptive.minview": "Не нижче дальності",
+  "shaderlite_adaptive.chunks": "%s чанків",
+  "shaderlite_adaptive.clouds": "Знижувати хмари",
+  "shaderlite_adaptive.particles": "Знижувати частинки",
+  "shaderlite_adaptive.entities": "Знижувати істот",
+  "shaderlite_adaptive.messages": "Писати в грі",
+  "shaderlite_adaptive.msg": "Адаптивна якість: дальність %s (щабель %s з %s)"
+}

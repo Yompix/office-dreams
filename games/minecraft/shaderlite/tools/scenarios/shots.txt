@@ -1,0 +1,36 @@
+wait 12
+cmd time set 1000
+hud off
+cmd gamemode creative
+cmd tp @s -43.5 100 -9.5
+wait 6
+look 180 2
+wait 3
+shot day
+look 90 14
+wait 3
+shot water
+cmd tp @s -19.5 100 10.5
+wait 6
+look 180 2
+wait 3
+shot forest
+cmd gamemode spectator
+cmd time set 12750
+cmd tp @s -32 80 0 90 3
+wait 6
+shot sunset
+cmd tp @s -10 69 -40 100 8
+wait 5
+shot sunset_water
+cmd time set 18000
+cmd tp @s -32 80 0 0 8
+wait 5
+shot night
+cmd time set 6000
+cmd tp @s 64 -5 448 0 0
+wait 12
+cave 64 -5 448 20 3
+wait 8
+shot cave
+quit

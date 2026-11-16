@@ -1,0 +1,13 @@
+{
+  "shaderlite_adaptive.title": "Adaptive Quality (ShaderLite)",
+  "shaderlite_adaptive.hint": "Keeps your FPS by temporarily lowering clouds, distance, particles",
+  "shaderlite_adaptive.enabled": "Adaptive quality",
+  "shaderlite_adaptive.target": "Target FPS",
+  "shaderlite_adaptive.minview": "Minimum render distance",
+  "shaderlite_adaptive.chunks": "%s chunks",
+  "shaderlite_adaptive.clouds": "Lower clouds",
+  "shaderlite_adaptive.particles": "Lower particles",
+  "shaderlite_adaptive.entities": "Lower entities",
+  "shaderlite_adaptive.messages": "Show messages",
+  "shaderlite_adaptive.msg": "Adaptive quality: render distance %s (step %s of %s)"
+}

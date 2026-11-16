@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "shaderlite_autotest",
+  "version": "1.0.0",
+  "name": "ShaderLite autotest (только для проверки, игрокам не нужен)",
+  "environment": "client",
+  "entrypoints": { "client": ["com.yompix.shaderlite.test.Autotest"] },
+  "depends": { "minecraft": "1.21.1", "fabric-lifecycle-events-v1": "*", "fabric-rendering-v1": "*" }
+}

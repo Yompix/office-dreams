@@ -1,0 +1,2 @@
+SHADOWS=false
+BLOOM=false
