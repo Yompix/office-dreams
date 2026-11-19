@@ -68,7 +68,7 @@ const RULES = [
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 400, height: 400 } });
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300)));
-  await p.route(/\/nightshift\/_cont\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
+  await p.route(/\/(nightshift|web)\/_cont\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
   await p.goto(`http://127.0.0.1:${PORT}/web/_cont.html?gfx=retro`);
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 120000 });
   await p.evaluate(async () => { await window.__W3chars.load(); World.init(); });

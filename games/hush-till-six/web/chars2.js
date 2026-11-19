@@ -701,12 +701,31 @@ const POSE = {
 };
 const _ld = new T.Vector3(), _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
-function footFloor(C) {   // носок не под полом: если подушечка стопы ниже пола, стопа в голеностопе поворачивается вверх ровно до пола
-  C.root.updateWorldMatrix(true, true); const fl = C.root.getWorldPosition(new T.Vector3()).y, iq = C.root.getWorldQuaternion(new T.Quaternion()).invert();
+function footFloor(C, fl0) {   // носок не под полом: если подушечка стопы ниже пола, стопа в голеностопе поворачивается вверх ровно до пола (fl0 — высота пола, по умолчанию — под корнем)
+  C.root.updateWorldMatrix(true, true); const fl = fl0 ?? C.root.getWorldPosition(new T.Vector3()).y, iq = C.root.getWorldQuaternion(new T.Quaternion()).invert();
   for (const sd of ['l', 'r']) { const ft = C.bone['foot_' + sd], bl = C.bone['ball_' + sd]; if (!ft || !bl) continue;
     const fp = ft.getWorldPosition(new T.Vector3()), bp = bl.getWorldPosition(new T.Vector3()); if (bp.y > fl + .01) continue;
     const L = fp.distanceTo(bp) || .1, s = clamp((fl + .015 - fp.y) / L, -1, 1), d = bp.sub(fp).applyQuaternion(iq), hz = Math.hypot(d.x, d.z) || 1, c = Math.sqrt(1 - s * s);
     aimBone(C, 'foot_' + sd, 'ball_' + sd, [d.x / hz * c, s, d.z / hz * c], 1); }
+}
+// пальцы стопы гнутся (19 ноя): стопа на носке — пятка поднята в шаге, ступня круто вниз — пальцы оставались прямым продолжением ступни и уходили под пол
+// на 4–7 см на каждом шаге (shift_clip_check: Гас на камере 07). Теперь сустав у подушечки (ball) сгибается ровно настолько, чтобы кончики пальцев легли на пол.
+// Ось пальцев в осях кости — из позы покоя: вперёд по полу от голеностопа к подушечке.
+function toeFloor(C, fl0) {
+  if (!C.bone.ball_l || !C.bone.foot_l) return; const ss = C.ss || 1, TL = .075 * ss;
+  if (!C.toeAx) { C.toeAx = {}; const save = [];
+    for (const n of ['pelvis', 'thigh_l', 'calf_l', 'foot_l', 'ball_l', 'thigh_r', 'calf_r', 'foot_r', 'ball_r']) { const b = C.bone[n]; if (b && C.rest[n]) { save.push([b, b.quaternion.clone()]); b.quaternion.copy(C.rest[n]); } }
+    C.root.updateWorldMatrix(true, true); const up = new T.Vector3(0, 1, 0).applyQuaternion(C.root.getWorldQuaternion(new T.Quaternion()));
+    for (const sd of ['l', 'r']) { const f = C.bone['foot_' + sd], b = C.bone['ball_' + sd]; if (!f || !b) continue;
+      const d = b.getWorldPosition(new T.Vector3()).sub(f.getWorldPosition(new T.Vector3())); d.addScaledVector(up, -d.dot(up)).normalize();
+      C.toeAx[sd] = d.applyQuaternion(b.getWorldQuaternion(new T.Quaternion()).invert()); }
+    for (const [b, q] of save) b.quaternion.copy(q); }
+  C.root.updateWorldMatrix(true, true); const fl = fl0 ?? C.root.getWorldPosition(new T.Vector3()).y;
+  for (const sd of ['l', 'r']) { const b = C.bone['ball_' + sd], ax = C.toeAx[sd]; if (!b || !ax) continue;
+    const bp = b.getWorldPosition(new T.Vector3()); if (bp.y > fl + TL + .02) continue;
+    const wq = b.getWorldQuaternion(new T.Quaternion()), d = ax.clone().applyQuaternion(wq), need = fl + .014 * ss; if (bp.y + d.y * TL >= need) continue;
+    const sn = clamp((need - bp.y) / TL, -1, .6), h = Math.hypot(d.x, d.z); if (h < 1e-4) continue; const c = Math.sqrt(1 - sn * sn);
+    setWorldQ(b, new T.Quaternion().setFromUnitVectors(d, new T.Vector3(d.x / h * c, sn, d.z / h * c)).multiply(wq)); }
 }
 function heelFloor(C, fl) {   // вытянутая нога сидящего: пятка (≈8 см под голеностопом) не ниже пола fl — нога приподнимается от бедра ровно настолько
   C.root.updateWorldMatrix(true, true); const iq = C.root.getWorldQuaternion(new T.Quaternion()).invert();
@@ -854,7 +873,8 @@ function buildHands() {
   HANDP.phone = pick('Idle_TalkingPhone_Loop', .1, 'r');
   HANDP.cup = pick('Consume', .5, 'l');
   const R0 = n => RESTL[n] || new T.Quaternion();
-  for (const [name, f] of [['fist', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? 1.2 : 1.3)],          // кулак — туже обычного
+  for (const [name, f] of [['press', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? .45 : /_01_/.test(bn) ? .14 : .06)],   // ладонь прижата к стеклу: пальцы прямые, лежат на стекле (у 'flat' кончики загибались в стекло)
+                           ['fist', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? 1.2 : 1.3)],          // кулак — туже обычного
                            ['claw', (bn, q) => /_01_/.test(bn) ? qpow(q, R0(bn), .2) : qpow(q, R0(bn), 1.1)],   // «когти»: ровные костяшки, согнутые кончики
                            ['hook', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? .3 : /_01_/.test(bn) ? .28 : /_02_/.test(bn) ? .42 : .5)],   // «крюк» Жильца: пальцы чуть согнуты — когти смотрят вперёд, а не в ладонь
                            ['write', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), /_01_/.test(bn) ? .5 : .42) : bn.startsWith('middle') ? qpow(q, R0(bn), .68) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.05) : qpow(q, R0(bn), 1.2)],   // пишет: ручка в трёх пальцах (большой, указательный, средний), безымянный и мизинец поджаты — не кулак
@@ -888,7 +908,7 @@ function hookHand(C, sd) {
 }
 // пальцы веером: в открытых позах (ладонь плашмя, тянется, «когти», мягкая кисть) пальцы лежали вплотную и на крупном плане кисть читалась
 // варежкой или комком (владелец, 11 ноя). Указательный, безымянный и мизинец чуть расходятся от среднего — между пальцами появляются просветы
-const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .3, relax: .25, point: .5 };   // в покое — едва заметно: растопыренные пальцы у опущенной руки выглядели манерно
+const FAN = { flat: 1, open: 1.1, claw: 1.2, soft: .3, relax: .25, point: .5, press: 1.15 };   // в покое — едва заметно: растопыренные пальцы у опущенной руки выглядели манерно
 function fanHand(C, sd, k) {
   if (!C.bone['middle_01_' + sd] || !C.bone['middle_02_' + sd]) return; C.bone['hand_' + sd].updateWorldMatrix(true, true);
   const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
@@ -946,6 +966,19 @@ function orientHand(C, sd, fdir, pdir, k = 1) {   // k < 1 — кисть пов
   twistShare(C, sd, wq); setWorldQ(hb, wq);
 }
 // рука к точке мира так, чтобы туда пришлась именно точка кисти «by» (кисть повёрнута — точка касания сместилась: 3 прохода)
+// рука (или нога) — в новую точку мира: запястье (голеностоп) встаёт в точку, локоть (колено) остаётся в своей плоскости, кисть (стопа) сохраняет поворот,
+// предмет в этой руке едет вместе с кистью. Для твёрдого мира (scenes.js solidLimbs): рука, вошедшая в стол или стену, ложится на поверхность
+const _lm0 = new T.Matrix4(), _lm1 = new T.Matrix4();
+function limbTo(C, sd, leg, wx, wy, wz) {
+  const n = leg ? ['thigh_', 'calf_', 'foot_'] : ['upperarm_', 'lowerarm_', 'hand_'], U = C.bone[n[0] + sd], L = C.bone[n[1] + sd], N = C.bone[n[2] + sd]; if (!U || !L || !N) return;
+  C.root.updateWorldMatrix(true, true); _lm0.copy(N.matrixWorld);
+  const wq = N.getWorldQuaternion(new T.Quaternion()), loc = b => C.root.worldToLocal(b.getWorldPosition(new T.Vector3())), s = loc(U), e = loc(L), h = loc(N);
+  const pole = e.sub(s.add(h).multiplyScalar(.5)); if (pole.lengthSq() < 1e-6) pole.set(0, leg ? 0 : -1, leg ? 1 : -.3);
+  const t = C.root.worldToLocal(new T.Vector3(wx, wy, wz));
+  ik2(C, n[0] + sd, n[1] + sd, n[2] + sd, t.x, t.y, t.z, [pole.x, pole.y, pole.z], 1); setWorldQ(N, wq);
+  if (!leg) { N.updateWorldMatrix(true, true); _lm1.copy(_lm0).invert().premultiply(N.matrixWorld);
+    for (const k in PROPS3) { const pr = PROPS3[k]; if (pr.C === C && pr.sd === sd && pr.obj.visible) { pr.obj.updateMatrix(); pr.obj.applyMatrix4(_lm1); } } }
+}
 function reachArm(C, sd, a) {
   const k = a.w ?? 1; if (!(k > 0)) return;
   const pole = a.pole || (sd === 'r' ? [-.7, -1, -.35] : [.7, -1, -.35]);
@@ -1091,6 +1124,79 @@ function holdProp(C, sd, spec, dt) {
       c.rotation.z = u.rz + (pr.sw.x + idle) * (.35 + .12 * i) * (i % 2 ? 1 : -.7) + pr.sv.x * .012 * Math.sin(now * 23 + i * 2.1); });
   }
   pr.obj.visible = true; pr.seen = true;
+  if (!g[3] && WRAP_G[GRIP3[gname] ? gname : name] && !C.o.monster && !window.__NOWRAP && !(C.fpose && WRAP_OPEN[C.fpose[sd]])) wrapGrip(C, sd, pr, gname);
+}
+/* ---------- хват по касанию (19 ноя) ----------
+   Раньше пальцы держащей руки стояли в одной заготовленной позе («grip», «phone»), какой бы ни был предмет: телефон, рация и яблоко
+   то проходили сквозь пальцы, то висели рядом с ними (владелец, 19 ноя: «чтоб они сквозь руки не проходили»). Теперь рука смыкается,
+   как живая: каждый палец от раскрытого сгибается сустав за суставом — основание, середина, кончик — и останавливается ровно там,
+   где фаланга легла на предмет. Форма предмета — его собственные детали (коробки, цилиндры, шары из propMesh).
+   Палец, которому до предмета не дотянуться, остаётся в позе кадра. Ответ запоминается (предмет в руке лежит неподвижно). */
+const WRAP_G = { phone: 1, phone_ear: 1, lighter: 1, radio: 1, torch: 1, apple: 1 }, WRAP_OPEN = { flat: 1, open: 1, press: 1, point: 1, pinch: 1, write: 1, claw: 1, hook: 1 };
+const WRAP_F = [['index', .0085], ['middle', .009], ['ring', .0085], ['pinky', .0075], ['thumb', .0095]];   // палец и его толщина (радиус, м)
+const _gp = new T.Vector3(), _ga = new T.Vector3(), _gP = [new T.Vector3(), new T.Vector3(), new T.Vector3(), new T.Vector3()];
+function propPrims(obj) {   // детали предмета как простые тела: [меш, центр и полуразмеры в его осях, вид]
+  if (obj.userData.prims) return obj.userData.prims;
+  const out = [];
+  obj.traverse(m => { if (!m.isMesh || !m.geometry || (m.material && m.material.blending === T.AdditiveBlending)) return;   // огонёк зажигалки — не тело
+    const gm = m.geometry; if (!gm.boundingBox) gm.computeBoundingBox(); const c = gm.boundingBox.getCenter(new T.Vector3()), e = gm.boundingBox.getSize(new T.Vector3()).multiplyScalar(.5);
+    if (Math.max(e.x, e.y, e.z) < .004) return;
+    out.push({ m, c, e, kind: gm.type === 'SphereGeometry' ? 'sph' : gm.type === 'CylinderGeometry' || gm.type === 'ConeGeometry' ? 'cyl' : 'box', inv: new T.Matrix4() }); });
+  return obj.userData.prims = out;
+}
+function primsNow(obj) { obj.updateMatrixWorld(true); const pr = propPrims(obj); for (const P of pr) P.inv.copy(P.m.matrixWorld).invert(); return pr; }
+function primPen(prims, p, r) {   // насколько шар (центр p, радиус r) вошёл в предмет, м; 0 — не касается
+  let best = 0;
+  for (const P of prims) { _gp.copy(p).applyMatrix4(P.inv).sub(P.c); const e = P.e; let d;
+    if (P.kind === 'sph') { const q = Math.hypot(_gp.x / (e.x + r), _gp.y / (e.y + r), _gp.z / (e.z + r)); d = q < 1 ? (1 - q) * (Math.min(e.x, e.y, e.z) + r) : 0; }
+    else if (P.kind === 'cyl') d = Math.min(Math.max(e.x, e.z) + r - Math.hypot(_gp.x, _gp.z), e.y + r - Math.abs(_gp.y));
+    else d = Math.min(e.x + r - Math.abs(_gp.x), e.y + r - Math.abs(_gp.y), e.z + r - Math.abs(_gp.z));
+    if (d > best) best = d; }
+  return best;
+}
+function fingerPen(b, j0, prims, r) {   // самое глубокое проникновение фаланг пальца, начиная с j0-й (b — три кости пальца)
+  for (let j = 0; j < 3; j++) b[j].getWorldPosition(_gP[j]); _gP[3].copy(_gP[2]).addScaledVector(_ga.subVectors(_gP[2], _gP[1]), .85);
+  let best = 0;
+  for (let j = j0; j < 3; j++) for (const u of j ? [.35, .7, 1] : [.55, .8, 1]) { const d = primPen(prims, _ga.lerpVectors(_gP[j], _gP[j + 1], u), r); if (d > best) best = d; }
+  return best;
+}
+function wrapFinger(b, prims, r, open, shut) {   // палец смыкается на предмете; → коснулся ли
+  for (let j = 0; j < 3; j++) b[j].quaternion.copy(open[j]);
+  let hit = false, free = fingerPen(b, 0, prims, r) <= .0015;   // раскрытый палец уже в предмете (большой у телефона) — сначала ведём его до свободного места, потом до касания
+  for (let j = 0; j < 3 && !hit; j++) { let lo = 0, hi = -1;
+    for (let s = 1; s <= 12; s++) { b[j].quaternion.copy(open[j]).slerp(shut[j], s / 12); const pen = fingerPen(b, free ? j : 0, prims, r);
+      if (!free) { if (pen <= .0015) { free = true; lo = s / 12; } continue; }
+      if (pen > .0015) { hi = s / 12; break; } lo = s / 12; }
+    if (!free || hi < 0) continue;   // согнулся до конца и ничего не встретил — дальше гнётся следующий сустав
+    hit = true; for (let it = 0; it < 4; it++) { const mid = (lo + hi) / 2; b[j].quaternion.copy(open[j]).slerp(shut[j], mid); if (fingerPen(b, j, prims, r) > .0015) hi = mid; else lo = mid; }
+    b[j].quaternion.copy(open[j]).slerp(shut[j], lo);
+    for (let q = j + 1; q < 3; q++) { let l2 = 0; for (let s = 1; s <= 12; s++) { b[q].quaternion.copy(open[q]).slerp(shut[q], s / 12); if (fingerPen(b, q, prims, r) > .0015) break; l2 = s / 12; } b[q].quaternion.copy(open[q]).slerp(shut[q], Math.min(l2, .85)); } }   // следующие фаланги дожимаются до своего касания
+  return hit && free;
+}
+function wrapGrip(C, sd, pr, gname) {
+  buildHands(); if (!HANDP.fist || !C.bone['index_01_' + sd]) return;
+  const key = pr.name + '|' + gname + '|' + sd, cache = C.wrapC || (C.wrapC = {}), bones = [];
+  for (const [f] of WRAP_F) for (let j = 1; j <= 3; j++) bones.push(C.bone[f + '_0' + j + '_' + sd]);
+  if (bones.some(b => !b)) return;
+  if (pr.k >= 1 && cache[key]) { bones.forEach((b, i) => b.quaternion.copy(cache[key][i])); return; }
+  const prims = primsNow(pr.obj), orig = bones.map(b => b.quaternion.clone()), ss = C.ss || 1;
+  WRAP_F.forEach(([f, r], fi) => { const b = bones.slice(fi * 3, fi * 3 + 3), shut = b.map(x => HANDP.fist[sd][x.name] || C.rest[x.name] || x.quaternion.clone());
+    // раскрытый палец — поза покоя; большой — отведён от ладони дальше покоя (в покое он уже лежал внутри предмета на 7–14 мм и «смыкаться» ему было некуда)
+    const open = b.map((x, j) => { const r0 = C.rest[x.name] || x.quaternion.clone(); return f === 'thumb' && j < 2 ? qpow(shut[j], r0, -.8) : r0; });
+    if (wrapFinger(b, prims, r * ss, open, shut)) return;
+    b.forEach((x, j) => x.quaternion.copy(orig[fi * 3 + j]));   // не дотянулся — поза кадра; если она сама в предмете — разгибаем до свободного места
+    for (let u = 1; u <= 10 && fingerPen(b, 0, prims, r * ss) > .0015; u++) b.forEach((x, j) => x.quaternion.copy(orig[fi * 3 + j]).slerp(open[j], u / 10)); });
+  if (pr.k >= 1) cache[key] = bones.map(b => b.quaternion.clone());
+}
+// для проверок (tools/anim/grip_view.js): как рука держит предмет — глубина пальцев в предмете (мм) и сколько пальцев его касаются
+function gripInfo(name) {
+  const pr = PROPS3[name]; if (!pr || !pr.obj.visible || !pr.C || !pr.sd) return null;
+  const C = pr.C, sd = pr.sd, prims = primsNow(pr.obj), ss = C.ss || 1; let pen = 0, touch = 0; const per = {};
+  for (const [f, r] of WRAP_F) { const b = [1, 2, 3].map(j => C.bone[f + '_0' + j + '_' + sd]); if (b.some(x => !x)) continue;
+    const d = fingerPen(b, 0, prims, r * ss * .5), t = fingerPen(b, 0, prims, r * ss + .004) > 0; per[f] = [+(d * 1000).toFixed(1), t ? 1 : 0]; if (d > pen) pen = d; if (t) touch++; }
+  const hp = C.bone['hand_' + sd].getWorldPosition(new T.Vector3());
+  const cp = (C.bone.spine_03 || C.bone.pelvis).getWorldPosition(new T.Vector3());
+  return { who: C.o && (C.o.key || C.o.name), sd, g: pr.g, pen: +(pen * 1000).toFixed(1), touch, per, hand: [hp.x, hp.y, hp.z], palm: palmN(C, sd).toArray(), chest: [cp.x, cp.y, cp.z] };
 }
 // кадр сам кладёт предмет в мир (на стол, на пол): где и как
 function propAt(name, scene, pos, rot) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos); pr.obj.rotation.set(...(rot || [0, 0, 0])); pr.obj.visible = true; pr.C = null; pr.seen = true; }
@@ -1247,6 +1353,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (!C.o.monster && list.every(c => SOFTC.has(c[0])))   // обычная стойка, речь, ходьба, сидя: кисти мягкие (если кадр не задал пальцы и в руке ничего нет)
     for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) { setFingers(C, sd, 'soft', 1); if (!P.still) fingerLife(C, sd, tt); }
   if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) hookHand(C, sd); }   // Жилец: пальцы всегда крючьями, когтями вперёд (клипы Quaternius сжимали их в кулаки — «боксёр»)
+  C.fpose = P.fing ? { l: P.fing.l && P.fing.l[0], r: P.fing.r && P.fing.r[0] } : null;   // поза пальцев кадра — для хвата по касанию (раскрытую ладонь не смыкаем)
   if (P.fing) for (const sd of ['l', 'r']) if (P.fing[sd]) setFingers(C, sd, P.fing[sd][0], P.fing[sd][1] ?? 1);
   if (P.wig) for (const [bn, ax, a] of P.wig) wiggle(C, bn, ax, a);
   if (P.twist) { C.root.updateWorldMatrix(true, true); const up = new T.Vector3(0, 1, 0).applyQuaternion(C.root.getWorldQuaternion(new T.Quaternion()));
@@ -2227,7 +2334,9 @@ function castV3() {
   A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55, dim: { worksuit: .74 }, tint: gusHair });
   A.smenshik.addFace('smile', { smile: .8, browUp: .3 });
   A.smenshik.addFace('fear', { mouth: .45, wide: true, browUp: 1, browIn: .8, dart: 1 });
+  A.smenshik.addFace('unsaid', { mouth: .16, browUp: .55, browIn: .55 });   // p15: «будто хотел что-то добавить» — губы разомкнулись, брови приподняты домиком (19 ноя)
   A.temych.addFace('smile', { smile: 1.4, wide: true, browUp: .5 });
+  A.temych.addFace('tired', { squint: .95, browIn: .6, frown: .25 });   // j08: зажал переносицу, глаза закрыты (19 ноя)
   for (const k of ['mihalych', 'cleaner', 'martha']) A[k].addFace('photo', { smile: .85, browUp: .25 });   // улыбаются в объектив (новогоднее фото)
   for (const k of ['temych', 'smenshik', 'katya', 'mihalych', 'cleaner']) {
     const F = A[k].faceSets;
@@ -2289,5 +2398,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, reachArm, layFloor, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, gripInfo, PROPS3, limbTo, footFloor, toeFloor, handPt, reachArm, layFloor, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
 })();

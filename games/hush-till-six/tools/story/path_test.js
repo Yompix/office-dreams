@@ -21,11 +21,12 @@ const fs = require('fs');
   let fail = 0; const bad = m => { console.log('  ✗ ' + m); fail++; }, log = m => console.log('  ' + m);
   const st = () => p.evaluate(() => { const n = window.__ns, f = n.shf, c = document.getElementById('clock');
     return { mode: n.mode, scene: n.scene, bi: n.bi, clock: c && !c.classList.contains('hide') ? c.textContent : '', seg: f && f.id, M: f && f.M,
-      pop: !!document.querySelector('#shPop:not(.hide)'), cTake: !!document.getElementById('cTake'), cYes: !!document.getElementById('cYes'), hBtn: !!document.getElementById('hBtn'),
+      pop: !!document.querySelector('#shPop:not(.hide)'), msg: !!document.querySelector('#shPop:not(.hide) .sh-msg'), cTake: !!document.getElementById('cTake'), cYes: !!document.getElementById('cYes'), hBtn: !!document.getElementById('hBtn'),
       hb: !!document.getElementById('hb'), plug: !!document.getElementById('plug'), arrows: !!document.querySelector('#mg .arrows'), tape: !!document.getElementById('tape'),
       oRetry: !!document.getElementById('oRetry'), over: (document.querySelector('.screen.over h1') || {}).textContent || '', jr: !!document.querySelector('.screen.jr'),
       stamp: (document.querySelector('.jr-stamp') || {}).textContent || '', choice: [...document.querySelectorAll('#choice:not(.hide) button')].map(x => x.dataset.i), small: (document.querySelector('#mg small') || {}).textContent || '' }; });
   const toMin = s => { const [h, m] = s.split(':').map(Number); return (h < 12 ? h + 24 : h) * 60 + m; };
+  let msgs = 0;   // на сколько сообщений с ответом (СМС, пейджер) бот ответил за ночь
   const deaths = [], ends = [], done = new Set();   // done — какие смерти уже проверены (второй раз — правильный вариант)
   // смертельный вариант на решении: сцена → номер варианта (data-i) и смерть, которой он кончается
   const DEADLY = { floor7b: [0, 'over_k2'], radio: [0, 'over_k3'], basement: [0, 'over_k7'], call540: [0, 'over_k9'] };
@@ -42,7 +43,11 @@ const fs = require('fs');
         if (s.oRetry) { deaths.push(s.over.trim()); log(`смерть «${s.over.trim()}» (${s.scene}) → снова`);
           if (out) await p.screenshot({ path: `${out}/${name}_${s.scene}.png` }).catch(() => {});
           await p.evaluate(() => document.getElementById('oRetry').click()); justRetried = true; lastT = -1; expect = want; want = null; await p.waitForTimeout(600); continue; }
-        if (s.jr) { await p.waitForTimeout(2500); const s2 = await st(); ends.push(s2.stamp); log(`концовка: ${s2.stamp.replace(/\s+/g, ' ')}`); if (out) await p.screenshot({ path: `${out}/${name}_end.png` }).catch(() => {}); return; }
+        if (s.jr) {   // эпилог «Что стало с ними» — перед страницей журнала: 3–5 строк, «Продолжить» открывает журнал
+          await p.waitForTimeout(1500); if (out) await p.screenshot({ path: `${out}/${name}_epi.png` }).catch(() => {});
+          const ep = await p.evaluate(() => { const e = document.getElementById('epi'); if (!e) return -1; const n = e.querySelectorAll('p').length; document.getElementById('epGo').click(); return n; });
+          if (ep < 3 || ep > 5) bad(`${name}: эпилог — строк ${ep}`); else log(`эпилог: ${ep} строк`);
+          await p.waitForTimeout(2500); const s2 = await st(); ends.push(s2.stamp); log(`концовка: ${s2.stamp.replace(/\s+/g, ' ')}`); if (out) await p.screenshot({ path: `${out}/${name}_end.png` }).catch(() => {}); return; }
         await p.waitForTimeout(300); continue;
       }
       if (s.mode === 'play') { await p.evaluate(() => { window.__ns.skipBeat(); const f = document.getElementById('fin'); if (f && window.__ns.fin) f.click(); }); await p.waitForTimeout(120); continue; }
@@ -97,6 +102,9 @@ const fs = require('fs');
       if (die && !done.has(die)) { done.add(die); log(`${seg}: «${title}» — ответить`); await p.click('#cTake'); return; }
       await p.click('#cNo'); return; }
     if (s.cYes) { await p.click('#cYes'); return; }
+    if (s.msg) {   // СМС Лили или пейджер «Щита» с двумя ответами: отвечает первым вариантом; у подделки это «согласился» — расплата (помехи с коротким окном), но не смерть
+      const m = await p.evaluate(() => { const h = document.querySelector('#shPop h3').textContent, b = document.querySelector('#shPop .sh-msg button[data-i="0"]'), t = b.textContent; b.click(); return h + ' → «' + t + '»'; });
+      msgs++; if (process.env.TRACE) log(`${seg} сообщение: ${m}`); await p.waitForTimeout(200); return; }
     if (s.hBtn) { const die = seg === 'S6' ? 'over_k8s6' : 'over_k5b';
       if (!done.has(die)) { done.add(die); log(`${seg}: «держи» — не держит`); await p.evaluate(() => { window.__botHold = 0; const b = document.getElementById('hBtn'); if (b) b.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); }); for (let k = 0; k < 240 && (await p.evaluate(() => window.__ns.mode === 'shift' && !!document.getElementById('hBtn'))); k++) await p.waitForTimeout(500); await p.evaluate(() => { window.__botHold = 1; }); return; }   // страница нажимает «держи» в тот же кадр — для проверки смерти отпускаем (pointerup)
       await p.evaluate(() => document.getElementById('hBtn').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));   // сразу, одним вызовом: на загруженной машине движение мыши опаздывало дольше, чем можно не держать
@@ -123,6 +131,8 @@ const fs = require('fs');
   console.log(`смертей: ${new Set(deaths).size} разных (${deaths.length} раз) · в счётчике ${ov.length}: ${ov.join(', ')}`);
   console.log(`концовок: ${ends.length} · в счётчике ${en.join(', ')}`);
   if (PATHS.length === 4 && en.length !== 4) bad('не все четыре концовки');
+  const fl = await p.evaluate(() => { const f = window.__ns.flags; return Object.keys(f).filter(k => /^(msg_|fake|lwarn|pg)/.test(k)).map(k => k + '=' + f[k]).join(' '); });
+  if (!process.env.FROM) { console.log(`сообщений с ответом: ${msgs} · флаги: ${fl} · профиль ночи: ${JSON.stringify(await p.evaluate(() => window.__ns.night))}`); if (msgs < 6) bad(`за ночь бот ответил только на ${msgs} сообщений (ждал переписку с Лили и пейджер)`); }
   if (errs.length) bad('ошибки JS: ' + errs.slice(0, 4).join(' | '));
   console.log(fail ? `НЕ ПРОШЛО: ${fail}` : 'всё прошло'); await b.close(); process.exit(fail ? 1 : 0);
 })();

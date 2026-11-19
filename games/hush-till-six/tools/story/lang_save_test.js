@@ -59,6 +59,7 @@ const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/pla
   ok(/Deaths found: 1 of/.test(c2[0]), `en: старая английская запись и новая русская — одна смерть («${c2[0].trim()}», ${c2[1]})`);
   await open('ru');
   // повтор часа S4: звонок «Итан?.. Это ты?» — ответил, умер, снова — звонок снова звонит, сценарий не помечен
+  await p.evaluate(() => window.__ns.nightSet({ voice: 'lily', voiceAt: 25 * 60 + 40, fcall: 26 * 60 + 25 }));   // профиль ночи: кто и когда звонит на внутренний — случайно; здесь — Лили в 01:40
   await shift('S4'); await jump('01:39'); await p.evaluate(() => window.__ns.shSpeed(4));
   await p.waitForFunction(() => document.getElementById('cTake'), null, { timeout: 60000 });
   await p.click('#cTake'); await p.waitForFunction(() => document.getElementById('cYes'), null, { timeout: 30000 }); await p.click('#cYes');
@@ -96,7 +97,8 @@ const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/pla
   // язык посреди часа (☰ → Настройки → Язык): после перезагрузки тот же час и минута, Гас на седьмом, вход заперт
   await shift('S2'); await jump('22:31'); await p.waitForTimeout(900); await p.evaluate(() => { window.__ns.shk.door = 1; });
   const before = await p.evaluate(() => ({ M: Math.floor(window.__ns.shf.M), gus: window.__ns.shk.st.gus }));
-  await p.evaluate(() => { document.getElementById('bMenu').click(); document.getElementById('pzSet').click(); document.getElementById('sLang').click(); document.querySelector('[data-l="en"]').click(); });
+  await p.evaluate(() => { document.getElementById('bMenu').click(); document.getElementById('pzSet').click(); document.getElementById('sLang').click(); document.querySelector('[data-l="en"]').click();
+    const x = document.getElementById('sX'); if (x) x.click(); });   // язык применяется при выходе из настроек («…применятся, когда выйдешь из настроек») — выходим
   // после перезагрузки — экран «Нажми, чтобы продолжить» (не загрузка: у той полоса #loadbar); жмём по нему (у #ui своей высоты нет — тап доходит от экрана)
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'load' && document.querySelector('.screen.boot') && !document.getElementById('loadbar'), null, { timeout: 300000 }).catch(() => {});
   await p.click('.screen.boot'); await p.waitForFunction(() => { const f = window.__ns.mode === 'shift' && window.__ns.shf; return f && f.gm > 0 && Math.abs(f.M - f.m0 - f.gm) < .5; }, null, { timeout: 60000 }).catch(() => {});   // и кадр, в котором час увидел восстановленную минуту

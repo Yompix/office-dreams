@@ -348,6 +348,24 @@ body:not(.land) .sh-toast { white-space: normal; width: 92%; text-align: center;
 .sh-x { display: block; margin: calc(3 * var(--u)) auto 0; padding: calc(2 * var(--u)) calc(8 * var(--u)); font-size: calc(3 * var(--u)); text-transform: uppercase; }
 .sh-hold { height: calc(2.4 * var(--u)); margin: calc(2.4 * var(--u)) 0; background: rgba(235,240,235,.12); border-radius: calc(1.2 * var(--u)); overflow: hidden; }   /* держать Фрэнка: сколько продержался */
 .sh-hold i { display: block; height: 100%; width: 0; background: var(--acc); }
+/* сообщение с двумя ответами: СМС от Лили, пейджер «Щита» (engine.js shiftMsg). Ответы — столбиком, во всю ширину: фраза на любом языке переносится, а не обрезается */
+.sh-pop h3.sh-mh { text-transform: none; }
+.sh-pop h3.sh-mh.pg { font-family: "Courier New", monospace; letter-spacing: calc(.2 * var(--u)); color: #b9f3c2; text-shadow: 0 0 calc(2.4 * var(--u)) rgba(90,230,120,.45); }
+.sh-pop p.sh-mt { margin-bottom: calc(3 * var(--u)); padding: calc(2.4 * var(--u)) calc(3 * var(--u)); border-radius: calc(2.4 * var(--u)); background: rgba(255,255,255,.07); font-size: calc(3.8 * var(--u)); line-height: 1.35; opacity: 1; text-align: left; }
+.sh-pop h3.pg + p.sh-mt { font-family: "Courier New", monospace; background: rgba(120,255,150,.08); }
+.sh-msg { display: flex; flex-direction: column; gap: calc(1.8 * var(--u)); }
+.sh-msg button { padding: calc(2.8 * var(--u)) calc(3 * var(--u)); font-size: calc(3.5 * var(--u)); font-weight: 700; line-height: 1.25; text-align: left; }
+body.land .sh-pop:has(.sh-msg) { width: calc(118 * var(--u)); }   /* горизонтально единица меньше — сообщению окно шире и буквы крупнее, чтобы читалось на телефоне */
+body.land .sh-pop p.sh-mt { font-size: calc(4.4 * var(--u)); } body.land .sh-msg button { font-size: calc(4 * var(--u)); }
+/* эпилог «Что стало с ними» — поверх журнала ночи, до него (engine.js endScreen); страница журнала под ним ждёт (wait) */
+.screen.epi { z-index: 3; justify-content: flex-start; padding: 6% 8%; background: #040406; overflow-y: auto; }
+.epi-in { margin: auto 0; display: flex; flex: none; flex-direction: column; align-items: center; gap: calc(3.4 * var(--u)); width: 100%; }
+.screen.epi h2 { margin: 0 0 calc(1.6 * var(--u)); font-size: calc(5.2 * var(--u)); letter-spacing: calc(.8 * var(--u)); color: #d9353f; text-transform: uppercase; }
+.screen.epi p { margin: 0; max-width: calc(124 * var(--u)); font: italic 500 calc(4.1 * var(--u))/1.4 Georgia, "Times New Roman", serif; color: #e6dfca; opacity: 0; animation: fadein 1s var(--d) forwards; }
+.screen.epi .btn { margin: calc(2 * var(--u)) 0 0; opacity: 0; animation: fadein .8s var(--d) forwards; }
+body.land .screen.epi { padding: 3% 7%; } body.land .epi-in { gap: calc(2.6 * var(--u)); } body.land .screen.epi p { font-size: calc(4.5 * var(--u)); max-width: calc(190 * var(--u)); }
+body.land .screen.epi h2 { font-size: calc(6 * var(--u)); } body.land .screen.epi .btn { max-width: calc(70 * var(--u)); }
+.screen.jr.wait .ln, .screen.jr.wait .jr-stamp { animation-play-state: paused; }
 .sh-holdb { display: block; width: 100%; padding: calc(5 * var(--u)) 0; font-size: calc(5 * var(--u)); font-weight: 700; letter-spacing: calc(.6 * var(--u)); border-color: rgba(var(--accRGB),.8) !important; touch-action: none; user-select: none; -webkit-user-select: none; }
 .sh-act button.sh-q { width: calc(10 * var(--u)); height: calc(10 * var(--u)); padding: 0; align-self: flex-end; border-radius: 50%; font-size: calc(4.6 * var(--u)); }   /* «?» — как играть */
 /* обучение: карточка диспетчера (волна прыгает, пока она говорит) и кольцо со стрелкой вокруг нужной кнопки */
@@ -638,16 +656,16 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=2"></script><script src="i18n.js?v=26"></script>
+<script src="fonts/cjk/faces.js?v=3"></script><script src="i18n.js?v=27"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=23"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=49"></script>
-<script src="scenes.js?v=83"></script>
-<script src="story.js?v=36"></script>
-<script src="engine.js?v=92"></script>
+<script src="chars2.js?v=50"></script>
+<script src="scenes.js?v=84"></script>
+<script src="story.js?v=37"></script>
+<script src="engine.js?v=93"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

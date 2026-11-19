@@ -23,6 +23,6 @@ const MIME = { '.js': 'text/javascript', '.glb': 'model/gltf-binary', '.json': '
       if (cam) { const [a, b, f] = cam.split(';'); World.dbgShot('_cam', shot, { pos: a.split(',').map(Number), look: b.split(',').map(Number), fov: +f || 40 }); name = '_cam'; }
       const g = document.getElementById('c').getContext('2d'); for (let t = 0; t <= +tt; t += 1 / 15) World.draw(g, W, H, name, { t, T: 100 + t, settle: t === 0, props });
       World.draw(g, W, H, name, { t: +tt, T: 100 + +tt, props }); return ''; } catch (e) { return String(e); } }, [shot, tt, W, H, props, cam]);
-    await p.waitForTimeout(400); const f = path.join(OUT, shot + '_' + tt + '.png'); await p.screenshot({ path: f }); console.log(err ? 'ошибка ' + shot + ': ' + err : 'ok ' + f); }
+    await p.waitForTimeout(400); const f = path.join(OUT, shot + '_' + tt + '.png'); await p.screenshot({ path: f, timeout: 240000 }); console.log(err ? 'ошибка ' + shot + ': ' + err : 'ok ' + f); }
   await br.close();
 })();

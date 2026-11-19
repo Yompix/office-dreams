@@ -19,8 +19,11 @@ const SC = { dawn: 'dawn', newentry: 'morning', inside: 'hide2', sister: 'run2' 
       const fin = await p.evaluate(() => window.__ns.fin);
       await p.waitForTimeout(3500); await p.screenshot({ path: `${out}/${e}_${land ? 'L' : 'P'}_fin.png` });
       await p.waitForFunction(() => window.__ns.mode === 'end', null, { timeout: 180000 });   // в headless ~1 кадр/с: финал (8,5 с игрового времени) идёт минуту и больше
+      // эпилог «Что стало с ними» стоит перед страницей журнала: снимок, «Продолжить» — и журнал
+      await p.waitForTimeout(6000); const epi = await p.evaluate(() => document.querySelectorAll('#epi p').length);
+      if (epi) { await p.screenshot({ path: `${out}/${e}_${land ? 'L' : 'P'}_epi.png`, timeout: 120000 }).catch(() => {}); await p.evaluate(() => document.getElementById('epGo').click()); console.log(e, '| эпилог: строк', epi); }
       await p.waitForTimeout(6000); await p.screenshot({ path: `${out}/${e}_${land ? 'L' : 'P'}_log.png` });
-      const back = await p.evaluate(() => { const b = document.getElementById('eBack'); return b ? b.textContent : null; });
+      const back =await p.evaluate(() => { const b = document.getElementById('eBack'); return b ? b.textContent : null; });
       console.log(e, land ? 'гориз.' : 'верт.', '| финал:', fin, '| журнал: да | к выбору:', back);
     }
     // «Вернуться к выбору» → тот же выбор (последний кадр сцены и выбор)

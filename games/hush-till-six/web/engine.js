@@ -1022,6 +1022,9 @@ const MG = {
    S.shift.an[id]   = { cam, kind | kinds, props, fix: 'log' | 'light:N' | 'lift' | 'door' | 'none', win, say, stare, box, sfx }
    Записать — что видно на текущей камере; пульт — свет этажей, вход, лифт. Пропустил три странности — оно приходит к будке. */
 const SEC_MIN = 7;   // секунд на игровую минуту (час ≈ 7 минут)
+// темп смены: spm часа (story.js) × «быстрый темп» (настройка, открывается после любой концовки: S.shift.tempo.fast); окна странностей — в настоящих секундах: win × tempo.winSec
+let tempoK = 1; const tempoSet = () => { tempoK = LS.get('tempo', '') === 'fast' && (LS.get('endings', []) || []).length ? (S.shift.tempo || {}).fast || .6 : 1; return tempoK; };
+const spmNow = () => (shf.seg.spm || SEC_MIN) * tempoK, winK = () => ((S.shift.tempo || {}).winSec || SEC_MIN) / spmNow();
 const CAMS = { '01': 'ВХОД', '02': 'ХОЛЛ', '03': 'ЛИФТЫ', '04': 'ЛЕСТНИЦА', '07': 'ЭТАЖ 7', '10': 'ЭТАЖ 10', 'm2': 'ПОДВАЛ', '13': '' };
 const camShort = c => tr(CAMS[c] || '???').replace(/^\s*\d+\.?\s*|\s*\d+\s*$/, '');   // на кнопке номер уже стоит крупно: «07 / ЭТАЖ», а не «07 / ЭТАЖ 7» (владелец, 11 ноя)
 const camNo = c => c === 'm2' ? '−2' : c, camLabel = c => 'CAM ' + camNo(c) + (CAMS[c] ? '  ' + tr(CAMS[c]) : '');
@@ -1045,7 +1048,9 @@ function shiftGame(th) {
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
   shf.ev = seg.events.map(e => Object.assign({ m: toMin(e.at) }, e, e.task && { task: Object.assign({}, e.task) }, e.call && { call: Object.assign({}, e.call) }));   // задача и звонок — копии: отметки «снял трубку», «успел» оставались в сценарии, и при повторе часа звонок висел без звонка, срок задачи не проверялся
   voiceWant.clear(); voiceReady(objKeys([seg, ...Object.entries(S.shift).filter(([k]) => !/^(segs|lines)$/.test(k)).map(([, v]) => v)]));   // реплики этого часа, странностей и звонков
-  if (seg.rnd) shiftDirector(seg);
+  tempoSet(); const NP = nightGet(); nightPre(NP);   // профиль ночи: первые помехи, кто и когда звонит
+  if (seg.rnd) shiftDirector(seg, NP);
+  nightMsgs(NP); nightLull(NP);   // переписка, пейджер, подделка; затишье
   shf.ev.sort((a, b) => a.m - b.m);
   LS.set('save', 'sh_' + th.shift); sceneId = 'sh_' + th.shift;
   clockEl.textContent = seg.from; clockEl.classList.remove('hide'); $('hud').classList.remove('hide');
@@ -1058,24 +1063,73 @@ function shiftGame(th) {
 // — когда: не равномерно, а волнами — бывает затишье, бывает две-три подряд; иногда одна прячется в последние минуты часа;
 // — сюжетные события часа остаются, но обычные странности из сценария (свет, кошка, лифт, первые помехи) сдвигаются на ±6 минут.
 const AN_PLOT = new Set(['gus7', 'palm', 'knock3x', 'lilyDoor']);
-function shiftDirector(seg) {
-  const seen = LS.get('anSeen', {}), R = Math.random, m0 = shf.m0, m1 = shf.m1, span = Math.max(1, m1 - m0 - 14);
-  if (shf.id !== 'A1') for (const e of shf.ev) if (e.an && !e.say && !AN_PLOT.has(e.an) && (S.shift.an[e.an] || {}).fix !== 'none') e.m = clamp(e.m + (R() * 12 - 6), m0 + 3, m1 - 8);
+function shiftDirector(seg, NP = {}) {
+  const seen = LS.get('anSeen', {}), R = Math.random, m0 = shf.m0, m1 = shf.m1, span = Math.max(1, m1 - m0 - 14), fw = (S.shift.night || {}).floorW || 3;
+  if (shf.id !== 'A1') for (const e of shf.ev) if (e.an && !e.say && !AN_PLOT.has(e.an) && (S.shift.an[e.an] || {}).fix !== 'none') { e.m = clamp(e.m + (R() * 12 - 6), m0 + 3, m1 - 8); e.mov = 1; }
   const roll = R(), n = Math.max(1, seg.rnd.n + (roll < .15 ? -1 : roll < .55 ? 0 : roll < .88 ? 1 : 2));
-  const pool = seg.rnd.pool.filter(id => !shf.ev.some(e => e.an === id)), pick = [];
-  while (pick.length < n && pool.length) {   // вес: свежие чаще (1), виденные реже (1/(1+раз)), но не исключаются
-    const w = pool.map(id => 1 / (1 + (seen[id] || 0))), sum = w.reduce((a, b) => a + b, 0); let r = R() * sum, i = 0;
+  const pool = [...new Set(seg.rnd.pool)].filter(id => S.shift.an[id] && !shf.ev.some(e => e.an === id)), pick = [];   // в часе странность не повторяется: ни дважды из пула, ни вслед за сюжетной
+  while (pick.length < n && pool.length) {   // вес: свежие чаще (1), виденные реже (1/(1+раз)), но не исключаются; на «его» камере (профиль ночи) — в floorW раз чаще
+    const w = pool.map(id => (S.shift.an[id].cam === NP.floor ? fw : 1) / (1 + (seen[id] || 0))), sum = w.reduce((a, b) => a + b, 0); let r = R() * sum, i = 0;
     while (i < pool.length - 1 && (r -= w[i]) > 0) i++;
     pick.push(pool.splice(i, 1)[0]); }
   let m = m0 + 4 + R() * 8;
   for (let i = 0; i < pick.length; i++) {
-    shf.ev.push({ m: Math.min(m, m1 - 7), an: pick[i] });
+    shf.ev.push({ m: Math.min(m, m1 - 7), an: pick[i], rnd: 1 });
     const gap = span / Math.max(1, pick.length);
     m += R() < .3 ? 1 + R() * 3 : gap * (.4 + R() * 1.2);   // то подряд, то с затишьем
     if (m > m1 - 7) m = m0 + 6 + R() * span;   // не влезла в конец — в случайное место часа
   }
 }
 function anSeen(id) { const s = LS.get('anSeen', {}); s[id] = (s[id] || 0) + 1; LS.set('anSeen', s); }
+/* ---------- профиль ночи (story.js: shift.night, lily, pager) — каждая новая игра идёт по-другому (владелец, 19 ноя: «чтобы люди не знали, что будет в следующем прохождении») ----------
+   Выбирается при «Начать смену» (begin('intro')), лежит в ns1_night: «Продолжить» и повтор после смерти — с тем же. Что выпадало в прошлых ночах (ns1_nightSeen), выпадает реже.
+   floor — «его» камера · voice, voiceAt — кто и когда звонит на внутренний · lull, lullAt — час и место затишья · fcall — когда звонят на телефон Фрэнка ·
+   fake, fakeId — по какому каналу придёт одна подделка · lily — какие сообщения Лили придут этой ночью. */
+function nightRoll() {
+  const N = S.shift.night || {}, L = S.shift.lily || {}, seen = LS.get('nightSeen', {}), R = Math.random, used = [], no = (seen._n || 0) + 1;   // seen: «ручка:значение» → номер ночи, когда выпадало в последний раз
+  const wt = k => { const age = no - (seen[k] || -9); return age <= 1 ? .08 : age === 2 ? .35 : age === 3 ? .7 : 1; };   // было в прошлой ночи — почти не выпадает, позапрошлой — втрое реже
+  const pick = (knob, list) => { const w = list.map(v => wt(knob + ':' + v)); let r = R() * w.reduce((a, b) => a + b, 0), i = 0; while (i < list.length - 1 && (r -= w[i]) > 0) i++; used.push(knob + ':' + list[i]); return list[i]; };
+  const span = w => { const a = toMin(w[0]), b = toMin(w[1]); return Math.round(a + R() * (b - a)); };
+  const p = { floor: pick('floor', N.floors || ['10']), voice: pick('voice', Object.keys(N.voices || { lily: 1 })), lull: pick('lull', N.lull || ['S3']), lullAt: +R().toFixed(3), fake: pick('fake', N.fake || ['sms']), lily: [] };
+  p.fakeId = p.fake === 'pager' ? (p.floor === 'm2' ? 'down' : 'up') : pick('fk', Object.keys(L.fakes || { f1: 1 }));
+  for (let i = 0; i < 40; i++) { p.voiceAt = span(N.voiceAt || ['01:40', '01:40']); p.fcall = span(N.fcall || ['02:25', '02:25']); if (p.voiceAt < p.fcall - 12 || p.voiceAt > p.fcall + 4) break; }   // звонок на внутренний не попадает на цепочку «телефон Фрэнка» (она идёт 9 минут до звонка)
+  for (const g of L.groups || []) { const ids = g.slice(1), n = Array.isArray(g[0]) ? g[0][0] + Math.floor(R() * (g[0][1] - g[0][0] + 1)) : g[0];
+    for (let i = 0; i < n && ids.length; i++) { const k = pick('lm', ids); p.lily.push(k); ids.splice(ids.indexOf(k), 1); } }
+  for (const k of used) seen[k] = no;
+  seen._n = no; LS.set('nightSeen', seen); LS.set('night', p); return p;
+}
+const nightGet = () => LS.get('night', null) || nightRoll();   // сохранение из версии без профиля — профиль выпадает при первом же часе
+function nightPre(NP) {   // сюжетные события часа — по профилю: первые помехи ночи на «его» камере, кто и когда звонит на внутренний, когда звонят Фрэнку
+  const N = S.shift.night || {}, fc = shf.ev.filter(e => e.tag === 'fcall'), d = fc.length && NP.fcall ? NP.fcall - Math.max(...fc.map(e => e.m)) : 0;
+  for (const e of shf.ev) {
+    if (e.tag === 'st1' && S.shift.an[(N.st || {})[NP.floor]]) e.an = N.st[NP.floor];
+    if (e.tag === 'voice') { const v = (N.voices || {})[NP.voice], c = shf.ev.find(x => x.c13); if (v) e.call = Object.assign({}, v); if (NP.voiceAt) e.m = clamp(NP.voiceAt, shf.m0 + 3, shf.m1 - 12);
+      if (c && Math.abs(e.m - c.m) < 3) e.m = c.m + 3; }   // кнопка 13 перерисовывает пульт — звонок в эту минуту пропал бы
+    if (e.tag === 'fcall') e.m = clamp(e.m + d, shf.m0 + 1, shf.m1 - 4);
+  }
+}
+function nightMsgs(NP) {   // сообщения часа: переписка с Лили, пейджер «Щита» и — раз за ночь — подделка по чужому каналу. Время — случайно в окне сообщения
+  const id = shf.id, L = S.shift.lily || {}, P = S.shift.pager || {}, R = Math.random;
+  const hard = e => e.call || e.hold || e.radio || e.msg || e.task || e.c13;   // рядом с ними сообщение не приходит: окно с ответами закрыло бы звонок
+  const when = w => { const a = Math.max(toMin(w[0]), shf.m0 + 2), b = Math.max(a, Math.min(toMin(w[1]), shf.m1 - 5)); let m = a; for (let i = 0; i < 40; i++) { m = a + R() * (b - a); if (shf.ev.every(e => !hard(e) || Math.abs(e.m - m) > 3)) break; } return m; };
+  const add = (w, msg) => shf.ev.push({ m: when(w), msg, mov: 1 });
+  for (const k of NP.lily || []) { const d = (L.msgs || {})[k]; if (d && d.seg === id) add(d.at, Object.assign({ id: k, ch: 'sms', hd: L.hd }, d)); }
+  ((P.hours || {})[id] || []).forEach((w, i) => add(w, { id: 'pg', ch: 'pager', hd: P.hd, text: P.ask[(Math.floor(shf.m0 / 60) + i) % P.ask.length], reply: P.reply }));
+  const pg = NP.fake === 'pager', f = ((pg ? P.fakes : L.fakes) || {})[NP.fakeId];
+  if (f && f.seg === id) add(f.at, Object.assign({ id: 'fake', ch: pg ? 'pager' : 'sms', hd: pg ? P.hd : L.hd, fake: 1 }, f));
+}
+function nightLull(NP) {   // затишье: lullLen игровых минут без единого события, потом две странности подряд. Сюжетные события стоят на месте — тишина ищется между ними
+  const N = S.shift.night || {}, LL = N.lullLen || [10, 15]; if (NP.lull !== shf.id) return;
+  const D = LL[0] + (NP.lullAt || 0) * (LL[1] - LL[0]), fixed = shf.ev.filter(e => !e.rnd && !e.mov), ok = [];
+  for (let a = shf.m0 + 6; a + D < shf.m1 - 10; a += .5) if (fixed.every(e => e.m < a - .5 || e.m > a + D + 3)) ok.push(a);
+  if (!ok.length) return;
+  const a = ok[Math.min(ok.length - 1, Math.floor((NP.lullAt || 0) * ok.length))], b = a + D, inW = e => e.m >= a - .5 && e.m < b + 3, mv = shf.ev.filter(e => (e.rnd || e.mov) && inW(e));
+  const an = shf.ev.filter(e => e.rnd && e.an).sort((x, y) => (inW(y) - inW(x)) || Math.abs(x.m - b) - Math.abs(y.m - b)), pair = an.slice(0, 2);   // две сразу после тишины: те, что попали в неё, иначе ближайшие
+  pair.forEach((e, i) => { e.m = b + .3 + i * 1.3; });
+  const pre = a - shf.m0 - 4, post = shf.m1 - 7 - (b + 4);   // остальное из окна — до тишины или после пары
+  for (const e of mv) if (!pair.includes(e)) e.m = pre > 3 && (post < 3 || Math.random() < pre / (pre + post)) ? shf.m0 + 3 + Math.random() * pre : b + 4 + Math.random() * Math.max(1, post);
+  shf.lull = [a, b];
+}
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
@@ -1114,8 +1168,8 @@ function shiftEvent(e) {
   setFlags(e.set);
   if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return;
     const busy = shf.act.some(a => a.def.cam === def.cam) || (def.need === 'locked' && !shk.door) || (def.need === 'nogus' && shk.st.gus) || (def.need === 'gus' && !shk.st.gus);
-    if (busy) { const K = SEC_MIN / (shf.seg.spm || SEC_MIN); if (shf.M + 4 * K < shf.m1 - 6) { e.done = false; e.m = shf.M + (3 + Math.random() * 3) * K; } return; }   // камера занята или не к месту — позже
-    shf.act.push({ id: e.an, def, m: shf.M }); anSeen(e.an);
+    if (busy) { const K = winK(); if (shf.M + 4 * K < shf.m1 - 6) { e.done = false; e.m = shf.M + (3 + Math.random() * 3) * K; } return; }   // камера занята или не к месту — позже
+    shf.act.push({ id: e.an, def, m: shf.M, say: e.see, win: e.win }); anSeen(e.an);   // see — реплика, когда игрок это увидел (вместо def.say); win — своё окно
     if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
     if (def.unlock) shk.door = 0;   // замок входа отщёлкнулся сам — на пульте снова «ОТКРЫТ»
     if (def.trap === 'door' && !shk.door) shiftToast(tr('Вход не заперт!'));
@@ -1127,9 +1181,10 @@ function shiftEvent(e) {
     play('click', { gain: .4, when: dl }); const its = e.radio.map((k, i) => sayV(k, { delay: i ? 0 : dl }));
     if (gus) shf.gusR = { t0: now(), its }; else shf.radioR = { t0: now(), its };
   }
-  if (e.sms) { showSms(e.sms); buzz(60); play('buzz', { gain: .7 }); if (e.sms.reply) setTimeout(() => shiftReply(e.sms), 2600); }
+  if (e.sms) { showSms(e.sms); buzz(60); play('buzz', { gain: .7 }); }
+  if (e.msg) shiftMsg(e.msg);   // СМС или пейджер с двумя ответами
   if (e.state) Object.assign(shk.st, e.state);
-  if (e.c13) { shk.c13 = true; shiftUI(); }
+  if (e.c13) { shk.c13 = true; shiftUI(); shf.pop = null; }   // пульт перерисован — открытого окна больше нет
   if (e.hint) shiftToast(e.hint);
   if (e.task) shf.task = e.task, shiftTask();
   if (e.call) shiftCall(e.call);
@@ -1167,18 +1222,18 @@ function shiftTick(tp, my) {   // my — чей это цикл: час, нач�
   if (!shf || shf.my !== gen || mode !== 'shift' || shf.ended || my !== shf.my) return;
   const t = now(), dt = Math.min(.1, t - shf.lt); shf.lt = t;
   shf.gz = (shf.gz || 0) + dt * (shf.gusM ?? 1);   // часы швабры Гаса: пока он говорит по рации, стоят — потом моет дальше с того же места
-  shf.gm = (shf.gm || 0) + dt * shSpd / (shf.seg.spm || SEC_MIN); const M = shf.M = shf.m0 + shf.gm; lastTime = minStr(M); secBase = Math.floor((M % 1) * 60); sceneT0 = t;   // spm — свой темп часа (секунд на минуту)
+  shf.gm = (shf.gm || 0) + dt * shSpd / spmNow(); const M = shf.M = shf.m0 + shf.gm; lastTime = minStr(M); secBase = Math.floor((M % 1) * 60); sceneT0 = t;   // spm — свой темп часа (секунд на минуту)
   clockEl.textContent = minStr(M);
   for (const e of shf.ev) if (!e.done && M >= e.m) { e.done = true; shiftEvent(e); if (shf.ended) return; }
   for (const a of [...shf.act]) { const d = a.def;
     if (shf.cam === d.cam && d.snd && t - shf.camT > .3 && t >= (a.sndT || 0)) { a.sndT = t + (d.snd[2] || 6) * (.8 + Math.random() * .4); for (let i = 0; i < (d.snd[3] || 1); i++) play(d.snd[0], Object.assign({ gain: .7 }, d.snd[1] || {}, { when: i * .3 })); shf.mic = 1; }   // камера слышит
     if (shf.cam === d.cam && !shf.pop && t - shf.camT > .4) {
-      if (!a.seen) { a.seen = t; if (d.say) sayV(d.say); }
+      if (!a.seen) { a.seen = t; if (a.say || d.say) sayV(a.say || d.say); if (d.stare && !flags.sawst) setFlags('sawst'); }   // sawst — уже видел помехи (ответ Веры по пейджеру)
       if (d.stare) { a.look = (a.look || 0) + dt; if (a.look > 5) return shiftDie(d.death || 'over_stare', d.cam); if (a.look > 2.6 && !a.warned) { a.warned = true; play('breath_close', { gain: .6 }); shakeAmp = 8; } }
     } else a.look = 0;
-    const K = SEC_MIN / (shf.seg.spm || SEC_MIN);   // окна странностей — в настоящих секундах, как при обычном темпе
+    const K = winK();   // окна странностей — в настоящих секундах (win × tempo.winSec), каким бы ни был темп часа
     if (d.trap === 'door' && !shk.door && M > a.m + 4 * K) return shiftDie(d.die || 'over_door');   // не запер — она вошла
-    if (M > a.m + (d.win || 15) * K) shiftMiss(a); if (shf.ended) return; }
+    if (M > a.m + (a.win || d.win || 15) * K) shiftMiss(a); if (shf.ended) return; }
   if (shf.task && shf.task.sayAt != null && M >= shf.task.sayAt) { shf.task.sayAt = null; sayV(shf.task.say); }   // «Двадцать два ноль-ноль. Вход заперт…» — к сроку, а не в ту минуту, когда запер
   if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; run.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
   if (M >= shf.m1) return shiftEnd();
@@ -1248,9 +1303,47 @@ function shiftBook() {
     $('shPop').querySelectorAll('.sh-tabs button').forEach(b => b.onclick = e => { e.stopPropagation(); show(+b.dataset.j); }); if (i === 1) shk.read = true; };
   show(0);
 }
-function shiftReply(m) {   // ответ на СМС: два варианта
-  shiftPop(`<h3>${tr(m.from || 'Лили')}</h3><p>${tr(m.text)}</p><div class="sh-grid">${m.reply.map((r, i) => `<button data-i="${i}">${tr(r)}</button>`).join('')}</div>`);
-  $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftPop(null); play('click'); if (m.back) setTimeout(() => { if (shf) { showSms({ from: m.from, text: m.back }); play('buzz', { gain: .6 }); } }, 4000); });
+// --- сообщения с ответом: СМС от Лили и пейджер «Щита» (story.js: shift.lily, shift.pager; что придёт этой ночью — профиль ночи, nightMsgs) ---
+// m = { id, ch: 'sms' | 'pager', hd, text, reply: [a, b], back, mark, fake, agree }. Ответ — флаг msg_<id> (1 или 2) и сюжетный флаг mark[i]; не ответил за 40 с — сообщение уходит.
+// Окно не перебивает звонок, «держи», пульт и журнал: ждёт, пока они закроются. У подделки порядок ответов случайный.
+const flagSet = (k, v) => { if (v) flags[k] = v; else delete flags[k]; LS.set('flags', flags); };
+function shiftMsg(m) {
+  const my = shf.my, pg = m.ch === 'pager', ord = m.fake && Math.random() < .5 ? [1, 0] : [0, 1]; let tries = 0;
+  showSms({ from: m.hd, text: m.text, dur: 2.2 }); buzz(60);
+  // то же сообщение пришло снова (час начат заново после смерти) — прежний ответ на него стирается: считается последний
+  { let ch = 0; for (const k of ['msg_' + m.id, ...(m.mark || []), m.fake && 'fake']) if (k && flags[k]) { delete flags[k]; ch = 1; } if (ch) LS.set('flags', flags); }
+  const open = () => { if (!shf || shf.my !== my || shf.ended || mode !== 'shift') return;
+    if (shf.pop || tut) { if (++tries < 60) setTimeout(open, 500); return; }
+    hideSms(); shiftPop(`<h3 class="sh-mh${pg ? ' pg' : ''}">${escH(m.hd)}</h3><p class="sh-mt">${escH(m.text)}</p><div class="sh-msg">${ord.map(i => `<button data-i="${i}">${escH(m.reply[i])}</button>`).join('')}</div>`);
+    const bs = [...$('shPop').querySelectorAll('.sh-msg button')];
+    bs.forEach(b => b.onclick = e => { e.stopPropagation(); shiftPop(null); play('click'); shiftAnswer(m, +b.dataset.i); });
+    { let left = 40; const iv = setInterval(() => { if (!shf || shf.my !== my || !bs[0].isConnected) return clearInterval(iv); if (paused) return;   // на паузе время ответа стоит (раньше сообщение уходило без ответа, пока игра на паузе)
+      if (--left <= 0) { clearInterval(iv); shiftPop(null); } }, 1000); } };
+  setTimeout(open, 1700);
+}
+function shiftAnswer(m, i) {
+  const my = shf.my, later = (s, fn) => setTimeout(() => { if (shf && shf.my === my && !shf.ended && mode === 'shift') fn(); }, s * 1000), note = (text, dur) => { showSms({ from: m.hd, text, dur }); buzz(60); };
+  for (const f of m.mark || []) if (f) delete flags[f];
+  if (m.mark && m.mark[i]) flags[m.mark[i]] = 1;
+  flagSet('msg_' + m.id, i + 1);
+  if (m.fake) { const fell = i === (m.agree || 0); flagSet('fake', fell ? 1 : 2);   // подделка: согласился — помехи приходят сразу; отказал — в ответ только имя
+    if (fell) later(2.5, shiftLure); else if (m.back) later(3.5, () => note(m.back, 4)); return; }
+  if (m.ch === 'pager') return void later(2.5, () => note(pagerAns(i), 6.5));
+  if (m.back && m.back[i]) later(3.5, () => note(m.back[i], 5));
+}
+function pagerAns(i) {   // что отвечает Вера: зависит от того, что сейчас на камерах и что игрок уже видел
+  const A = (S.shift.pager || {}).ans || {}, a = shf.act.find(x => (x.def.fix || 'log') !== 'none' && !x.def.trap), hint = () => String(A.act || '').replace('{c}', 'CAM ' + camNo(a.def.cam));
+  if (!i) return a ? hint() : A.ok;   // «Всё спокойно» — а у неё по объекту сработка
+  if (shk.c13 && !flags.pg13) { setFlags('pg13'); return A.c13; }   // «Тринадцатой нет. Не включайте»
+  if (flags.sawst && !flags.pgst) { setFlags('pgst'); return A.st; }
+  return a ? hint() : A.def;
+}
+function shiftLure() {   // ответил на подделку: помехи на «его» камере или у входа — сразу и с коротким окном (правило то же: записать и переключить); сразу не убивает
+  const N = S.shift.night || {}, NP = nightGet(), cams = Math.random() < .5 ? [NP.floor, '01'] : ['01', NP.floor], w = N.lureWin || 6;
+  const free = cams.find(c => S.shift.an[(N.st || {})[c]] && !shf.act.some(a => a.def.cam === c));
+  if (free) { const id = N.st[free]; shf.act.push({ id, def: S.shift.an[id], m: shf.M, win: w }); anSeen(id); }
+  else { const a = shf.act.find(x => cams.includes(x.def.cam)); if (a) { a.m = shf.M; a.win = Math.min(w, a.win || a.def.win || 15); } }   // обе камеры заняты — у той странности, что там уже есть, окно становится коротким
+  play('static', { gain: .4, cut: .5 }); buzz([60, 80, 60]); shiftToast(N.lure);
 }
 // --- обучение: диспетчер охранного пульта «Щит» Вера по рации показывает, что где. Время смены стоит; можно пропустить; «?» — повторить ---
 let tut = null;
@@ -1562,6 +1655,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${window.World && World.cine ? `<button class="set wide" id="sRes"><span>${tr('Разрешение')}</span><b class="gfx">${resList().map(v => `<i data-r="${v}" class="${v === resNow() ? 'on' : ''}">${v ? Math.round(v * 100) + '%' : tr('АВТО')}</i>`).join('')}</b></button>` : ''}
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
+    ${(LS.get('endings', []) || []).length ? row('sTempo', 'Темп смены', LS.get('tempo', '') === 'fast' ? 'БЫСТРЫЙ' : 'ОБЫЧНЫЙ') : ''}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
     ${DESK && DESK.isFull ? row('sFull', 'Во весь экран', DESK.isFull() ? 'ВКЛ' : 'ВЫКЛ') + row('sBg', 'Звук в фоне', DESK.bgSound() ? 'ВКЛ' : 'ВЫКЛ') : ''}</div>
@@ -1581,6 +1675,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     pendGfx = pick || (gfxNow() === 'cine' ? 'retro' : 'cine'); LS.set('gfx', pendGfx); LS.set('gfxAuto', 2); try { localStorage.removeItem('ns1_hq'); } catch (e) {} re(); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
+  if ($('sTempo')) $('sTempo').onclick = () => { LS.set('tempo', LS.get('tempo', '') === 'fast' ? '' : 'fast'); tempoSet(); re(); };   // «Темп смены» — после любой концовки: быстрый — часы смены × 0,6 (для повторных прохождений)
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
   if ($('sFull')) { $('sFull').onclick = () => { DESK.full(!DESK.isFull()); re(); }; $('sBg').onclick = () => { DESK.setBgSound(!DESK.bgSound()); re(); }; }   // ПК-версия: окно/весь экран; звук, когда окно в фоне (выкл — тишина и пауза)
 }
@@ -1615,7 +1710,7 @@ function applyVol() {   // громкости игрока → узлы звук
 }
 async function begin(id) {
   unlockAudio(); goFull();   // до любого await, пока идёт нажатие
-  if (id === 'intro') { for (const k in flags) delete flags[k]; LS.set('flags', {}); falseAlarm = false; lastTime = '02:55'; shk = null; LS.set('shk', null); LS.set('shk0', null); run = runNew(); runSave(); }
+  if (id === 'intro') { for (const k in flags) delete flags[k]; LS.set('flags', {}); falseAlarm = false; lastTime = '02:55'; shk = null; LS.set('shk', null); LS.set('shk0', null); run = runNew(); runSave(); nightRoll(); }   // новая ночь — новый профиль (nightRoll)
   else { const t = LS.get('saveT', null); if (t) { lastTime = t; clockEl.textContent = t; clockEl.classList.remove('hide'); } }   // «Продолжить»: время ночи того места (сцена осмотра своего не знает)
   uiEl.innerHTML = `<div class="screen"><small>${tr('Загрузка звука…')}</small></div>`;
   await Promise.race([initAudio(), new Promise(r => setTimeout(r, 8000))]);   // звук не успел — играем дальше, без зависания
@@ -1635,9 +1730,17 @@ function finale(th) {
     <p>${escH(tr(th.sub))}</p><small>${tr('Нажми, чтобы продолжить')}</small></div>`;
   $('fin').onclick = () => { if (mode === 'play' && beat && beat.fin) { play('click'); nextBeat(); } };
 }
+// эпилог «Что стало с ними» (story.js: shift.epi): 3–5 строк о Фрэнке, Гасе, Лили и дневном — по флагам ночи (warned, salt, fphone), ответам Лили, пропускам и подделке
+function epiLines(ending) {
+  const E = S.shift.epi || {}, NP = LS.get('night', null) || {}, said = (NP.lily || []).some(k => flags['msg_' + k]);
+  const f = Object.assign({}, flags, { lsilent: !said && run.hrs.includes('S3'), clean: !run.miss, fell: flags.fake === 1, caught: flags.fake === 2 });
+  const ok = c => !c || [].concat(c).every(k => k[0] === '!' ? !f[k.slice(1)] : !!f[k]);
+  return (E[ending] || []).map(L => { const hit = (typeof L === 'string' ? E[L.slice(1)] || [] : L).find(x => ok(x[0])); return hit ? hit[1] : null; }).filter(Boolean);
+}
 // журнал ночи: страница журнала охраны — время в игре, часы смены, записи, решения, чем кончилось; штамп концовки; к выбору / заново / меню
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
+  const epi = watching ? [] : epiLines(th.ending);   // «Что стало с ними» — только в своей ночи, не при просмотре концовки из меню
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); if (watching) { LS.set('save', watching.save); LS.set('saveT', watching.saveT); watching = null; } else LS.set('save', null); runSave();
   ach('NIGHT_DONE'); ach('END_' + String(th.ending).toUpperCase());   // достижения: плашка в игре + Steam (ПК) / Google Play Игры (Android)
   if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
@@ -1651,12 +1754,17 @@ function endScreen(th) {
       ${run.picks.length ? `<div class="jr-sub ln" ${L()}>${tr('Решения за ночь')}</div><ol>${run.picks.map(p => `<li class="ln" ${L()}>${escH(pickA(p))}</li>`).join('')}</ol>` : ''}
       <div class="jr-end ln" ${L()}><b>${gameClock(false)} — ${escH(tr(th.title))}</b><span>${escH(tr(th.sub))}</span></div>
       <div class="jr-stamp" style="--d:${(d += .7).toFixed(2)}s">${escH(tr(S.endings[th.ending]))}${fresh ? `<i>${tr('новая концовка')}</i>` : ''}</div></div>`;
-  uiEl.innerHTML = `<div class="screen jr">${page}<div class="jr-side">${gallery()}
+  const epiHtml = epi.length ? `<div class="screen epi" id="epi"><div class="epi-in"><h2>${escH((S.shift.epi || {}).title || '')}</h2>${epi.map((s, i) => `<p style="--d:${(.7 + i * 1.2).toFixed(1)}s">${escH(s)}</p>`).join('')}
+      <button class="btn" id="epGo" style="--d:${(.9 + epi.length * 1.2).toFixed(1)}s">${tr('Продолжить')}</button></div></div>` : '';
+  uiEl.innerHTML = `<div class="screen jr${epi.length ? ' wait' : ''}">${page}<div class="jr-side">${gallery()}
       ${fork ? `<button class="btn" id="eBack">${tr('Вернуться к выбору')}<small>${escH(pickQ(fork))}</small></button>` : ''}
-      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${DESK || APP ? '' : supportBtn() + sponsorsHtml()}</div></div>`;
-  // строки ложатся по очереди под скрип ручки, в конце — штамп
-  uiEl.querySelectorAll('.jr .ln').forEach((el, i) => { if (i % 2 === 0) setTimeout(() => { if (mode === 'end' && gen === my) play('pen', { gain: .22, cut: .6 }); }, parseFloat(el.style.getPropertyValue('--d')) * 1000); });
-  setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000);
+      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${DESK || APP ? '' : supportBtn() + sponsorsHtml()}</div></div>${epiHtml}`;
+  // строки ложатся по очереди под скрип ручки, в конце — штамп (после эпилога, если он есть: до «Продолжить» страница журнала ждёт под ним)
+  const ink = () => { uiEl.querySelectorAll('.jr .ln').forEach((el, i) => { if (i % 2 === 0) setTimeout(() => { if (mode === 'end' && gen === my) play('pen', { gain: .22, cut: .6 }); }, parseFloat(el.style.getPropertyValue('--d')) * 1000); });
+    setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000); };
+  if (!epi.length) ink();
+  else { $('epGo').onclick = e => { e.stopPropagation(); play('click'); const el = $('epi'); if (el) el.remove(); const j = uiEl.querySelector('.screen.jr'); if (j) j.classList.remove('wait'); ink(); };
+    if (matchMedia('(pointer: fine)').matches) $('epGo').focus({ preventScroll: true }); }
   if (fork) $('eBack').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(fork.sc, true); };
   $('eAgain').onclick = () => begin('intro'); $('eMenu').onclick = menu;
 }
@@ -2345,7 +2453,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot() { return [...achGot]; }, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
+window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot() { return [...achGot]; }, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get night() { return nightGet(); }, nightSet: p => { LS.set('night', Object.assign(nightGet(), p)); return nightGet(); }, nightRoll, shiftMsg: m => shiftMsg(m), tempoSet, get tempoK() { return tempoK; }, get spm() { return shf ? spmNow() : 0; }, epiLines, endScreen: th => endScreen(th), settings: () => settings(), get run() { return run; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },
