@@ -13,8 +13,13 @@ const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s
 // предметы-сканы Poly Haven (CC0, models/props/<имя>.glb, сборка tools/props/pack.mjs) — только «Кино». Пока файл не пришёл или не смог —
 // стоит прежний предмет из коробок; пришёл — прежние детали host скрываются (кроме o.stay), модель встаёт основанием в o.at, высотой o.h
 let propL = null; const propG = {};
+const PROP_SCANS = new Set(['wall_clock', 'cctv']);
 function propGlb(name, host, o = {}) {
   if (!CINE || !window.THREE_GLTFLoader || !window.MeshoptDecoder) return;
+  // фотосканы выбиваются из стиля игры (владелец, 18 ноя: «как будто с других игр»): табличка с английским CAUTION, ржавый бак, огнетушитель — свои, из коробок.
+  // Остаются только часы и камеры (?scans=all — вернуть все, ?scans=0 — убрать все)
+  const SC = (location.search.match(/[?&]scans=([a-z0-9]+)/) || [])[1];
+  if (SC === '0' || (SC !== 'all' && !PROP_SCANS.has(name))) return;
   const old = host.children.slice();
   propG[name] = propG[name] || (async () => {
     if (!propL) { await window.MeshoptDecoder.ready; propL = new window.THREE_GLTFLoader(); propL.setMeshoptDecoder(window.MeshoptDecoder); }
@@ -84,10 +89,12 @@ function buildLobby() {
   }
   o.ceilOn = mat(0xe8f0e0, null, { basic: true, decal: 1, glow: 3 });   // общий материал горящих панелей (смена гасит холл)
   o.flick = plane(1.1, .5, glow(ps1(new T.MeshBasicMaterial({ color: 0xe8f0e0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), 3), S);   // свой материал: иначе мигали бы все панели o.flick.rotation.x = PI / 2; o.flick.position.set(-4.8, 4.18, 3.4);
-  o.l1 = new T.PointLight(0xc8d8d0, 1.9, 13, 1.5); o.l1.position.set(-1, 3.8, 0); S.add(o.l1);
-  o.l3 = new T.PointLight(0xb8c8d8, 1.3, 9, 1.5); o.l3.position.set(-.8, 3.6, -4.2); S.add(o.l3);
-  o.l2 = new T.PointLight(0xffd9a0, .9, 9, 1.6); o.l2.position.set(-4.8, 3.7, 3.4); S.add(o.l2);   // ненадёжная лампа холла
-  o.l4 = new T.PointLight(0xc8d4dc, 1.25, 7.5, 1.5); o.l4.position.set(.6, 3.7, 3.4); S.add(o.l4);   // над входом изнутри: свет до стекла
+  // свет — ровно под своими панелями (тестер, 18 ноя: «свет не там, где сам источник» — лампы висели в метре от панелей, и конус света начинался с пустого потолка)
+  o.l1 = new T.PointLight(0xc8d8d0, 1.9, 13, 1.5); o.l1.position.set(0, 3.8, 0); S.add(o.l1);
+  o.l3 = new T.PointLight(0xb8c8d8, 1.3, 9, 1.5); o.l3.position.set(0, 3.7, -3.4); S.add(o.l3);
+  o.l2 = new T.PointLight(0xffd9a0, .9, 9, 1.6); o.l2.position.set(-4.8, 3.7, 3.4); S.add(o.l2);   // ненадёжная лампа холла (мигающая панель o.flick)
+  o.l4 = new T.PointLight(0xc8d4dc, 1.25, 7.5, 1.5); o.l4.position.set(0, 3.7, 3.4); S.add(o.l4);   // над входом изнутри: свет до стекла
+  for (const l of [o.l1, o.l2, o.l3, o.l4]) l.userData.beamTop = 4.18;   // конус света — от самой панели на потолке
   // колонны
   for (const [x, z] of [[-4.5, 1], [2.3, 2.6]]) { box(.7, 4.2, .7, mat(0xffffff, TX.wall), x, 2.1, z, S); box(.74, 1.1, .74, panelM, x, .55, z, S); }
   // турникеты перед лифтами: четыре стойки из нержавейки, между ними проходы со стеклянными створками и считыватели пропусков
@@ -626,8 +633,11 @@ function buildCorridor() {
     return w; };
   wall(1, 0, -len, 0, 3, wm); wall(1, 0, -len, 0, .9, pm);
   // левая стена из кусков без Т-стыков (вершина одного куска посреди ребра другого даёт на телефоне светлую/тёмную щель до потолка)
-  wall(-1, 0, zA, 0, dh, wm); wall(-1, 0, zA, dh, 3, wm); wall(-1, zA, zB, dh, 3, wm); wall(-1, zB, -len, dh, 3, wm); wall(-1, zB, -len, 0, dh, wm);
-  wall(-1, 0, zA, 0, .9, pm); wall(-1, zB, -len, 0, .9, pm);
+  // второй проём слева — кабинет (владелец, 18 ноя: уборщик заходит в кабинет — в дверь, а не сквозь стену); камера видит левую стену лицом
+  const D5 = o.D5 = -8.7, lA = D5 + dw / 2, lB = D5 - dw / 2;
+  wall(-1, 0, lA, 0, dh, wm); wall(-1, lB, zA, 0, dh, wm); wall(-1, zB, -len, 0, dh, wm);
+  wall(-1, 0, lA, dh, 3, wm); wall(-1, lA, lB, dh, 3, wm); wall(-1, lB, zA, dh, 3, wm); wall(-1, zA, zB, dh, 3, wm); wall(-1, zB, -len, dh, 3, wm);
+  wall(-1, 0, lA, 0, .9, pm); wall(-1, lB, zA, 0, .9, pm); wall(-1, zB, -len, 0, .9, pm);
   const end = plane(wd, 3, wm, S); end.position.set(0, 1.5, -len);
   const st = plane(wd, 3, wm, S); st.rotation.y = PI; st.position.set(0, 1.5, 0);
   aoEdge(S, len, wd / 2, -len / 2, -PI / 2, 3); aoEdge(S, len, -wd / 2, -len / 2, PI / 2, 3); aoEdge(S, wd, 0, -len, 0, 3);
@@ -638,12 +648,26 @@ function buildCorridor() {
   box(.14, dh, .04, trM, -wd / 2 - .07, dh / 2, zA - .02, S);   // торец коробки, за который хватаются пальцы
   o.door7 = new T.Group(); o.door7.position.set(-wd / 2 - .02, 0, zB); S.add(o.door7);
   box(.05, dh - .02, dw - .03, mat(0x5c5c5c, TX.door), -.025, (dh - .02) / 2, (dw - .03) / 2, o.door7);   // створка внутри тёмной комнаты — в тени
+  // кабинет слева: створка на петлях открывается внутрь, за ней — комната со столом, шкафом и настольной лампой (лампа горит, только когда там Гас)
+  { const tr5 = mat(0x3a2a20), X = -wd / 2;
+    box(.03, dh + .07, .07, tr5, X + .015, (dh + .07) / 2, lA + .035, S); box(.03, dh + .07, .07, tr5, X + .015, (dh + .07) / 2, lB - .035, S); box(.03, .07, dw + .14, tr5, X + .015, dh + .035, D5, S);
+    o.door5 = new T.Group(); o.door5.position.set(X + .03, 0, lA); S.add(o.door5);   // петли — с ближней к камере стороны: открытая створка не загораживает комнату
+    box(.06, dh - .02, dw - .03, mat(0xffffff, TX.door), 0, (dh - .02) / 2, -(dw - .03) / 2, o.door5);
+    const r5 = room(3, 3, 3, mat(0x8a8474, TX.wall), S); r5.position.set(X - 1.5, 1.5, D5);
+    const wd5 = mat(0x5a4632, null, { rough: .7 }), gr5 = mat(0x4a4e52, null, { rough: .6, metal: .3 });
+    box(.65, .05, 1.2, wd5, X - 2.3, .74, D5 + .55, S); for (const [dx, dz] of [[-.28, -.55], [.28, -.55], [-.28, .55], [.28, .55]]) box(.04, .72, .04, gr5, X - 2.3 + dx, .36, D5 + .55 + dz, S);   // стол
+    box(.45, 1.6, .5, gr5, X - 2.6, .8, D5 - 1.05, S);   // шкаф для бумаг
+    box(.26, .3, .36, mat(0x1a1c1e), X - 2.45, .92, D5 + .7, S);   // старый монитор
+    const lb = box(.08, .1, .08, mat(0xffe6b0, null, { basic: true, glow: 2 }), X - 2.15, 1.0, D5 + .2, S); o.lamp5Bulb = lb; lb.visible = false;
+    o.room5L = new T.PointLight(0xffd9a0, 0, 6.5, 1.3); o.room5L.position.set(X - 1.6, 1.6, D5 + .3); S.add(o.room5L);
+    o.open5 = k => { o.door5.rotation.y = 1.45 * k; };   // внутрь кабинета
+  }
   // двери по бокам с табличками
   // таблички с номерами: один коридор служит двумя этажами (7 и 10) — номера меняются (o.setFloor)
   o.plates = { 7: new T.Group(), 10: new T.Group() }; S.add(o.plates[7], o.plates[10]); o.plates[10].visible = false;
   let n = 1;
   for (let z = -2.5; z > -len + 2; z -= 3.1) for (const s of [-1, 1]) {
-    if (!(s === -1 && Math.abs(z - D7) < .01)) { const d = box(.06, 2.1, .95, mat(0xffffff, TX.door), s * (wd / 2 - .03), 1.05, z, S); if (s === 1 && Math.abs(z + 5.6) < .01) o.doorR10 = d; }
+    if (!(s === -1 && Math.abs(z - D7) < .01) && !(s === -1 && Math.abs(z - D5) < .01)) { const d = box(.06, 2.1, .95, mat(0xffffff, TX.door), s * (wd / 2 - .03), 1.05, z, S); if (s === 1 && Math.abs(z + 5.6) < .01) o.doorR10 = d; }
     const i = n++;
     for (const fl of [7, 10]) { const num = fl * 100 + i; const pl = label(.2, .08, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#1b1b1b'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), w / 2, h / 2 + 1); }, o.plates[fl], false);
       pl.position.set(s * (wd / 2 - .065), 1.75, z - .62); pl.rotation.y = -s * PI / 2; }
@@ -746,7 +770,7 @@ function buildCorridor() {
     const z = -1.8 - i * 3.6;
     const m = new T.MeshBasicMaterial({ color: 0xe8f0e8 }); ps1(m); glow(m, 3);
     const tube = box(.9, .05, .25, m, 0, 2.97, z, S);
-    const li = new T.PointLight(0xd8e8e0, 0, 7, 1.3); li.position.set(0, 2.7, z); S.add(li);
+    const li = new T.PointLight(0xd8e8e0, 0, 7, 1.3); li.position.set(0, 2.7, z); S.add(li); li.userData.beamTop = 2.95;
     o.lamps.push({ tube, li, on: 0 });
   }
   // двери лифта в начале коридора (за спиной камеры) и зелёная табличка
@@ -827,7 +851,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.garland.visible = false; if (o.flM.roughness != null) o.flM.roughness = .3; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.door5.rotation.y = 0; o.room5L.intensity = 0; o.lamp5Bulb.visible = false; o.bursts = null; o.faceL.intensity = 0; o.garland.visible = false; if (o.flM.roughness != null) o.flM.roughness = .3; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа
     if (o.vendL) o.vendL.intensity = .62 + (Math.sin(t * 2.3) > .7 ? .18 * Math.sin(t * 37) : 0);   // лампа торгового автомата изредка дрожит (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
@@ -836,13 +860,30 @@ function buildCorridor() {
   return o;
 }
 // ведро уборщика: жёлтое, с отжимом и колёсиками; tip(k) — опрокинуто
+// ведро-тележка уборщика (19 ноя, владелец: «ведро не проработано, и тележка или что это»): как настоящее — овальное пластиковое ведро с бортиком
+// и мутной водой, рама на четырёх поворотных колёсиках, на одном конце — отжим (корзина, прижимная пластина, рычаг с чёрной ручкой), на другом — ручка
+// для катания. Точки, за которые берётся Гас (gusDip): вода (−0,08; 0,26; 0), щель отжима (0,12; 0,40; 0), ручка рычага (0,20; 0,82; 0) — в осях ведра
 function makeBucket() {
   const g = new T.Group(), b = new T.Group(); g.add(b);
-  const yM = mat(0xc9a21c), gM = mat(0x5a5e62), dM = mat(0x1a1c1e);
-  box(.42, .3, .32, yM, 0, .2, 0, b); box(.44, .03, .34, mat(0xb08c14), 0, .36, 0, b);
-  const wtr = box(.38, .01, .28, mat(0x2a3438, null, { emissive: 0x05080a }), 0, .3, 0, b);
-  box(.16, .2, .26, gM, .12, .44, 0, b); box(.03, .4, .03, gM, .2, .62, .1, b); box(.03, .4, .03, gM, .2, .62, -.1, b); box(.03, .03, .23, gM, .2, .82, 0, b);   // отжим и ручка
-  for (const [x, z] of [[-.17, .12], [.17, .12], [-.17, -.12], [.17, -.12]]) box(.04, .05, .04, dM, x, .025, z, b);
+  const yM = mat(0xd8a812, null, { rough: .45 }), yD = mat(0xa88210, null, { rough: .5 }), gM = mat(0x6e7378, null, { rough: .35, metal: .6 }), dM = mat(0x161819, null, { rough: .8 }), rM = mat(0x2a2c2e, null, { rough: .9 });
+  // ванна: овал (цилиндр, сжатый по z), стенки чуть сужаются ко дну; внутри тёмная стенка, сверху бортик
+  const tub = cyl(.215, .19, .3, 20, yM, b); tub.scale.set(1.12, 1, .78); tub.position.set(-.02, .2, 0);
+  const inner = cyl(.2, .185, .02, 20, mat(0x7a6414, null, { rough: .6 }), b); inner.scale.set(1.12, 1, .78); inner.position.set(-.02, .345, 0);
+  const rim = new T.Mesh(new T.TorusGeometry(.212, .014, 6, 24), yD); rim.rotation.x = PI / 2; rim.scale.set(1.12, .78, 1); rim.position.set(-.02, .352, 0); b.add(rim);
+  const wtr = cyl(.198, .198, .006, 20, mat(0x4a5a5c, null, { rough: .08, metal: .2, emissive: 0x060a0b }), b); wtr.scale.set(1.12, 1, .78); wtr.position.set(-.02, .3, 0);   // мутная вода
+  for (const z of [-.15, .15]) { const ri = box(.36, .05, .012, yD, -.02, .2, z * 1.02, b); ri.rotation.x = z > 0 ? -.06 : .06; }   // рёбра жёсткости на боках
+  // рама и колёсики
+  box(.5, .025, .36, dM, 0, .055, 0, b);
+  for (const [x, z] of [[-.21, .15], [.21, .15], [-.21, -.15], [.21, -.15]]) { box(.03, .03, .03, gM, x, .033, z, b); const w = cyl(.022, .022, .018, 10, rM, b); w.rotation.x = PI / 2; w.position.set(x, .022, z); }
+  // отжим: корзина над краем, прижимная пластина, рычаг вверх с ручкой
+  box(.17, .14, .27, gM, .13, .42, 0, b); box(.15, .02, .25, dM, .13, .35, 0, b);
+  const plate = box(.02, .13, .24, gM, .05, .43, 0, b); plate.rotation.z = .12;
+  for (const z of [-.1, .1]) { const a = cyl(.009, .009, .42, 6, gM, b); a.position.set(.2, .62, z); }
+  const bar = cyl(.012, .012, .23, 6, gM, b); bar.rotation.x = PI / 2; bar.position.set(.2, .83, 0);
+  const grip = cyl(.018, .018, .13, 8, dM, b); grip.rotation.x = PI / 2; grip.position.set(.2, .83, 0);
+  // ручка для катания на другом конце
+  for (const z of [-.11, .11]) { const a = cyl(.008, .008, .55, 6, gM, b); a.position.set(-.26, .33, z); a.rotation.z = -.12; }
+  const hb = cyl(.011, .011, .24, 6, gM, b); hb.rotation.x = PI / 2; hb.position.set(-.293, .6, 0);
   g.userData.tip = k => { b.rotation.z = k * 1.45; b.position.set(k * .2, k * .14, 0); wtr.visible = k < .5; };
   return g;
 }
@@ -1528,7 +1569,7 @@ function lilyGlass(t, mode, o2 = {}) {
   const hand = (lx, dy) => ({ at: R.p(lx, ly + dy, gz - away), by: mode === 'scratch' ? 'tip' : 'palm', fdir: [0, 1, -.15], pdir: [0, 0, -1], w: k });
   return { clips: [['Idle_Loop', t + 1.7, 1]], talk: 1, legs: 'feet', spine: { to: R.p(0, 1.3, 1.2), k: .22 * k + .05 },
     arm: { l: hand(.21, -.02), r: hand(-.2, .01) }, fing: { l: [mode === 'scratch' ? 'claw' : 'flat', k], r: [mode === 'scratch' ? 'claw' : 'flat', k] },
-    wig: [['spine_03', [1, 0, 0], sob * .05], ['neck_01', [1, 0, 0], sob * .04]], twist: mode === 'look' ? -.85 * seg(t, .1, .7) : 0,
+    wig: [['spine_03', [1, 0, 0], sob * .1], ['neck_01', [1, 0, 0], sob * .09], ['clavicle_l', [0, 0, 1], sob * .06], ['clavicle_r', [0, 0, 1], -sob * .06]],   // всхлипы: плечи вздрагивают twist: mode === 'look' ? -.85 * seg(t, .1, .7) : 0,
     look: mode === 'look' && t > .15 ? [LX - 2.5, 1.5, LZ + 4] : o2.look === 'cam' ? undefined : o2.look || EYE_IN };
 }
 // Итан у двери внутри: смотрит на неё; пишет пальцем по туману (k), поворачивает ключ (key)
@@ -1540,6 +1581,7 @@ function ethanDoor(o, t, mode, k) {
 SH.gl_wide = { loc: 'lobby', pos: [2.4, 1.62, 4.15], look: [.55, 1.42, 6.3], fov: 46,   // камера правее: «Лили» за стеклом видна рядом с плечом Итана, а не за его спиной
   set: (o, t) => [['temych', .78, 0, 5.55, 0, ethanDoor(o, t), null], ['katya', LX, 0, LZ, PI, lilyGlass(t, 'press'), null]] };
 SH.gl_face = { loc: 'lobby', pos: [.66, 1.56, 5.45], look: [.62, 1.5, 6.5], fov: 34, face: { katya: 'plead' }, set: (o, t) => { breath(o, t); return [['katya', LX, 0, LZ, PI, lilyGlass(t, 'press', { look: 'cam' }), 'cam']]; } };
+SH.gl_cry = Object.assign({}, SH.gl_face, { face: { katya: 'cry' } });   // плачет у стекла (до «перестала плакать»)
 SH.gl_none = Object.assign({}, SH.gl_face, { face: null, set: (o, t) => { breath(o, t); return []; } });   // протираешь стекло — за ним пустая улица под дождём (мини-игра «Кто там?»)
 SH.gl_slam = Object.assign({}, SH.gl_face, { face: { katya: 'fear' }, set: (o, t) => { breath(o, t); return [['katya', LX, 0, LZ, PI, lilyGlass(t, 'slam', { look: 'cam' }), 'cam']]; } });   // и тут же — удар ладонями в стекло
 SH.gl_look = { loc: 'lobby', pos: [1.5, 1.55, 4.7], look: [.62, 1.45, 6.4], fov: 40, face: { katya: 'fear' }, set: (o, t) => [['katya', LX, 0, LZ, PI, t < 1.5 ? lilyGlass(t, 'look') : lilyGlass(t - 1.5, 'slam'), null]] };
@@ -1564,7 +1606,7 @@ function hugArms(t, k, ek) {   // руки в объятии: её — на ег
     fing: { l: ['flat', ek * .7], r: ['pinch', 1] }, hold: { r: 'keys' }, spine: { to: [sp.x, sp.y + .1, sp.z], k: .1 * ek }, look: ek > .3 ? [sp.x - .55, 1.58, sp.z + .7] : [sp.x, 1.55, sp.z] };
   return [lily, eth];
 }
-function hugPair(o, t) {
+function hugPair(o, t, sob = 0) {   // sob — плачет у него на плече (всхлипы плечами), до «перестала плакать»
   leafAng(o, 0, leafPull(t, .55));
   // она: к скобе (0–.5), рывок (.55–1.3), внутрь (с 1.1), руки на шею (к 2.5)
   let L; const g = seg(t, .25, .5) * (1 - seg(t, .95, 1.15)), gr = leafGrip(o, g);
@@ -1575,10 +1617,11 @@ function hugPair(o, t) {
   E[5].fing = { r: ['pinch', 1] }; E[5].hold = { r: 'keys' };
   const k = seg(t, 2.05, 2.6), ek = seg(t, 2.45, 3.0);
   if (k > 0) { const [lp, ep] = hugArms(t, k, ek); Object.assign(L[5], lp); if (ek > 0) Object.assign(E[5], ep); L[5].legs = 'feet'; }
+  if (sob) { const sb = Math.pow(Math.max(0, Math.sin(t * 3.3)), 6); L[5].wig = [['spine_03', [1, 0, 0], sb * .1], ['neck_01', [1, 0, 0], sb * .08], ['clavicle_l', [0, 0, 1], sb * .06], ['clavicle_r', [0, 0, 1], -sb * .06]]; }
   return [E, L];
 }
-SH.a_hug = { loc: 'lobby', pos: [1.55, 1.5, 4.55], look: [-.15, 1.3, 5.75], fov: 48, face: { katya: 'plead' }, set: (o, t) => hugPair(o, t) };
-SH.a_hug_side = { loc: 'lobby', pos: [1.25, 1.52, 5.12], look: [-.2, 1.38, 5.14], fov: 40, face: { katya: 'plead' }, set: (o, t) => hugPair(o, t + 4) };
+SH.a_hug = { loc: 'lobby', pos: [1.55, 1.5, 4.55], look: [-.15, 1.3, 5.75], fov: 48, face: { katya: 'cry' }, set: (o, t) => hugPair(o, t, 1) };
+SH.a_hug_side = { loc: 'lobby', pos: [1.25, 1.52, 5.12], look: [-.2, 1.38, 5.14], fov: 40, face: { katya: 'cry' }, set: (o, t) => hugPair(o, t + 4, 1) };
 SH.a_hug_face = { loc: 'lobby', pos: [.2, 1.63, 4.55], look: [-.1, 1.5, 5.24], fov: 34, set: (o, t) => { A.katya.noTilt = true; return hugPair(o, t + 4); } };
 // a07: она стоит рядом, руки пустые; у него в руке звонит телефон
 SH.a_beside = { loc: 'lobby', pos: [1.6, 1.42, 4.0], look: [.6, 1.1, 5.0], fov: 46, set: (o, t) => {
@@ -2597,6 +2640,101 @@ function gusRoutine(tg) {
   v -= .9; if (v < mv) return { z: z0, k: 0, move: [z0, z1, v, mv] };   // переходит
   return { z: z1, k: (v - mv) / .9 };   // снова моет
 }
+// ---- Гас живёт своей ночью (владелец, 18 ноя: «уборщик должен иногда новое — заходить в двери комнат, проводить там время, выходить, сесть посидеть, отдохнуть»).
+// Распорядок случайный на каждый час: моет в разных местах коридора; ставит швабру к стене и уходит в кабинет 705 (дверь справа, внутри горит свет), потом выходит;
+// садится на стул у стены передохнуть (иногда поднимает голову к камере); стоит, разминает спину и оглядывается. Пока он моет — прежняя анимация (gusRoutine/mopGus).
+// gusLife возвращает актёров кадра или null — «моет сейчас» (тогда работает старый код, в том числе разговор по рации).
+const GL = { door: [-.5, -8.7], inside: [-2.05, -8.45], chairC: [-1.0, -7.4], seat: [-.76, -7.4], chairStand: [-.45, -7.4], mopDoor: [-1.05, MOP_Y, -9.65], mopChair: [-1.05, MOP_Y, -6.75] };
+let gusPlanA = null, gusPlanT = -1;
+function gusPlanMake() {
+  const R = Math.random, P = []; let t = 0, at = [G7X, G7Z[0]];
+  let bz = G7Z[0] - BK_DZ;   // ведро (19 ноя, владелец: «проработай ведро — неестественно моет»): стоит у участка, катится с Гасом к следующему
+  const add = (k, d, x) => { P.push(Object.assign({ k, t0: t, d, bz0: bz, bz1: bz }, x)); t += d; };
+  const walk = (b, mop) => { const d = Math.hypot(b[0] - at[0], b[1] - at[1]); if (d > .05) { add('walk', d / .62 + .5, { a: at.slice(), b: b.slice(), mop });
+      if (mop === 2) { P[P.length - 1].bz1 = bz = b[1] - BK_DZ; } } at = b.slice(); };   // к новому участку — толкает ведро перед собой
+  add('dip', BK_DIP, { z: G7Z[0] });   // перед мытьём — макнул швабру и отжал
+  add('mop', 26 + R() * 14, { z: G7Z[0] });   // в начале часа — моет (Итан говорит «уборщик моет пол»)
+  let last = 'mop';
+  while (t < 900) {
+    const r = R(); let k = r < .42 ? 'mop' : r < .64 ? 'office' : r < .86 ? 'rest' : 'stretch';
+    if (k === last && k !== 'mop') k = 'mop';
+    if (k === 'mop') { const z = G7Z[R() * 3 | 0] + (R() - .5) * .5; walk([G7X, z], 2); add('dip', BK_DIP, { z }); add('mop', 10 + R() * 12, { z }); }
+    else if (k === 'office') { walk(GL.door, 1); add('park', 1.1, { at: GL.door, ry: -PI / 2, mopTo: 'door' }); add('open', 1.2, {});
+      add('in', 2.2, {}); add('inside', 12 + R() * 20, {}); add('out', 2.2, {}); add('close', 1.1, {}); add('take', .9, { at: GL.door, ry: -PI / 2, mopTo: 'door' }); at = GL.door.slice(); }
+    else if (k === 'rest') { walk(GL.chairStand, 1); add('park', 1.1, { at: GL.chairStand, ry: -PI / 2, mopTo: 'chair' }); add('turn', 1.0, { at: GL.chairStand, ry0: -PI / 2, ry1: PI / 2 });
+      add('sitdown', 1.4, {}); add('sit', 12 + R() * 16, { peek: R() < .5 ? 3 + R() * 6 : -1 }); add('standup', 1.4, {}); add('take', .9, { at: GL.chairStand, ry: -PI / 2, mopTo: 'chair' }); at = GL.chairStand.slice(); }
+    else { add('stretch', 5 + R() * 4, { at: at.slice() }); }
+    last = k;
+  }
+  return P;
+}
+// макает и отжимает: повернулся к ведру → колодку в воду, два-три раза вверх-вниз → в отжим, левой давит рычаг → обратно к полу перед собой
+const BK_X = .44, BK_DZ = .3, BK_RY = PI + .25, BK_DIP = 3.6;   // отжим и рычаг — со стороны Гаса
+function gusDip(o, x, z, t, v, d, bk) {
+  const ryB = Math.atan2(bk[0] - x, bk[1] - z), tn = Math.min(seg(v, 0, .6), 1 - seg(v, d - .6, d)), ry = lerp(G7R, ryB, tn), R = locR(x, z, ry);
+  const cB = Math.cos(BK_RY), sB = Math.sin(BK_RY), bw = (lx, y, lz) => [bk[0] + lx * cB + lz * sB, y, bk[1] - lx * sB + lz * cB];   // точка ведра (его оси) → мир
+  const floor = R.p(0, MOP_Y, .78), water = bw(-.08, .26 - .09 * Math.abs(Math.sin((v - .7) * PI / .45)) * seg(v, .7, .9) * (1 - seg(v, 1.9, 2.0)), 0), wring = bw(.02, .26, 0);   // колодка уходит под отжим, в ведро (снаружи не торчит)
+  const kIn = seg(v, .45, .8) * (1 - seg(v, d - .75, d - .4)), kWr = seg(v, 2.0, 2.3) * (1 - seg(v, 3.0, 3.25)), press = seg(v, 2.3, 2.6) * (1 - seg(v, 2.8, 3.0));
+  const head = lin(lin(floor, water, kIn), wring, kWr), piv = R.p(-.24 + .1 * kWr, 1.0, .3);   // черенок проходит справа от корпуса, у плеча — не через голову
+  const u = nrm([piv[0] - head[0], piv[1] - head[1], piv[2] - head[2]]), at = q => [head[0] + u[0] * q, head[1] + u[1] * q, head[2] + u[2] * q];
+  window.__W3chars.propAim('mop', o.S, head, u, ry + PI / 2 * Math.max(kIn, kWr));   // в ведре колодка поворачивается вдоль длинной стороны ведра — тряпка не торчит сквозь стенки
+  { const hd = window.__W3chars.prop3('mop').obj.userData.head; if (hd) hd.visible = Math.max(kIn, kWr) < .7; }   // колодка под водой/в отжиме — её не видно (иначе тряпка проходит сквозь стенки ведра)
+  const side = R.v(1, 0, 0), pr = nrm(crs(u, crs(side, u))), pl = pr.map(w => -w), lever = bw(.2, .82 - .2 * press, 0);
+  const P = { ry, clips: tn > 0 && tn < 1 ? [['Walk_Loop', v * .9, Math.sin(PI * tn) * .5], ['Idle_Loop', t + 2, 1 - Math.sin(PI * tn) * .5]] : [['Idle_Loop', t + 2, 1]], legs: tn > 0 && tn < 1 ? undefined : 'plant',
+    pelvis: R.v(0, -.03 - .03 * kIn, .0), spine: { to: lin(R.p(0, .2, 1.0), [head[0], 1.0, head[2]], .4), k: .12 + .08 * kIn }, look: kIn > .3 ? head : null,
+    arm: { r: { at: at(1.38), by: 'palm', fdir: crs(pr, u), pdir: pr, pole: R.v(-1, -.4, -.4) },   // при макании обе руки у верха черенка — так достаёт
+           l: kWr > .5 ? { at: lever, by: 'palm', fdir: R.v(0, 0, 1), pdir: [0, -1, 0], pole: R.v(1, -.6, 0) } : { at: at(1.02 + .1 * (1 - kIn)), by: 'palm', fdir: crs(u, pl), pdir: pl, pole: R.v(1, -.8, .1) } },
+    fing: { r: ['grip', 1], l: ['grip', 1] } };
+  return P;
+}
+function gusMopAt(o, where) { const W = window.__W3chars; if (where === 'door') W.propAim('mop', o.S, GL.mopDoor, MOPWALL_D, 1.2, MOP_Y); else W.propAim('mop', o.S, GL.mopChair, MOPWALL_D, 1.2, MOP_Y); }
+// рация в любой позе распорядка (владелец, 19 ноя: «сидит — а рацию не достаёт»): та же схема, что gusRadioCam — снял с нагрудника, ко рту, пока говорит
+function gusRadioOn(tu, g) {
+  if (!tu || !g || !(g.h > 0) || typeof tu[5] !== 'object') return tu;
+  const [, x, , z, ry, P] = tu, R = locR(x, z, ry), chest = bodyAt(R, 'spine_03', G_S3, [.07, 1.25, .15]), mouth = bodyAt(R, 'Head', G_HEAD, [.05, 1.46, .15]), clip = wornPt(A.cleaner, RADIO_G) || R.p(.07, 1.24, .17);
+  const w = seg(g.h, 0, .45), inH = g.h >= .45, k1 = seg(g.h, .45, 1), at = inH ? (C => lin(lin(clip, chest(C), k1), mouth(C), g.u)) : clip;
+  P.arm = Object.assign({}, P.arm, { l: { at, by: 'palm', fdir: R.v(-.15, 1, .05), pdir: R.v(.05, -.1, -1), w } }); P.fing = Object.assign({}, P.fing, { l: ['grip', w] });
+  if (inH) { delete P.wear; P.hold = Object.assign({}, P.hold, { l: 'radio' }); }
+  P.talk = g.u > .6 ? 1 : 0; return tu;
+}
+function gusLife(o, tg, t, g) {   // g — разговор по рации (доли из radioTalk) или null
+  const L = gusLife0(o, tg, t, g); if (L && g) for (const tu of L) if (!(tu && tu[5] && tu[5].radioDone)) gusRadioOn(tu, g); return L;
+}
+function gusLife0(o, tg, t, radio) {   // radio — доли разговора по рации или null
+  if (!gusPlanA || tg < gusPlanT - 3) window.__gusPlan = gusPlanA = gusPlanMake();   // новый час (часы швабры пошли с нуля) — новый распорядок
+  gusPlanT = tg;
+  const P = gusPlanA, it = P.find(x => tg >= x.t0 && tg < x.t0 + x.d) || P[P.length - 1], v = tg - it.t0, u = clamp(v / it.d, 0, 1), e = ease(u);
+  o.faceL.intensity = 0; o.chair10.visible = true; o.chair10.position.set(GL.chairC[0], 0, GL.chairC[1]); o.chair10.rotation.y = PI / 2;   // стул у стены (на нём Гас отдыхает)
+  const door = (k, lit = k) => { o.open5(k); o.room5L.intensity = 3.2 * lit; o.lamp5Bulb.visible = lit > .3; };
+  const bzNow = lerp(it.bz0, it.bz1, it.k === 'walk' ? e : 0); if (o.bucket) { o.bucket.position.set(BK_X, 0, bzNow); o.bucket.rotation.set(0, BK_RY, 0); }
+  if (it.k === 'dip') { const P2 = gusDip(o, G7X, it.z, t, v, it.d, [BK_X, bzNow]); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, P2.ry, P2, null]]; }
+  if (it.k === 'mop') { if (v < .9 && P.indexOf(it) > 0) { const P2 = mopGus(o, G7X, it.z, G7R, t, e); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }
+    if (radio) { const P2 = gusRadioCam(o, t, G7X, it.z, G7R, radio, 1); P2.radioDone = 1; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }   // там же, где мыл (раньше — прыжок на место старого распорядка)
+    const k = v > it.d - .9 ? (it.d - v) / .9 : 1, P2 = mopGus(o, G7X, it.z, G7R, t, k); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }
+  if (it.k === 'walk') { const a = it.a, b = it.b, ry = Math.atan2(b[0] - a[0], b[1] - a[1]), x = lerp(a[0], b[0], e), z = lerp(a[1], b[1], e);
+    const P2 = mopGus(o, x, z, ry, t, 0); delete P2.clips; P2.wear = { radio: RADIO_G }; return [shuffle('cleaner', a, b, v, 0, it.d, ry, P2)]; }
+  if (it.k === 'park' || it.k === 'take') {   // ставит швабру к стене / берёт её
+    const holds = it.k === 'park' ? u < .55 : u > .45;
+    if (holds) { const P2 = gusStand(o, t, it.ry, null, null, 1, it.at, it.ry); P2.wear = { radio: RADIO_G }; return [['cleaner', it.at[0], 0, it.at[1], it.ry, P2, null]]; }
+    gusMopAt(o, it.mopTo); return [['cleaner', it.at[0], 0, it.at[1], it.ry, Object.assign({ clips: [['Idle_Loop', t + 3, 1]], legs: 'feet' }, { wear: { radio: RADIO_G } }), null]]; }
+  const inOffice = ['open', 'in', 'inside', 'out', 'close'].includes(it.k), inRest = ['turn', 'sitdown', 'sit', 'standup'].includes(it.k);
+  if (inOffice) { gusMopAt(o, 'door');
+    if (it.k === 'open') { door(e); return [['cleaner', GL.door[0], 0, GL.door[1], -PI / 2, { clips: [['Idle_Loop', t + 3, 1]], legs: 'feet', wear: { radio: RADIO_G } }, null]]; }
+    if (it.k === 'close') { door(1 - e, 0); return [['cleaner', GL.door[0], 0, GL.door[1], -PI / 2, { clips: [['Idle_Loop', t + 3, 1]], legs: 'feet', wear: { radio: RADIO_G } }, null]]; }   // свет в кабинете погасил, прикрывает дверь
+    door(1);
+    if (it.k === 'inside') return [];   // в кабинете: дверь приоткрыта, внутри свет. Пусто — и тихо
+    const a = it.k === 'in' ? GL.door : GL.inside, b = it.k === 'in' ? GL.inside : GL.door;
+    return [shuffle('cleaner', a, b, v, 0, it.d, Math.atan2(b[0] - a[0], b[1] - a[1]), { wear: { radio: RADIO_G } })]; }
+  if (inRest) { gusMopAt(o, 'chair');
+    if (it.k === 'turn') { const ry = lerp(it.ry0, it.ry1, e); return [['cleaner', it.at[0], 0, it.at[1], ry, { clips: [['Walk_Loop', v * .9, Math.sin(PI * u) * .6], ['Idle_Loop', t + 3, 1 - Math.sin(PI * u) * .6]], wear: { radio: RADIO_G } }, null]]; }
+    const sit = it.k === 'sitdown' ? e : it.k === 'standup' ? 1 - e : 1, x = lerp(GL.chairStand[0], GL.seat[0], sit);
+    let look = null; if (it.k === 'sit') { look = it.peek >= 0 && v > it.peek && v < it.peek + 2.6 ? 'cam' : [x + 1.5, 1.0 + .3 * Math.sin(t * .3), GL.seat[1] - 1.2 + Math.sin(t * .21) * 2]; }   // сидит, смотрит перед собой; иногда — в камеру
+    return [['cleaner', x, 0, GL.seat[1], PI / 2, { clips: [['Sitting_Idle_Loop', t, Math.max(sit, .001)], ['Idle_Loop', t + 3, 1 - sit]], talk: radio ? 1 : 0, wear: { radio: RADIO_G }, look: look === 'cam' ? [1.0, 2.75, -.5] : look }, null]]; }
+  if (it.k === 'stretch') {   // стоит со шваброй, разминает спину, оглядывается
+    const P2 = gusStand(o, t, G7R, [it.at[0] + Math.sin(t * .7) * 1.6, 1.5, it.at[1] - 3], null, 1, it.at, G7R); P2.wear = { radio: RADIO_G };
+    P2.spine = { to: [it.at[0], 2.2, it.at[1] - .3 - Math.sin(v * 1.3) * .2], k: .25 * Math.sin(PI * u) }; return [['cleaner', it.at[0], 0, it.at[1], G7R, P2, null]]; }
+  return null;
+}
 // 7-й: Гас моет (s.gus), свет горит, пока он там; без него — темно, камера в ИК.
 // После 03:00 (s.gusGone, часы S5/S6/A1) Гаса нет: ведро, табличка, лужа и брошенная швабра — как на записи в 03:00 (f7_cam_after); свет — с пульта
 SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { const s = SHS();
@@ -2608,7 +2746,8 @@ SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov
   if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
   if (s.mopAlone) window.__W3chars.propAim('mop', o.S, [0, MOP_Y, -7.2], [0, 1, 0], 0);   // швабра стоит торчком посреди коридора, никто не держит
   o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
-  if (s.gus) { setLamps(o, 7); const G = gusRoutine(s.gz ?? t);   // s.gz — часы швабры: пока говорит по рации, стоят
+  if (s.gus) { setLamps(o, 7); const L = gusLife(o, s.gz ?? t, t, s.gusR || null); if (L) return L;   // распорядок: моет, заходит в кабинет, сидит, разминается
+    const G = gusRoutine(s.gz ?? t);   // s.gz — часы швабры: пока говорит по рации, стоят
     if (s.gusR) return [['cleaner', G7X, 0, G.z, G7R, gusRadioCam(o, t, G7X, G.z, G7R, s.gusR, G.k), null]];
     if (G.move) { const [z0, z1, v, mv] = G.move, zz = lerp(z0, z1, ease(clamp(v / mv, 0, 1))), P = mopGus(o, G7X, zz, G7R, t, 0); delete P.clips;   // идёт со шваброй: шаги — shuffle
       P.wear = { radio: RADIO_G }; return [shuffle('cleaner', [G7X, z0], [G7X, z1], v, 0, mv, G7R, P)]; }
@@ -3031,10 +3170,10 @@ function cineLoc(R, o) {
     l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
     if (!skip.has(l)) o.casters.push(l);
     if (!skip.has(l) && l.position.y > 2.3) {
-      const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
+      const wp = new T.Vector3(); l.getWorldPosition(wp); const top = l.userData.beamTop ?? l.position.y, h = (l.userData.beamTop ?? wp.y) - .02;
       const m = new T.Mesh(new T.CylinderGeometry(.2, .2 + h * (o.name === 'corridor' ? .26 : .42), h, 28, 1, true), new T.ShaderMaterial({ vertexShader: BEAM_VS, fragmentShader: BEAM_FS, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
         uniforms: { uH: { value: h }, uC: { value: l.color }, uI: { value: 0 }, uT: { value: 0 }, uFog: { value: .05 } } }));
-      m.position.set(l.position.x, l.position.y - h / 2 - .02, l.position.z); m.renderOrder = 5; l.parent.add(m); o.beams.push({ l, m, base: Math.max(.5, l.intensity) });
+      m.position.set(l.position.x, top - h / 2 - .02, l.position.z); m.renderOrder = 5; l.parent.add(m); o.beams.push({ l, m, base: Math.max(.5, l.intensity) });
     } });
   o.casters.slice(0, SHADOW_N).forEach(l => (l.castShadow = true));
   // пыль
