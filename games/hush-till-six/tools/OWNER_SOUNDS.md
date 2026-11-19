@@ -25,3 +25,6 @@ sha256 присланного файла → куда вставлен. Если
 | 19 ноя | tension.wav | 202059dc988d152a | snd/tension.mp3 |
 | 19 ноя | ring_mob.wav | 6c24df2576657ab4 | snd/ring_mob.mp3 |
 | 19 ноя | heart.wav | d13def4e79030dcb | snd/heart.mp3 |
+| 19 ноя | click.wav | 603514b513c930f4 | snd/click.mp3 |
+| 19 ноя | cleaner_hum.wav | 37d9660666a95ce9 | snd/cleaner_hum.mp3 |
+| 19 ноя | breath_close.wav | c7d3c4fc04d4c086 | snd/breath_close.mp3 |

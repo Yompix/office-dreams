@@ -81,7 +81,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5, shift: 5, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5, shift: 5, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 5, click: 5, cleaner_hum: 5, breath_close: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -1044,7 +1044,7 @@ function shiftGame(th) {
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
   shf.ev = seg.events.map(e => Object.assign({ m: toMin(e.at) }, e, e.task && { task: Object.assign({}, e.task) }, e.call && { call: Object.assign({}, e.call) }));   // задача и звонок — копии: отметки «снял трубку», «успел» оставались в сценарии, и при повторе часа звонок висел без звонка, срок задачи не проверялся
   voiceWant.clear(); voiceReady(objKeys([seg, ...Object.entries(S.shift).filter(([k]) => !/^(segs|lines)$/.test(k)).map(([, v]) => v)]));   // реплики этого часа, странностей и звонков
-  if (seg.rnd) { const pool = seg.rnd.pool.slice(); for (let i = 0; i < seg.rnd.n && pool.length; i++) { const id = pool.splice(Math.random() * pool.length | 0, 1)[0]; shf.ev.push({ m: shf.m0 + 6 + Math.random() * Math.max(1, shf.m1 - shf.m0 - 14), an: id }); } }
+  if (seg.rnd) shiftDirector(seg);
   shf.ev.sort((a, b) => a.m - b.m);
   LS.set('save', 'sh_' + th.shift); sceneId = 'sh_' + th.shift;
   clockEl.textContent = seg.from; clockEl.classList.remove('hide'); $('hud').classList.remove('hide');
@@ -1052,6 +1052,29 @@ function shiftGame(th) {
   shiftUI(); if (!willTut) shiftToast(seg.hint); requestAnimationFrame(tp => shiftTick(tp, my));
   if (willTut) setTimeout(() => { if (shf && shf.my === my && gen === my && mode === 'shift' && !tut) tutorial(); }, 900);
 }
+// «Режиссёр» часа (владелец, 18 ноя: «всё заскриптовано — аномалии каждый раз должны быть по-новому и непредсказуемо»):
+// — сколько странностей: от n−1 до n+2 (чаще n или n+1); какие — реже те, что игрок уже видел в прошлых прохождениях (anSeen в памяти браузера);
+// — когда: не равномерно, а волнами — бывает затишье, бывает две-три подряд; иногда одна прячется в последние минуты часа;
+// — сюжетные события часа остаются, но обычные странности из сценария (свет, кошка, лифт, первые помехи) сдвигаются на ±6 минут.
+const AN_PLOT = new Set(['gus7', 'palm', 'knock3x', 'lilyDoor']);
+function shiftDirector(seg) {
+  const seen = LS.get('anSeen', {}), R = Math.random, m0 = shf.m0, m1 = shf.m1, span = Math.max(1, m1 - m0 - 14);
+  if (shf.id !== 'A1') for (const e of shf.ev) if (e.an && !e.say && !AN_PLOT.has(e.an) && (S.shift.an[e.an] || {}).fix !== 'none') e.m = clamp(e.m + (R() * 12 - 6), m0 + 3, m1 - 8);
+  const roll = R(), n = Math.max(1, seg.rnd.n + (roll < .15 ? -1 : roll < .55 ? 0 : roll < .88 ? 1 : 2));
+  const pool = seg.rnd.pool.filter(id => !shf.ev.some(e => e.an === id)), pick = [];
+  while (pick.length < n && pool.length) {   // вес: свежие чаще (1), виденные реже (1/(1+раз)), но не исключаются
+    const w = pool.map(id => 1 / (1 + (seen[id] || 0))), sum = w.reduce((a, b) => a + b, 0); let r = R() * sum, i = 0;
+    while (i < pool.length - 1 && (r -= w[i]) > 0) i++;
+    pick.push(pool.splice(i, 1)[0]); }
+  let m = m0 + 4 + R() * 8;
+  for (let i = 0; i < pick.length; i++) {
+    shf.ev.push({ m: Math.min(m, m1 - 7), an: pick[i] });
+    const gap = span / Math.max(1, pick.length);
+    m += R() < .3 ? 1 + R() * 3 : gap * (.4 + R() * 1.2);   // то подряд, то с затишьем
+    if (m > m1 - 7) m = m0 + 6 + R() * span;   // не влезла в конец — в случайное место часа
+  }
+}
+function anSeen(id) { const s = LS.get('anSeen', {}); s[id] = (s[id] || 0) + 1; LS.set('anSeen', s); }
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
@@ -1091,7 +1114,7 @@ function shiftEvent(e) {
   if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return;
     const busy = shf.act.some(a => a.def.cam === def.cam) || (def.need === 'locked' && !shk.door) || (def.need === 'nogus' && shk.st.gus) || (def.need === 'gus' && !shk.st.gus);
     if (busy) { const K = SEC_MIN / (shf.seg.spm || SEC_MIN); if (shf.M + 4 * K < shf.m1 - 6) { e.done = false; e.m = shf.M + (3 + Math.random() * 3) * K; } return; }   // камера занята или не к месту — позже
-    shf.act.push({ id: e.an, def, m: shf.M });
+    shf.act.push({ id: e.an, def, m: shf.M }); anSeen(e.an);
     if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
     if (def.unlock) shk.door = 0;   // замок входа отщёлкнулся сам — на пульте снова «ОТКРЫТ»
     if (def.trap === 'door' && !shk.door) shiftToast(tr('Вход не заперт!'));
