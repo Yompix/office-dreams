@@ -54,7 +54,7 @@ const ICON = {
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
 const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'ring_mob', 'tick', 'click', 'door', 'steps',
-  'ch_katya', 'ch_whisper', 'mus_p1a', 'mus_p1b', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
+  'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
 const storySfx = () => { const z = new Set(SFX2);
   for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
@@ -81,7 +81,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5, theme: 7 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -107,7 +107,7 @@ async function load(onp) {
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
   const TIMV = { en: 13, uk: 9, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=18', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; LD.s++; tick(); }).catch(tick));
   const info = setInterval(ldInfo, 1000);
   await Promise.all([world, within(Promise.all([...sn, tm]), window.nsTV ? 60000 : 150000, 'звуки догрузятся в игре')]); clearInterval(info);   // звуки, не успевшие за минуту, докачает очередь в фоне
@@ -192,7 +192,7 @@ function initAudio() {   // контекст создаём заранее (он
     const n = 1024, cu = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cu[i] = Math.tanh(x * 3) / Math.tanh(3); }
     ws.curve = cu; ws.oversample = 'none'; dr.gain.value = 2; wet.gain.value = .6;
     lowSend.connect(lp); lp.connect(dr); dr.connect(ws); ws.connect(hp); hp.connect(lp2); lp2.connect(wet); wet.connect(master);
-    musicSend = AC.createGain(); musicSend.gain.value = 1; uMus.connect(musicSend); musicSend.connect(lowSend);
+    // музыка в этот слой больше не идёт (владелец, 19 ноя: «убери фильтр с музыки») — играет как записана
     sfxLow = AC.createGain(); sfxLow.gain.value = VOL.sfx; sfxLow.connect(lowSend); }   // низ звуков — через ползунок «Звуки», как и сами звуки
   // пространство: реверберация (импульс — шум с затуханием) и «за стеклом/дверью» — глухой фильтр
   { const len = AC.sampleRate * (window.nsTV ? 1.3 : 2.4) | 0, ir = AC.createBuffer(2, len, AC.sampleRate);   // ТВ: эхо короче — свёртка дешевле
@@ -268,13 +268,11 @@ function music(name, fade) {
     const oa = play(a, { bus: 'music', gain: 1 }), ob = oa && play(b, { bus: 'music', loop: true, gain: 1, when: BUF[a].duration });
     if (!oa) { curMusicName = null; return; }
     oa.music = true; if (ob) { ob.music = true; oa.next = ob; } curMusic = oa;
-    if (musicSend) musicSend.gain.setTargetAtTime(1, AC.currentTime, .5); return; }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
+    return; }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
   if (name && !BUF[name] && rawSnd[name] && !decQ[name]) {   // музыка смены и финалов декодируется, когда понадобилась (иначе ~100 МБ лежали бы в памяти всю игру)
     decQ[name] = decodeOne(name, rawSnd[name]).then(() => { delete decQ[name]; if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); curMusic = null; return; }
   curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не скачана — попробуем позже
   if (curMusic) { curMusic.music = true; curMusic.gn.gain.setTargetAtTime(1, AC.currentTime, .8); }
-  // в «напряжении» середина и так есть — обертонов ему почти не надо; гулу — полностью
-  if (musicSend) musicSend.gain.setTargetAtTime(name === 'tension' ? .35 : 1, AC.currentTime, .5);
 }
 let ambient = {};
 function amb(name, on, gain = .5) {
@@ -291,7 +289,7 @@ function hush(on, soft) {
   amb('tinnitus', on, soft ? .3 : .9);
   bedApply();
 }
-function duck(on) { if (musicG && !hushOn) musicG.gain.setTargetAtTime(on ? .22 : .55, AC.currentTime, .15); }
+// приглушение музыки под голос (дакер) убрано по просьбе владельца 19 ноя: музыка не «проседает», когда говорят
 
 /* ---------- живой фон места: гул помещения, дождь, лампы — никогда не цифровая тишина ---------- */
 let bedG = null, bed = null, bedLow = null;
@@ -675,7 +673,7 @@ function gapTime(k) {   // начало самой длинной паузы м�
   for (let i = 1; i < w.length; i++) { const gp = w[i][0] - w[i - 1][0]; if (gp > best) { best = gp; at = w[i][0] - .15; } }
   return at;
 }
-function skipBeat() { if (mode !== 'play' || !beat) return; stopAll(); duck(false); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
+function skipBeat() { if (mode !== 'play' || !beat) return; stopAll(); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
 // тап по экрану: начать кадр / дочитать реплику / дальше
 function tap() { if (userPause) return;   // на паузе тап по игре не проходит
   if (mode !== 'play' || !beat) return;
@@ -2158,7 +2156,6 @@ function frame(tp) {
       if (beat.heart && t > hb) { play('heart', { gain: .8 }); hb = t + Math.max(.55, .9 - t * .02); }
     }
     if (audioQ && !waiting) { audioQ = 0; const d = (performance.now() - fs) / 1000; if (d > .05) bT0 += Math.min(d, 4); beatAudio(); }   // первый кадр нарисован — звук с этого момента; долгую отрисовку (холодные шейдеры) отсчёт не считает
-    duck(voiceNow);
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     const jt = camView.jump ? t - 1.25 : -1, sx = noise1(T * 14, 7) * shakeAmp * .55, sy = noise1(T * 14, 8) * shakeAmp * .55; shakeAmp *= Math.pow(.9, dt * 30);
