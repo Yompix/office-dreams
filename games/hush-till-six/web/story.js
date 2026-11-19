@@ -111,8 +111,7 @@ window.STORY = {
         { img: 'f7_radio', cams: [[.5, .5, 1.08, 1.12]], say: ['al01'], if: 'warned', pad: .3 },
         { img: 'f7_cam_after', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.08]], say: ['f06'], sfx: [['static', 0, { gain: .6, cut: 1.4 }]], heart: true, pad: .6 }
       ],
-      then: { mg: 'tape', title: 'ПЕРЕМОТАЙ ЗАПИСЬ', hint: 'Тяни ползунок влево. Найди, где он ещё здесь.', found: '03:00:00. Гас стоит у двери 707…',
-              img: 'f7_stop', label: 'CAM 07  ЭТАЖ 7', cam: [.5, .5, 1.25, 1.25], len: 4.6, goal: .8, stop: 3.4, clock0: [3, 0, 0], win: 'floor7b' }
+      then: { goto: 'floor7b' }   // 19 ноя (владелец): без перемотки записи — сцена идёт дальше сама
     },
     floor7b: {
       music: 'tension', time: '03:02',
@@ -176,12 +175,12 @@ window.STORY = {
       music: 'tension', time: '03:30',
       beats: [
         { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g04'], pad: .3 },
-        { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g05'], pad: .3 },
+        { img: 'gl_cry', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g05'], pad: .3 },
         { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.06, 1.1]], say: ['g06'], pad: .3 },
-        { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.06, 1.12]], say: ['g07'], pad: .3 },
+        { img: 'gl_cry', fx: 'rain', cams: [[.5, .5, 1.06, 1.12]], say: ['g07'], pad: .3 },
         { img: 'entrance_empty', fx: 'static', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.08]], say: ['g08'], pad: .4, noise: { at: [.62, 1.05, 6.32], w: .95, h: 2.15 } },   // там, где она стояла, — помехи
         { img: null, phone: { kind: 'lock', time: '03:31', notes: [{ from: 'Лили', text: 'Всё ещё не сплю :( Ты как там? Утром позвони!', at: .5, ago: 'минуту назад' }] }, say: ['g09'], sfx: [['buzz', .5]], pad: .5 },
-        { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.1, 1.18]], say: ['g10'], pad: .3 },
+        { img: 'gl_cry', fx: 'rain', cams: [[.5, .5, 1.1, 1.18]], say: ['g10'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }]], pad: .3 },
         { img: 'gl_look', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g11'], sfx: [['glass_hit', 1.8, { gain: .9 }], ['glass_hit', 2.1, { gain: .8 }], ['glass_hit', 3.1, { gain: .9 }], ['glass_hit', 3.4, { gain: .8 }]], heart: true, pad: 1.6 }
       ],
       then: { choice: '«Итан, открой!»', timeout: 12, def: 2,
@@ -190,9 +189,9 @@ window.STORY = {
     glass_write: {
       music: 'tension', time: '03:31',
       beats: [
-        { img: 'gl_write', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g12'], pad: 1.4 },
-        { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.14, 1.2]], say: ['g13'], pad: .4 },
-        { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.05]], say: ['g14'], heart: true, pad: .4 }
+        { img: 'gl_write', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g12'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }]], pad: 1.4 },
+        { img: 'gl_cry', fx: 'rain', cams: [[.5, .5, 1.14, 1.2]], say: ['g13'], pad: .4 },
+        { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.05]], say: ['g14'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }]], heart: true, pad: .4 }
       ],
       then: { choice: 'Оно повторяет твоё имя.', timeout: 10, def: 1, opts: [{ t: 'Открыть', go: 'branch_a' }, { t: 'Отойти от двери', go: 'branch_b' }] }
     },
@@ -202,8 +201,8 @@ window.STORY = {
       music: 'tension', time: '03:31',
       beats: [
         { img: 'a_key', cams: [[.5, .5, 1.0, 1.06]], say: ['a01'], sfx: [['click', 1.2, { gain: .8 }]], pad: .4 },
-        { img: 'a_hug', cams: [[.5, .5, 1.0, 1.05]], say: ['a02'], sfx: [['door', .55, { gain: .6 }], ['rain_burst', .7, { gain: .5 }]], pad: .3 },
-        { img: 'a_hug_side', cams: [[.5, .5, 1.0, 1.04]], say: ['a03'], pad: .3 },
+        { img: 'a_hug', cams: [[.5, .5, 1.0, 1.05]], say: ['a02'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }], ['door', .55, { gain: .6 }], ['rain_burst', .7, { gain: .5 }]], pad: .3 },
+        { img: 'a_hug_side', cams: [[.5, .5, 1.0, 1.04]], say: ['a03'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }]], pad: .3 },
         { img: 'a_hug_face', cams: [[.5, .5, 1.0, 1.06]], say: ['a04'], hush: true, pad: .4 },
         { img: 'a_hug_face', cams: [[.5, .5, 1.06, 1.12]], say: ['a05'], pad: .4 },
         { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['a06'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
@@ -266,7 +265,7 @@ window.STORY = {
     branch_b: {
       music: 'tension', time: '03:32',
       beats: [
-        { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['g15'], pad: .4 },
+        { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['g15'], sfx: [['ch_katya', .15, { bus: 'voice', gain: .32 }]], pad: .4 },
         { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.1, 1.14]], say: ['b01'], hush: true, pad: .4 },
         { img: 'b_smile', fx: 'rain', cams: [[.5, .47, 1.0, 1.2]], say: ['b02'], sfx: [['skin_stretch', 1.0, { gain: .75 }], ['skin_stretch', 2.2, { gain: .9, rate: .85 }], ['drone_dread', .3, { gain: .5 }]], pad: .8 },   // улыбка ползёт со скрипом кожи
         { img: 'gl_scratch', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['b03', 'b04'], sfx: [['glass_scratch', .3, { gain: .8 }]], pad: .5 },

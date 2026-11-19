@@ -560,7 +560,8 @@ function nextBeat() {
     shotOff = same ? shotOff + (now() - bT0) : 0; darkHold = !!(same && pv.fx === 'dark'); }
   const prevBeat = beat;
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0; audioQ = 0; beatRun++;
-  if (beat.hush && AC) hush(true, beat.hush === 'soft');   // 'soft' — тишина перед ударом без щелчка холодильника и с тихим звоном
+  if (beat.hush && AC) hush(true, beat.hush === 'soft');
+  if (beat.hush && AC) for (const o of [...playing]) if (o.name === 'ch_katya') { try { o.gn.gain.setTargetAtTime(0, AC.currentTime, .03); o.s.stop(AC.currentTime + .15); } catch {} playing.delete(o); }   // «перестала плакать. Сразу» — плач обрывается вместе с тишиной   // 'soft' — тишина перед ударом без щелчка холодильника и с тихим звоном
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = beat.sayAt ?? .15;   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)

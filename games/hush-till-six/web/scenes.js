@@ -1569,7 +1569,7 @@ function lilyGlass(t, mode, o2 = {}) {
   const hand = (lx, dy) => ({ at: R.p(lx, ly + dy, gz - away), by: mode === 'scratch' ? 'tip' : 'palm', fdir: [0, 1, -.15], pdir: [0, 0, -1], w: k });
   return { clips: [['Idle_Loop', t + 1.7, 1]], talk: 1, legs: 'feet', spine: { to: R.p(0, 1.3, 1.2), k: .22 * k + .05 },
     arm: { l: hand(.21, -.02), r: hand(-.2, .01) }, fing: { l: [mode === 'scratch' ? 'claw' : 'flat', k], r: [mode === 'scratch' ? 'claw' : 'flat', k] },
-    wig: [['spine_03', [1, 0, 0], sob * .05], ['neck_01', [1, 0, 0], sob * .04]], twist: mode === 'look' ? -.85 * seg(t, .1, .7) : 0,
+    wig: [['spine_03', [1, 0, 0], sob * .1], ['neck_01', [1, 0, 0], sob * .09], ['clavicle_l', [0, 0, 1], sob * .06], ['clavicle_r', [0, 0, 1], -sob * .06]],   // всхлипы: плечи вздрагивают twist: mode === 'look' ? -.85 * seg(t, .1, .7) : 0,
     look: mode === 'look' && t > .15 ? [LX - 2.5, 1.5, LZ + 4] : o2.look === 'cam' ? undefined : o2.look || EYE_IN };
 }
 // Итан у двери внутри: смотрит на неё; пишет пальцем по туману (k), поворачивает ключ (key)
@@ -1581,6 +1581,7 @@ function ethanDoor(o, t, mode, k) {
 SH.gl_wide = { loc: 'lobby', pos: [2.4, 1.62, 4.15], look: [.55, 1.42, 6.3], fov: 46,   // камера правее: «Лили» за стеклом видна рядом с плечом Итана, а не за его спиной
   set: (o, t) => [['temych', .78, 0, 5.55, 0, ethanDoor(o, t), null], ['katya', LX, 0, LZ, PI, lilyGlass(t, 'press'), null]] };
 SH.gl_face = { loc: 'lobby', pos: [.66, 1.56, 5.45], look: [.62, 1.5, 6.5], fov: 34, face: { katya: 'plead' }, set: (o, t) => { breath(o, t); return [['katya', LX, 0, LZ, PI, lilyGlass(t, 'press', { look: 'cam' }), 'cam']]; } };
+SH.gl_cry = Object.assign({}, SH.gl_face, { face: { katya: 'cry' } });   // плачет у стекла (до «перестала плакать»)
 SH.gl_none = Object.assign({}, SH.gl_face, { face: null, set: (o, t) => { breath(o, t); return []; } });   // протираешь стекло — за ним пустая улица под дождём (мини-игра «Кто там?»)
 SH.gl_slam = Object.assign({}, SH.gl_face, { face: { katya: 'fear' }, set: (o, t) => { breath(o, t); return [['katya', LX, 0, LZ, PI, lilyGlass(t, 'slam', { look: 'cam' }), 'cam']]; } });   // и тут же — удар ладонями в стекло
 SH.gl_look = { loc: 'lobby', pos: [1.5, 1.55, 4.7], look: [.62, 1.45, 6.4], fov: 40, face: { katya: 'fear' }, set: (o, t) => [['katya', LX, 0, LZ, PI, t < 1.5 ? lilyGlass(t, 'look') : lilyGlass(t - 1.5, 'slam'), null]] };
@@ -1605,7 +1606,7 @@ function hugArms(t, k, ek) {   // руки в объятии: её — на ег
     fing: { l: ['flat', ek * .7], r: ['pinch', 1] }, hold: { r: 'keys' }, spine: { to: [sp.x, sp.y + .1, sp.z], k: .1 * ek }, look: ek > .3 ? [sp.x - .55, 1.58, sp.z + .7] : [sp.x, 1.55, sp.z] };
   return [lily, eth];
 }
-function hugPair(o, t) {
+function hugPair(o, t, sob = 0) {   // sob — плачет у него на плече (всхлипы плечами), до «перестала плакать»
   leafAng(o, 0, leafPull(t, .55));
   // она: к скобе (0–.5), рывок (.55–1.3), внутрь (с 1.1), руки на шею (к 2.5)
   let L; const g = seg(t, .25, .5) * (1 - seg(t, .95, 1.15)), gr = leafGrip(o, g);
@@ -1616,10 +1617,11 @@ function hugPair(o, t) {
   E[5].fing = { r: ['pinch', 1] }; E[5].hold = { r: 'keys' };
   const k = seg(t, 2.05, 2.6), ek = seg(t, 2.45, 3.0);
   if (k > 0) { const [lp, ep] = hugArms(t, k, ek); Object.assign(L[5], lp); if (ek > 0) Object.assign(E[5], ep); L[5].legs = 'feet'; }
+  if (sob) { const sb = Math.pow(Math.max(0, Math.sin(t * 3.3)), 6); L[5].wig = [['spine_03', [1, 0, 0], sb * .1], ['neck_01', [1, 0, 0], sb * .08], ['clavicle_l', [0, 0, 1], sb * .06], ['clavicle_r', [0, 0, 1], -sb * .06]]; }
   return [E, L];
 }
-SH.a_hug = { loc: 'lobby', pos: [1.55, 1.5, 4.55], look: [-.15, 1.3, 5.75], fov: 48, face: { katya: 'plead' }, set: (o, t) => hugPair(o, t) };
-SH.a_hug_side = { loc: 'lobby', pos: [1.25, 1.52, 5.12], look: [-.2, 1.38, 5.14], fov: 40, face: { katya: 'plead' }, set: (o, t) => hugPair(o, t + 4) };
+SH.a_hug = { loc: 'lobby', pos: [1.55, 1.5, 4.55], look: [-.15, 1.3, 5.75], fov: 48, face: { katya: 'cry' }, set: (o, t) => hugPair(o, t, 1) };
+SH.a_hug_side = { loc: 'lobby', pos: [1.25, 1.52, 5.12], look: [-.2, 1.38, 5.14], fov: 40, face: { katya: 'cry' }, set: (o, t) => hugPair(o, t + 4, 1) };
 SH.a_hug_face = { loc: 'lobby', pos: [.2, 1.63, 4.55], look: [-.1, 1.5, 5.24], fov: 34, set: (o, t) => { A.katya.noTilt = true; return hugPair(o, t + 4); } };
 // a07: она стоит рядом, руки пустые; у него в руке звонит телефон
 SH.a_beside = { loc: 'lobby', pos: [1.6, 1.42, 4.0], look: [.6, 1.1, 5.0], fov: 46, set: (o, t) => {

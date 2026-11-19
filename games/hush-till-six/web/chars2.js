@@ -2233,6 +2233,7 @@ function castV3() {
     const F = A[k].faceSets;
     F.worry = F.worry || { browIn: .8, browUp: .1, dart: 1 };
     F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
+    F.cry = F.cry || { browIn: 1, browUp: .8, frown: 1, squint: .7, mouth: .3, tense: .3 };   // плачет: брови домиком, глаза сощурены, уголки губ вниз, рот приоткрыт (19 ноя)
     F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
     F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
     F.hush = F.hush || { press: 1, wide: 1, browUp: 1, browIn: 1, frown: .5, tense: .5, dart: 1 };   // не дышит от ужаса: глаза распахнуты, губы сжаты и оттянуты, уголки вниз (одно «сжаты» читалось как полуулыбка)
@@ -2276,6 +2277,7 @@ function cast() {
     const F = A[k].faceSets;
     F.worry = F.worry || { browIn: .8, browUp: .1, dart: 1 };
     F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
+    F.cry = F.cry || { browIn: 1, browUp: .8, frown: 1, squint: .7, mouth: .3, tense: .3 };   // плачет: брови домиком, глаза сощурены, уголки губ вниз, рот приоткрыт (19 ноя)
     F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
     F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
     F.calm = F.calm || { smile: .3, browUp: .1 };
