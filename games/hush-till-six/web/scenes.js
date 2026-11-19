@@ -860,13 +860,30 @@ function buildCorridor() {
   return o;
 }
 // ведро уборщика: жёлтое, с отжимом и колёсиками; tip(k) — опрокинуто
+// ведро-тележка уборщика (19 ноя, владелец: «ведро не проработано, и тележка или что это»): как настоящее — овальное пластиковое ведро с бортиком
+// и мутной водой, рама на четырёх поворотных колёсиках, на одном конце — отжим (корзина, прижимная пластина, рычаг с чёрной ручкой), на другом — ручка
+// для катания. Точки, за которые берётся Гас (gusDip): вода (−0,08; 0,26; 0), щель отжима (0,12; 0,40; 0), ручка рычага (0,20; 0,82; 0) — в осях ведра
 function makeBucket() {
   const g = new T.Group(), b = new T.Group(); g.add(b);
-  const yM = mat(0xc9a21c), gM = mat(0x5a5e62), dM = mat(0x1a1c1e);
-  box(.42, .3, .32, yM, 0, .2, 0, b); box(.44, .03, .34, mat(0xb08c14), 0, .36, 0, b);
-  const wtr = box(.38, .01, .28, mat(0x2a3438, null, { emissive: 0x05080a }), 0, .3, 0, b);
-  box(.16, .2, .26, gM, .12, .44, 0, b); box(.03, .4, .03, gM, .2, .62, .1, b); box(.03, .4, .03, gM, .2, .62, -.1, b); box(.03, .03, .23, gM, .2, .82, 0, b);   // отжим и ручка
-  for (const [x, z] of [[-.17, .12], [.17, .12], [-.17, -.12], [.17, -.12]]) box(.04, .05, .04, dM, x, .025, z, b);
+  const yM = mat(0xd8a812, null, { rough: .45 }), yD = mat(0xa88210, null, { rough: .5 }), gM = mat(0x6e7378, null, { rough: .35, metal: .6 }), dM = mat(0x161819, null, { rough: .8 }), rM = mat(0x2a2c2e, null, { rough: .9 });
+  // ванна: овал (цилиндр, сжатый по z), стенки чуть сужаются ко дну; внутри тёмная стенка, сверху бортик
+  const tub = cyl(.215, .19, .3, 20, yM, b); tub.scale.set(1.12, 1, .78); tub.position.set(-.02, .2, 0);
+  const inner = cyl(.2, .185, .02, 20, mat(0x7a6414, null, { rough: .6 }), b); inner.scale.set(1.12, 1, .78); inner.position.set(-.02, .345, 0);
+  const rim = new T.Mesh(new T.TorusGeometry(.212, .014, 6, 24), yD); rim.rotation.x = PI / 2; rim.scale.set(1.12, .78, 1); rim.position.set(-.02, .352, 0); b.add(rim);
+  const wtr = cyl(.198, .198, .006, 20, mat(0x4a5a5c, null, { rough: .08, metal: .2, emissive: 0x060a0b }), b); wtr.scale.set(1.12, 1, .78); wtr.position.set(-.02, .3, 0);   // мутная вода
+  for (const z of [-.15, .15]) { const ri = box(.36, .05, .012, yD, -.02, .2, z * 1.02, b); ri.rotation.x = z > 0 ? -.06 : .06; }   // рёбра жёсткости на боках
+  // рама и колёсики
+  box(.5, .025, .36, dM, 0, .055, 0, b);
+  for (const [x, z] of [[-.21, .15], [.21, .15], [-.21, -.15], [.21, -.15]]) { box(.03, .03, .03, gM, x, .033, z, b); const w = cyl(.022, .022, .018, 10, rM, b); w.rotation.x = PI / 2; w.position.set(x, .022, z); }
+  // отжим: корзина над краем, прижимная пластина, рычаг вверх с ручкой
+  box(.17, .14, .27, gM, .13, .42, 0, b); box(.15, .02, .25, dM, .13, .35, 0, b);
+  const plate = box(.02, .13, .24, gM, .05, .43, 0, b); plate.rotation.z = .12;
+  for (const z of [-.1, .1]) { const a = cyl(.009, .009, .42, 6, gM, b); a.position.set(.2, .62, z); }
+  const bar = cyl(.012, .012, .23, 6, gM, b); bar.rotation.x = PI / 2; bar.position.set(.2, .83, 0);
+  const grip = cyl(.018, .018, .13, 8, dM, b); grip.rotation.x = PI / 2; grip.position.set(.2, .83, 0);
+  // ручка для катания на другом конце
+  for (const z of [-.11, .11]) { const a = cyl(.008, .008, .55, 6, gM, b); a.position.set(-.26, .33, z); a.rotation.z = -.12; }
+  const hb = cyl(.011, .011, .24, 6, gM, b); hb.rotation.x = PI / 2; hb.position.set(-.293, .6, 0);
   g.userData.tip = k => { b.rotation.z = k * 1.45; b.position.set(k * .2, k * .14, 0); wtr.visible = k < .5; };
   return g;
 }
@@ -2629,14 +2646,17 @@ const GL = { door: [-.5, -8.7], inside: [-2.05, -8.45], chairC: [-1.0, -7.4], se
 let gusPlanA = null, gusPlanT = -1;
 function gusPlanMake() {
   const R = Math.random, P = []; let t = 0, at = [G7X, G7Z[0]];
-  const add = (k, d, x) => { P.push(Object.assign({ k, t0: t, d }, x)); t += d; };
-  const walk = (b, mop) => { const d = Math.hypot(b[0] - at[0], b[1] - at[1]); if (d > .05) add('walk', d / .62 + .5, { a: at.slice(), b: b.slice(), mop }); at = b.slice(); };
+  let bz = G7Z[0] - BK_DZ;   // ведро (19 ноя, владелец: «проработай ведро — неестественно моет»): стоит у участка, катится с Гасом к следующему
+  const add = (k, d, x) => { P.push(Object.assign({ k, t0: t, d, bz0: bz, bz1: bz }, x)); t += d; };
+  const walk = (b, mop) => { const d = Math.hypot(b[0] - at[0], b[1] - at[1]); if (d > .05) { add('walk', d / .62 + .5, { a: at.slice(), b: b.slice(), mop });
+      if (mop === 2) { P[P.length - 1].bz1 = bz = b[1] - BK_DZ; } } at = b.slice(); };   // к новому участку — толкает ведро перед собой
+  add('dip', BK_DIP, { z: G7Z[0] });   // перед мытьём — макнул швабру и отжал
   add('mop', 26 + R() * 14, { z: G7Z[0] });   // в начале часа — моет (Итан говорит «уборщик моет пол»)
   let last = 'mop';
   while (t < 900) {
     const r = R(); let k = r < .42 ? 'mop' : r < .64 ? 'office' : r < .86 ? 'rest' : 'stretch';
     if (k === last && k !== 'mop') k = 'mop';
-    if (k === 'mop') { const z = G7Z[R() * 3 | 0] + (R() - .5) * .5; walk([G7X, z], 1); add('mop', 10 + R() * 12, { z }); }
+    if (k === 'mop') { const z = G7Z[R() * 3 | 0] + (R() - .5) * .5; walk([G7X, z], 2); add('dip', BK_DIP, { z }); add('mop', 10 + R() * 12, { z }); }
     else if (k === 'office') { walk(GL.door, 1); add('park', 1.1, { at: GL.door, ry: -PI / 2, mopTo: 'door' }); add('open', 1.2, {});
       add('in', 2.2, {}); add('inside', 12 + R() * 20, {}); add('out', 2.2, {}); add('close', 1.1, {}); add('take', .9, { at: GL.door, ry: -PI / 2, mopTo: 'door' }); at = GL.door.slice(); }
     else if (k === 'rest') { walk(GL.chairStand, 1); add('park', 1.1, { at: GL.chairStand, ry: -PI / 2, mopTo: 'chair' }); add('turn', 1.0, { at: GL.chairStand, ry0: -PI / 2, ry1: PI / 2 });
@@ -2644,6 +2664,25 @@ function gusPlanMake() {
     else { add('stretch', 5 + R() * 4, { at: at.slice() }); }
     last = k;
   }
+  return P;
+}
+// макает и отжимает: повернулся к ведру → колодку в воду, два-три раза вверх-вниз → в отжим, левой давит рычаг → обратно к полу перед собой
+const BK_X = .44, BK_DZ = .3, BK_RY = PI + .25, BK_DIP = 3.6;   // отжим и рычаг — со стороны Гаса
+function gusDip(o, x, z, t, v, d, bk) {
+  const ryB = Math.atan2(bk[0] - x, bk[1] - z), tn = Math.min(seg(v, 0, .6), 1 - seg(v, d - .6, d)), ry = lerp(G7R, ryB, tn), R = locR(x, z, ry);
+  const cB = Math.cos(BK_RY), sB = Math.sin(BK_RY), bw = (lx, y, lz) => [bk[0] + lx * cB + lz * sB, y, bk[1] - lx * sB + lz * cB];   // точка ведра (его оси) → мир
+  const floor = R.p(0, MOP_Y, .78), water = bw(-.08, .26 - .09 * Math.abs(Math.sin((v - .7) * PI / .45)) * seg(v, .7, .9) * (1 - seg(v, 1.9, 2.0)), 0), wring = bw(.02, .26, 0);   // колодка уходит под отжим, в ведро (снаружи не торчит)
+  const kIn = seg(v, .45, .8) * (1 - seg(v, d - .75, d - .4)), kWr = seg(v, 2.0, 2.3) * (1 - seg(v, 3.0, 3.25)), press = seg(v, 2.3, 2.6) * (1 - seg(v, 2.8, 3.0));
+  const head = lin(lin(floor, water, kIn), wring, kWr), piv = R.p(-.24 + .1 * kWr, 1.0, .3);   // черенок проходит справа от корпуса, у плеча — не через голову
+  const u = nrm([piv[0] - head[0], piv[1] - head[1], piv[2] - head[2]]), at = q => [head[0] + u[0] * q, head[1] + u[1] * q, head[2] + u[2] * q];
+  window.__W3chars.propAim('mop', o.S, head, u, ry + PI / 2 * Math.max(kIn, kWr));   // в ведре колодка поворачивается вдоль длинной стороны ведра — тряпка не торчит сквозь стенки
+  { const hd = window.__W3chars.prop3('mop').obj.userData.head; if (hd) hd.visible = Math.max(kIn, kWr) < .7; }   // колодка под водой/в отжиме — её не видно (иначе тряпка проходит сквозь стенки ведра)
+  const side = R.v(1, 0, 0), pr = nrm(crs(u, crs(side, u))), pl = pr.map(w => -w), lever = bw(.2, .82 - .2 * press, 0);
+  const P = { ry, clips: tn > 0 && tn < 1 ? [['Walk_Loop', v * .9, Math.sin(PI * tn) * .5], ['Idle_Loop', t + 2, 1 - Math.sin(PI * tn) * .5]] : [['Idle_Loop', t + 2, 1]], legs: tn > 0 && tn < 1 ? undefined : 'plant',
+    pelvis: R.v(0, -.03 - .03 * kIn, .0), spine: { to: lin(R.p(0, .2, 1.0), [head[0], 1.0, head[2]], .4), k: .12 + .08 * kIn }, look: kIn > .3 ? head : null,
+    arm: { r: { at: at(1.38), by: 'palm', fdir: crs(pr, u), pdir: pr, pole: R.v(-1, -.4, -.4) },   // при макании обе руки у верха черенка — так достаёт
+           l: kWr > .5 ? { at: lever, by: 'palm', fdir: R.v(0, 0, 1), pdir: [0, -1, 0], pole: R.v(1, -.6, 0) } : { at: at(1.02 + .1 * (1 - kIn)), by: 'palm', fdir: crs(u, pl), pdir: pl, pole: R.v(1, -.8, .1) } },
+    fing: { r: ['grip', 1], l: ['grip', 1] } };
   return P;
 }
 function gusMopAt(o, where) { const W = window.__W3chars; if (where === 'door') W.propAim('mop', o.S, GL.mopDoor, MOPWALL_D, 1.2, MOP_Y); else W.propAim('mop', o.S, GL.mopChair, MOPWALL_D, 1.2, MOP_Y); }
@@ -2657,16 +2696,18 @@ function gusRadioOn(tu, g) {
   P.talk = g.u > .6 ? 1 : 0; return tu;
 }
 function gusLife(o, tg, t, g) {   // g — разговор по рации (доли из radioTalk) или null
-  const L = gusLife0(o, tg, t, !!g); if (L && g) for (const tu of L) gusRadioOn(tu, g); return L;
+  const L = gusLife0(o, tg, t, g); if (L && g) for (const tu of L) if (!(tu && tu[5] && tu[5].radioDone)) gusRadioOn(tu, g); return L;
 }
-function gusLife0(o, tg, t, radio) {
+function gusLife0(o, tg, t, radio) {   // radio — доли разговора по рации или null
   if (!gusPlanA || tg < gusPlanT - 3) window.__gusPlan = gusPlanA = gusPlanMake();   // новый час (часы швабры пошли с нуля) — новый распорядок
   gusPlanT = tg;
   const P = gusPlanA, it = P.find(x => tg >= x.t0 && tg < x.t0 + x.d) || P[P.length - 1], v = tg - it.t0, u = clamp(v / it.d, 0, 1), e = ease(u);
   o.faceL.intensity = 0; o.chair10.visible = true; o.chair10.position.set(GL.chairC[0], 0, GL.chairC[1]); o.chair10.rotation.y = PI / 2;   // стул у стены (на нём Гас отдыхает)
   const door = (k, lit = k) => { o.open5(k); o.room5L.intensity = 3.2 * lit; o.lamp5Bulb.visible = lit > .3; };
+  const bzNow = lerp(it.bz0, it.bz1, it.k === 'walk' ? e : 0); if (o.bucket) { o.bucket.position.set(BK_X, 0, bzNow); o.bucket.rotation.set(0, BK_RY, 0); }
+  if (it.k === 'dip') { const P2 = gusDip(o, G7X, it.z, t, v, it.d, [BK_X, bzNow]); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, P2.ry, P2, null]]; }
   if (it.k === 'mop') { if (v < .9 && P.indexOf(it) > 0) { const P2 = mopGus(o, G7X, it.z, G7R, t, e); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }
-    if (radio) return null;
+    if (radio) { const P2 = gusRadioCam(o, t, G7X, it.z, G7R, radio, 1); P2.radioDone = 1; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }   // там же, где мыл (раньше — прыжок на место старого распорядка)
     const k = v > it.d - .9 ? (it.d - v) / .9 : 1, P2 = mopGus(o, G7X, it.z, G7R, t, k); P2.wear = { radio: RADIO_G }; return [['cleaner', G7X, 0, it.z, G7R, P2, null]]; }
   if (it.k === 'walk') { const a = it.a, b = it.b, ry = Math.atan2(b[0] - a[0], b[1] - a[1]), x = lerp(a[0], b[0], e), z = lerp(a[1], b[1], e);
     const P2 = mopGus(o, x, z, ry, t, 0); delete P2.clips; P2.wear = { radio: RADIO_G }; return [shuffle('cleaner', a, b, v, 0, it.d, ry, P2)]; }

@@ -1097,7 +1097,8 @@ function propAt(name, scene, pos, rot) { const pr = prop3(name); if (pr.obj.pare
 // в начале кадра все предметы прячутся; видны только те, что кто-то держит или кадр положил (pr.was — был ли виден в прошлом кадре)
 function propAim(name, scene, pos, dir, yaw = 0, floor = null) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
   pr.obj.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...dir).normalize()).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)); pr.obj.visible = true; pr.C = null;
-  const hd = pr.obj.userData.head; if (hd) { _hdi.copy(pr.obj.quaternion).invert(); hd.quaternion.copy(_hdi).multiply(_hdq.setFromAxisAngle(_UP, headYaw(dir, yaw)));   // колодка — ровно на полу
+  const hd = pr.obj.userData.head; if (hd) hd.visible = true;   // колодку прячет только «макает в ведро» (scenes.js gusDip), в любом другом кадре она видна
+  if (hd) { _hdi.copy(pr.obj.quaternion).invert(); hd.quaternion.copy(_hdi).multiply(_hdq.setFromAxisAngle(_UP, headYaw(dir, yaw)));   // колодка — ровно на полу
     hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); if (hd.userData.fr) mopCloth(pr.obj, hd, dir, yaw); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
 // тряпка швабры живая: жгуты волочатся за колодкой (пружина с затуханием), на развороте отстают и перекидываются, при быстром ходе
 // расходятся веером; швабра стоит — висят ровно. Скорость — по сдвигу колодки между кадрами (любой кадр: мокап Гаса, «сама моет», лежит)
