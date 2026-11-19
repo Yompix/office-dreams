@@ -28,3 +28,4 @@ sha256 присланного файла → куда вставлен. Если
 | 19 ноя | click.wav | 603514b513c930f4 | snd/click.mp3 |
 | 19 ноя | cleaner_hum.wav | 37d9660666a95ce9 | snd/cleaner_hum.mp3 |
 | 19 ноя | breath_close.wav | c7d3c4fc04d4c086 | snd/breath_close.mp3 |
+| 19 ноя | 14.wav (дневной охранник) | d1d69c5811d333c6 | snd/p14.mp3 |
