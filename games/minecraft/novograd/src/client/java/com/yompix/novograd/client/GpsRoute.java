@@ -56,6 +56,18 @@ public final class GpsRoute {
 
     /** Точки пути по дорогам от (px,pz) до (tx,tz); пусто — дороги не нашлось (тогда рисуем напрямую). */
     public static List<int[]> route(double px, double pz, double tx, double tz) {
+        // радар зовёт это каждый кадр: пока игрок и цель в тех же клетках 2×2 блока — ответ тот же, не ищем узлы заново
+        long q = ((long) Math.floor(px / 2) * 73856093L) ^ ((long) Math.floor(pz / 2) * 19349663L) ^ ((long) Math.floor(tx / 2) * 83492791L) ^ ((long) Math.floor(tz / 2) * 2654435761L);
+        if (q == lastQuery && lastResult != null) return lastResult;
+        lastQuery = q;
+        lastResult = route0(px, pz, tx, tz);
+        return lastResult;
+    }
+
+    private static long lastQuery;
+    private static List<int[]> lastResult;
+
+    private static List<int[]> route0(double px, double pz, double tx, double tz) {
         int[] a = nearestNode(px, pz), b = nearestNode(tx, tz);
         if (a == null || b == null) return List.of();
         long ck = key(a[0], a[1]) * 31 + key(b[0], b[1]);

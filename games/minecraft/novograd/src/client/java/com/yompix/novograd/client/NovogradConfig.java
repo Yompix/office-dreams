@@ -25,6 +25,11 @@ public final class NovogradConfig {
     public boolean subtitles = true;
     /** Радар (мини-карта) слева внизу. */
     public boolean minimap = true;
+    /**
+     * Производительность: 0 — низкая (слабый ноутбук), 1 — средняя, 2 — высокая. Меняет только детализацию того,
+     * что далеко или не видно: упрощённые дальние машины, реже думающие дальние жители, фоновая догенерация острова.
+     */
+    public int perf = 1;
     /** Масштаб HUD (0.75..1.5). */
     public float hudScale = 0.85f;
 
@@ -98,5 +103,26 @@ public final class NovogradConfig {
         if (c == null) return;
         com.yompix.novograd.client.render.ColorGrade.enabled = c.graphics > 0;
         com.yompix.novograd.client.render.ColorGrade.quality = c.graphics >= 2 ? 1f : 0f;
+        sendPerf();
+    }
+
+    /** Дальность (блоков) упрощения машин: дальше near — без салона и мелочей, дальше far — только кузов и колёса. */
+    public static float lodNear() {
+        int p = get().perf;
+        return p <= 0 ? 20 : p == 1 ? 32 : 48;
+    }
+
+    public static float lodFar() {
+        int p = get().perf;
+        return p <= 0 ? 48 : p == 1 ? 80 : 128;
+    }
+
+    /** Сообщить серверу (в одиночной игре — своему) уровень производительности. */
+    public static void sendPerf() {
+        var mc = net.minecraft.client.MinecraftClient.getInstance();
+        if (mc == null || mc.getNetworkHandler() == null || cfg == null) return;
+        net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+        n.putInt("level", Math.max(0, Math.min(2, cfg.perf)));
+        NovogradClient.send("perf_level", n);
     }
 }

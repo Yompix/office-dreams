@@ -118,7 +118,10 @@ public final class Pregen {
         // нагрузка: средний тик сервера; тяжело — ждём. Не больше одного участка за 4 тика (≤ 15 одновременно загруженных)
         float mspt = s.getAverageTickTime();
         if (mspt > (URGENT.isEmpty() ? 25 : 40)) return;
-        if (s.getTicks() % (weak ? 8 : 4) != 0) return;
+        // «Производительность»: срочные участки (кат-сцены, цель миссии) — всегда; фоновая догенерация острова
+        // на низкой — выключена (остров и так догенерируется сам, когда туда едешь), на средней — вдвое реже
+        int every = URGENT.isEmpty() ? com.yompix.novograd.perf.PerfLevel.pregenEvery(weak) : (weak ? 8 : 4);
+        if (every <= 0 || s.getTicks() % every != 0) return;
         int budget = 1;
         var cm = w.getChunkManager();
         for (int n = 0; n < budget; n++) {

@@ -63,13 +63,23 @@ public final class ColorGrade {
     }
 
     /** С шейдерами Iris наша коррекция не нужна — они сами рисуют картинку. */
+    private static Object irisApi;
+    private static java.lang.reflect.Method irisInUse;
+    private static Boolean irisLoaded;
+
+    /** Проверка каждый кадр — поэтому без поиска класса и метода каждый раз (раньше рефлексия шла каждый кадр). */
     private static boolean irisShaders() {
-        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris")) return false;
+        if (irisLoaded == null) irisLoaded = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris");
+        if (!irisLoaded) return false;
         try {
-            Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
-            Object inst = api.getMethod("getInstance").invoke(null);
-            return (boolean) api.getMethod("isShaderPackInUse").invoke(inst);
+            if (irisInUse == null) {
+                Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+                irisApi = api.getMethod("getInstance").invoke(null);
+                irisInUse = api.getMethod("isShaderPackInUse");
+            }
+            return (boolean) irisInUse.invoke(irisApi);
         } catch (ReflectiveOperationException | RuntimeException e) {
+            irisLoaded = false;
             return false;
         }
     }

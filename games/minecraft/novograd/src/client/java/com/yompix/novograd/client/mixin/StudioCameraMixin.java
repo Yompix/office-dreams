@@ -20,6 +20,17 @@ public class StudioCameraMixin {
         com.yompix.novograd.client.story.CutsceneScreen.preFrame(counter.getTickDelta(true));
     }
 
+    /** Запись видео (автотест): начало и конец кадра — после всего (мир, HUD, кинополосы, субтитры). */
+    @Inject(method = "render", at = @At("HEAD"))
+    private void novograd$recBegin(net.minecraft.client.render.RenderTickCounter counter, boolean tick, CallbackInfo ci) {
+        com.yompix.novograd.client.story.CineRec.beginFrame();
+    }
+
+    @Inject(method = "render", at = @At("TAIL"))
+    private void novograd$recEnd(net.minecraft.client.render.RenderTickCounter counter, boolean tick, CallbackInfo ci) {
+        com.yompix.novograd.client.story.CineRec.endFrame();
+    }
+
     @Inject(method = "tiltViewWhenHurt", at = @At("TAIL"))
     private void novograd$roll(MatrixStack m, float delta, CallbackInfo ci) {
         float r = CineCam.roll(delta);

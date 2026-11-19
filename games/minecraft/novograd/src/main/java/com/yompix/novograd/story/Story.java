@@ -711,6 +711,9 @@ public final class Story {
         NbtCompound n = new NbtCompound();
         n.put("shots", shots);
         n.put("lines", lines(p, s.getAsJsonArray("lines")));
+        NbtList cast = new NbtList(); // кто уже в кадре на старте — клиент дождётся их, прежде чем открыть сцену
+        for (String c : Director.cast(p, first)) cast.add(net.minecraft.nbt.NbtString.of(c));
+        n.put("cast", cast);
         if (s.has("grade")) n.putString("grade", str(s, "grade", ""));
         JsonObject m = mission(d), c = chapter(d);
         if (s.has("card") && d.side.isEmpty() && m != null) { // первая сцена миссии — титр с названием

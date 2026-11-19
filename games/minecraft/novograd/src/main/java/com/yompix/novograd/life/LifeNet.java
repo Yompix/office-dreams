@@ -67,6 +67,7 @@ public final class LifeNet {
         switch (type) {
             case "hello" -> Life.sync(p);
             case "ready" -> com.yompix.novograd.story.Story.onClientReady(p);
+            case "perf_level" -> com.yompix.novograd.perf.PerfLevel.level = Math.max(0, Math.min(2, d.getInt("level"))); // настройка «Производительность»
             case "taxi_call" -> Taxi.call(p, d.getString("dest"));
             case "taxi_accept" -> Taxi.accept(p);
             case "dialog_done" -> com.yompix.novograd.story.Story.onDialogDone(p, d.getInt("choice"));
@@ -77,7 +78,7 @@ public final class LifeNet {
             case "cheat_code" -> com.yompix.novograd.gta.Cheats.apply(p, d.getString("code"));
             case "news_feed" -> com.yompix.novograd.gta.News.sendFeed(p);
             case "cut_line" -> com.yompix.novograd.story.Director.speak(p, d.getString("who"));
-            case "cut_hold" -> com.yompix.novograd.story.Director.hold(p, d.getBoolean("on"));
+            case "cut_hold" -> com.yompix.novograd.story.Director.hold(p, d.getBoolean("on"), d.contains("shot") ? d.getInt("shot") : -1);
             case "activity" -> com.yompix.novograd.gta.Activities.toggle(p);
             case "cutscene_done" -> com.yompix.novograd.story.Story.onCutsceneDone(p);
             case "credits_done" -> com.yompix.novograd.story.Story.onCreditsDone(p);

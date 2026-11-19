@@ -50,6 +50,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(BASE));
         int hp = car.health();
         boolean wrecked = car.wrecked();
+        // детализация по расстоянию до камеры (настройка «Производительность»): вдали салон и мелочи не видны
+        double camD2 = this.dispatcher.camera == null ? 0 : this.dispatcher.camera.getPos().squaredDistanceTo(car.getLerpedPos(tickDelta));
+        float ln = com.yompix.novograd.client.NovogradConfig.lodNear(), lf = com.yompix.novograd.client.NovogradConfig.lodFar();
+        int lod = camD2 > lf * lf ? 2 : camD2 > ln * ln ? 1 : 0;
 
         m.push();
         float bodyYaw = MathHelper.lerpAngleDegrees(tickDelta, car.prevYaw, car.getYaw());
@@ -66,7 +70,8 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             m.translate(w[0] / 16f, model.wheelR / 16f, w[1] / 16f);
             if (i < 2) m.multiply(RotationAxis.POSITIVE_Y.rotation(steer));
             m.multiply(RotationAxis.POSITIVE_X.rotation(wheelRot));
-            wheel(model.wheel, m, solid, light, tyre, rim);
+            if (lod == 0) wheel(model.wheel, m, solid, light, tyre, rim);
+            else wheelLod(model.wheel, m, solid, light, tyre, rim);
             m.pop();
         }
 
@@ -100,7 +105,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         int under = 0xFF232427, trim = wrecked ? 0xFF111111 : 0xFF1C1D20;
         p(root, "under", m, solid, light, under);
         p(root, "paint", m, solid, light, color);
-        p(root, "mirror_glass", m, solid, light, 0xFF8FA4B8);
+        if (lod == 0) p(root, "mirror_glass", m, solid, light, 0xFF8FA4B8);
         int hood = type == CarBody.POLICE && car.color() == CarEntity.COLORS[CarEntity.POLICE] ? LifeShade.shade(0xFF16243F, dull) : LifeShade.shade(color, 0.95f);
         p(root, "hood", m, solid, light, hood);
         int roofCol = type == CarBody.LIMO || type == CarBody.LUXURY ? LifeShade.shade(color, 0.85f)
@@ -109,23 +114,25 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         p(root, "roof", m, solid, light, roofCol);
         p(root, "trim", m, solid, light, trim);
         p(root, "arch", m, solid, light, 0xFF101012);
-        p(root, "chrome", m, solid, light, wrecked ? 0xFF404040 : 0xFFD2D6DC);
-        p(root, "exhaust_tip", m, solid, light, 0xFF0A0A0A);
+        if (lod < 2) p(root, "chrome", m, solid, light, wrecked ? 0xFF404040 : 0xFFD2D6DC);
+        if (lod == 0) p(root, "exhaust_tip", m, solid, light, 0xFF0A0A0A);
         p(root, "grille", m, solid, light, 0xFF111214);
-        p(root, "plate", m, solid, light, 0xFFF2F2F0);
-        p(root, "plate_txt", m, solid, light, 0xFF1A2550);
+        if (lod < 2) p(root, "plate", m, solid, light, 0xFFF2F2F0);
+        if (lod == 0) p(root, "plate_txt", m, solid, light, 0xFF1A2550);
         int seat = type == CarBody.TAXI ? 0xFF4B3A2A : type == CarBody.LUXURY || type == CarBody.LIMO ? 0xFFC9B48A : type == CarBody.SPORTS || type == CarBody.SUPERCAR ? 0xFF8A1E1E
                 : type == CarBody.LOWRIDER ? 0xFFE6DCC8 : type == CarBody.CLASSIC ? 0xFF6B4A2E : type == CarBody.BUGGY ? 0xFF1E1F22 : 0xFF33363D;
-        p(root, "seat", m, solid, light, seat);
-        p(root, "seam", m, solid, light, LifeShade.shade(seat, 0.72f));
-        p(root, "dash", m, solid, light, 0xFF26282D);
-        p(root, "floor", m, solid, light, 0xFF1C1D20);
-        p(root, "inner", m, solid, light, type == CarBody.TAXI ? 0xFF5A4A3A : LifeShade.shade(seat, 1.15f));
-        p(root, "headliner", m, solid, light, 0xFFD4CFC4);
-        p(root, "gauges", m, solid, driven ? FULL : light, driven ? 0xFF6FE3FF : 0xFF203038);
-        ModelPart wheelPart = root.getChild("steering");
-        wheelPart.roll = -steer * 2.4f;
-        wheelPart.render(m, solid, light, OV, 0xFF141414);
+        if (lod == 0) { // салон — только вблизи (вдали за тонированным стеклом его не видно)
+            p(root, "seat", m, solid, light, seat);
+            p(root, "seam", m, solid, light, LifeShade.shade(seat, 0.72f));
+            p(root, "dash", m, solid, light, 0xFF26282D);
+            p(root, "floor", m, solid, light, 0xFF1C1D20);
+            p(root, "inner", m, solid, light, type == CarBody.TAXI ? 0xFF5A4A3A : LifeShade.shade(seat, 1.15f));
+            p(root, "headliner", m, solid, light, 0xFFD4CFC4);
+            p(root, "gauges", m, solid, driven ? FULL : light, driven ? 0xFF6FE3FF : 0xFF203038);
+            ModelPart wheelPart = root.getChild("steering");
+            wheelPart.roll = -steer * 2.4f;
+            wheelPart.render(m, solid, light, OV, 0xFF141414);
+        } else if (lod == 1) p(root, "seat", m, solid, light, seat);
         // полоски, ливрея, служебная окраска
         boolean lightPaint = brightness(car.color()) > 140;
         p(root, "stripe", m, solid, light, type == CarBody.POLICE ? 0xFFE8B400 : type == CarBody.FIRETRUCK ? 0xFFF2F2F2 : type == CarBody.AMBULANCE ? 0xFFD7262C
@@ -136,9 +143,11 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         p(root, "pushbar", m, solid, light, 0xFF141414);
         p(root, "check", m, solid, light, 0xFF141414);
         // вмятины и царапины
-        if (hp < 80 || wrecked) p(root, "dent1", m, solid, light, dent(color, 0.62f));
-        if (hp < 55 || wrecked) p(root, "dent2", m, solid, light, dent(color, 0.55f));
-        if (hp < 32 || wrecked) p(root, "dent3", m, solid, light, dent(color, 0.5f));
+        if (lod < 2) {
+            if (hp < 80 || wrecked) p(root, "dent1", m, solid, light, dent(color, 0.62f));
+            if (hp < 55 || wrecked) p(root, "dent2", m, solid, light, dent(color, 0.55f));
+            if (hp < 32 || wrecked) p(root, "dent3", m, solid, light, dent(color, 0.5f));
+        }
         // передний бампер повисает на одном креплении
         ModelPart bumper = root.getChild("bumper_f");
         bumper.roll = hp < 45 && !wrecked ? 0.16f : wrecked ? 0.3f : 0;
@@ -180,7 +189,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             p(root, "bar_red", m, solid, siren && phase ? FULL : light, siren && phase ? 0xFFFF2020 : 0xFF601010);
             p(root, "bar_blue", m, solid, siren && !phase ? FULL : light, siren && !phase ? 0xFF2A6AFF : 0xFF10204A);
         }
-        if (model.spare != null) {
+        if (model.spare != null && lod < 2) {
             m.push();
             m.translate(model.spare[0] / 16f, model.spare[1] / 16f, model.spare[2] / 16f);
             m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
@@ -237,6 +246,12 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         w.disc.render(m, vc, light, OV, LifeShade.shade(rim, 0.45f));
         w.spokes.render(m, vc, light, OV, rim);
         w.cap.render(m, vc, light, OV, 0xFFE8EAEE);
+    }
+
+    /** Колесо вдали: шина и диск без спиц и колпака. */
+    private static void wheelLod(CarModels.Wheel w, MatrixStack m, VertexConsumer vc, int light, int tyre, int rim) {
+        w.tyre.render(m, vc, light, OV, tyre);
+        w.rim.render(m, vc, light, OV, rim);
     }
 
     private static void p(ModelPart root, String name, MatrixStack m, VertexConsumer vc, int light, int color) {

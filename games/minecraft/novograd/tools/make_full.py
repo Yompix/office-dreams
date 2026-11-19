@@ -12,8 +12,9 @@ import json, os, sys, urllib.parse, urllib.request, zipfile
 VER = sys.argv[1]
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JAR = os.path.join(ROOT, 'build', 'libs', f'novograd-{VER}.jar')
-OUT = os.path.join(ROOT, 'download', f'Novograd-Full-{VER}.zip')
-LOADER = '0.16.14'
+OUTDIR = os.environ.get('NOVOGRAD_OUT') or os.path.join(ROOT, 'download')
+OUT = os.path.join(OUTDIR, f'Novograd-Full-{VER}.zip')
+LOADER = '0.17.2'  # не ниже 0.17: GeckoLib 4.8.4 внутри Новограда требует fabricloader >=0.17
 H = {'User-Agent': 'novograd-release'}
 
 # id версии на Modrinth (те же, что в make_release.py), куда класть
@@ -67,25 +68,34 @@ def main():
         z.writestr('ПРОЧТИ.txt', README.replace('@@VER@@', VER).encode('utf-8'))
     print('ok', OUT, round(os.path.getsize(OUT) / 1e6, 1), 'MB', len(names), 'files')
     # то же без установщика: папки mods и shaderpacks — скопировать в .minecraft руками
-    out2 = os.path.join(ROOT, 'download', f'Novograd-Mods-{VER}.zip')
+    out2 = os.path.join(OUTDIR, f'Novograd-Mods-{VER}.zip')
     with zipfile.ZipFile(OUT) as src, zipfile.ZipFile(out2, 'w', zipfile.ZIP_DEFLATED) as z:
         for n in src.namelist():
             if n.startswith('files/mods/') or n.startswith('files/shaderpacks/'):
                 z.writestr(n[len('files/'):], src.read(n))
         z.writestr('ПРОЧТИ.txt', MANUAL.replace('@@VER@@', VER).encode('utf-8'))
     print('ok', out2, round(os.path.getsize(out2) / 1e6, 1), 'MB')
+    import subprocess
+    if subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'check_deps.py'), OUT, out2, '--loader', LOADER]).returncode:
+        raise SystemExit('check_deps: не хватает зависимостей')
 
 
 MANUAL = """Новоград @@VER@@ — все моды одним архивом, ставится вручную (без установщиков)
 
-1. Fabric для Minecraft 1.21.1:
-   - TLauncher: выбери версию «Fabric 1.21.1», запусти один раз и закрой.
+1. Fabric для Minecraft 1.21.1, загрузчик (Fabric Loader) 0.17 или новее — на 0.16 мод не запустится:
+   - TLauncher: выбери версию «Fabric 1.21.1» с самым новым загрузчиком, запусти один раз и закрой.
    - Официальный лаунчер: скачай установщик https://fabricmc.net/use/installer/ ,
      выбери 1.21.1 — Install, в лаунчере запусти «fabric-loader-1.21.1» один раз и закрой.
 2. Win+R — впиши %appdata%\\.minecraft — Enter.
 3. Скопируй из архива папки mods и shaderpacks в эту папку (согласись объединить).
    Старый novograd-*.jar в mods удали, если он там есть.
 4. Запусти Fabric 1.21.1. Новый мир — Ещё — Тип мира «Новоград: Город».
+
+Prism Launcher / ElyPrism / другие на основе Prism: создай сборку Minecraft 1.21.1 + Fabric (загрузчик 0.17.2 или новее),
+нажми «Папка» (Open folder) и скопируй папки mods и shaderpacks из этого архива в папку minecraft сборки.
+Или просто импортируй Novograd-Kino-@@VER@@.mrpack («Добавить сборку» — «Импорт»).
+
+Fabric API (fabric-api-*.jar) обязателен — он лежит в mods этого архива, не удаляй его.
 
 Шейдеры (по желанию): Настройки — Графика — Шейдеры — MakeUp. На слабом ноутбуке лучше без них.
 Вылетает — выдели игре 3–4 ГБ памяти (TLauncher: ползунок памяти; официальный лаунчер: профиль — Ещё — Аргументы JVM: -Xmx4G).
@@ -110,6 +120,9 @@ README = """Новоград @@VER@@ — полный архив для офиц
 Другие твои моды и миры не трогаются.
 Обновить: скачай новый архив и снова запусти INSTALL.bat — миры сохранятся.
 Тормозит или мусор на диске — CLEAN-PC.bat чистит компьютер (спрашивает, что удалять).
+Тормозит в игре — Настройки — Графика — «Производительность: низкая».
+Prism Launcher / ElyPrism: возьми Novograd-Kino-@@VER@@.mrpack («Добавить сборку» — «Импорт») или архив
+Novograd-Kino-TLauncher (его установщик сам находит сборки Prism).
 
 Моды взяты с modrinth.com, у каждого своя открытая лицензия (MIT, Apache, LGPL, GPL, Polyform Shield).
 Музыка радио: Kevin MacLeod (incompetech.com), CC BY 4.0.

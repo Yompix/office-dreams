@@ -1,0 +1,225 @@
+{
+  "type": "minecraft:fishing",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_crucian",
+          "weight": 34,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "position": {
+                  "x": {
+                    "min": 1080,
+                    "max": 1560
+                  },
+                  "z": {
+                    "min": 590,
+                    "max": 930
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_perch",
+          "weight": 30,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "position": {
+                  "x": {
+                    "min": 1080,
+                    "max": 1560
+                  },
+                  "z": {
+                    "min": 590,
+                    "max": 930
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_pike",
+          "weight": 16,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "position": {
+                  "x": {
+                    "min": 1080,
+                    "max": 1560
+                  },
+                  "z": {
+                    "min": 590,
+                    "max": 930
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_catfish",
+          "weight": 5,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "position": {
+                  "x": {
+                    "min": 1080,
+                    "max": 1560
+                  },
+                  "z": {
+                    "min": 590,
+                    "max": 930
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_salmon",
+          "weight": 6,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "position": {
+                  "x": {
+                    "min": 1080,
+                    "max": 1560
+                  },
+                  "z": {
+                    "min": 590,
+                    "max": 930
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_mackerel",
+          "weight": 38,
+          "conditions": [
+            {
+              "condition": "minecraft:inverted",
+              "term": {
+                "condition": "minecraft:location_check",
+                "predicate": {
+                  "position": {
+                    "x": {
+                      "min": 1080,
+                      "max": 1560
+                    },
+                    "z": {
+                      "min": 590,
+                      "max": 930
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_salmon",
+          "weight": 26,
+          "conditions": [
+            {
+              "condition": "minecraft:inverted",
+              "term": {
+                "condition": "minecraft:location_check",
+                "predicate": {
+                  "position": {
+                    "x": {
+                      "min": 1080,
+                      "max": 1560
+                    },
+                    "z": {
+                      "min": 590,
+                      "max": 930
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_tuna",
+          "weight": 12,
+          "conditions": [
+            {
+              "condition": "minecraft:inverted",
+              "term": {
+                "condition": "minecraft:location_check",
+                "predicate": {
+                  "position": {
+                    "x": {
+                      "min": 1080,
+                      "max": 1560
+                    },
+                    "z": {
+                      "min": 590,
+                      "max": 930
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_perch",
+          "weight": 6,
+          "conditions": [
+            {
+              "condition": "minecraft:inverted",
+              "term": {
+                "condition": "minecraft:location_check",
+                "predicate": {
+                  "position": {
+                    "x": {
+                      "min": 1080,
+                      "max": 1560
+                    },
+                    "z": {
+                      "min": 590,
+                      "max": 930
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "novograd:fish_gold",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

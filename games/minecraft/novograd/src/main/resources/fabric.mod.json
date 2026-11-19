@@ -26,6 +26,7 @@
     "geckolib": ">=4.8.4"
   },
   "mixins": [
+    "novograd.mixins.json",
     {
       "config": "novograd.client.mixins.json",
       "environment": "client"
