@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "novograd:asphalt",
+    "novograd:asphalt_line",
+    "novograd:asphalt_edge",
+    "novograd:crosswalk",
+    "novograd:sidewalk",
+    "novograd:tv",
+    "novograd:traffic_light",
+    "novograd:lamp_post",
+    "novograd:street_lamp",
+    "novograd:atm",
+    "novograd:mailbox",
+    "novograd:computer",
+    "novograd:slot_machine",
+    "novograd:treadmill",
+    "novograd:barbell",
+    "novograd:scales",
+    "novograd:dj_deck",
+    "novograd:pizza_oven",
+    "novograd:clue",
+    "novograd:neon",
+    "novograd:neon_floor"
+  ]
+}

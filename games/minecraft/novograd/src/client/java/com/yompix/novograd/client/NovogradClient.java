@@ -182,6 +182,9 @@ public class NovogradClient implements ClientModInitializer {
         TransitClient.init(); // кафе, супермаркеты, метро: меню, поезд, подсказки в вагоне
         TransitAutotest.init(); // -Dnovograd.autotest=transit: кафе, метро, «Мираж»
         com.yompix.novograd.client.story.CallClient.init(); // звонки героев: карточка, Y/N, субтитры разговора
+        PerfAutotest.init(); // -Dnovograd.autotest=perf: замер MSPT/кадров в людном центре
+        CineAutotest.init(); // -Dnovograd.autotest=cine:гл:мис:шаг (запись кат-сцены), camaudit (пути камеры всех сцен)
+        UiInvAutotest.init(); // -Dnovograd.autotest=uiinv: инвентарь «как в GTA», сундук, экран смерти
         DevAutotest.init();
         LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
         OutdoorClient.init(); // навыки SA, охота и рыбалка, времена года и праздники; -Dnovograd.autotest=outdoor
@@ -323,6 +326,7 @@ public class NovogradClient implements ClientModInitializer {
         if (!readySent && calmTicks > 20 && client.world != null) {
             readySent = true;
             send("ready");
+            NovogradConfig.sendPerf();
         }
         if (pending != null && client.currentScreen == null && calmTicks > 5) {
             var s = pending;

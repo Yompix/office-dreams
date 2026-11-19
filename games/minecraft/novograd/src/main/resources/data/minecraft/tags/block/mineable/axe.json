@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "novograd:chalkboard",
+    "novograd:school_desk",
+    "novograd:job_board",
+    "novograd:shop_counter",
+    "novograd:roulette"
+  ]
+}

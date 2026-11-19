@@ -38,6 +38,7 @@ public class Novograd implements ModInitializer {
         com.yompix.novograd.world.Retrofit.init(); // дописывает новое в старые сохранения
         com.yompix.novograd.gta.Outdoors.init(); // навыки SA, охота и рыбалка, времена года и праздники
         com.yompix.novograd.gta.CopsNet.init(); // умная погоня, маски, тюрьма, «Полицейские и воры»
+        com.yompix.novograd.perf.Perf.init(); // замер MSPT (только -Dnovograd.perf / автотест perf)
         LOG.info("Новоград загружен: город, сюжет, машины, оружие");
     }
 }

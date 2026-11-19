@@ -4,3 +4,5 @@ run/
 out/
 *.iml
 .idea/
+# корневой .gitignore прячет data/ — тут тип мира «Новоград: Город», биом и теги; без них мир не открывается
+!src/main/resources/data/

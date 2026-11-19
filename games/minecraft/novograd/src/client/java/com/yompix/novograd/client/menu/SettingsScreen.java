@@ -89,6 +89,9 @@ public class SettingsScreen extends Screen {
                         () -> mc.setScreen(new SoundOptionsScreen(this, o))));
             }
             case 1 -> {
+                String[] pf = {"НИЗКАЯ", "СРЕДНЯЯ", "ВЫСОКАЯ"};
+                rows.add(new Row("Производительность", "Детализация того, что далеко: машины вдали проще, дальние жители думают реже. «Низкая» — для слабых ноутбуков.",
+                        () -> pf[MathHelper.clamp(cfg().perf, 0, 2)], null, null, d -> cfg().perf = Math.floorMod(cfg().perf + d, 3), null));
                 String[] g = {"ВЫКЛ", "ЛЁГКИЙ", "КРАСИВЫЙ"};
                 rows.add(new Row("Фильтр города", "Цвет и свет кадра. «Лёгкий» — для слабых ноутбуков. Клавиша K в игре.", () -> g[MathHelper.clamp(cfg().graphics, 0, 2)],
                         null, null, d -> cfg().graphics = Math.floorMod(cfg().graphics + d, 3), null));

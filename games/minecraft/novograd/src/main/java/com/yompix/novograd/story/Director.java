@@ -57,8 +57,16 @@ public final class Director {
         Set<UUID> extras = new HashSet<>();
         /** Зритель: сцену ставит напарник, а этот игрок её только смотрит (актёры общие). */
         boolean viewer;
-        /** Клиент ждёт загрузку местности — сцена стоит. */
-        boolean hold;
+        /**
+         * Клиент ждёт загрузку местности и актёров — сцена стоит. С 0.6.5 сцена начинается «на паузе», пока клиент
+         * не скажет «готов» (cut_hold off); не ответил за 12 с — идём сами, чтобы сцена не зависла.
+         */
+        boolean hold = SYNC;
+        int holdTicks;
+        /** План, которого ждёт клиент (-1 — неизвестно): туда и ставим «зрителя», чтобы участки и актёры пришли. */
+        int waitShot = -1;
+        /** Какой сетевой id актёра уже сообщили клиенту: если район выгружался и актёр загрузился заново, id новый. */
+        final Map<String, Integer> announced = new HashMap<>();
         JsonObject step;
         final List<int[]> bursts = new ArrayList<>(); // [индекс очереди, осталось, кд]
         final List<Object[]> burstInfo = new ArrayList<>();
@@ -66,6 +74,8 @@ public final class Director {
     }
 
     private static final Map<UUID, Scene> SCENES = new HashMap<>();
+    /** Старт сцены по готовности клиента (0.6.5). -Dnovograd.cutsync=false — как в 0.6.4 (для сравнения в автотестах). */
+    static final boolean SYNC = !"false".equals(System.getProperty("novograd.cutsync"));
 
     /** Собрать кадры и таймлайн; вернуть кадры для клиента. */
     static void start(ServerPlayerEntity p, JsonObject step, net.minecraft.nbt.NbtList clientShots) {
@@ -155,10 +165,30 @@ public final class Director {
     }
 
     /** Клиент: «жду загрузку» / «показываю». */
-    public static void hold(ServerPlayerEntity p, boolean on) {
+    public static void hold(ServerPlayerEntity p, boolean on, int shot) {
         Scene sc = SCENES.get(p.getUuid());
-        if (sc != null) sc.hold = on;
+        if (sc != null) {
+            if (sc.hold != on) sc.holdTicks = 0;
+            sc.hold = on;
+            sc.waitShot = on ? shot : -1;
+        }
     }
+
+    /** Актёры, которые уже стоят в кадре на старте (клиент ждёт, пока они к нему придут). */
+    public static List<String> cast(ServerPlayerEntity p, @Nullable Vec3d firstCam) {
+        Scene sc = SCENES.get(p.getUuid());
+        List<String> r = new ArrayList<>();
+        if (sc == null) return r;
+        for (Map.Entry<String, UUID> e : sc.actors.entrySet()) {
+            Entity en = p.getServerWorld().getEntity(e.getValue());
+            // только те, кто рядом с первым кадром: дальних клиент и не получит, пока камера туда не долетит
+            if (en != null && (firstCam == null || en.squaredDistanceTo(firstCam) < 72 * 72)) r.add(e.getKey());
+        }
+        return r;
+    }
+
+    /** Движение (идти, ехать, стрелять, драться, взрыв) не начинаем, пока клиент грузит сцену — иначе актёры «убегают». */
+    private static final Set<String> MOTION = Set.of("walk", "run", "drive", "shoot", "fight", "boom", "die", "ride", "exit");
 
     /**
      * Реплика в кат-сцене: говорящий жестикулирует, остальные герои поворачиваются к нему и замолкают
@@ -202,12 +232,46 @@ public final class Director {
         if (sc == null) return;
         ServerWorld w = p.getServerWorld();
         // актёры живут, даже если «зритель» далеко от них
-        if (sc.t % 20 == 0) for (UUID u : sc.actors.values()) {
+        if (w.getTime() % 20 == 0) for (UUID u : sc.actors.values()) {
             Entity e = w.getEntity(u);
             if (e != null) w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, e.getChunkPos(), 2, e.getBlockPos());
         }
+        // актёр перезагрузился вместе с районом (новый сетевой id) — сообщить клиенту заново, иначе камера его «не видит»;
+        // и пересчитать, видит ли его зритель (ванильный трекер делает это только при смене секции)
+        if (w.getTime() % 10 == 5) for (Map.Entry<String, UUID> en : sc.actors.entrySet()) {
+            Entity e = w.getEntity(en.getValue());
+            if (e == null) continue;
+            if (!sc.viewer && !Integer.valueOf(e.getId()).equals(sc.announced.get(en.getKey()))) announce(p, en.getKey(), e);
+            retrack(w, e, p);
+        }
+        if (sc.hold && ++sc.holdTicks > 240) {
+            com.yompix.novograd.Novograd.LOG.warn("Кат-сцена: клиент {} не ответил «готов» за 12 с — играем дальше", p.getName().getString());
+            sc.hold = false;
+            sc.holdTicks = 0;
+        }
+        if (sc.hold && sc.holdTicks == 60 && sc.waitShot >= 0 && sc.waitShot < sc.shots.size()) {
+            // клиент ждёт план уже 3 с — в лог, где актёр плана и где «зритель» (для разбора «не догружается»)
+            Shot ws = sc.shots.get(sc.waitShot);
+            for (String n : new String[]{ws.track, ws.follow}) {
+                if (n.isEmpty()) continue;
+                UUID u = sc.actors.get(n);
+                Entity e = u == null ? null : w.getEntity(u);
+                com.yompix.novograd.Novograd.LOG.info("[cut] сервер: план {} ждёт «{}»: {} (id {}), до зрителя {} блоков, объявлен id {}", sc.waitShot, n,
+                        e == null ? (u == null ? "не в сцене" : "нет в мире") : e.getBlockPos().toShortString(), e == null ? -1 : e.getId(),
+                        e == null ? -1 : (int) Math.sqrt(e.squaredDistanceTo(p)), sc.announced.get(n));
+            }
+        }
         if (sc.hold) {
-            Vec3d at = camAt(w, sc, 0);
+            Vec3d at = sc.waitShot >= 0 ? shotAt(w, sc, sc.waitShot) : camAt(w, sc, 0);
+            // герой плана далеко от камеры (дальше, чем клиенту присылают сущности) — «зритель» встаёт между ними,
+            // чтобы пришли и участки у камеры, и сам герой (иначе клиент ждал его все 4 с впустую)
+            if (at != null && sc.waitShot >= 0 && sc.waitShot < sc.shots.size()) {
+                Shot ws = sc.shots.get(sc.waitShot);
+                String who = !ws.track.isEmpty() ? ws.track : ws.follow;
+                UUID u = who.isEmpty() ? null : sc.actors.get(who);
+                Entity e = u == null ? null : w.getEntity(u);
+                if (e != null && e.squaredDistanceTo(at) > 48 * 48) at = at.add(e.getPos()).multiply(0.5);
+            }
             if (at != null && w.getTime() % 10 == 0 && p.squaredDistanceTo(at) > 24 * 24) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
             return;
         }
@@ -243,6 +307,28 @@ public final class Director {
         if (sc.t > total + 20 * 60) stop(p); // страховка, если клиент так и не ответил
     }
 
+    /** Пересчитать, отправлена ли сущность игроку (см. mixin/EntityTrackerInvoker). */
+    private static void retrack(ServerWorld w, Entity e, ServerPlayerEntity p) {
+        try {
+            Object t = ((com.yompix.novograd.mixin.ChunkLoadingAccessor) w.getChunkManager().chunkLoadingManager).novograd$trackers().get(e.getId());
+            if (t instanceof com.yompix.novograd.mixin.EntityTrackerInvoker inv) inv.novograd$update(p);
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    /** Начало плана n: где будет камера (или над героем плана). */
+    @Nullable
+    private static Vec3d shotAt(ServerWorld w, Scene sc, int n) {
+        if (n >= sc.shots.size()) return null;
+        int t = 0;
+        for (int i = 0; i < n; i++) t += sc.shots.get(i).ticks;
+        int save = sc.t;
+        sc.t = t + 1;
+        Vec3d v = camAt(w, sc, 0);
+        sc.t = save;
+        return v;
+    }
+
     @Nullable
     private static Vec3d camAt(ServerWorld w, Scene sc, int ahead) {
         int t = sc.t + ahead;
@@ -264,6 +350,7 @@ public final class Director {
 
     private static void run(ServerPlayerEntity p, Scene sc, int now) {
         while (sc.next < sc.cues.size() && Math.round(sc.cues.get(sc.next).get(0).getAsDouble() * 20) <= now) {
+            if (sc.hold && sc.cues.get(sc.next).size() > 1 && MOTION.contains(sc.cues.get(sc.next).get(1).getAsString())) break;
             JsonArray cue = sc.cues.get(sc.next++);
             JsonArray a = new JsonArray();
             for (int i = 1; i < cue.size(); i++) a.add(cue.get(i));
@@ -293,6 +380,10 @@ public final class Director {
     /** Сообщить о новом актёре всем, кто смотрит эту сцену (постановщику и зрителям). */
     private static void announce(ServerPlayerEntity p, String name, Entity e) {
         Scene mine = SCENES.get(p.getUuid());
+        if (mine != null) mine.announced.put(name, e.getId());
+        // район актёра держим загруженным с первой секунды (раньше — только со следующей проверки, и он успевал выгрузиться)
+        if (p.getServerWorld() == e.getWorld())
+            p.getServerWorld().getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, e.getChunkPos(), 2, e.getBlockPos());
         announceTo(p, name, e);
         if (mine == null) return;
         for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {

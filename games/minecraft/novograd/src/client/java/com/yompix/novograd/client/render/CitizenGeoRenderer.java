@@ -44,6 +44,10 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                                       float partialTick, int light, int overlay) {
                 boolean head = bone.getName().equals("head"), waist = bone.getName().equals("waist");
                 if (!head && !waist) return;
+                // вдали (дальше «Производительность» → дальняя граница) причёску, лицо и юбку не дорисовываем — их не различить
+                float far = com.yompix.novograd.client.NovogradConfig.lodFar();
+                var camPos = net.minecraft.client.MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
+                if (camPos.squaredDistanceTo(e.getX(), e.getY(), e.getZ()) > far * far) return;
                 // из пространства модели GeckoLib (y вверх, пиксели) в пространство ванильной модели
                 m.push();
                 m.translate(0, 24 / 16f, 0);

@@ -33,8 +33,8 @@
 
 ## Установка
 
-1. Fabric Loader для Minecraft 1.21.1 и Fabric API.
-2. Мод [`download/novograd-0.6.4.jar`](download/novograd-0.6.4.jar) положить в `mods`.
+1. Fabric Loader **0.17 или новее** для Minecraft 1.21.1 (на 0.16 не запустится: так требует GeckoLib внутри мода) и Fabric API.
+2. Мод [`download/novograd-0.6.6.jar`](download/novograd-0.6.6.jar) положить в `mods`.
 3. **Новый мир → Ещё → Тип мира: «Новоград: Город»** → Создать. Остров появится сам, а сюжет начнётся с заставки.
 
 Играть с другом: меню паузы → «Открыть для друзей» (через интернет нужен мод e4mc).
@@ -45,7 +45,7 @@
 - Машина: Space — ручник, N — нитро, L — фары, Z/X — поворотники, C — аварийка, H — гудок, «-»/«=» — громкость радио, J — подработка, B — кино-камера.
 - Вертолёт: Space/Shift — вверх/вниз, W/S — вперёд/назад, A/D — поворот. Самолёт: W/S — газ, Space/Shift — нос.
 - Лифт в небоскрёбах и отелях: ПКМ по панели в кабине — выбор этажа (вплоть до крыши с вертолётом); в кабине прыжок — этажом выше, Shift — ниже. Сесть на стул, диван или скамейку — ПКМ пустой рукой.
-- Настройки игры — в главном меню и в паузе.
+- Настройки игры — в главном меню и в паузе. Тормозит — Настройки → Графика → «Производительность: низкая».
 
 ## Чит-коды (как в San Andreas)
 
@@ -63,7 +63,7 @@ RIPAZHA — спорткар · CPKTNWT — взорвать машины вок
 
 ## Сборка «Новоград: Кино» (для съёмки и красивой картинки)
 
-[`download/Novograd-Kino-0.6.4.mrpack`](download/Novograd-Kino-0.6.4.mrpack) — открыть в Modrinth App или Prism Launcher («Добавить сборку» / «Импорт»). Лаунчер сам скачает:
+[`download/Novograd-Kino-0.6.6.mrpack`](download/Novograd-Kino-0.6.6.mrpack) — открыть в Modrinth App, Prism Launcher или ElyPrism («Добавить сборку» / «Импорт»). Новоград, Fabric API, Sodium, Iris, моды ускорения и шейдер MakeUp лежат прямо в сборке (с 0.6.6 — без скачивания); по желанию лаунчер докачает:
 - Sodium и Entity Culling — больше FPS; Iris + шейдеры Complementary Reimagined — кинокартинка (на слабом ноутбуке выключи шейдеры: Настройки → Графика → Шейдеры);
 - Flashback — запись повторов и экспорт видео с плавной камерой; Camera Utils — зум и кинорежим; Freecam — свободная камера;
 - Sound Physics Remastered и AmbientSounds — объёмный звук и природа; Particle Rain, Visuality, Wakes — дождь, частицы, следы от лодок; Continuity — красивые соединённые стёкла.
@@ -83,3 +83,5 @@ RIPAZHA — спорткар · CPKTNWT — взорвать машины вок
 - Сюжет и 100 побочных миссий: `tools/story.py` → `novograd_story.json`. Побочные миссии — `story/SideMissions.java`, GTA-шаги — `story/GtaSteps.java`.
 - Озвучка: `tools/voice.py` (XTTS-v2, лицензия Coqui CPML — некоммерческая).
 - Автотесты: `-Dnovograd.autotest=tour|story|side|gta`.
+- Сборки: `NOVOGRAD_OUT=папка python3 tools/make_full.py 0.6.6` (Full + Mods) и `tools/make_release.py 0.6.6` (TLauncher + .mrpack). Обязательные моды лежат внутри архивов; в конце сборщики запускают `tools/check_deps.py` (читает fabric.mod.json каждого jar, включая вложенные, и версию Fabric Loader архива) — не хватает зависимости → сборка падает.
+- Производительность и кат-сцены (0.6.5): `perf` (замер MSPT и кадров в людном центре, строки `[perf]`/`[perfc]`; `-Dnovograd.perflevel=0..2`), `camaudit` (пути камеры всех 40 кат-сцен по карте), `cine:глава:миссия:шаг` с `-Dnovograd.rec=файл.mp4` (покадровая запись кат-сцены и проверка камеры по кадрам — `[cam]`, рядом `.cam.tsv`; звук — `python3 tools/mux_cine_audio.py`), `uiinv` (инвентарь E, сундук, экран смерти).

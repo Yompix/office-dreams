@@ -45,19 +45,34 @@ Copy-Item (Join-Path $SRC "$VID.json") (Join-Path $vd "$VID.json") -Force
 # 2. Моды и шейдеры — в отдельную папку игры Новограда
 Write-Host '[2/4] Моды...'
 foreach ($d in 'mods', 'shaderpacks', 'config') { New-Item -ItemType Directory -Force -Path (Join-Path $GD $d) | Out-Null }
-$ours = Get-ChildItem (Join-Path $SRC 'mods') -Filter *.jar
+$ours = @(Get-ChildItem (Join-Path $SRC 'mods') -Filter *.jar)
+if (-not ($ours | Where-Object { $_.Name -like 'fabric-api-*' })) { throw 'В архиве нет Fabric API — архив распакован не полностью. Распакуй его заново целиком.' }
+# сначала новые моды кладём рядом во временную папку (копия целая), и только потом убираем старые версии тех же модов
+$stage = Join-Path $GD 'novograd_install_tmp'
+if (Test-Path $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $stage | Out-Null
+foreach ($j in $ours) { Copy-Item -LiteralPath $j.FullName $stage -Force }
 # старые версии тех же модов и Новограда убираем (по началу имени до цифр), чужие моды не трогаем
 foreach ($j in Get-ChildItem (Join-Path $GD 'mods') -Filter *.jar -ErrorAction SilentlyContinue) {
     $stem = ($j.Name -replace '[-_+]?(mc)?\d.*$', '').ToLower()
+    if ($ours | Where-Object { $_.Name -eq $j.Name }) { continue }
     if ($stem -and ($ours | Where-Object { ($_.Name -replace '[-_+]?(mc)?\d.*$', '').ToLower() -eq $stem })) { Remove-Item $j.FullName -Force }
 }
-foreach ($j in $ours) { Copy-Item $j.FullName (Join-Path $GD 'mods') -Force; Write-Host ('    ' + $j.Name) }
+foreach ($j in $ours) { Copy-Item -LiteralPath (Join-Path $stage $j.Name) (Join-Path $GD 'mods') -Force; Write-Host ('    ' + $j.Name) }
+Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
+# проверка: все моды из архива на месте и того же размера
+$miss = @($ours | Where-Object { $d = Join-Path (Join-Path $GD 'mods') $_.Name; -not (Test-Path -LiteralPath $d) -or (Get-Item -LiteralPath $d).Length -ne $_.Length } | ForEach-Object { $_.Name })
+if ($miss.Count -gt 0) {
+    Write-Host ('ОШИБКА: не на месте обязательные моды: ' + ($miss -join ', ')) -ForegroundColor Red
+    Write-Host 'Закрой лаунчер и игру и запусти INSTALL.bat ещё раз.' -ForegroundColor Red
+    exit 1
+}
 $shader = Get-ChildItem (Join-Path $SRC 'shaderpacks') | Select-Object -First 1
 Copy-Item $shader.FullName (Join-Path $GD 'shaderpacks') -Force
 $enable = if ($lite) { 'false' } else { 'true' }
 [IO.File]::WriteAllText((Join-Path $GD 'config\iris.properties'), "enableShaders=$enable`r`nshaderPack=$($shader.Name)`r`n", $utf8)
 if ($lite -and -not (Test-Path (Join-Path $GD 'config\novograd.json'))) {
-    [IO.File]::WriteAllText((Join-Path $GD 'config\novograd.json'), '{"graphics":1,"hudScale":0.85,"windyFoliage":false}', $utf8)
+    [IO.File]::WriteAllText((Join-Path $GD 'config\novograd.json'), '{"graphics":1,"perf":0,"hudScale":0.85,"windyFoliage":false}', $utf8)
 }
 # первые настройки игры: русский язык и лёгкая дальность (если своих ещё нет)
 $opt = Join-Path $GD 'options.txt'

@@ -19,13 +19,20 @@ public final class CutsceneMusic {
     private CutsceneMusic() {}
 
     @Nullable private static Track current;
+    /** Что играет сейчас (для журнала записи видео, CineRec): id и громкость, null — тишина. */
+    @Nullable public static String playingId;
+    public static float playingVol;
 
     /** Сервер: «cut_music» {id, vol}. */
     public static void handle(NbtCompound n) {
         String id = n.getString("id");
+        CineRec.event("MUSIC", id + "\t" + (n.contains("vol") ? n.getFloat("vol") : 0.35f));
         if (current != null) current.fadeOut();
         current = null;
+        playingId = null;
         if (id.isEmpty() || id.equals("stop")) return;
+        playingId = id;
+        playingVol = n.contains("vol") ? n.getFloat("vol") : 0.35f;
         Identifier sid = id.contains(":") ? Identifier.tryParse(id) : Novograd.id(id);
         if (sid == null) return;
         current = new Track(sid, n.contains("vol") ? n.getFloat("vol") : 0.35f);

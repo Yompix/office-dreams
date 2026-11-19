@@ -459,7 +459,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                             if (r != null) r.run();
                         }
                     } else c.refreshPositionAndAngles(to.x, to.y, to.z, c.getYaw(), 0); // путь не находится — просто «дошёл» (в кадре важнее не застрять)
-                } else c.getNavigation().startMovingTo(to.x, to.y, to.z, c.directSpeed);
+                } else if (stuck % 5 == 1) c.getNavigation().startMovingTo(to.x, to.y, to.z, c.directSpeed); // путь не нашёлся — пробуем раз в 5 тиков, а не каждый тик
             } else stuck = 0;
         }
     }
@@ -543,6 +543,42 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                         }
                     }
                 }
+    }
+
+    // ------------------------------------------------------------------ ИИ по расстоянию (производительность)
+    private int lodCheck, lodTier;
+    /** Счётчики для замера (perf/Perf): сколько тиков ИИ прохожих пропущено и выполнено. */
+    public static long lodSkipped, lodRan;
+
+    /**
+     * Пропустить ИИ в этот тик? Обычный прохожий далеко от всех игроков думает раз в 4 тика (дальше — раз в 20):
+     * его не видно, а поиск пути — самое дорогое на сервере. Физика и анимация не трогаются.
+     * Никогда не пропускаем: героев сюжета, актёров кат-сцен, полицию, тех, кто в погоне/драке/машине или ведом сюжетом.
+     */
+    public boolean aiLodSkip() {
+        if (getWorld().isClient || !(getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return false;
+        if (!storyId.isEmpty() || stationary || lockedActivity || foe != null || tempCop || role == Role.POLICE || fleeTicks > 0
+                || partner != null || jackCar != null || knockPhase() != KO_NONE || hasVehicle() || removeIn > 0 || (directTo != null && !routeWalk)) {
+            lodTier = 0;
+            return false;
+        }
+        if (--lodCheck <= 0) {
+            lodCheck = 20 + (getId() & 7);
+            double best = Double.MAX_VALUE;
+            for (var p : sw.getPlayers()) best = Math.min(best, p.squaredDistanceTo(this));
+            double near = com.yompix.novograd.perf.PerfLevel.aiNear(), far = com.yompix.novograd.perf.PerfLevel.aiFar();
+            lodTier = best < near * near ? 0 : best < far * far ? 1 : 2;
+        }
+        if (lodTier == 0) {
+            lodRan++;
+            return false;
+        }
+        int every = lodTier == 1 ? 4 : 20;
+        // (age + id) — как в самом MobEntity.tickNewAi: кратно 4/20 значит чётно, и в этот тик ИИ делает полный проход
+        boolean skip = (age + getId()) % every != 0;
+        if (skip) lodSkipped++;
+        else lodRan++;
+        return skip;
     }
 
     /** Исчезнуть через несколько тиков (клиент такси вышел и ушёл по делам). */
@@ -899,9 +935,16 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             return target != null && c.squaredDistanceTo(target) > 9 && !c.lockedActivity;
         }
 
+        private int repath;
+
         @Override
         public void tick() {
-            if (c.getNavigation().isIdle()) step();
+            // навигация встала (дошёл до куска или путь не нашёлся) — новый кусок пути не чаще раза в 10 тиков
+            repath--;
+            if (c.getNavigation().isIdle() && repath <= 0) {
+                repath = 10;
+                step();
+            }
         }
     }
 

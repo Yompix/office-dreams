@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.yompix.novograd.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "IslandSpawnMixin",
+    "CitizenAiLodMixin",
+    "ChunkLoadingAccessor",
+    "EntityTrackerInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
