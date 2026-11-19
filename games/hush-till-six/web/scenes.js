@@ -2647,7 +2647,19 @@ function gusPlanMake() {
   return P;
 }
 function gusMopAt(o, where) { const W = window.__W3chars; if (where === 'door') W.propAim('mop', o.S, GL.mopDoor, MOPWALL_D, 1.2, MOP_Y); else W.propAim('mop', o.S, GL.mopChair, MOPWALL_D, 1.2, MOP_Y); }
-function gusLife(o, tg, t, radio) {
+// рация в любой позе распорядка (владелец, 19 ноя: «сидит — а рацию не достаёт»): та же схема, что gusRadioCam — снял с нагрудника, ко рту, пока говорит
+function gusRadioOn(tu, g) {
+  if (!tu || !g || !(g.h > 0) || typeof tu[5] !== 'object') return tu;
+  const [, x, , z, ry, P] = tu, R = locR(x, z, ry), chest = bodyAt(R, 'spine_03', G_S3, [.07, 1.25, .15]), mouth = bodyAt(R, 'Head', G_HEAD, [.05, 1.46, .15]), clip = wornPt(A.cleaner, RADIO_G) || R.p(.07, 1.24, .17);
+  const w = seg(g.h, 0, .45), inH = g.h >= .45, k1 = seg(g.h, .45, 1), at = inH ? (C => lin(lin(clip, chest(C), k1), mouth(C), g.u)) : clip;
+  P.arm = Object.assign({}, P.arm, { l: { at, by: 'palm', fdir: R.v(-.15, 1, .05), pdir: R.v(.05, -.1, -1), w } }); P.fing = Object.assign({}, P.fing, { l: ['grip', w] });
+  if (inH) { delete P.wear; P.hold = Object.assign({}, P.hold, { l: 'radio' }); }
+  P.talk = g.u > .6 ? 1 : 0; return tu;
+}
+function gusLife(o, tg, t, g) {   // g — разговор по рации (доли из radioTalk) или null
+  const L = gusLife0(o, tg, t, !!g); if (L && g) for (const tu of L) gusRadioOn(tu, g); return L;
+}
+function gusLife0(o, tg, t, radio) {
   if (!gusPlanA || tg < gusPlanT - 3) window.__gusPlan = gusPlanA = gusPlanMake();   // новый час (часы швабры пошли с нуля) — новый распорядок
   gusPlanT = tg;
   const P = gusPlanA, it = P.find(x => tg >= x.t0 && tg < x.t0 + x.d) || P[P.length - 1], v = tg - it.t0, u = clamp(v / it.d, 0, 1), e = ease(u);
@@ -2691,7 +2703,7 @@ SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov
   if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
   if (s.mopAlone) window.__W3chars.propAim('mop', o.S, [0, MOP_Y, -7.2], [0, 1, 0], 0);   // швабра стоит торчком посреди коридора, никто не держит
   o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
-  if (s.gus) { setLamps(o, 7); const L = gusLife(o, s.gz ?? t, t, !!s.gusR); if (L) return L;   // распорядок: моет, заходит в кабинет, сидит, разминается
+  if (s.gus) { setLamps(o, 7); const L = gusLife(o, s.gz ?? t, t, s.gusR || null); if (L) return L;   // распорядок: моет, заходит в кабинет, сидит, разминается
     const G = gusRoutine(s.gz ?? t);   // s.gz — часы швабры: пока говорит по рации, стоят
     if (s.gusR) return [['cleaner', G7X, 0, G.z, G7R, gusRadioCam(o, t, G7X, G.z, G7R, s.gusR, G.k), null]];
     if (G.move) { const [z0, z1, v, mv] = G.move, zz = lerp(z0, z1, ease(clamp(v / mv, 0, 1))), P = mopGus(o, G7X, zz, G7R, t, 0); delete P.clips;   // идёт со шваброй: шаги — shuffle
