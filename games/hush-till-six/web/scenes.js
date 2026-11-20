@@ -3169,7 +3169,7 @@ SH.srv_sheet = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .8, 2.37], 
 const EIN = [2.28, 2.19];   // где Итан сидит на корточках в круге рядом с Фрэнком (справа — камеры его не загораживают)
 SH.srv_in = { loc: 'server', pos: [.25, 1.2, 1.3], look: [1.7, .6, 2.52], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
   return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [EIN[0], 1.0, EIN[1]] }), null],
-    ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], gest: 'r', look: FRANK_HEAD }, null]]; } };   // спрашивает — правая с колена чуть поднимается на ударных словах
+    ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], gest: 'r', arm: { l: kneeRest('l') }, fing: { l: ['relax', 1] }, look: FRANK_HEAD }, null]]; } };   // спрашивает — правая с колена чуть поднимается на ударных словах
 // 04:30, обход серверной (explore): круг соли, кулер у двери, листы на стойке — от входа; и листы крупно
 SH.srv_room = { loc: 'server', pos: [-.9, 1.4, .4], look: [1.6, .7, 2.8], fov: 62, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
   return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [-.2, 1.3, 1.0] }), null]]; } };
@@ -3179,7 +3179,7 @@ function srvDim(o) { srvSet(o); o.cold.intensity = .12; o.cold2.intensity = .08;
 SH.srv_dark = { loc: 'server', pos: [2.45, 1.05, 3.3], look: [-1.8, .9, -2.3], fov: 50, set: (o, t) => { srvDim(o);
   // d15 «Фрэнки… Сыночек…» (с ~6 с): Фрэнк подаётся корпусом на голос, Итан переводит глаза с темноты на него
   const F = frankSit(t, { look: [-1.6, 1.1, -2] }); F.spine = { to: [-1.6, .9, -2], k: .14 * seg(t, 6.0, 7.6) };
-  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, F, null], ['temych', EIN[0], 0, EIN[1], PI + .3, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: t < 6.7 ? [-1.6, 1.1, -2] : FRANK_HEAD }, null]]; } };
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, F, null], ['temych', EIN[0], 0, EIN[1], PI + .3, { clips: [['Crouch_Idle_Loop', t + .5, 1]], arm: kneeArms(), fing: { l: ['relax', 1], r: ['relax', 1] }, look: t < 6.7 ? [-1.6, 1.1, -2] : FRANK_HEAD }, null]]; } };
 function frankReach(t, k, strain = 0) { const R = FR(), P = frankSit(t, { look: [-1.4, 1.0, -2.2], u: lerp(.45, .52, k) });   // не встаёт (нога в лубке): подаётся вперёд корпусом, сидя
   P.spine = { to: R.p(0, .75, 1.3), k: .34 * k }; P.arm = { r: { at: R.p(-.14, 1.0 + .05 * Math.sin(t * 3), .62), by: 'palm', fdir: R.v(0, .35, 1), pdir: R.v(0, -.5, .8), w: k } }; P.fing = { r: ['open', k] };
   if (strain) P.wig = [['spine_02', [1, 0, 0], Math.sin(t * 9) * .05 * strain], ['neck_01', [0, 1, 0], Math.sin(t * 5.3) * .1 * strain]];
@@ -4001,7 +4001,11 @@ SH.k8_ceiling = { loc: 'server', pos: K8_E.slice(), look: [1.4, 1.2, 1.5], fov: 
 // ---- те же смерти в часы, когда Итана нет в будке (S.shift.hourDeath в story.js): S6 — он в серверной, на корточках в круге соли рядом с Фрэнком;
 // вместо будки — камера серверной (CAM −2, как srv_cam). A1 — прячется под стойкой: на камере холла его не видно
 const SRV_CAM = [-3.3, 2.65, -2.6];
-const srvPair = (t, look) => [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t), null], ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: look || FRANK_HEAD }, null]];
+// 20 ноя (тестер: в серверной Итан на корточках, «рука висит до пола»): ладонь лежит на своём колене (точка — от костей ног этого кадра), а не болтается
+const kneeRest = sd => ({ at: C => { const k = C.bone['calf_' + sd].getWorldPosition(new T.Vector3()), th = C.bone['thigh_' + sd].getWorldPosition(new T.Vector3()); k.lerp(th, .14); return [k.x, k.y + .05, k.z]; },
+  fdir: C => { const k = C.bone['calf_' + sd].getWorldPosition(new T.Vector3()), th = C.bone['thigh_' + sd].getWorldPosition(new T.Vector3()), d = k.sub(th).normalize(); return [d.x, d.y * .3 - .15, d.z]; }, by: 'palm', pdir: [0, -1, 0], w: 1 });
+const kneeArms = () => ({ l: kneeRest('l'), r: kneeRest('r') });
+const srvPair = (t, look) => [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t), null], ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], arm: kneeArms(), fing: { l: ['relax', 1], r: ['relax', 1] }, look: look || FRANK_HEAD }, null]];
 // «Посмотрел в лицо»: на камере серверной Итан поднимает лицо к объективу, на лице мерцает свет помех, губы сами шевелятся — отвечает
 SH.k1_srv = { loc: 'server', pos: SRV_CAM, look: [1.9, .85, 2.4], fov: 46, cctv: 1, face: { temych: 'gasp', mihalych: 'fear' }, set: (o, t) => { srvSet(o);
   o.faceL.position.set(1.7, 1.15, 1.5); o.faceL.color.setHex(0xb8c8dc); o.faceL.distance = 2.2; o.faceL.intensity = 1.1 * (.65 + .35 * Math.sin(t * 47) * Math.sin(t * 13));
