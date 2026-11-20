@@ -41,15 +41,77 @@ public final class CineAutotest {
 
     public static void init() {
         String mode = System.getProperty("novograd.autotest");
-        if (mode == null || !(mode.startsWith("cine") || mode.equals("camaudit"))) return;
+        if (mode == null || !(mode.startsWith("cine") || mode.equals("camaudit") || mode.startsWith("loadaudit") || mode.startsWith("shotexport") || mode.startsWith("fpshunt") || mode.startsWith("uishots"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
-        PRE.add(new Step(60, c -> c.createIntegratedServerLoader().start(System.getProperty("novograd.cineworld", "Island"), () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()))));
+        PRE.add(new Step(60, CineAutotest::openWorld));
         run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
         run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
         if (mode.equals("camaudit")) {
             server(20, CineAutotest::audit);
             run(40, MinecraftClient::scheduleStop);
+        } else if (mode.startsWith("loadaudit")) {
+            cmd(5, "gamemode creative " + P);
+            cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+            cmd(5, "time set 6000");
+            cmd(5, "weather clear");
+            cmd(5, "gamerule doDaylightCycle false");
+            run(1, c -> LoadAudit.begin(mode));
+            ClientTickEvents.END_CLIENT_TICK.register(LoadAudit::tick);
+        } else if (mode.startsWith("uishots")) {
+            // экран «как у игрока»: цель миссии, подсказка, награда, строка над хотбаром, чат (мод и игрок), субтитры сцены
+            String tag = System.getProperty("novograd.uitag", "ui");
+            cmd(5, "gamemode survival " + P);
+            cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+            cmd(5, "time set 6000");
+            cmd(5, "weather clear");
+            server(5, s -> {
+                var d = Life.get(pl(s));
+                d.storyStarted = true;
+                d.storyDone = false;
+                d.chapter = 0;
+                d.mission = 2;
+                d.step = 1;
+                d.flags.add("started:0:2");
+                Story.reenter(pl(s));
+                Life.sync(pl(s));
+            });
+            run(60, c -> {
+                if (c.currentScreen != null) c.setScreen(null);
+                c.player.networkHandler.sendChatMessage("Где встречаемся?");
+            });
+            server(5, s -> {
+                var p = pl(s);
+                p.sendMessage(net.minecraft.text.Text.literal("Новоград: в «Неоне» сегодня вечеринка — вход свободный до полуночи, приходи с друзьями и не забудь маску, будет весело и громко!").formatted(net.minecraft.util.Formatting.AQUA), false);
+                p.sendMessage(net.minecraft.text.Text.literal("+$120").formatted(net.minecraft.util.Formatting.GREEN), true);
+            });
+            run(5, c -> {
+                com.yompix.novograd.client.story.ClientStory.achievement("Первые колёса", "Угнать первую машину");
+                com.yompix.novograd.client.ui.Quiet.hint("", "Телефон — G. Карта — M.");
+                if (!com.yompix.novograd.story.Stage.ON) com.yompix.novograd.client.OutdoorClient.toast("Навык: вождение", "Уровень 2", 0xFF66BB6A, 40);
+            });
+            server(4, s -> pl(s).sendMessage(net.minecraft.text.Text.literal("+$80").formatted(net.minecraft.util.Formatting.GREEN), true));
+            run(30, c -> shot(c, tag + "_hud"));
+            run(5, c -> c.options.getChatVisibility()); // чат виден (последние строки ещё не погасли)
+            run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.ChatScreen("")));
+            run(10, c -> shot(c, tag + "_chat"));
+            run(5, c -> c.setScreen(null));
+            server(5, s -> {
+                var d = Life.get(pl(s));
+                d.chapter = 3;
+                d.mission = 1;
+                d.step = 0;
+                d.flags.add("started:3:1");
+                Story.reenter(pl(s));
+            });
+            run(200, c -> shot(c, tag + "_cutscene"));
+            run(40, MinecraftClient::scheduleStop);
+        } else if (mode.startsWith("fpshunt")) {
+            // мир открыт — дальше сценарии FpsHunt
+        } else if (mode.startsWith("shotexport")) {
+            cmd(5, "gamemode spectator " + P);
+            run(1, c -> ShotExport.begin(mode));
+            ClientTickEvents.END_CLIENT_TICK.register(ShotExport::tick);
         } else {
             String[] a = mode.split(":");
             int ch = Integer.parseInt(a[1]), mi = Integer.parseInt(a[2]), st = Integer.parseInt(a[3]);
@@ -80,6 +142,7 @@ public final class CineAutotest {
                 d.chapter = ch;
                 d.mission = mi;
                 d.step = st;
+                d.flags.add("started:" + ch + ":" + mi); // сцена на метке миссии: миссия уже «начата», иначе ждёт игрока
                 Life.sync(pl(s));
             });
             run(1, c -> com.yompix.novograd.client.story.CineRec.armed = true);
@@ -88,6 +151,36 @@ public final class CineAutotest {
         }
         ClientTickEvents.END_CLIENT_TICK.register(CineAutotest::tick);
         ClientTickEvents.END_CLIENT_TICK.register(CineAutotest::watch);
+    }
+
+    /** Мир для теста: -Dnovograd.cineworld (по умолчанию Island); нет такого — создаём новый остров с этим именем. */
+    private static void openWorld(MinecraftClient c) {
+        String name = System.getProperty("novograd.cineworld", "Island");
+        boolean exists;
+        try {
+            exists = c.getLevelStorage().levelExists(name);
+        } catch (RuntimeException e) {
+            exists = false;
+        }
+        if (exists) {
+            c.createIntegratedServerLoader().start(name, () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()));
+            return;
+        }
+        var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+        var info = new net.minecraft.world.level.LevelInfo(name, net.minecraft.world.GameMode.CREATIVE, false,
+                net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
+        var city = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, Novograd.id("city"));
+        c.createIntegratedServerLoader().createAndStart(name, info, new net.minecraft.world.gen.GeneratorOptions(20251120L, false, false),
+                drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), new com.yompix.novograd.client.menu.LifeMenuScreen());
+    }
+
+    private static void shot(MinecraftClient c, String name) {
+        net.minecraft.client.util.ScreenshotRecorder.saveScreenshot(c.runDirectory, name + ".png", c.getFramebuffer(), t -> Novograd.LOG.info("[ui] {}", t.getString()));
+    }
+
+    static ServerPlayerEntity player(IntegratedServer s) {
+        return pl(s);
     }
 
     /** Ждём, пока кат-сцена откроется и закроется, потом выходим. */

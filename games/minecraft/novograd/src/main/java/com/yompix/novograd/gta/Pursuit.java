@@ -441,7 +441,7 @@ public final class Pursuit {
                 w.playSound(null, car.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.NEUTRAL, 1.2f, 0.7f);
                 w.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD, car.getX(), car.getY() + 0.3, car.getZ(), 12, 1, 0.1, 1, 0.02);
                 if (car.getControllingPassenger() instanceof ServerPlayerEntity sp)
-                    sp.sendMessage(Text.literal("Шины пробиты! Скорость и руль хуже — почини машину в «Нитро-Гараже» или смени её").formatted(Formatting.RED), false);
+                    sp.sendMessage(Text.literal("Шины пробиты! Ремонт — «Нитро-Гараж»").formatted(Formatting.RED), false);
             }
         }
     }

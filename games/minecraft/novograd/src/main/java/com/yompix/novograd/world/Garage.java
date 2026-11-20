@@ -246,7 +246,7 @@ public final class Garage {
         }
         boolean stolen = car.getOwner() == null || !car.getOwner().equals(p.getUuid());
         if (car.isPolice() && com.yompix.novograd.gta.Wanted.stars(p) > 0) {
-            p.sendMessage(Text.literal("Полицейскую машину с хвостом в гараж не спрячешь — сначала оторвись").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Сначала оторвись от полиции").formatted(Formatting.RED), true);
             PARKING.put(p.getUuid(), -200);
             return;
         }

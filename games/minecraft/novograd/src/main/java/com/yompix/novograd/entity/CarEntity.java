@@ -439,7 +439,7 @@ public class CarEntity extends Entity {
             var d = com.yompix.novograd.life.Life.get(sp);
             boolean young = false; // в Новограде все взрослые
             if (young) {
-                player.sendMessage(Text.literal("Водить машину можно с 18 лет и с правами. Пока — электроскутер (есть в магазине)!"), true);
+                player.sendMessage(Text.literal("Нужны права. Пока — электроскутер"), true);
                 return ActionResult.CONSUME;
             }
         }

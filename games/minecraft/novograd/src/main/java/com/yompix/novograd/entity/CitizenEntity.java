@@ -115,6 +115,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Только клиент: роль в текущей реплике кат-сцены (вариант жеста или −1) и до какого age это действует. */
     public int cineTalk = -1, cineListen = -1, cineUntil;
+    /**
+     * 1.0, только клиент: слой-жест поверх тела (руки/голова — мокап g_*: рукопожатие, телефон, показать, толкнуть,
+     * удар, смех, «говорит на ходу»), до какого age. Ноги и корпус остаются от основной анимации — можно идти и говорить.
+     */
+    @org.jetbrains.annotations.Nullable public String cineGesture;
+    public int cineGestUntil;
+    private static final java.util.Map<String, software.bernie.geckolib.animation.RawAnimation> GESTURES = new java.util.HashMap<>();
 
     /** Клиент: сглаженный квадрат скорости по позиции (блоки за тик). */
     private double clientSpeedSq;
@@ -158,6 +165,17 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             }
             if (e.knockPhase() != KO_NONE) return 1.0;
             return 0.86 + Math.floorMod(e.getUuid().hashCode() >>> 3, 29) / 100.0;
+        }));
+        // 1.0: слой-жест (последним — его кости перекрывают основную анимацию, остальные кости не трогает); вход/выход 6 тиков
+        controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "gesture", 6, state -> {
+            if (cineGesture == null || age >= cineGestUntil || knockPhase() != KO_NONE) return software.bernie.geckolib.animation.PlayState.STOP;
+            String g = cineGesture;
+            var raw = GESTURES.computeIfAbsent(g, k -> {
+                var b = software.bernie.geckolib.animation.RawAnimation.begin();
+                return k.equals("g_fidget") || k.equals("g_laugh") || k.equals("g_walktalk") ? b.thenLoop("animation.citizen." + k)
+                        : k.equals("g_phone") ? b.thenPlayAndHold("animation.citizen." + k) : b.thenPlay("animation.citizen." + k);
+            });
+            return state.setAndContinue(raw);
         }));
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
                 .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick"))

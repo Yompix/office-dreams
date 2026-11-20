@@ -117,10 +117,10 @@ public class RealEstateScreen extends LifeScreen {
             String st = l.getString("state");
             boolean own = st.equals("own") || st.equals("rent");
             roundRect(ctx, x + 6, y, w - 14, 34, own ? 0xFF1B3A22 : st.equals("taken") ? 0xFF2A2A2A : 0xFF2A1D14);
-            int tw = w - 14 - 84;
+            int tw = w - 14 - 100; // до кнопок «Купить/Снять» (у них косой край — запас)
             ctx.drawText(textRenderer, l.getString("name"), x + 11, y + 4, 0xFFFFF3E0, false);
             String info = l.getString("kind") + " · " + l.getString("area") + " · гараж на " + l.getInt("cars") + (l.getBoolean("heli") ? " · вертолёт" : "");
-            ctx.drawText(textRenderer, textRenderer.trimToWidth(info, tw), x + 11, y + 15, 0xFFBCAAA4, false);
+            ctx.drawText(textRenderer, textRenderer.getWidth(info) > tw ? textRenderer.trimToWidth(info, tw - textRenderer.getWidth("…")) + "…" : info, x + 11, y + 15, 0xFFBCAAA4, false);
             String price = (l.getInt("price") > 0 ? "Купить $" + l.getInt("price") : "") + (l.getInt("price") > 0 && l.getInt("rent") > 0 ? " · " : "")
                     + (l.getInt("rent") > 0 ? "аренда $" + l.getInt("rent") + "/сут" : "");
             ctx.drawText(textRenderer, price, x + 11, y + 25, 0xFFFFD54F, false);

@@ -294,7 +294,7 @@ public final class Prison {
                     Activities.title(p, "РЕШЁТКА СНЯТА", "Пролезь во двор и тихо к лестнице у стены. Не попадись охране!");
                     state(p);
                 }
-            } else if (now % 200 < 20) p.sendMessage(Text.literal("Решётка вентиляции — в задней стене камеры. Встань вплотную и присядь (Shift)").formatted(Formatting.GRAY), true);
+            } else if (now % 200 < 20) p.sendMessage(Text.literal("Вентиляция — задняя стена, Shift").formatted(Formatting.GRAY), true);
             return;
         }
         Box comp = compound(w);

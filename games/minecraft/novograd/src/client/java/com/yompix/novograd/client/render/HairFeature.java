@@ -214,7 +214,11 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             // спящий — глаза закрыты (и в очках тоже)
             if (asleep) render("lids", m, flat, light, color(look, "skin", 0.82f));
             else if (blink && !look.has("glasses")) render("lids", m, flat, light, color(look, "skin", 0.82f));
-            if (talking) {
+            int lip = com.yompix.novograd.client.story.CutsceneScreen.mouth(id); // 1.0: рот по огибающей озвучки
+            if (lip >= 0) {
+                if (lip >= 7) render("mouth_wide", m, flat, light, 0xFF4A1414);
+                else if (lip >= 3) render("mouth_open", m, flat, light, 0xFF5A1A1A);
+            } else if (talking) {
                 int phase = (int) ((System.currentTimeMillis() / 110 + id) % 4);
                 if (phase == 1) render("mouth_open", m, flat, light, 0xFF5A1A1A);
                 else if (phase == 2) render("mouth_wide", m, flat, light, 0xFF4A1414);

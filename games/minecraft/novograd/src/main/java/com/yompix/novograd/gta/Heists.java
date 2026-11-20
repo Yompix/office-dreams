@@ -73,7 +73,7 @@ public final class Heists {
                 String cd = "heist_cd:" + i;
                 long last = d.flags.stream().filter(f -> f.startsWith(cd + "=")).mapToLong(f -> Long.parseLong(f.substring(cd.length() + 1))).max().orElse(-99);
                 if (day(w) - last < 2) {
-                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal("Хранилище пустое после прошлого налёта — приходи через пару дней").formatted(Formatting.GRAY), true);
+                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal("Хранилище пустое — через пару дней").formatted(Formatting.GRAY), true);
                     return;
                 }
                 int n = NEAR.merge(p.getUuid(), 1, Integer::sum);

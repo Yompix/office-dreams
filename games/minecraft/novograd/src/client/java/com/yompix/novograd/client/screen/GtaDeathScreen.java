@@ -41,8 +41,17 @@ public class GtaDeathScreen extends DeathScreen {
         ctx.fill(0, band + 51, width, band + 52, Ui.alpha(Ui.PINK, k));
         float s = 4.2f - 0.6f * Ui.easeOut(k);
         Ui.big(ctx, textRenderer, "ПОТРАЧЕНО", width / 2f, band + 12, s, Ui.alpha(0xFFD42A3A, k), 1);
-        if (msg != null) Ui.small(ctx, textRenderer, msg.getString(), width / 2f, band + 60, 1f, Ui.alpha(0xFFE0E0E0, k), 1);
-        Ui.small(ctx, textRenderer, "Половина грязных денег пропадёт. Врачи выставят счёт.", width / 2f, band + 74, 0.8f, Ui.alpha(Ui.DIM, k), 1);
+        int y = band + 60;
+        if (msg != null) { // длинная причина смерти — не за края экрана: перенос, не больше двух строк
+            var lines = textRenderer.getTextHandler().wrapLines(msg.getString(), width - 24, net.minecraft.text.Style.EMPTY);
+            for (int i = 0; i < Math.min(2, lines.size()); i++) {
+                String l = lines.get(i).getString();
+                if (i == 1 && lines.size() > 2) l = textRenderer.trimToWidth(l, width - 24 - textRenderer.getWidth("…")) + "…";
+                Ui.small(ctx, textRenderer, l, width / 2f, y, 1f, Ui.alpha(0xFFE0E0E0, k), 1);
+                y += 10;
+            }
+        }
+        Ui.small(ctx, textRenderer, "Половина грязных денег пропадёт. Врачи выставят счёт.", width / 2f, y + 4, 0.8f, Ui.alpha(Ui.DIM, k), 1);
         for (var c : children()) if (c instanceof Drawable d) d.render(ctx, mouseX, mouseY, delta);
     }
 }

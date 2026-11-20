@@ -205,7 +205,7 @@ public final class Props {
             anonymousTip(w, p);
             return;
         }
-        p.sendMessage(Text.literal("Таксофон: «Служба такси Новограда, куда едем?»   (Shift+ПКМ — анонимный звонок в полицию)").formatted(Formatting.YELLOW), false);
+        p.sendMessage(Text.literal("Такси: «Куда едем?» · Shift+ПКМ — полиция").formatted(Formatting.YELLOW), false);
         NbtCompound n = new NbtCompound();
         n.putString("app", "taxi");
         LifeNet.send(p, "open_phone", n);
@@ -221,7 +221,7 @@ public final class Props {
                 c -> c.isAlive() && c.getRole() == CitizenEntity.Role.GANG && !c.hasVehicle());
         String area = com.yompix.novograd.gta.Territories.turfName(Math.max(0, com.yompix.novograd.gta.Territories.at(p.getX(), p.getZ())));
         if (gang.isEmpty()) {
-            p.sendMessage(Text.literal("Ты: «Тут бандиты…» Диспетчер: «Принято. Наряд проверит район»").formatted(Formatting.BLUE), false);
+            p.sendMessage(Text.literal("Диспетчер: «Наряд проверит район»").formatted(Formatting.BLUE), false);
             com.yompix.novograd.gta.News.post(w.getServer(), "Анонимный звонок: в районе «" + area + "» видели вооружённых людей", "КРИМИНАЛ");
             return;
         }
@@ -241,7 +241,7 @@ public final class Props {
             cop.attack(target);
             cop.removeLater(20 * 100);
         }
-        p.sendMessage(Text.literal("Ты (шёпотом): «Тут бандиты…» Диспетчер: «Наряд выезжает». Полиция разберётся с бандой").formatted(Formatting.BLUE), false);
+        p.sendMessage(Text.literal("Диспетчер: «Наряд выезжает»").formatted(Formatting.BLUE), false);
         com.yompix.novograd.gta.News.post(w.getServer(), "Полиция выехала по анонимному звонку: перестрелка в районе «" + area + "»", "КРИМИНАЛ");
     }
 

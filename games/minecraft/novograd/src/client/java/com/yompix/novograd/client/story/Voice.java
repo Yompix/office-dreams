@@ -22,6 +22,16 @@ public final class Voice {
         current = new PositionedSoundInstance(Novograd.id("voice." + id), SoundCategory.VOICE, 1f, 1f, Random.create(), false, 0,
                 SoundInstance.AttenuationType.NONE, 0, 0, 0, true);
         mc.getSoundManager().play(current);
+        currentId = id;
+        startedNs = System.nanoTime();
+    }
+
+    /** 1.0 (Lipsync): какая реплика звучит и сколько секунд. */
+    @Nullable public static String currentId;
+    private static long startedNs;
+
+    public static double time() {
+        return currentId == null ? -1 : (System.nanoTime() - startedNs) / 1e9;
     }
 
     private static final java.util.Map<String, Double> LEN = new java.util.HashMap<>();
@@ -65,5 +75,6 @@ public final class Voice {
     public static void stop() {
         if (current != null) MinecraftClient.getInstance().getSoundManager().stop(current);
         current = null;
+        currentId = null;
     }
 }

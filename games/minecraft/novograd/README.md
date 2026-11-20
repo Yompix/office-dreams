@@ -30,11 +30,17 @@
 - **Движения жителей — захват движения:** ходьба, бег, ожидание, разговор с жестами, ссора, курение (и жесты в кат-сценах) сделаны из CMU Graphics Lab Motion Capture Database — «The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217.» (бесплатно, в том числе для коммерческих проектов; сами данные не перепродаются). Пересборка: `tools/gen_mocap.py`.
 - **Игра с друзьями:** общий сюжет, общие кат-сцены и соперники, друзья на радаре.
 - **Радар, кино-камера (B), свой интерфейс, листва на ветру, вода с бликами.**
+- **0.7.0 «Кино»:**
+  - кат-сцены готовятся заранее, пока подходишь к метке, и начинаются почти сразу;
+  - 10 главных сцен сняты заново: объективы, правило третей, «восьмёрка», краны;
+  - живые актёры: взгляд, рот в такт озвучке, жесты поверх ходьбы, рукопожатия, телефон;
+  - на экране — минимум текста;
+  - «Производительность: АВТО».
 
 ## Установка
 
 1. Fabric Loader **0.17 или новее** для Minecraft 1.21.1 (на 0.16 не запустится: так требует GeckoLib внутри мода) и Fabric API.
-2. Мод [`download/novograd-0.6.6.jar`](download/novograd-0.6.6.jar) положить в `mods`.
+2. Мод [`download/novograd-0.7.0.jar`](download/novograd-0.7.0.jar) положить в `mods`.
 3. **Новый мир → Ещё → Тип мира: «Новоград: Город»** → Создать. Остров появится сам, а сюжет начнётся с заставки.
 
 Играть с другом: меню паузы → «Открыть для друзей» (через интернет нужен мод e4mc).
@@ -63,7 +69,7 @@ RIPAZHA — спорткар · CPKTNWT — взорвать машины вок
 
 ## Сборка «Новоград: Кино» (для съёмки и красивой картинки)
 
-[`download/Novograd-Kino-0.6.6.mrpack`](download/Novograd-Kino-0.6.6.mrpack) — открыть в Modrinth App, Prism Launcher или ElyPrism («Добавить сборку» / «Импорт»). Новоград, Fabric API, Sodium, Iris, моды ускорения и шейдер MakeUp лежат прямо в сборке (с 0.6.6 — без скачивания); по желанию лаунчер докачает:
+[`download/Novograd-Kino-0.7.0.mrpack`](download/Novograd-Kino-0.7.0.mrpack) — открыть в Modrinth App, Prism Launcher или ElyPrism («Добавить сборку» / «Импорт»). Новоград, Fabric API, Sodium, Iris, моды ускорения и шейдер MakeUp лежат прямо в сборке (с 0.6.6 — без скачивания); по желанию лаунчер докачает:
 - Sodium и Entity Culling — больше FPS; Iris + шейдеры Complementary Reimagined — кинокартинка (на слабом ноутбуке выключи шейдеры: Настройки → Графика → Шейдеры);
 - Flashback — запись повторов и экспорт видео с плавной камерой; Camera Utils — зум и кинорежим; Freecam — свободная камера;
 - Sound Physics Remastered и AmbientSounds — объёмный звук и природа; Particle Rain, Visuality, Wakes — дождь, частицы, следы от лодок; Continuity — красивые соединённые стёкла.
@@ -83,5 +89,13 @@ RIPAZHA — спорткар · CPKTNWT — взорвать машины вок
 - Сюжет и 100 побочных миссий: `tools/story.py` → `novograd_story.json`. Побочные миссии — `story/SideMissions.java`, GTA-шаги — `story/GtaSteps.java`.
 - Озвучка: `tools/voice.py` (XTTS-v2, лицензия Coqui CPML — некоммерческая).
 - Автотесты: `-Dnovograd.autotest=tour|story|side|gta`.
-- Сборки: `NOVOGRAD_OUT=папка python3 tools/make_full.py 0.6.6` (Full + Mods) и `tools/make_release.py 0.6.6` (TLauncher + .mrpack). Обязательные моды лежат внутри архивов; в конце сборщики запускают `tools/check_deps.py` (читает fabric.mod.json каждого jar, включая вложенные, и версию Fabric Loader архива) — не хватает зависимости → сборка падает.
+- Сборки: `NOVOGRAD_OUT=папка python3 tools/make_full.py 0.7.0` (Full + Mods) и `tools/make_release.py 0.7.0` (TLauncher + .mrpack). Обязательные моды лежат внутри архивов; в конце сборщики запускают `tools/check_deps.py` (читает fabric.mod.json каждого jar, включая вложенные, и версию Fabric Loader архива) — не хватает зависимости → сборка падает.
+- 1.0 «Кино»:
+  - `loadaudit` — время «триггер → готовый кадр» у всех сцен; `-Dnovograd.stage=false` — как в 0.6.6;
+  - `shotexport:гл:мис:шаг` + `tools/shot_planner.py` — постановка, shot list в `docs/SHOTS_1_0.md`; `-Dnovograd.shots=false` — старые планы;
+  - `fpshunt` — где падает FPS (`-Dnovograd.perf10=false` — как в 0.6.6);
+  - `uishots` — снимки экрана;
+  - `tools/gen_lipsync.py` — рот по озвучке;
+  - новые клипы мокапа — `tools/gen_mocap.py` (`g_*` — слои-жесты);
+  - план геймплея 1.0 — `docs/PLAN_1_0.md`.
 - Производительность и кат-сцены (0.6.5): `perf` (замер MSPT и кадров в людном центре, строки `[perf]`/`[perfc]`; `-Dnovograd.perflevel=0..2`), `camaudit` (пути камеры всех 40 кат-сцен по карте), `cine:глава:миссия:шаг` с `-Dnovograd.rec=файл.mp4` (покадровая запись кат-сцены и проверка камеры по кадрам — `[cam]`, рядом `.cam.tsv`; звук — `python3 tools/mux_cine_audio.py`), `uiinv` (инвентарь E, сундук, экран смерти).

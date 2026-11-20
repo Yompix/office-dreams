@@ -387,7 +387,7 @@ public final class Collectibles {
         int[] st = SPRAY.get(p.getUuid());
         if (st == null || st[0] != near) SPRAY.put(p.getUuid(), st = new int[]{near, 0});
         if (!p.isSneaking() || !facing || p.hasVehicle()) {
-            if (st[1] == 0) p.sendMessage(Text.literal("Тег банды на стене — держи Shift, глядя на стену, чтобы закрасить своим").formatted(Formatting.GOLD), true);
+            if (st[1] == 0) p.sendMessage(Text.literal("Тег банды: Shift — закрасить").formatted(Formatting.GOLD), true);
             return;
         }
         st[1] += 5;
@@ -646,7 +646,7 @@ public final class Collectibles {
         LifeData d = Life.get(p);
         if (c < 0 || d.flags.contains("colmap:" + cat)) return;
         if (!nearStall(p)) {
-            p.sendMessage(Text.literal("Карты продают в ларьках: деловая площадь, ворота порта, стрип Ривьеры").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Карты — в ларьках (центр, порт, Ривьера)").formatted(Formatting.YELLOW), true);
             return;
         }
         if (!Life.pay(p, MAP_PRICE[c], "карта «" + CAT_NAMES[c] + "»")) return;

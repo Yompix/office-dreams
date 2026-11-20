@@ -90,7 +90,7 @@ public class AtmScreen extends LifeScreen {
         ctx.enableScissor(0, slotY + 6, width, height);
         roundRect(ctx, slotX, cy, cw, ch, 0xFFFFC107);
         ctx.fill(slotX + 6, cy + 12, slotX + 20, cy + 22, 0xFFB08800);
-        ctx.drawText(textRenderer, "НОВОГРАД БАНК", slotX + 4, cy + 30, 0xFF5D4000, false);
+        com.yompix.novograd.client.ui.Ui.small(ctx, textRenderer, "НОВОГРАД БАНК", slotX + 4, cy + 30, Math.min(1f, (cw - 8) / (float) textRenderer.getWidth("НОВОГРАД БАНК")), 0xFF5D4000, 0); // по ширине карты
         ctx.disableScissor();
         if (k >= 1 && since() > 1.3f) {
             sound(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 0.6f, 1.6f);

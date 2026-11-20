@@ -44,6 +44,9 @@ public final class LifeHud {
         return com.yompix.novograd.client.studio.Studio.playing() || mc.currentScreen instanceof com.yompix.novograd.client.story.DialogScreen || mc.currentScreen instanceof com.yompix.novograd.client.story.CutsceneScreen;
     }
 
+    /** Нижний край правого верхнего блока HUD (в пикселях интерфейса) — для уведомлений. */
+    public static int rightBottom = 44;
+
     private static float scale() {
         return NovogradConfig.hud();
     }
@@ -95,6 +98,8 @@ public final class LifeHud {
             ctx.drawText(tr, msg, mx + 4, 24, 0xFFFFFFFF, false);
         }
         weapon(ctx, tr, mc, r, ty + 11);
+        // низ правого блока (деньги, время, оружие) — уведомления Quiet ставятся ниже, а не поверх
+        rightBottom = (int) Math.ceil((com.yompix.novograd.gta.Weapons.isGun(mc.player.getMainHandStack()) ? ty + 11 + 23 : ty + 9) * s);
         m.pop();
         // ---------------- слева сверху
         m.push();

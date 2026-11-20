@@ -78,7 +78,7 @@ public final class Airport {
         }
         if (from == dst) return;
         if (Wanted.stars(p) > 0) {
-            p.sendMessage(Text.literal("Кассир: «С розыском на борт нельзя. Сначала разберитесь с полицией.»").formatted(Formatting.RED), false);
+            p.sendMessage(Text.literal("Кассир: «С розыском — нельзя»").formatted(Formatting.RED), false);
             return;
         }
         if (!FunUtil.freeRoam(p) || FunUtil.busy(p)) {

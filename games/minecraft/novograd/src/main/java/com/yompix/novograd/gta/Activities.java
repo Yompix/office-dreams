@@ -157,14 +157,14 @@ public final class Activities {
             return;
         }
         if (!(p.getVehicle() instanceof CarEntity car) || car.getControllingPassenger() != p) {
-            p.sendMessage(Text.literal("Подработка: сядь за руль такси (жёлтая машина) или полицейской машины и нажми J").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Подработка: такси или полиция → J").formatted(Formatting.YELLOW), true);
             return;
         }
         j = new Job();
         if (car.isTaxi()) j.kind = "taxi";
         else if (car.isPolice()) j.kind = "vigilante";
         else {
-            p.sendMessage(Text.literal("Эта машина не подходит: такси, полиция, скорая, пожарная или мотоцикл/скутер (пицца)").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Нужна такси, полиция, скорая, пожарная или скутер").formatted(Formatting.YELLOW), true);
             return;
         }
         JOBS.put(p.getUuid(), j);

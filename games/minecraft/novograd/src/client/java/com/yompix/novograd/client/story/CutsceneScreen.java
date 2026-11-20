@@ -42,7 +42,8 @@ import java.util.Locale;
  * </ul>
  */
 public class CutsceneScreen extends LifeScreen {
-    private record Shot(double[] from, double[] to, float sec, String track, String follow, double[] off, float shake, float fov, float fov2, float roll) {}
+    private record Shot(double[] from, double[] to, float sec, String track, String follow, double[] off, float shake, float fov, float fov2, float roll,
+                        double[] keys, String subject, double[] aim, float hand) {}
 
     /** Актёры кат-сцены: имя в сценарии → id сущности на клиенте (сервер присылает «cut_actor»). */
     public static final java.util.Map<String, Integer> ACTORS = new java.util.HashMap<>();
@@ -89,7 +90,9 @@ public class CutsceneScreen extends LifeScreen {
                     s.contains("to") ? arr(s.getList("to", NbtElement.DOUBLE_TYPE)) : null, s.getFloat("sec"),
                     s.getString("track"), s.getString("follow"), off, s.getFloat("shake"),
                     s.contains("fov") ? s.getFloat("fov") : Float.NaN, s.contains("fov2") ? s.getFloat("fov2") : Float.NaN,
-                    s.contains("roll") ? s.getFloat("roll") : Float.NaN);
+                    s.contains("roll") ? s.getFloat("roll") : Float.NaN,
+                    s.contains("keys") ? flat(s.getList("keys", NbtElement.DOUBLE_TYPE)) : null, s.getString("subject"),
+                    s.contains("aim") ? flat(s.getList("aim", NbtElement.DOUBLE_TYPE)) : null, s.getFloat("hand"));
             shots.add(sh);
             t += sh.sec();
         }
@@ -98,6 +101,9 @@ public class CutsceneScreen extends LifeScreen {
             subs.add(new Sub(c.getString("who"), c.getString("name"), c.getInt("color"), c.getString("text"), c.getString("voice")));
         }
         for (NbtElement e : n.getList("cast", NbtElement.STRING_TYPE)) cast.add(e.asString());
+        ret = n.contains("ret") ? flat(n.getList("ret", NbtElement.DOUBLE_TYPE)) : null;
+        near = n.getBoolean("near");
+        openedNs = System.nanoTime();
         total = Math.max(t, 2);
         grade = n.contains("grade") ? n.getString("grade") : "film_cine";
         title = n.getString("title");
@@ -111,6 +117,50 @@ public class CutsceneScreen extends LifeScreen {
 
     /** Кинофильтр сцены, титр миссии (как в начале миссии GTA). */
     private final String grade, title, chapter;
+
+    /**
+     * 1.0: сцена впереди (Stage на сервере) — заранее прочитать файлы озвучки (длина, кэш ОС) и загрузить скины массовки,
+     * чтобы на старте не было ни подвисания на чтении, ни «белых» актёров в первом кадре.
+     */
+    public static void prep(net.minecraft.client.MinecraftClient mc, NbtCompound n) {
+        long t0 = System.nanoTime();
+        int v = 0;
+        for (NbtElement e : n.getList("voices", NbtElement.STRING_TYPE)) {
+            Voice.length(e.asString());
+            v++;
+        }
+        int sk = 0;
+        for (NbtElement e : n.getList("skins", NbtElement.INT_TYPE)) {
+            int i = ((net.minecraft.nbt.NbtInt) e).intValue();
+            if (i >= 0 && i < com.yompix.novograd.client.render.CitizenGeoRenderer.SKINS.length) {
+                mc.getTextureManager().getTexture(com.yompix.novograd.client.render.CitizenGeoRenderer.SKINS[i]);
+                sk++;
+            }
+        }
+        Novograd.LOG.info("[stage] прогрев: озвучка {}, скины {} за {} мс", v, sk, (System.nanoTime() - t0) / 1_000_000);
+    }
+
+    private static double[] flat(NbtList l) {
+        double[] v = new double[l.size()];
+        for (int i = 0; i < v.length; i++) v[i] = l.getDouble(i);
+        return v;
+    }
+
+    // ---- 1.0: переход из игры в сцену и обратно, замер загрузки
+    /** Куда вернуть камеру: глаза игрока до сцены [x, y, z, yaw, pitch]. */
+    private final double[] ret;
+    /** Сервер не переносил игрока: первый кадр рядом, мир вокруг уже у клиента. */
+    private final boolean near;
+    private final long openedNs;
+    /** Вход: камера летит из глаз игрока в первый план (или короткое затемнение). */
+    private double[] blendFrom;
+    private boolean blendFade;
+    /** Выход: 0 — сцена идёт, >0 — секунды с начала «приземления» камеры. */
+    private double outT = -1;
+    private double[] outFrom;
+    private boolean outFade;
+    static final double BLEND_IN = 0.8, BLEND_OUT = 0.7, FADE = 0.45;
+    private static final boolean V10 = com.yompix.novograd.story.Stage.ON;
 
     private static double[] arr(NbtList l) {
         double[] v = new double[5];
@@ -134,7 +184,8 @@ public class CutsceneScreen extends LifeScreen {
             hudWas = mc().options.hudHidden;
             mc().options.hudHidden = true;
             current = this;
-            if (!shots.isEmpty() && shots.get(0).from() != null) {
+            if (V10 && near && ret != null) cam.setPosition(ret[0], ret[1] - cam.getStandingEyeHeight(), ret[2]);
+            else if (!shots.isEmpty() && shots.get(0).from() != null) {
                 double[] f = shots.get(0).from();
                 cam.setPosition(f[0], f[1] - cam.getStandingEyeHeight(), f[2]);
             }
@@ -280,6 +331,32 @@ public class CutsceneScreen extends LifeScreen {
             focusEye = at.add(0, fol.getHeight() * 0.8, 0);
             yaw = yawTo(x, z, focusEye);
             pitch = pitchTo(x, y, z, focusEye);
+        } else if (s.keys() != null) {
+            // 1.0: план из постановщика — кривая камеры по ключам; кадр доворачивается, если герой стоит не там, где ждали
+            double[] kp = keyAt(s.keys(), local);
+            x = kp[0];
+            y = kp[1];
+            z = kp[2];
+            yaw = (float) kp[3];
+            pitch = (float) kp[4];
+            keyFov = (float) kp[5];
+            keyRoll = (float) kp[6];
+            var subj = actor(s.subject());
+            if (subj != null && s.aim() != null && s.aim().length >= 3) {
+                Vec3d eye = subj.getLerpedPos(delta).add(0, subj.getHeight() * 0.9, 0);
+                Vec3d plan = new Vec3d(s.aim()[0], s.aim()[1], s.aim()[2]);
+                if (eye.squaredDistanceTo(plan) < 12 * 12) {
+                    // герой стоит не там, где ждал планировщик (дошёл, его поставили иначе): камера сдвигается вместе с ним
+                    // (композиция и дистанция плана сохраняются); стены проверит страховка ниже
+                    Vec3d dv = eye.subtract(plan);
+                    if (!Double.isNaN(keyDrift.x) && !cut) dv = keyDrift.add(dv.subtract(keyDrift).multiply(Math.min(1, dt * 4)));
+                    keyDrift = dv;
+                    x += dv.x;
+                    y += dv.y;
+                    z += dv.z;
+                }
+                focusEye = eye;
+            }
         } else if (s.from() != null) {
             double[] to0 = s.to() != null ? s.to() : s.from();
             double[] f = fromL[si] != null ? fromL[si] : s.from(), to = toL[si] != null ? toL[si] : to0;
@@ -296,7 +373,7 @@ public class CutsceneScreen extends LifeScreen {
         } else if (!cut && lastFocus != null && !s.track().isEmpty()) {
             focusEye = lastFocus; // герой плана ушёл из зоны видимости клиента — смотрим туда, где он был, без рывка
         } else if (cut) lastFocus = null;
-        if (focusEye != null && fol == null) {
+        if (focusEye != null && fol == null && s.keys() == null) {
             yaw = yawTo(x, z, focusEye);
             pitch = pitchTo(x, y, z, focusEye);
         }
@@ -308,6 +385,10 @@ public class CutsceneScreen extends LifeScreen {
         // решение «крупный план или общий» принимается один раз на план (на склейке), иначе камера прыгала бы,
         // когда герой пересекает границу 14 блоков
         if (cut) closeDecided = false;
+        if (!closeDecided && s.keys() != null) {
+            closeShot = false; // путь ключей проверен планировщиком по блокам — к герою не подтягиваем
+            closeDecided = true;
+        }
         if (!closeDecided && (fol != null || focusEye != null)) {
             closeShot = fol != null || focusEye.squaredDistanceTo(want) < 14 * 14;
             closeDecided = true;
@@ -357,6 +438,18 @@ public class CutsceneScreen extends LifeScreen {
                 guard = 2;
             }
         }
+        // 1.0: после «стоянки» у препятствия камера не прыгает к пути (было до 10 блоков за кадр) — догоняет его с
+        // ограниченной скоростью и только по свободному отрезку
+        if (V10 && !cut && lastPos != null && fol == null && s.keys() == null && dt > 0) {
+            double d = want.distanceTo(lastPos), lim = Math.max(60 * dt, lastOutStep * 1.6);
+            if (d > lim) {
+                Vec3d st = lastPos.add(want.subtract(lastPos).multiply(lim / d));
+                // свободно — шаг к пути; нет — стоим (лучше короткая пауза кадра, чем прыжок сквозь препятствие)
+                want = CamPath.clear(mc().world, st) && CamPath.free(mc().world, lastPos, st) ? st : lastPos;
+                if (focusEye == null) guard = Math.max(guard, 1);
+            }
+        }
+        if (lastPos != null && !cut) lastOutStep = want.distanceTo(lastPos);
         // у стены (поправки на этом и прошлом кадре) — сглаживаем пружиной, чтобы поиск свободной точки не дрожал;
         // сглаженная точка берётся, только если она сама свободна и путь к ней от прошлого кадра не сквозь стену
         if (!cut && lastPos != null && (guard > 0 || lastGuard > 0)) {
@@ -370,7 +463,7 @@ public class CutsceneScreen extends LifeScreen {
             } else gvx = gvy = gvz = 0;
         } else gvx = gvy = gvz = 0;
         lastGuard = guard;
-        if (focusEye != null && guard > 0) {
+        if (focusEye != null && guard > 0 && s.keys() == null) {
             yaw = yawTo(want.x, want.z, focusEye);
             pitch = pitchTo(want.x, want.y, want.z, focusEye);
         }
@@ -378,8 +471,8 @@ public class CutsceneScreen extends LifeScreen {
         y = want.y;
         z = want.z;
         // ---- поворот: на склейке — сразу; внутри плана с героем — пружиной (смена говорящего, обход стены — без рывка)
-        if (cut) {
-            camYaw = yaw;
+        if (cut || s.keys() != null) { // ключи — точные углы планировщика, без запаздывания пружины
+            camYaw = cut ? yaw : camYaw + MathHelper.wrapDegrees(yaw - camYaw);
             camPitch = pitch;
             yawV = pitchV = 0;
         } else {
@@ -402,12 +495,28 @@ public class CutsceneScreen extends LifeScreen {
             sx = (Math.sin(time * 23) + Math.sin(time * 37) * 0.5) * shake * 0.6;
             sy = (Math.cos(time * 29) + Math.sin(time * 41) * 0.5) * shake * 0.4;
         }
-        cam.prevX = cam.lastRenderX = camX;
-        cam.prevY = cam.lastRenderY = camY - cam.getStandingEyeHeight();
-        cam.prevZ = cam.lastRenderZ = camZ;
-        cam.setPosition(camX, camY - cam.getStandingEyeHeight(), camZ);
-        cam.setYaw(camYaw + (float) sx);
-        cam.setPitch(camPitch + (float) sy);
+        if (s.hand() > 0) { // «ручная камера»: медленное живое покачивание оператора (не тряска погони)
+            double h = s.hand();
+            sx += (Math.sin(time * 1.31) * 0.6 + Math.sin(time * 2.17 + 1.3) * 0.3 + Math.sin(time * 0.53 + 2.1) * 0.5) * h;
+            sy += (Math.sin(time * 1.07 + 0.7) * 0.5 + Math.sin(time * 2.71 + 2.4) * 0.25) * h * 0.7;
+        }
+        double ox = camX, oy = camY, oz = camZ;
+        float oyaw = camYaw + (float) sx, opitch = camPitch + (float) sy;
+        // 1.0: вход из игры — камера вылетает из глаз игрока в первый план; выход — «приземляется» обратно
+        double[] bl = blend(ox, oy, oz, oyaw, opitch);
+        if (bl != null) {
+            ox = bl[0];
+            oy = bl[1];
+            oz = bl[2];
+            oyaw = (float) bl[3];
+            opitch = (float) bl[4];
+        }
+        cam.prevX = cam.lastRenderX = ox;
+        cam.prevY = cam.lastRenderY = oy - cam.getStandingEyeHeight();
+        cam.prevZ = cam.lastRenderZ = oz;
+        cam.setPosition(ox, oy - cam.getStandingEyeHeight(), oz);
+        cam.setYaw(oyaw);
+        cam.setPitch(opitch);
         cam.prevYaw = cam.getYaw();
         cam.prevPitch = cam.getPitch();
         cam.setHeadYaw(cam.getYaw());
@@ -482,6 +591,10 @@ public class CutsceneScreen extends LifeScreen {
             b = 62;
             r = 0;
         }
+        if (s.keys() != null) {
+            a = b = keyFov;
+            r = keyRoll;
+        }
         if (!Float.isNaN(s.fov())) a = s.fov();
         b = !Float.isNaN(s.fov2()) ? s.fov2() : !Float.isNaN(s.fov()) ? s.fov() : b;
         if (!Float.isNaN(s.roll())) r = s.roll();
@@ -489,6 +602,97 @@ public class CutsceneScreen extends LifeScreen {
         com.yompix.novograd.client.studio.CineCam.cutscene = true;
         com.yompix.novograd.client.studio.CineCam.fov = MathHelper.lerp(k, a, b);
         com.yompix.novograd.client.studio.CineCam.roll = r;
+    }
+
+    private float keyFov = 70, keyRoll;
+    private Vec3d keyDrift = new Vec3d(Double.NaN, 0, 0);
+    private double lastOutStep;
+    /** Последний замер загрузки (для автотеста loadaudit). */
+    public static long lastLoadMs = -1;
+
+    /** Ключи [t, x, y, z, yaw, pitch, fov, roll]… → поза в момент t (Катмулл — Ром; угол курса — без скачка через 180°). */
+    static double[] keyAt(double[] k, double t) {
+        int n = k.length / 8;
+        if (n == 1 || t <= k[0]) return pose(k, 0);
+        if (t >= k[(n - 1) * 8]) return pose(k, n - 1);
+        int i = 0;
+        while (i < n - 2 && k[(i + 1) * 8] < t) i++;
+        double t1 = k[i * 8], t2 = k[(i + 1) * 8], u = (t - t1) / Math.max(1e-6, t2 - t1);
+        int i0 = Math.max(0, i - 1), i3 = Math.min(n - 1, i + 2);
+        double[] r = new double[7];
+        for (int c = 1; c < 8; c++) {
+            double p1 = k[i * 8 + c], p0 = k[i0 * 8 + c], p2 = k[(i + 1) * 8 + c], p3 = k[i3 * 8 + c];
+            if (c == 4) { // курс: всё относительно p1
+                p0 = p1 + MathHelper.wrapDegrees(p0 - p1);
+                p2 = p1 + MathHelper.wrapDegrees(p2 - p1);
+                p3 = p2 + MathHelper.wrapDegrees(p3 - p2);
+            }
+            double u2 = u * u, u3 = u2 * u;
+            r[c - 1] = 0.5 * (2 * p1 + (p2 - p0) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (3 * p1 - p0 - 3 * p2 + p3) * u3);
+        }
+        return r;
+    }
+
+    private static double[] pose(double[] k, int i) {
+        double[] r = new double[7];
+        System.arraycopy(k, i * 8 + 1, r, 0, 7);
+        return r;
+    }
+
+    /** Поза камеры с учётом входа/выхода (null — без изменений). Заодно FOV: из игрового в кадровый и обратно. */
+    @org.jetbrains.annotations.Nullable
+    private double[] blend(double x, double y, double z, float yaw, float pitch) {
+        if (ret == null || !V10) return null;
+        float gameFov = mc().options.getFov().getValue();
+        double[] from = null;
+        double k = 1;
+        if (outT >= 0) {
+            if (outFrom == null) outFrom = new double[]{x, y, z, yaw, pitch, com.yompix.novograd.client.studio.CineCam.fov};
+            if (outFade) return outT >= BLEND_OUT * 0.5 ? new double[]{ret[0], ret[1], ret[2], ret[3], ret[4]} : null;
+            double u = MathHelper.clamp(outT / BLEND_OUT, 0, 1);
+            u = u * u * (3 - 2 * u);
+            com.yompix.novograd.client.studio.CineCam.fov = (float) MathHelper.lerp(u, outFrom[5], gameFov);
+            return lerpPose(outFrom, ret, u);
+        }
+        if (blendFrom != null) {
+            double e = elapsed();
+            if (e >= BLEND_IN) return null;
+            double u = e / BLEND_IN;
+            u = u * u * (3 - 2 * u);
+            com.yompix.novograd.client.studio.CineCam.fov = (float) MathHelper.lerp(u, gameFov, com.yompix.novograd.client.studio.CineCam.fov);
+            return lerpPose(blendFrom, new double[]{x, y, z, yaw, pitch}, u);
+        }
+        if (!ready && near) { // ждём — показываем игру, а не чёрный кадр
+            com.yompix.novograd.client.studio.CineCam.fov = gameFov;
+            return new double[]{ret[0], ret[1], ret[2], ret[3], ret[4]};
+        }
+        return null;
+    }
+
+    private static double[] lerpPose(double[] a, double[] b, double u) {
+        return new double[]{MathHelper.lerp(u, a[0], b[0]), MathHelper.lerp(u, a[1], b[1]), MathHelper.lerp(u, a[2], b[2]),
+                a[3] + MathHelper.wrapDegrees(b[3] - a[3]) * u, MathHelper.lerp(u, a[4], b[4])};
+    }
+
+    /** Решить, как входим в первый план: близко и без стен на пути — пролёт из глаз игрока, иначе — короткое затемнение. */
+    private void decideBlendIn() {
+        if (!V10 || ret == null || shots.isEmpty()) return;
+        Vec3d eye = new Vec3d(ret[0], ret[1], ret[2]);
+        Vec3d p0 = shotPoint(0);
+        if (p0 == null) {
+            blendFade = true;
+            return;
+        }
+        if (shots.get(0).from() != null) p0 = new Vec3d(shots.get(0).from()[0], shots.get(0).from()[1], shots.get(0).from()[2]);
+        if (near && eye.distanceTo(p0) < 60 && CamPath.free(mc().world, eye, p0)) blendFrom = ret.clone();
+        else blendFade = true;
+    }
+
+    /** Решить, как выходим: камера рядом с игроком и путь свободен — «приземление» в глаза, иначе — затемнение. */
+    private void decideBlendOut() {
+        if (!V10 || ret == null) return;
+        Vec3d eye = new Vec3d(ret[0], ret[1], ret[2]), now = new Vec3d(camX, camY, camZ);
+        outFade = Double.isNaN(camX) || eye.distanceTo(now) > 60 || !CamPath.free(mc().world, now, eye);
     }
 
     private static float yawTo(double x, double z, Vec3d look) {
@@ -531,7 +735,7 @@ public class CutsceneScreen extends LifeScreen {
         if (w == null || cam == null || shots.isEmpty()) return true;
         Shot s = shots.get(si);
         // актёр плана объявлен сервером, но ещё не пришёл на клиент — ждём (иначе камера смотрит «в никуда»)
-        for (String n : new String[]{s.track(), s.follow()})
+        for (String n : new String[]{s.track(), s.follow(), s.subject()})
             if (!n.isEmpty() && ACTORS.containsKey(n) && actor(n) == null) return false;
         Vec3d p = shotPoint(si);
         if (p != null && !chunksAround(p.x, p.z, 2)) return false;
@@ -558,6 +762,30 @@ public class CutsceneScreen extends LifeScreen {
                 if (!mc().worldRenderer.isRenderingReady(new net.minecraft.util.math.BlockPos(x, y, z))) return false;
             }
         return true;
+    }
+
+    /** 1.0: поверхность, которую увидит первый план (по направлению взгляда, 8–36 блоков), уже построена движком. */
+    private boolean viewRendered() {
+        if (shots.isEmpty() || mc().world == null) return true;
+        Shot s = shots.get(0);
+        double[] c = s.keys() != null ? new double[]{s.keys()[1], s.keys()[2], s.keys()[3], s.keys()[4], s.keys()[5]} : s.from();
+        if (c == null) {
+            Vec3d p = shotPoint(0);
+            return p == null || rendered(p);
+        }
+        var w = mc().world;
+        int n = 0, ok = 0;
+        for (double dist : new double[]{8, 20, 36})
+            for (double dy : new double[]{-15, 0, 15}) {
+                double yaw = Math.toRadians(c[3] + dy);
+                int x = MathHelper.floor(c[0] - Math.sin(yaw) * dist), z = MathHelper.floor(c[2] + Math.cos(yaw) * dist);
+                if (!w.getChunkManager().isChunkLoaded(x >> 4, z >> 4)) continue;
+                int y = w.getTopY(net.minecraft.world.Heightmap.Type.WORLD_SURFACE, x, z) - 1;
+                if (y <= w.getBottomY()) continue;
+                n++;
+                if (mc().worldRenderer.isRenderingReady(new net.minecraft.util.math.BlockPos(x, y, z))) ok++;
+            }
+        return n == 0 || ok >= n - 1;
     }
 
     /** Для лога: чего не хватает плану. */
@@ -608,11 +836,20 @@ public class CutsceneScreen extends LifeScreen {
             boolean base0 = castReady() && shotReady(0);
             if (base0 && dataReadyAt < 0) dataReadyAt = prerollTicks;
             Vec3d p0 = shotPoint(0);
-            boolean drawn = p0 == null || rendered(p0) || dataReadyAt >= 0 && prerollTicks - dataReadyAt > 60;
-            boolean ok = prerollTicks > 6 && base0 && drawn;
+            // 0.6.6 ждал отрисовку секций вокруг точки камеры, в том числе ЗА камерой — их движок не строит, пока они
+            // не в кадре, и сцена почти всегда стояла все 3 с до таймаута. 1.0: ждём только то, что в кадре первого плана
+            // (поверхность по направлению взгляда), и не дольше 1 с (рядом — 0.5 с: дальше камера сама влетает в кадр)
+            boolean drawn = V10 ? (p0 == null || viewRendered() || dataReadyAt >= 0 && prerollTicks - dataReadyAt > (near ? 10 : 20))
+                    : (p0 == null || rendered(p0) || dataReadyAt >= 0 && prerollTicks - dataReadyAt > 60);
+            boolean ok = prerollTicks > (V10 ? 1 : 6) && base0 && drawn;
             if (ok || prerollTicks > 160) {
                 if (!ok) Novograd.LOG.warn("[cut] старт по таймауту: актёры {} ({}), план 0: {}", castReady(), missingCast(), whyNot(0));
                 else Novograd.LOG.info("[cut] готово к старту за {} тиков", prerollTicks);
+                // замер «от триггера до первого хорошего кадра» (пакет сцены пришёл → кадр готов; вход — ещё FADE/BLEND)
+                lastLoadMs = (System.nanoTime() - openedNs) / 1_000_000;
+                Novograd.LOG.info("[load] сцена готова за {} мс ({} тиков), рядом={}, этап={}, вход={}", lastLoadMs, prerollTicks, near, V10, V10 ? "см. blend" : "затемнение 0.9 с");
+                decideBlendIn();
+                if (V10) Novograd.LOG.info("[load] вход: {}", blendFrom != null ? "пролёт из глаз игрока " + BLEND_IN + " с" : "затемнение " + FADE + " с");
                 String rec = System.getProperty("novograd.rec");
                 if (rec != null && !CineRec.on && !CineRec.used && CineRec.armed) CineRec.start(rec, Integer.getInteger("novograd.recfps", 30));
                 planShot(0);
@@ -663,8 +900,16 @@ public class CutsceneScreen extends LifeScreen {
                     NovogradClient.send("cut_line", ln);
                 }
             } else if (time >= total) {
-                end();
+                if (!V10 || ret == null) end();
+                else if (outT < 0) {
+                    decideBlendOut();
+                    outT = 0;
+                }
             }
+        }
+        if (outT >= 0) {
+            outT += 0.05;
+            if (outT >= BLEND_OUT) end();
         }
         // страховка: сцена никогда не висит
         if (time > total + 180) end();
@@ -675,10 +920,100 @@ public class CutsceneScreen extends LifeScreen {
      * каждая фраза шла своими руками; остальные актёры слушают (переминаются, кивают). Поворот к говорящему
      * делает сервер (Director.speak). Метка живёт полсекунды — после сцены жители сами вернутся к обычным позам.
      */
+    // ======================================================================= 1.0: взгляд, рот, слои-жесты
+    /** Кто сейчас говорит (id сущности на клиенте), −1 — никто. */
+    public static int speakingId = -1;
+    private static final java.util.Map<Integer, float[]> LOOK = new java.util.HashMap<>();
+    /** Режиссёр велел смотреть на конкретного (cut_gest с look): id → id цели. */
+    public static final java.util.Map<Integer, Integer> LOOK_AT = new java.util.HashMap<>();
+
+    /** Открытие рта 0…9 у этой сущности сейчас (−1 — не говорит или нет огибающей — тогда старая «болтовня»). */
+    public static int mouth(int entityId) {
+        if (current == null || entityId != speakingId || Voice.currentId == null || !Voice.playing()) return -1;
+        return Lipsync.level(Voice.currentId, Voice.time());
+    }
+
+    /**
+     * Поворот шеи актёра [курс, наклон, крен] в градусах относительно тела или null (не в сцене — как обычно).
+     * Слушатели смотрят на говорящего, говорящий — на ближайшего собеседника; глаза→голова→шея одним суставом
+     * (у модели нет отдельных глаз), мягко (сглаживание ~0.2 с), кивок на ударных слогах, лёгкий наклон головы у слушающих.
+     */
+    @org.jetbrains.annotations.Nullable
+    public static float[] look(net.minecraft.entity.LivingEntity e) {
+        CutsceneScreen c = current;
+        if (c == null || !V10 || !ACTORS.containsValue(e.getId()) || e.hasVehicle()) return null;
+        var w = e.getWorld();
+        net.minecraft.entity.Entity tgt = null;
+        Integer forced = LOOK_AT.get(e.getId());
+        if (forced != null) tgt = w.getEntityById(forced);
+        if (tgt == null && e.getId() == speakingId) {
+            double best = 8 * 8;
+            for (Integer id : ACTORS.values()) {
+                var o = w.getEntityById(id);
+                if (o instanceof net.minecraft.entity.LivingEntity && o != e && o.squaredDistanceTo(e) < best) {
+                    best = o.squaredDistanceTo(e);
+                    tgt = o;
+                }
+            }
+        } else if (tgt == null && speakingId >= 0) {
+            var sp = w.getEntityById(speakingId);
+            if (sp != null && sp != e && sp.squaredDistanceTo(e) < 24 * 24) tgt = sp;
+        }
+        float[] st = LOOK.computeIfAbsent(e.getId(), k -> new float[]{MathHelper.wrapDegrees(e.getHeadYaw() - e.bodyYaw), e.getPitch(), 0, System.nanoTime() / 1e9f});
+        float now = System.nanoTime() / 1e9f, dt = MathHelper.clamp(now - st[3], 0, 0.1f);
+        st[3] = now;
+        float wantY = 0, wantP = 0, wantR = 0;
+        if (tgt != null) {
+            Vec3d a = e.getEyePos(), b = tgt.getEyePos();
+            float yaw = (float) Math.toDegrees(Math.atan2(-(b.x - a.x), b.z - a.z));
+            wantY = MathHelper.clamp(MathHelper.wrapDegrees(yaw - e.bodyYaw), -70, 70);
+            wantP = (float) MathHelper.clamp(-Math.toDegrees(Math.atan2(b.y - a.y, Math.hypot(b.x - a.x, b.z - a.z))), -30, 30);
+            if (e.getId() != speakingId) wantR = (Math.floorMod(e.getId(), 2) == 0 ? 4 : -4); // слушает — голова чуть набок
+        } else {
+            wantY = MathHelper.wrapDegrees(e.getHeadYaw() - e.bodyYaw);
+            wantP = e.getPitch();
+        }
+        if (e.getId() == speakingId && Voice.currentId != null) wantP += (float) Lipsync.stress(Voice.currentId, Voice.time()) * 7; // кивок на ударе
+        float k = 1 - (float) Math.exp(-dt * 6);
+        st[0] += (wantY - st[0]) * k;
+        st[1] += (wantP - st[1]) * k;
+        st[2] += (wantR - st[2]) * k;
+        return new float[]{st[0], st[1], st[2]};
+    }
+
+    /** Пакет cut_gest: слой-жест актёру на время (и, по желанию, на кого смотреть). */
+    public static void gesture(net.minecraft.client.MinecraftClient mc, NbtCompound n) {
+        if (mc.world == null) return;
+        var e = mc.world.getEntityById(n.getInt("id"));
+        if (e instanceof com.yompix.novograd.entity.CitizenEntity c) {
+            String g = n.getString("g");
+            c.cineGesture = g.isEmpty() || g.equals("none") ? null : g;
+            c.cineGestUntil = c.age + Math.max(10, n.getInt("ticks"));
+        }
+        if (n.contains("look")) {
+            if (n.getInt("look") < 0) LOOK_AT.remove(n.getInt("id"));
+            else LOOK_AT.put(n.getInt("id"), n.getInt("look"));
+        }
+    }
+
     private void bodyLanguage() {
         var w = mc().world;
         if (w == null || subIndex < 0 || subIndex >= subs.size()) return;
         var sp = speaker();
+        speakingId = sp == null ? -1 : sp.getId();
+        // 1.0: говорит на ходу — слой «руки разговаривают» поверх шага (раньше на ходу просто шёл молча);
+        // восклицание — в начале реплики показывает рукой
+        if (V10 && sp instanceof com.yompix.novograd.entity.CitizenEntity sc0 && !sc0.hasVehicle()) {
+            boolean walking = sc0.getVelocity().horizontalLengthSquared() > 2.5e-4 || sc0.prevX != sc0.getX() || sc0.prevZ != sc0.getZ();
+            if (walking && (sc0.cineGesture == null || sc0.age >= sc0.cineGestUntil || "g_walktalk".equals(sc0.cineGesture))) {
+                sc0.cineGesture = "g_walktalk";
+                sc0.cineGestUntil = sc0.age + 8;
+            } else if (!walking && subs.get(subIndex).text().contains("!") && time0Line() < 0.15 && (sc0.cineGesture == null || sc0.age >= sc0.cineGestUntil)
+                    && (subIndex % 2 == 0)) {
+                sc0.cineGesture = "g_point";
+                sc0.cineGestUntil = sc0.age + 36;
+            }
+        }
         Sub sub = subs.get(subIndex);
         int line = (sub.text().hashCode() ^ subIndex * 31) & 0x7fffffff;
         java.util.Set<net.minecraft.entity.Entity> cast = new java.util.HashSet<>();
@@ -700,9 +1035,19 @@ public class CutsceneScreen extends LifeScreen {
         }
     }
 
+    private java.util.List<java.util.List<String>> subChunks = java.util.List.of();
+    private int subChunksFor = -1;
+
+    private double time0Line() {
+        return shown - subAt;
+    }
+
     private void end() {
         if (done) return;
         done = true;
+        speakingId = -1;
+        LOOK.clear();
+        LOOK_AT.clear();
         Voice.stop();
         closeCamLog();
         if (CineRec.on && System.getProperty("novograd.rec") != null) CineRec.stop();
@@ -784,7 +1129,7 @@ public class CutsceneScreen extends LifeScreen {
         float e = (float) elapsed(), out = MathHelper.clamp((total - e) / 0.6f, 0, 1);
         float kb = ready ? out : 1;
         kb = kb * kb * (3 - 2 * kb);
-        int bar = (int) (height * 0.12f * kb);
+        int bar = (int) (height * (V10 ? 0.095f : 0.12f) * kb);
         ctx.fill(0, 0, width, bar, 0xFF000000);
         ctx.fill(0, height - bar, width, height, 0xFF000000);
         for (int i = 0; i < 10; i++) { // виньетка
@@ -796,24 +1141,37 @@ public class CutsceneScreen extends LifeScreen {
         titleCard(ctx, bar);
         // вход из чёрного — только когда сцена готова (раньше проявлялся недогруженный кадр)
         float fade = ready ? Math.min(1, e / 0.9f) : 0;
+        if (V10) {
+            if (ready) fade = blendFrom != null ? 1 : Math.min(1, e / (float) FADE);
+            else if (near) fade = 1; // ждём «рядом» — видна игра, полосы уже наезжают
+        }
         float dark = Math.max(1 - fade, black);
+        if (outT >= 0 && outFade) dark = Math.max(dark, (float) (1 - Math.abs(2 * MathHelper.clamp(outT / BLEND_OUT, 0, 1) - 1)));
         if (dark > 0.01f) ctx.fill(0, 0, width, height, (int) (Math.min(1, dark) * 255) << 24);
-        if (!ready && prerollTicks > 20) {
+        if (!ready && prerollTicks > 20 && !(V10 && near)) {
             String s = "Загрузка сцены…";
             int a = (int) (MathHelper.clamp((prerollTicks - 20) / 10f, 0, 1) * 160) << 24;
             ctx.drawText(textRenderer, s, width / 2 - textRenderer.getWidth(s) / 2, height / 2 - 4, a | 0xD0D0D0, false);
         }
 
         if (subIndex >= 0 && subIndex < subs.size() && com.yompix.novograd.client.NovogradConfig.get().subtitles) {
+            // 1.0: как в GTA — не больше двух строк, мелко, имя цветом в начале; длинная реплика — кусками в такт голосу
             Sub s = subs.get(subIndex);
-            var lines = textRenderer.wrapLines(Text.literal(s.text()), Math.min(width - 40, 380));
-            int y = height - bar + (bar - lines.size() * 11) / 2;
-            for (int i = 0; i < lines.size(); i++) {
-                int w = textRenderer.getWidth(lines.get(i));
-                ctx.drawText(textRenderer, lines.get(i), width / 2 - w / 2, y + i * 11, 0xFFF0F0F0, true);
+            String prefix = s.who().equals("narrator") || s.name().isEmpty() ? "" : s.name() + ": ";
+            if (subChunksFor != subIndex) {
+                subChunks = com.yompix.novograd.client.ui.Quiet.chunks(textRenderer, prefix, s.text(), Math.min(width - 60, 340));
+                subChunksFor = subIndex;
             }
+            double len = Math.max(1.2, Voice.length(s.voice()));
+            int ci = com.yompix.novograd.client.ui.Quiet.chunkAt(subChunks, (shown - subAt) / len);
+            int baseY = bar > 14 ? height - bar + (bar + 18) / 2 : height - 26;
+            com.yompix.novograd.client.ui.Quiet.subtitle(ctx, textRenderer, subChunks.get(ci), ci == 0 ? prefix : "", s.color(),
+                    s.who().equals("narrator") ? 0xFFFFE9A8 : 0xFFF0F0F0, width / 2, baseY, 1);
         }
-        String skip = "Пробел — пропустить";
-        ctx.drawText(textRenderer, skip, width - textRenderer.getWidth(skip) - 6, 6, 0x66FFFFFF, false);
+        // 1.0: «пропустить» — только первые 3 секунды, мелко (потом не мешает кадру)
+        if (!V10 || elapsed() < 3) {
+            String skip = "Пробел — пропустить";
+            com.yompix.novograd.client.ui.Ui.small(ctx, textRenderer, skip, width - 6, 6, V10 ? 0.75f : 1f, 0x66FFFFFF, 2);
+        }
     }
 }

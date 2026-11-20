@@ -120,10 +120,11 @@ public final class Ui {
     public static void header(DrawContext ctx, TextRenderer tr, String title, int x, int y, int accent) {
         String t = title.toUpperCase();
         int w = (int) (tr.getWidth(t) * 2f) + 26;
-        slant(ctx, x, y, w, 24, 8, accent);
-        slant(ctx, x + w + 4, y, 6, 24, 8, alpha(accent, 0.6f));
-        slant(ctx, x + w + 14, y, 3, 24, 8, alpha(accent, 0.3f));
-        big(ctx, tr, t, x + 10, y + 5, 2f, WHITE, 0);
+        // высота 21 (было 24): почти все экраны начинают содержимое на 22 пикселя ниже заголовка — плашка его закрывала
+        slant(ctx, x, y, w, 21, 7, accent);
+        slant(ctx, x + w + 4, y, 6, 21, 7, alpha(accent, 0.6f));
+        slant(ctx, x + w + 14, y, 3, 21, 7, alpha(accent, 0.3f));
+        big(ctx, tr, t, x + 10, y + 3, 2f, WHITE, 0);
     }
 
     /** Полоска прогресса. */

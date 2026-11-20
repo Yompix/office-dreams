@@ -45,6 +45,8 @@ public final class CopsAutotest {
             d.storyStarted = true;
             d.storyDone = true;
             d.money = 20000;
+            // мир мог сохраниться с игроком в колонии (старые сохранения) — выпустить, иначе погоня не начнётся
+            if (com.yompix.novograd.gta.Prison.inside(pl(s))) com.yompix.novograd.gta.Prison.release(pl(s), "автотест", "");
         });
         run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
         run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });

@@ -16,7 +16,10 @@ public final class Perf {
 
     public static final boolean ON = System.getProperty("novograd.perf") != null
             || String.valueOf(System.getProperty("novograd.autotest")).startsWith("perf")
-            || String.valueOf(System.getProperty("novograd.autotest")).startsWith("cine");
+            || String.valueOf(System.getProperty("novograd.autotest")).startsWith("cine")
+            || String.valueOf(System.getProperty("novograd.autotest")).startsWith("fpshunt");
+    /** Для поиска провалов FPS: длительность последнего тика сервера (нс) и максимум с прошлого опроса. */
+    public static volatile long tickMaxNs, tickSumNs, tickCount;
     private static long start;
     private static final long[] WIN = new long[100];
     private static int n;
@@ -31,7 +34,11 @@ public final class Perf {
     }
 
     private static void end(MinecraftServer s) {
-        WIN[n++] = System.nanoTime() - start;
+        long dt = System.nanoTime() - start;
+        tickMaxNs = Math.max(tickMaxNs, dt);
+        tickSumNs += dt;
+        tickCount++;
+        WIN[n++] = dt;
         if (n < WIN.length) return;
         n = 0;
         long[] a = WIN.clone();

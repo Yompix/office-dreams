@@ -55,7 +55,9 @@ public final class ClientStory {
     public static void achievement(String name, String desc) {
         achName = name;
         achDesc = desc;
-        achAt = System.currentTimeMillis();
+        // 1.0: награда — компактным уведомлением справа (одно за раз), а не плашкой посреди экрана
+        if (com.yompix.novograd.story.Stage.ON) com.yompix.novograd.client.ui.Quiet.notify("НАГРАДА · " + name, desc, com.yompix.novograd.client.ui.Ui.GOLD);
+        else achAt = System.currentTimeMillis();
     }
 
     public static void missionDone(String t) {
