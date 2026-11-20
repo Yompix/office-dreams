@@ -47,7 +47,7 @@
 >
 > At half past three your little sister Lily is standing outside the glass doors. In the rain. Calling your name.
 >
-> - A 2–3 hour interactive horror story with timed choices, four endings and fourteen ways to die
+> - An interactive horror story: about an hour per playthrough and a different night every time — timed choices, four endings and fourteen ways to die
 > - Between story scenes you work the shift: watch the CCTV cameras, log anything wrong, run the elevator and the lights — and don't stare at CAM 13
 > - Fully voiced in English, Russian, Spanish, Brazilian Portuguese and German; Ukrainian subtitles
 > - Three looks: Ultra (native resolution up to 4K), Cinema and Retro (PS1-style); the game picks one for your graphics card
@@ -66,7 +66,7 @@
 >
 > В половине четвёртого за стеклянной дверью стоит твоя младшая сестра Лили. Под дождём. И зовёт тебя по имени.
 >
-> - Интерактивный хоррор на 2–3 часа: выборы на время, четыре концовки и четырнадцать смертей
+> - Интерактивный хоррор: около часа на прохождение, и каждая ночь идёт по-своему — выборы на время, четыре концовки и четырнадцать смертей
 > - Между сюжетными сценами — смена: камеры наблюдения, журнал, лифт и свет на этажах; на CAM 13 не засматривайся
 > - Полная озвучка на русском, английском, испанском, португальском (Бразилия) и немецком; субтитры на украинском
 > - Три вида графики: «Ультра» (родное разрешение до 4K), «Кино» и «Ретро» (в духе PS1); игра сама выбирает под видеокарту
@@ -389,7 +389,7 @@ Steam проверяет игры на Deck сам (Steamworks → **Steam Deck 
 
 ## Шаг 8. Цена и выпуск
 
-- **Цена:** на itch.io игра стоит $3. В Steam для истории на 2–3 часа обычно ставят **$3.99–4.99**; региональные цены Steam подставит сам (для России, Украины, Турции и т. д. дешевле). На первую неделю — скидка 10–20 % (Steamworks → Discounts).
+- **Цена:** на itch.io игра стоит $3. В Steam для короткой истории (около часа на прохождение, несколько концовок) обычно ставят **$3.99–4.99**; региональные цены Steam подставит сам (для России, Украины, Турции и т. д. дешевле). На первую неделю — скидка 10–20 % (Steamworks → Discounts).
 - **Порядок:** заполнить страницу → отправить её на проверку (2–5 рабочих дней) → **Coming Soon** (минимум 2 недели, собирает «желаемое») → загрузить сборку и отправить на проверку → в день выхода нажать **Release**.
 - Можно сделать **бесплатную демо-версию** в Steam (отдельное приложение «Hush Till Six Demo», та же логика, что на itch: до 03:30) — скажите Claude, он соберёт.
 

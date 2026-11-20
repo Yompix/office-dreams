@@ -39,7 +39,7 @@ Create app → App name **Hush Till Six**, Default language English (US), **Game
 
   At three in the morning your little sister Lily is standing outside the glass doors. In the rain. Calling your name.
 
-  • A 2–3 hour interactive horror story with timed choices, four endings and 14 ways to die
+  • An interactive horror story: about an hour per playthrough and a different night every time — timed choices, four endings and 14 ways to die
   • Between story scenes you work the shift: watch the CCTV cameras, log anything wrong, run the elevator and the lights — and don't stare at CAM 13
   • Voiced in English, Russian, Spanish, Portuguese and German; subtitles in 13 languages
   • Three looks: Retro (low-poly PS1 style), Cinema and Ultra; the game picks what your phone can run
@@ -58,7 +58,7 @@ Create app → App name **Hush Till Six**, Default language English (US), **Game
 
   В три часа ночи за стеклянной дверью стоит твоя младшая сестра Лили. Под дождём. И зовёт тебя по имени.
 
-  • Интерактивный хоррор на 2–3 часа: выборы на время, четыре концовки и 14 смертей
+  • Интерактивный хоррор: около часа на прохождение, и каждая ночь идёт по-своему — выборы на время, четыре концовки и 14 смертей
   • Между сюжетными сценами — смена: камеры наблюдения, журнал, лифт и свет на этажах; на CAM 13 не засматривайся
   • Озвучка на русском, английском, испанском, португальском и немецком; субтитры на 13 языках
   • Три графики: «Ретро» (в духе PS1), «Кино» и «Ультра»; игра сама подбирает, что потянет телефон

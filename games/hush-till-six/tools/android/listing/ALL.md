@@ -21,7 +21,7 @@ The day guard hands you the keys with a shaking hand and tells you to read the l
 
 At half past three your little sister Lily is standing outside the glass doors. In the rain. Calling your name.
 
-• A 2–3 hour interactive horror story with timed choices, four endings and 14 ways to die
+• An interactive horror story: about an hour per playthrough and a different night every time — timed choices, four endings and 14 ways to die
 • Between story scenes you work the shift: watch the CCTV cameras, log anything wrong, run the elevator and the lights — and don't stare at CAM 13
 • Voiced in English, Russian, Spanish, Portuguese and German; subtitles in 13 languages
 • Three looks: Retro (low-poly PS1 style), Cinema and Ultra; the game picks what your phone can run
@@ -56,7 +56,7 @@ First test build. Please play through at least one ending and tell us about cras
 
 В половине четвёртого ночи за стеклянной дверью стоит твоя младшая сестра Лили. Под дождём. И зовёт тебя по имени.
 
-• Интерактивный хоррор на 2–3 часа: выборы на время, четыре концовки и 14 смертей
+• Интерактивный хоррор: около часа на прохождение, и каждая ночь идёт по-своему — выборы на время, четыре концовки и 14 смертей
 • Между сюжетными сценами — смена: камеры наблюдения, журнал, лифт и свет на этажах; на CAM 13 не засматривайся
 • Озвучка на русском, английском, испанском, португальском и немецком; субтитры на 13 языках
 • Три графики: «Ретро» (в духе PS1), «Кино» и «Ультра»; игра сама подбирает, что потянет телефон
@@ -91,7 +91,7 @@ First test build. Please play through at least one ending and tell us about cras
 
 О пів на четверту ночі за скляними дверима стоїть твоя молодша сестра Лілі. Під дощем. І кличе тебе на ім’я.
 
-• Інтерактивний хорор на 2–3 години: вибори на час, чотири фінали й 14 смертей
+• Інтерактивний хорор: близько години на проходження, і щоночі все інакше — вибори на час, чотири фінали й 14 смертей
 • Між сюжетними сценами — зміна: камери спостереження, журнал, ліфт і світло на поверхах; на CAM 13 не задивляйся
 • Озвучення англійською, російською, іспанською, португальською та німецькою; субтитри 13 мовами, зокрема українською
 • Три графіки: «Ретро» (у дусі PS1), «Кіно» та «Ультра»; гра сама добирає, що потягне телефон
