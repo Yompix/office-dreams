@@ -1084,7 +1084,8 @@ const GRIP3 = {
   phone_ear: ['palm', [.05, .016, 0], [-Math.PI / 2, -Math.PI / 2 - .35, 0, 'YXZ'], false],   // у уха: телефон вдоль пальцев (верх к кончикам, низ к запястью и вперёд, ко рту), экран к голове
   cig: ['pinch', [0, 0, 0], [0, Math.PI / 2, 0], false],
   lighter: ['palm', [.01, .016, 0], [0, 0, 0], false],
-  radio: ['palm', [.05, .02, 0], [-Math.PI / 2, 0, -Math.PI / 2], false],   // корпус прижат к ладони: антенна по пальцам, лицевая сторона из ладони; раньше рация стояла торчком из ладони, как кирпич (grip_probe, 14 ноя)
+  radio: ['palm', { r: [.012, .021, .012], l: [.012, .021, -.012] }, { r: [Math.PI / 2, Math.PI, 0], l: [-Math.PI / 2, 0, 0] }, false],   // 20 ноя: в кулаке — корпус поперёк ладони, антенна со стороны большого пальца, пальцы обхватывают корпус (тестер: рация «прилипла» к раскрытой ладони, пальцы прямые). Раньше:
+  // radio: ['palm', [.05, .02, 0], [-Math.PI / 2, 0, -Math.PI / 2], false],   // корпус прижат к ладони: антенна по пальцам, лицевая сторона из ладони; раньше рация стояла торчком из ладони, как кирпич (grip_probe, 14 ноя)
   torch: ['palm', [.055, .022, 0], [0, Math.PI / 2, 0], false],   /* .055 (было .035): рукоять у основания пальцев — посреди ладони она проходила сквозь основание большого пальца на 16 мм (grip_view, 19 ноя) */   // рукоять поперёк ладони (пальцы обхватывают её), луч — вдоль оси кисти Z, в сторону большого пальца; раньше фонарь торчал из ладони, как на подносе (владелец, 14 ноя)
   apple: ['palm', [.02, .036, 0], [0, 0, 0], false],
 };
@@ -1100,7 +1101,8 @@ function holdProp(C, sd, spec, dt) {
   const pr = prop3(name), g = GRIP3[gname] || GRIP3[name] || ['palm', [0, 0, 0], [0, 0, 0]], scene = C.root.parent; if (!scene) return;
   if (pr.obj.parent !== scene) scene.add(pr.obj);
   const F = handFrame(C, sd, g[0]);
-  const canon = new T.Matrix4().compose(new T.Vector3(...g[1]).multiplyScalar(C.ss), new T.Quaternion().setFromEuler(new T.Euler(...g[2])), _hs);
+  const gP = g[1].l ? g[1][sd] : g[1], gR = g[2].l ? g[2][sd] : g[2];   // у хвата «в кулаке» смещение и поворот свои для каждой руки (большой палец с разных сторон)
+  const canon = new T.Matrix4().compose(new T.Vector3(...gP).multiplyScalar(C.ss), new T.Quaternion().setFromEuler(new T.Euler(...gR)), _hs);
   if (pr.C !== C || pr.sd !== sd || pr.g !== gname) {   // перешёл в другую руку (или перехватили): плавно от того места, где был
     pr.from = pr.was ? F.clone().invert().multiply(pr.obj.matrix) : canon.clone(); pr.C = C; pr.sd = sd; pr.g = gname; pr.k = pr.was ? 0 : 1; }
   pr.k = Math.min(1, pr.k + (dt || 0) / .22);
