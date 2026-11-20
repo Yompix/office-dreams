@@ -29,10 +29,12 @@ const MIME = { '.js': 'text/javascript', '.glb': 'model/gltf-binary', '.json': '
       rows.push({ id, t, prop: x.prop, g: x.g, who: x.who, sd: x.sd, pen0: x.pen, touch0: x.touch, pen1: y.pen, touch1: y.touch, per0: x.per, per1: y.per });
       if (OUT && !seen.has(key)) { seen.add(key);
         for (const nw of [1, 0]) { const i = (await run(id, t, nw)).find(q => q.prop === x.prop && q.sd === x.sd); if (!i) continue;
-          for (const [tag, k] of [['a', .9], ['b', -.9]]) { const h = i.hand, c = i.chest, dx = h[0] - c[0], dz = h[2] - c[2], L = Math.hypot(dx, dz) || 1, ox = dx / L, oz = dz / L, cs = Math.cos(k), sn = Math.sin(k), n = [0, 0, 0],
-            pos = [h[0] + (ox * cs - oz * sn) * .34, h[1] + .1, h[2] + (ox * sn + oz * cs) * .34];   // снаружи от тела, с двух сторон от кисти
-            await p.evaluate(([id, t, pos, look, PR, W, H]) => { World.dbgShot('_cam', id, { pos, look, fov: 26, dof: 0 }); const g = document.getElementById('c').getContext('2d');
-              for (let s = 0; s <= 8; s++) World.draw(g, W, H, '_cam', { t: Math.max(0, t - .5 + s / 16), T: 100 + t, settle: s === 0, props: PR }); }, [id, t, pos, [h[0] + n[0] * .03, h[1] + n[1] * .03, h[2] + n[2] * .03], PR, W, H]);
+          const sp = await p.evaluate(id => (World.shots[id].pos || [0, 1.5, 0]).slice(), id);
+          for (const [tag, k] of [['a', 0], ['b', 1.2]]) { const h = i.hand, dx = sp[0] - h[0], dy = sp[1] - h[1], dz = sp[2] - h[2], L = Math.hypot(dx, dy, dz) || 1, cs = Math.cos(k), sn = Math.sin(k), n = [0, 0, 0],
+            pos = [h[0] + (dx * cs - dz * sn) / L * .36, h[1] + dy / L * .36 + (k ? .1 : 0), h[2] + (dx * sn + dz * cs) / L * .36];   // «a» — со стороны камеры кадра (как видит игрок), «b» — сбоку
+            await p.evaluate(([id, t, pos, look, PR, W, H, LIGHT]) => { World.dbgShot('_cam', id, { pos, look, fov: 26, dof: 0 }); const g = document.getElementById('c').getContext('2d');
+              if (LIGHT) for (const k in World.actors) { const S = World.actors[k].root.parent; if (S && S.isScene && !S.__dbgL) { S.__dbgL = new window.__W3core.T.HemisphereLight(0xffffff, 0x888888, 1.6); S.add(S.__dbgL); } }   // LIGHT=1 — подсветить тёмную сцену (подвал), только для снимка
+              for (let s = 0; s <= 8; s++) World.draw(g, W, H, '_cam', { t: Math.max(0, t - .5 + s / 16), T: 100 + t, settle: s === 0, props: PR }); }, [id, t, pos, [h[0] + n[0] * .03, h[1] + n[1] * .03, h[2] + n[2] * .03], PR, W, H, !!process.env.LIGHT]);
             await p.waitForTimeout(250); await p.screenshot({ path: path.join(OUT, `${id}_${x.prop}_${x.sd}_${nw ? '0before' : '1after'}_${tag}.png`), timeout: 240000 }); } } } } }
   const fmt = r => `${r.id}@${r.t} ${r.who} ${r.prop}/${r.g} рука ${r.sd}: было — в предмете ${r.pen0} мм, касаются ${r.touch0}/5; стало — ${r.pen1} мм, ${r.touch1}/5   ${JSON.stringify(r.per1)}`;
   for (const r of rows) console.log(fmt(r));

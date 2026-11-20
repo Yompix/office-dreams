@@ -903,6 +903,21 @@
   "Дневной охранник нашёл пустую будку и открытый аварийный выход. Он запер его и ничего не спросил.": "Dzienny ochroniarz zastał pustą stróżówkę i otwarte wyjście awaryjne. Zamknął je i o nic nie pytał.",
   "Темп смены": "Tempo zmiany",
   "ОБЫЧНЫЙ": "ZWYKŁE",
-  "БЫСТРЫЙ": "SZYBKIE"
+  "БЫСТРЫЙ": "SZYBKIE",
+  "Всё, ложусь. Сил нет. Утром позвони!": "Dobra, kładę się. Padam z nóg. Zadzwoń rano!",
+  "Ответить: «Да, это я»": "Odpowiedzieć: „Tak, to ja”",
+  "Три странности за час остались без внимания — оно подошло к самой двери и позвало. И ты ответил. Смотри камеры, записывай, выключай лишний свет.": "Trzy anomalie w ciągu godziny przeszły niezauważone — to podeszło pod same drzwi i zawołało. A ty odpowiedziałeś. Obserwuj kamery, zapisuj, gaś zbędne światło.",
+  "Там, где помехи, кто-то стоит. Засмотришься — позовёт, и ты ответишь. Запиши и переключи.": "Tam, gdzie zakłócenia, ktoś stoi. Zapatrzysz się — zawoła, a ty odpowiesz. Zapisz i przełącz.",
+  "Под телефоном — копия полицейского акта. «Осмотрены этажи с первого по двенадцатый. Подвал: технические помещения, заперто, ключей нет. Не осматривали».": "Pod telefonem kopia policyjnego protokołu. „Sprawdzono piętra od pierwszego do dwunastego. Piwnica: pomieszczenia techniczne, zamknięte, brak kluczy. Nie sprawdzono.”",
+  "Над мониторами — пропуск на шнурке. «Дойл, Фрэнк. Охрана». Седой, глядит строго. Одна и та же фотография двадцать лет.": "Nad monitorami identyfikator na smyczy. „Doyle, Frank. Ochrona.” Siwy, patrzy surowo. To samo zdjęcie od dwudziestu lat.",
+  "Через холл к лифтам прошёл старик в рабочем комбинезоне. Глянул в камеру и поднял руку.": "Przez hol do wind przeszedł starszy mężczyzna w kombinezonie roboczym. Zerknął w kamerę i uniósł rękę.",
+  "На седьмом погас свет. Гас домывал пол при фонаре.": "Na siódmym zgasło światło. Gus kończył myć podłogę przy latarce.",
+  "Лицо с пропуска — Фрэнк. Только он не дышит. И не моргает. Это не Фрэнк.": "Twarz z identyfikatora — Frank. Tylko że nie oddycha. I nie mruga. To nie Frank.",
+  "У двери семьсот седьмого — помехи. Не уходят, сколько ни записывай.": "Zakłócenia przy drzwiach siedemset siedem. Nie znikają, choćbym zapisywał je w kółko.",
+  "У ведра — белая россыпь. Соль. Гас носил её в кармане. Круга он не насыпал.": "Przy wiadrze coś białego, rozsypane. Sól. Gus nosił ją w kieszeni. Kręgu nie usypał.",
+  "Три странности за час остались без внимания — и в круге соли три прорехи. Соль держит, только пока круг цел. Смотри камеры, записывай.": "Trzy anomalie w ciągu godziny przeszły niezauważone — i w kręgu soli są trzy wyrwy. Sól trzyma tylko, póki krąg jest cały. Obserwuj kamery, zapisuj.",
+  "Там, где помехи, кто-то стоит. Засмотрелся — оно позвало, и ты сам шагнул за соль. Запиши и переключи.": "Tam, gdzie zakłócenia, ktoś stoi. Zapatrzyłeś się — zawołało, a ty sam wyszedłeś za sól. Zapisz i przełącz.",
+  "Не смотри в тринадцатую камеру. Кто ответил — сам выходит из круга.": "Nie patrz w trzynastą kamerę. Kto odpowie, sam wychodzi z kręgu.",
+  "КАМЕРУ ЗАВЕСЬ. ОНО СМОТРИТ": "ZASŁOŃ KAMERĘ. ONO PATRZY"
  }
 }

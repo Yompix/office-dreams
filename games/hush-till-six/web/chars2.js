@@ -1085,7 +1085,7 @@ const GRIP3 = {
   cig: ['pinch', [0, 0, 0], [0, Math.PI / 2, 0], false],
   lighter: ['palm', [.01, .016, 0], [0, 0, 0], false],
   radio: ['palm', [.05, .02, 0], [-Math.PI / 2, 0, -Math.PI / 2], false],   // корпус прижат к ладони: антенна по пальцам, лицевая сторона из ладони; раньше рация стояла торчком из ладони, как кирпич (grip_probe, 14 ноя)
-  torch: ['palm', [.035, .022, 0], [0, Math.PI / 2, 0], false],   // рукоять поперёк ладони (пальцы обхватывают её), луч — вдоль оси кисти Z, в сторону большого пальца; раньше фонарь торчал из ладони, как на подносе (владелец, 14 ноя)
+  torch: ['palm', [.055, .022, 0], [0, Math.PI / 2, 0], false],   /* .055 (было .035): рукоять у основания пальцев — посреди ладони она проходила сквозь основание большого пальца на 16 мм (grip_view, 19 ноя) */   // рукоять поперёк ладони (пальцы обхватывают её), луч — вдоль оси кисти Z, в сторону большого пальца; раньше фонарь торчал из ладони, как на подносе (владелец, 14 ноя)
   apple: ['palm', [.02, .036, 0], [0, 0, 0], false],
 };
 function handFrame(C, sd, by) {   // оси кисти: X — вдоль пальцев, Y — из ладони, Z — поперёк; начало — точка by
@@ -2398,5 +2398,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, gripInfo, PROPS3, limbTo, footFloor, toeFloor, handPt, reachArm, layFloor, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, gripInfo, PROPS3, GRIP3, limbTo, footFloor, toeFloor, handPt, reachArm, layFloor, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
 })();

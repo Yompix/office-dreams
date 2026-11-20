@@ -903,6 +903,21 @@
   "Дневной охранник нашёл пустую будку и открытый аварийный выход. Он запер его и ничего не спросил.": "Gündüz nöbetçisi boş kulübeyi ve açık acil çıkışı buldu. Kapıyı kilitledi, hiçbir şey sormadı.",
   "Темп смены": "Vardiya temposu",
   "ОБЫЧНЫЙ": "NORMAL",
-  "БЫСТРЫЙ": "HIZLI"
+  "БЫСТРЫЙ": "HIZLI",
+  "Всё, ложусь. Сил нет. Утром позвони!": "Tamam, yatıyorum. Bittim. Sabah ara!",
+  "Ответить: «Да, это я»": "Cevap ver: “Evet, benim”",
+  "Три странности за час остались без внимания — оно подошло к самой двери и позвало. И ты ответил. Смотри камеры, записывай, выключай лишний свет.": "Bir saatte üç tuhaflık gözden kaçtı — o, kapının dibine kadar gelip seslendi. Sen de cevap verdin. Kameraları izle, gördüklerini kaydet, gereksiz ışıkları kapat.",
+  "Там, где помехи, кто-то стоит. Засмотришься — позовёт, и ты ответишь. Запиши и переключи.": "Parazitin olduğu yerde biri duruyor. Bakakalırsan seslenir, sen de cevap verirsin. Kaydet ve geç.",
+  "Под телефоном — копия полицейского акта. «Осмотрены этажи с первого по двенадцатый. Подвал: технические помещения, заперто, ключей нет. Не осматривали».": "Telefonun altında polis tutanağının bir kopyası vardı. “Birinci kattan on ikinci kata kadar arandı. Bodrum: teknik odalar, kilitli, anahtar yok. Aranmadı.”",
+  "Над мониторами — пропуск на шнурке. «Дойл, Фрэнк. Охрана». Седой, глядит строго. Одна и та же фотография двадцать лет.": "Monitörlerin üstünde, ipe asılı bir kimlik kartı. “Doyle, Frank. Güvenlik.” Kır saçlı, sert bakışlı. Yirmi yıldır aynı fotoğraf.",
+  "Через холл к лифтам прошёл старик в рабочем комбинезоне. Глянул в камеру и поднял руку.": "İş tulumlu yaşlı bir adam lobiden asansörlere doğru yürüdü. Kameraya bakıp elini kaldırdı.",
+  "На седьмом погас свет. Гас домывал пол при фонаре.": "Yedinci katta ışıklar söndü. Gus yeri el feneri ışığında silmeye devam etti.",
+  "Лицо с пропуска — Фрэнк. Только он не дышит. И не моргает. Это не Фрэнк.": "Kimlik kartındaki yüz: Frank. Ama nefes almıyor. Gözünü de kırpmıyor. Bu Frank değil.",
+  "У двери семьсот седьмого — помехи. Не уходят, сколько ни записывай.": "Yedi yüz yedinin kapısında parazit var. Kaç kez kaydedersem kaydedeyim gitmiyor.",
+  "У ведра — белая россыпь. Соль. Гас носил её в кармане. Круга он не насыпал.": "Kovanın yanında yere saçılmış beyaz bir şey vardı. Tuz. Gus onu cebinde taşıyordu. Hiç çember çizmedi.",
+  "Три странности за час остались без внимания — и в круге соли три прорехи. Соль держит, только пока круг цел. Смотри камеры, записывай.": "Bir saatte üç tuhaflık gözden kaçtı — tuz çemberinde de üç boşluk var. Tuz ancak çember bütünken korur. Kameraları izle, gördüklerini kaydet.",
+  "Там, где помехи, кто-то стоит. Засмотрелся — оно позвало, и ты сам шагнул за соль. Запиши и переключи.": "Parazitin olduğu yerde biri duruyor. Bakakaldın — o seslendi, sen de kendi ayağınla tuzun dışına çıktın. Kaydet ve geç.",
+  "Не смотри в тринадцатую камеру. Кто ответил — сам выходит из круга.": "On üç numaralı kameraya bakma. Cevap veren, çemberden kendi ayağıyla çıkar.",
+  "КАМЕРУ ЗАВЕСЬ. ОНО СМОТРИТ": "KAMERAYI ÖRT. O İZLİYOR"
  }
 }

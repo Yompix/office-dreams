@@ -903,6 +903,21 @@
   "Дневной охранник нашёл пустую будку и открытый аварийный выход. Он запер его и ничего не спросил.": "La guardia diurna ha trovato la guardiola vuota e l’uscita di emergenza aperta. L’ha chiusa e non ha fatto domande.",
   "Темп смены": "Ritmo del turno",
   "ОБЫЧНЫЙ": "NORMALE",
-  "БЫСТРЫЙ": "VELOCE"
+  "БЫСТРЫЙ": "VELOCE",
+  "Всё, ложусь. Сил нет. Утром позвони!": "Basta, vado a letto. Sono distrutta. Chiamami domattina!",
+  "Ответить: «Да, это я»": "Rispondi: «Sì, sono io»",
+  "Три странности за час остались без внимания — оно подошло к самой двери и позвало. И ты ответил. Смотри камеры, записывай, выключай лишний свет.": "Tre anomalie in un’ora sono passate inosservate: è arrivato fino alla porta e ha chiamato. E tu hai risposto. Guarda le telecamere, annota, spegni le luci inutili.",
+  "Там, где помехи, кто-то стоит. Засмотришься — позовёт, и ты ответишь. Запиши и переключи.": "Dove ci sono i disturbi, c’è qualcuno. Se resti a guardare, chiama — e tu rispondi. Annota e cambia.",
+  "Под телефоном — копия полицейского акта. «Осмотрены этажи с первого по двенадцатый. Подвал: технические помещения, заперто, ключей нет. Не осматривали».": "Sotto il telefono, una copia del verbale della polizia. «Ispezionati i piani dal primo al dodicesimo. Interrato: locali tecnici, chiuso a chiave, chiavi assenti. Non ispezionato.»",
+  "Над мониторами — пропуск на шнурке. «Дойл, Фрэнк. Охрана». Седой, глядит строго. Одна и та же фотография двадцать лет.": "Sopra i monitor, un tesserino appeso a un cordino. «Doyle, Frank. Sicurezza.» Capelli grigi, sguardo severo. La stessa foto da vent’anni.",
+  "Через холл к лифтам прошёл старик в рабочем комбинезоне. Глянул в камеру и поднял руку.": "Un vecchio in tuta da lavoro attraversò l’atrio verso gli ascensori. Alzò gli occhi alla telecamera e sollevò una mano.",
+  "На седьмом погас свет. Гас домывал пол при фонаре.": "Al settimo si spense la luce. Gus finì di lavare il pavimento alla luce di una torcia.",
+  "Лицо с пропуска — Фрэнк. Только он не дышит. И не моргает. Это не Фрэнк.": "Il volto del tesserino: Frank. Solo che non respira. E non sbatte le palpebre. Non è Frank.",
+  "У двери семьсот седьмого — помехи. Не уходят, сколько ни записывай.": "Disturbi davanti alla porta del settecentosette. Non se ne vanno, per quanto li annoti.",
+  "У ведра — белая россыпь. Соль. Гас носил её в кармане. Круга он не насыпал.": "Vicino al secchio, qualcosa di bianco sparso a terra. Sale. Gus lo teneva in tasca. Non fece mai un cerchio.",
+  "Три странности за час остались без внимания — и в круге соли три прорехи. Соль держит, только пока круг цел. Смотри камеры, записывай.": "Tre anomalie in un’ora sono passate inosservate, e nel cerchio di sale ci sono tre varchi. Il sale tiene solo finché il cerchio è intero. Guarda le telecamere, annota.",
+  "Там, где помехи, кто-то стоит. Засмотрелся — оно позвало, и ты сам шагнул за соль. Запиши и переключи.": "Dove ci sono i disturbi, c’è qualcuno. Sei rimasto a guardare: ha chiamato, e tu stesso hai oltrepassato il sale. Annota e cambia.",
+  "Не смотри в тринадцатую камеру. Кто ответил — сам выходит из круга.": "Non guardare la telecamera tredici. Chi risponde esce dal cerchio da solo.",
+  "КАМЕРУ ЗАВЕСЬ. ОНО СМОТРИТ": "COPRI LA CAM. CI GUARDA"
  }
 }

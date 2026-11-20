@@ -1133,7 +1133,7 @@ function nightLull(NP) {   // затишье: lullLen игровых минут 
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
-  for (const a of shf.act) { Object.assign(p, a.def.props || {}); if (a.def.stare) { const k = a.look || 0; p['stare' + a.def.cam] = k; if (a.def.at) { p['stareAt' + a.def.cam] = stareSpot(a.def, k); p['stareN' + a.def.cam] = stareN(k); p['stareP' + a.def.cam] = a.def.pose3; } } }   // stare07 — сколько секунд игрок уже смотрит на «помехи» (фигура проступает)
+  for (const a of shf.act) { Object.assign(p, a.def.props || {}); if (a.def.clock) p[a.def.clock] = now() - a.t0;   /* clock — секунды с начала события: по ним кадр ведёт действие (Гас идёт через холл, scenes.js gusArrive) */ if (a.def.stare) { const k = a.look || 0; p['stare' + a.def.cam] = k; if (a.def.at) { p['stareAt' + a.def.cam] = stareSpot(a.def, k); p['stareN' + a.def.cam] = stareN(k); p['stareP' + a.def.cam] = a.def.pose3; } } }   // stare07 — сколько секунд игрок уже смотрит на «помехи» (фигура проступает)
   const rt = radioTalk(); Object.assign(p, rt); shf.gusM = rt.gusR ? rt.gusR.m : 1; p.gz = shf.gz || 0;
   if (shf.id === 'S6' || shf.id === 'A1') p.noEthan = 1;   // Итан не за столом: в серверной с Фрэнком (S6) или прячется за стойкой (A1) — в будке на камерах его нет
   return p;
@@ -1169,7 +1169,7 @@ function shiftEvent(e) {
   if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return;
     const busy = shf.act.some(a => a.def.cam === def.cam) || (def.need === 'locked' && !shk.door) || (def.need === 'nogus' && shk.st.gus) || (def.need === 'gus' && !shk.st.gus);
     if (busy) { const K = winK(); if (shf.M + 4 * K < shf.m1 - 6) { e.done = false; e.m = shf.M + (3 + Math.random() * 3) * K; } return; }   // камера занята или не к месту — позже
-    shf.act.push({ id: e.an, def, m: shf.M, say: e.see, win: e.win }); anSeen(e.an);   // see — реплика, когда игрок это увидел (вместо def.say); win — своё окно
+    shf.act.push({ id: e.an, def, m: shf.M, t0: now(), say: e.see, win: e.win }); anSeen(e.an);   // see — реплика, когда игрок это увидел (вместо def.say); win — своё окно
     if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
     if (def.unlock) shk.door = 0;   // замок входа отщёлкнулся сам — на пульте снова «ОТКРЫТ»
     if (def.trap === 'door' && !shk.door) shiftToast(tr('Вход не заперт!'));
@@ -1234,6 +1234,8 @@ function shiftTick(tp, my) {   // my — чей это цикл: час, нач�
     const K = winK();   // окна странностей — в настоящих секундах (win × tempo.winSec), каким бы ни был темп часа
     if (d.trap === 'door' && !shk.door && M > a.m + 4 * K) return shiftDie(d.die || 'over_door');   // не запер — она вошла
     if (M > a.m + (a.win || d.win || 15) * K) shiftMiss(a); if (shf.ended) return; }
+  // отметки камер (story.js shift.marks): что видно на камере, пока в силе состояние st (после 03:00 — помехи у двери 707 и соль у ведра); мысль Итана — один раз за ночь, когда впервые посмотрел
+  for (const mk of S.shift.marks || []) if (mk.say && shf.cam === mk.cam && shk.st[mk.st] && !flags[mk.flag] && !shf.pop && t - shf.camT > .8) { setFlags(mk.flag); for (const k of [].concat(mk.say)) sayV(k); }
   if (shf.task && shf.task.sayAt != null && M >= shf.task.sayAt) { shf.task.sayAt = null; sayV(shf.task.say); }   // «Двадцать два ноль-ноль. Вход заперт…» — к сроку, а не в ту минуту, когда запер
   if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; run.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
   if (M >= shf.m1) return shiftEnd();
@@ -1875,8 +1877,8 @@ function noisePatch(N, T) {   // помехи, привязанные к мес�
   if (!window.World || !World.project) return; const P = N.at, c = World.project(P); if (!c[2]) return;
   const l = World.project([P[0] - N.w / 2, P[1], P[2]]), r = World.project([P[0] + N.w / 2, P[1], P[2]]), tp = World.project([P[0], P[1] + N.h / 2, P[2]]), bt = World.project([P[0], P[1] - N.h / 2, P[2]]);
   const x0 = Math.min(l[0], r[0]), x1 = Math.max(l[0], r[0]), y0 = Math.min(tp[1], bt[1]), y1 = Math.max(tp[1], bt[1]), j = (Math.random() - .5) * .012;
-  staticBox([x0 + j, y0, x1 - x0, y1 - y0], T, 0, .86);
-  if (Math.random() < .35) { const yy = (y0 + Math.random() * (y1 - y0)) * H; g.drawImage(cv, 0, yy, W, 18 * US, (Math.random() - .5) * 60 * US, yy, W, 18 * US); }   // строка рвётся вбок
+  staticBox([x0 + j, y0, x1 - x0, y1 - y0], T, 0, N.a || .86);
+  if (!N.calm && Math.random() < .35) { const yy = (y0 + Math.random() * (y1 - y0)) * H; g.drawImage(cv, 0, yy, W, 18 * US, (Math.random() - .5) * 60 * US, yy, W, 18 * US); }   // строка рвётся вбок
 }
 function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на перемотке
   if (T > tearNext) { tearNext = T + 2.2 + Math.random() * 4.5; tear(1); }
@@ -2305,6 +2307,7 @@ function frame(tp) {
       const n = stareN(k), fb = figBox(stareSpot(a.def, k)), jump = n > 0 && k - STARE_T[n] < .18;   // фигура в 3D: чем ближе подошёл, тем реже рябь и виднее он сам
       if (fb) figGlitch(fb, T, n, jump);
       if (jump) { grain(.95); if (a.jumpN !== n) { a.jumpN = n; tear(1); play('static', { gain: .55 + .12 * n }); } } }   // рывок — вспышка ряби на весь кадр и треск
+    for (const mk of S.shift.marks || []) if (mk.cam === c && mk.noise && shk.st[mk.st]) noisePatch(mk.noise, T);   // помехи, которые не уходят (у двери 707 после трёх)
     if (st < .22) grain(.95);   // переключение камеры
     vignette(); cctvHud(camLabel(c), T);
     const v = shf.vq.find(v => T >= v.t0 && (v.hold || T < v.t0 + (v.show || v.d) + .35));   // hold — Вера ждёт «Продолжить» (обучение)

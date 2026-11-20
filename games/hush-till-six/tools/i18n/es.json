@@ -903,6 +903,21 @@
   "Дневной охранник нашёл пустую будку и открытый аварийный выход. Он запер его и ничего не спросил.": "El vigilante de día encontró la garita vacía y la salida de emergencia abierta. La cerró y no preguntó nada.",
   "Темп смены": "Ritmo del turno",
   "ОБЫЧНЫЙ": "NORMAL",
-  "БЫСТРЫЙ": "RÁPIDO"
+  "БЫСТРЫЙ": "RÁPIDO",
+  "Всё, ложусь. Сил нет. Утром позвони!": "Ya está, me acuesto. No puedo más. ¡Llámame por la mañana!",
+  "Ответить: «Да, это я»": "Responder: «Sí, soy yo»",
+  "Три странности за час остались без внимания — оно подошло к самой двери и позвало. И ты ответил. Смотри камеры, записывай, выключай лишний свет.": "Tres anomalías en una hora sin anotar: eso llegó hasta la misma puerta y llamó. Y respondiste. Mira las cámaras, anota lo que veas, apaga las luces que sobren.",
+  "Там, где помехи, кто-то стоит. Засмотришься — позовёт, и ты ответишь. Запиши и переключи.": "Donde hay estática, hay alguien. Si te quedas mirando, te llamará, y responderás. Anota y cambia.",
+  "Под телефоном — копия полицейского акта. «Осмотрены этажи с первого по двенадцатый. Подвал: технические помещения, заперто, ключей нет. Не осматривали».": "Debajo del teléfono, una copia del informe policial. «Registradas las plantas de la primera a la duodécima. Sótano: cuartos técnicos, cerrado, sin llaves. No se registró».",
+  "Над мониторами — пропуск на шнурке. «Дойл, Фрэнк. Охрана». Седой, глядит строго. Одна и та же фотография двадцать лет.": "Sobre los monitores, una credencial colgada de un cordón. «Doyle, Frank. Seguridad». Canoso, mirada severa. La misma foto desde hace veinte años.",
+  "Через холл к лифтам прошёл старик в рабочем комбинезоне. Глянул в камеру и поднял руку.": "Un viejo con ropa de trabajo cruzó el vestíbulo hacia los ascensores. Miró a la cámara y levantó la mano.",
+  "На седьмом погас свет. Гас домывал пол при фонаре.": "En el séptimo se apagó la luz. Gus terminó de fregar a la luz de una linterna.",
+  "Лицо с пропуска — Фрэнк. Только он не дышит. И не моргает. Это не Фрэнк.": "La cara de la credencial: Frank. Solo que no respira. Ni parpadea. Ese no es Frank.",
+  "У двери семьсот седьмого — помехи. Не уходят, сколько ни записывай.": "Estática junto a la puerta del setecientos siete. No se va, por más que la anote.",
+  "У ведра — белая россыпь. Соль. Гас носил её в кармане. Круга он не насыпал.": "Junto al cubo, algo blanco esparcido. Sal. Gus la llevaba en el bolsillo. Nunca hizo un círculo.",
+  "Три странности за час остались без внимания — и в круге соли три прорехи. Соль держит, только пока круг цел. Смотри камеры, записывай.": "Tres anomalías en una hora sin anotar, y en el círculo de sal hay tres huecos. La sal aguanta solo mientras el círculo esté entero. Mira las cámaras, anota lo que veas.",
+  "Там, где помехи, кто-то стоит. Засмотрелся — оно позвало, и ты сам шагнул за соль. Запиши и переключи.": "Donde hay estática, hay alguien. Te quedaste mirando: eso llamó, y tú mismo cruzaste la sal. Anota y cambia.",
+  "Не смотри в тринадцатую камеру. Кто ответил — сам выходит из круга.": "No mires la cámara trece. Quien responde sale del círculo por su propio pie.",
+  "КАМЕРУ ЗАВЕСЬ. ОНО СМОТРИТ": "TAPA LA CÁMARA. ESO MIRA"
  }
 }
