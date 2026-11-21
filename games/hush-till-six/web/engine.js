@@ -27,6 +27,9 @@ const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
 const calm = () => !!LS.get('calm', false);   // настройка «меньше вспышек»
+// 21 ноя (владелец: «режим хардкор для любителей такого»): одна попытка на всю ночь — после смерти ночь начинается заново с 21:00 (не с места решения);
+// на выбор времени меньше (×0,6). Включается в настройках, на прохождение без хардкора не влияет
+const hc = () => !!LS.get('hc', false), HC_T = .6;
 // экран: горизонтальный (16:9) или вертикальный (9:16). На ПК по умолчанию горизонтальный, на телефоне — вертикальный; меняется в настройках
 const FINE = matchMedia('(pointer: fine)').matches && !window.nsTV;   // ТВ-приставка (браузер с курсором) — не ПК
 let LAND = LS.get('land3', true);   // v3: кадры поставлены под 16:9 — по умолчанию горизонтально (в настройках можно вертикально)
@@ -805,6 +808,7 @@ function actSpots() {
   bs.forEach((b, i) => b.classList.toggle('up', !!(best >> i & 1))); sps.forEach(fit);
 }
 function showChoice(th) {
+  if (th.timeout && hc()) th = Object.assign({}, th, { timeout: th.timeout * HC_T });   // хардкор: на выбор меньше времени
   mode = 'choice'; if (!MSEQ[curMusicName]) music('tension');   // музыка пролога (Part 2) на выборе не прерывается
   const vis = th.opts.map((o, i) => [o, i]).filter(([o]) => flagOk(o.if));   // вариант может зависеть от того, что ты узнал раньше
   choiceEl.innerHTML = `<h2>${th.choice}</h2>` + vis.map(([o, i], n) => `<button data-i="${i}"><b>${n + 1}</b>${o.t}</button>`).join('') + (th.timeout ? '<div id="timer"><i></i></div>' : '');
@@ -1658,6 +1662,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${window.World && World.cine ? `<button class="set wide" id="sRes"><span>${tr('Разрешение')}</span><b class="gfx">${resList().map(v => `<i data-r="${v}" class="${v === resNow() ? 'on' : ''}">${v ? Math.round(v * 100) + '%' : tr('АВТО')}</i>`).join('')}</b></button>` : ''}
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
+    ${row('sHc', 'Хардкор', hc() ? 'ВКЛ' : 'ВЫКЛ')}
     ${(LS.get('endings', []) || []).length ? row('sTempo', 'Темп смены', LS.get('tempo', '') === 'fast' ? 'БЫСТРЫЙ' : 'ОБЫЧНЫЙ') : ''}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
@@ -1678,6 +1683,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     pendGfx = pick || (gfxNow() === 'cine' ? 'retro' : 'cine'); LS.set('gfx', pendGfx); LS.set('gfxAuto', 2); try { localStorage.removeItem('ns1_hq'); } catch (e) {} re(); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
+  $('sHc').onclick = () => { LS.set('hc', !hc()); re(); };
   if ($('sTempo')) $('sTempo').onclick = () => { LS.set('tempo', LS.get('tempo', '') === 'fast' ? '' : 'fast'); tempoSet(); re(); };   // «Темп смены» — после любой концовки: быстрый — часы смены × 0,6 (для повторных прохождений)
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
   if ($('sFull')) { $('sFull').onclick = () => { DESK.full(!DESK.isFull()); re(); }; $('sBg').onclick = () => { DESK.setBgSound(!DESK.bgSound()); re(); }; }   // ПК-версия: окно/весь экран; звук, когда окно в фоне (выкл — тишина и пауза)
@@ -1788,10 +1794,12 @@ function overScreen(th) {
   // обрыв в черноту, секунда темноты (звук смерти ещё звучит), потом название; за ним из темноты проступает последний кадр — застывший
   overBg = { t0: now(), st: lastShotT }; setTimeout(() => { const s = uiEl.querySelector('.screen.over'); if (s) s.style.pointerEvents = ''; }, 800);
   uiEl.innerHTML = `<div class="screen over" style="pointer-events:none;animation:fadein 1s .8s both"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
-    <button class="btn" id="oRetry">${tr('Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>
+    <button class="btn" id="oRetry">${tr(hc() && !watching ? 'Начать ночь заново' : 'Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>${hc() && !watching ? `<small>${tr('Хардкор: одна попытка на всю ночь.')}</small>` : ''}
     <small>${trf('Смертей найдено: {c} из {d}', { c: oversGot().size, d: S.overs.length })}</small></div>`;
   // «Попробовать снова» — с места решения (мини-игра, выбор, обход), а не с начала сцены: кат-сцены второй раз не смотрим (владелец 24 окт)
-  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; let r = th.retry === '@save' ? (LS.get('save', null) || S.start) : th.retry; if (!S.scenes[r]) r = S.start;
+  const H = hc() && !watching;   // смерть из галереи «смерти» (watching) — не хардкор
+  if (H) LS.set('save', null);   // хардкор: «Продолжить» в меню больше нет — смерть стирает сохранение ночи
+  $('oRetry').onclick = H ? () => { uiEl.innerHTML = ''; begin('intro'); } : () => { goFull(); uiEl.innerHTML = ''; let r = th.retry === '@save' ? (LS.get('save', null) || S.start) : th.retry; if (!S.scenes[r]) r = S.start;
     const sc = S.scenes[r], t2 = sc.then || {}, dec = (t2.choice || t2.mg || t2.explore || t2.talk) && sc.beats.length > 1; startScene(r, dec ? true : undefined); }; $('oMenu').onclick = menu;
   if (matchMedia('(pointer: fine)').matches) $('oRetry').focus({ preventScroll: true });   // ПК: Enter — снова, Esc — меню
 }
