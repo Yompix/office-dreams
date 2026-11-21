@@ -124,74 +124,181 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
-    /** Голова уже в пространстве головы ванильной модели (лицо в −z, макушка y = −8). */
-    public void head(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
-        renderHead(m, buffers, light, e, false);
+    // ===================================================================== 0.8: образ «скомпилирован» один раз
+    /**
+     * Описание образа (JSON) превращено в списки частей и цветов по слоям: волосы (текстура прядей), сплошные
+     * (шапки, очки, «подписи» героев, веки, рот) и стёкла. Раньше на каждого жителя в каждом кадре — разбор JSON и
+     * hex-строк и 6–10 смен слоя (каждая смена — отдельная отрисовка); теперь три слоя по очереди.
+     */
+    static final class Compiled {
+        final java.util.List<ModelPart> hairP = new java.util.ArrayList<>(), solidP = new java.util.ArrayList<>();
+        final it.unimi.dsi.fastutil.ints.IntArrayList hairC = new it.unimi.dsi.fastutil.ints.IntArrayList(), solidC = new it.unimi.dsi.fastutil.ints.IntArrayList();
+        final java.util.List<ModelPart> skirtP = new java.util.ArrayList<>(), waistP = new java.util.ArrayList<>(), chestP = new java.util.ArrayList<>();
+        final it.unimi.dsi.fastutil.ints.IntArrayList skirtC = new it.unimi.dsi.fastutil.ints.IntArrayList(), waistC = new it.unimi.dsi.fastutil.ints.IntArrayList(),
+                chestC = new it.unimi.dsi.fastutil.ints.IntArrayList();
+        int lid, lens;
+        boolean face, glasses;
+
+        boolean body() {
+            return !skirtP.isEmpty() || !waistP.isEmpty() || !chestP.isEmpty();
+        }
     }
 
-    /** Корпус в пространстве тела ванильной модели (шея y = 0, пояс y = 12). */
-    public void skirt(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
-        JsonArray all = looks();
-        if (e.getSkin() >= all.size()) return;
-        JsonObject look = all.get(e.getSkin()).getAsJsonObject();
-        this.buffers = buffers;
-        hairTag = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
-        if (look.has("skirt")) render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
-        if (look.has("coat")) render("coat_tails", m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID)), light, color(look, "coat", 0.92f));
+    private final java.util.IdentityHashMap<JsonObject, Compiled> compiled = new java.util.IdentityHashMap<>();
+    private final java.util.HashMap<String, Compiled> byText = new java.util.HashMap<>();
+
+    Compiled compile(JsonObject look) {
+        Compiled c = compiled.get(look);
+        if (c != null) return c;
+        // образ игрока (StyleClient.headJson) — новый объект каждый кадр: ищем по содержимому
+        String key = look.toString();
+        c = byText.get(key);
+        if (c != null) return c;
+        if (compiled.size() > 512) compiled.clear();
+        if (byText.size() > 256) byText.clear();
+        final Compiled cc = new Compiled();
+        c = cc;
+        byText.put(key, c);
+        int hc = color(look, "hair", 1.0f);
+        boolean hat = look.has("cap") || look.has("beanie") || look.has("helmet") || look.has("fedora") || look.has("bandana") || look.has("cap_back");
+        String style = look.get("style").getAsString();
+        java.util.function.BiConsumer<String, Integer> hair = (n, col) -> { cc.hairP.add(parts.get(n)); cc.hairC.add((int) col); };
+        java.util.function.BiConsumer<String, Integer> solid = (n, col) -> { cc.solidP.add(parts.get(n)); cc.solidC.add((int) col); };
+        switch (style) {
+            case "buzz" -> hair.accept("buzz", hc);
+            case "bald" -> hair.accept("bald_ring", hc);
+            case "curly" -> hair.accept(!hat ? "curly" : "back_short", hc);
+            case "afro" -> hair.accept(!hat ? "afro" : "curly", hc);
+            case "mohawk" -> {
+                hair.accept("buzz", hc);
+                if (!hat) hair.accept("mohawk", hc);
+            }
+            default -> {
+                if (!hat) {
+                    hair.accept("top", hc);
+                    hair.accept("fringe", hc);
+                }
+                switch (style) {
+                    case "long" -> hair.accept(look.has("girl") ? "long_girl" : "long", hc);
+                    case "bob" -> hair.accept("bob", hc);
+                    case "ponytail" -> hair.accept("ponytail", hc);
+                    case "slick" -> {
+                        hair.accept("back_short", hc);
+                        if (!hat) hair.accept("quiff", hc);
+                    }
+                    default -> hair.accept("back_short", hc);
+                }
+            }
+        }
+        if (look.has("beard")) hair.accept("beard", color(look, "beard", 0.95f));
+        if (look.has("goatee")) hair.accept("goatee", color(look, "goatee", 0.95f));
+        if (look.has("mustache")) hair.accept("mustache", color(look, "mustache", 0.95f));
+        if (look.has("bow")) solid.accept(style.equals("ponytail") ? "bow_pony" : "bow", color(look, "bow", 1f));
+        if (look.has("helmet")) solid.accept("helmet", color(look, "helmet", 1f));
+        else if (look.has("cap")) solid.accept("cap", color(look, "cap", 1f));
+        else if (look.has("beanie")) solid.accept("beanie", color(look, "beanie", 1f));
+        else if (look.has("bandana")) solid.accept("bandana", color(look, "bandana", 1f));
+        else if (look.has("fedora")) {
+            solid.accept("fedora", color(look, "fedora", 1f));
+            solid.accept("fedora_band", look.has("band") ? color(look, "band", 1f) : 0xFF2A1A12);
+        }
+        if (look.has("beret") && !look.has("cap") && !look.has("fedora")) solid.accept("beret", color(look, "beret", 1f));
+        if (look.has("cap_back")) solid.accept("cap_back", color(look, "cap_back", 1f));
+        if (look.has("goggles")) {
+            solid.accept("goggles_strap", color(look, "goggles", 0.8f));
+            solid.accept("goggles_lens", 0xFF8FD3FF);
+        }
+        if (look.has("earrings")) solid.accept("earrings", color(look, "earrings", 1f));
+        if (look.has("glasses")) {
+            String g = look.get("glasses").getAsString();
+            solid.accept("glasses_frame", g.equals("gold") || g.equals("aviator") ? 0xFFD4AF37 : 0xFF1A1A1A);
+            c.glasses = true;
+            c.lens = g.equals("shades") ? 0xF0101010 : g.equals("aviator") ? 0xE0302010 : 0x70A8D8FF;
+        }
+        c.face = look.has("skin");
+        if (c.face) c.lid = color(look, "skin", 0.82f);
+        if (look.has("skirt")) { c.skirtP.add(parts.get("skirt")); c.skirtC.add(color(look, "skirt", 0.95f)); }
+        if (look.has("coat")) {
+            c.waistP.add(parts.get("coat_tails"));
+            c.waistC.add(color(look, "coat", 0.92f));
+            c.chestP.add(parts.get("coat_collar"));
+            c.chestC.add(color(look, "coat", 0.85f));
+        }
+        if (look.has("scarf")) { c.chestP.add(parts.get("scarf")); c.chestC.add(color(look, "scarf", 1f)); }
+        if (look.has("chain")) { c.chestP.add(parts.get("chain")); c.chestC.add(color(look, "chain", 1f)); }
+        if (looks != null && looks.contains(look)) compiled.put(look, c);
+        return c;
     }
 
-    /** 0.8: шарф, цепь, воротник плаща — на груди (пространство тела ванильной модели). */
-    public void torso(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
+    @org.jetbrains.annotations.Nullable
+    Compiled compiled(CitizenEntity e) {
         JsonArray all = looks();
-        if (e.getSkin() >= all.size()) return;
-        JsonObject look = all.get(e.getSkin()).getAsJsonObject();
-        if (!look.has("scarf") && !look.has("chain") && !look.has("coat")) return;
-        this.buffers = buffers;
-        hairTag = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
-        VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
-        if (look.has("coat")) render("coat_collar", m, solid, light, color(look, "coat", 0.85f));
-        if (look.has("scarf")) render("scarf", m, solid, light, color(look, "scarf", 1f));
-        if (look.has("chain")) render("chain", m, solid, light, color(look, "chain", 1f));
+        int skin = e.getSkin();
+        return skin >= all.size() ? null : compile(all.get(skin).getAsJsonObject());
+    }
+
+    /** Слой 0 — пряди, 1 — сплошные (+веки, рот, праздничная шапка), 2 — стёкла очков. Голова: лицо в −z, макушка y = −8. */
+    void headPass(MatrixStack m, VertexConsumerProvider buffers, int light, Compiled c, int pass, boolean blink, boolean asleep, boolean talking, int id) {
+        int ov = OverlayTexture.DEFAULT_UV;
+        if (pass == 0) {
+            if (c.hairP.isEmpty()) return;
+            VertexConsumer vc = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
+            for (int i = 0; i < c.hairP.size(); i++) c.hairP.get(i).render(m, vc, light, ov, c.hairC.getInt(i));
+        } else if (pass == 1) {
+            VertexConsumer vc = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
+            for (int i = 0; i < c.solidP.size(); i++) c.solidP.get(i).render(m, vc, light, ov, c.solidC.getInt(i));
+            if (c.face) {
+                // спящий — глаза закрыты (и в очках тоже)
+                if (asleep || blink && !c.glasses) parts.get("lids").render(m, vc, light, ov, c.lid);
+                int lip = com.yompix.novograd.client.story.CutsceneScreen.mouth(id); // 1.0: рот по огибающей озвучки
+                if (lip >= 0) {
+                    if (lip >= 7) parts.get("mouth_wide").render(m, vc, light, ov, 0xFF4A1414);
+                    else if (lip >= 3) parts.get("mouth_open").render(m, vc, light, ov, 0xFF5A1A1A);
+                } else if (talking) {
+                    int phase = (int) ((System.currentTimeMillis() / 110 + id) % 4);
+                    if (phase == 1) parts.get("mouth_open").render(m, vc, light, ov, 0xFF5A1A1A);
+                    else if (phase == 2) parts.get("mouth_wide").render(m, vc, light, ov, 0xFF4A1414);
+                }
+            }
+        } else if (c.glasses) {
+            parts.get("glasses_lens").render(m, buffers.getBuffer(RenderLayer.getEntityTranslucent(SOLID)), light, ov, c.lens);
+        }
+    }
+
+    /** Корпус (пространство тела: шея y = 0, пояс y = 12): юбка — слой 0, плащ/шарф/цепь — слой 1. */
+    void bodyPass(MatrixStack m, VertexConsumerProvider buffers, int light, Compiled c, int pass, boolean chest, boolean waist) {
+        int ov = OverlayTexture.DEFAULT_UV;
+        if (pass == 0 && waist && !c.skirtP.isEmpty()) {
+            VertexConsumer vc = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
+            for (int i = 0; i < c.skirtP.size(); i++) c.skirtP.get(i).render(m, vc, light, ov, c.skirtC.getInt(i));
+        } else if (pass == 1 && (waist && !c.waistP.isEmpty() || chest && !c.chestP.isEmpty())) {
+            VertexConsumer vc = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
+            if (waist) for (int i = 0; i < c.waistP.size(); i++) c.waistP.get(i).render(m, vc, light, ov, c.waistC.getInt(i));
+            if (chest) for (int i = 0; i < c.chestP.size(); i++) c.chestP.get(i).render(m, vc, light, ov, c.chestC.getInt(i));
+        }
+    }
+
+    public static boolean talking(CitizenEntity e) {
+        return com.yompix.novograd.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK;
     }
 
     @Override
     public void render(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e, float limbAngle, float limbDistance,
                        float tickDelta, float animationProgress, float headYaw, float headPitch) {
-        JsonArray all = looks();
-        int skin = e.getSkin();
-        if (skin >= all.size() || e.isInvisible()) return;
-        JsonObject look = all.get(skin).getAsJsonObject();
-        m.push();
-        getContextModel().head.rotate(m);
-        renderHead(m, buffers, light, e, true);
-    }
-
-    private void renderHead(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e, boolean vanilla) {
-        JsonArray all = looks();
-        int skin = e.getSkin();
-        if (skin >= all.size() || e.isInvisible()) {
-            if (vanilla) m.pop();
-            return;
-        }
-        JsonObject look = all.get(skin).getAsJsonObject();
-        long t = e.age + e.getId() * 37L;
-        boolean blink = blink(e.getId(), e.age);
-        boolean talking = com.yompix.novograd.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK;
-        drawLook(m, buffers, light, look, blink, e.asleep(), talking, e.getId());
-        com.yompix.novograd.client.HolidayHats.render(m, buffers, light, e.getId()); // праздничные шапки и тыквы (world/Holidays)
-        if (vanilla) {
+        if (e.isInvisible()) return;
+        Compiled c = compiled(e);
+        if (c == null) return;
+        boolean blink = blink(e.getId(), e.age), talk = talking(e);
+        for (int pass = 0; pass < 3; pass++) {
+            m.push();
+            getContextModel().head.rotate(m);
+            headPass(m, buffers, light, c, pass, blink, e.asleep(), talk, e.getId());
+            if (pass == 1) com.yompix.novograd.client.HolidayHats.render(m, buffers, light, e.getId());
             m.pop();
-            if (look.has("skirt") || look.has("coat") || look.has("scarf") || look.has("chain")) {
+            if (c.body() && pass < 2) {
                 m.push();
                 getContextModel().body.rotate(m);
-                if (look.has("skirt")) render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
-                VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
-                if (look.has("coat")) {
-                    render("coat_tails", m, solid, light, color(look, "coat", 0.92f));
-                    render("coat_collar", m, solid, light, color(look, "coat", 0.85f));
-                }
-                if (look.has("scarf")) render("scarf", m, solid, light, color(look, "scarf", 1f));
-                if (look.has("chain")) render("chain", m, solid, light, color(look, "chain", 1f));
+                bodyPass(m, buffers, light, c, pass, true, true);
                 m.pop();
             }
         }
@@ -202,90 +309,10 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
      * Нужна и жителям, и игроку (см. client/style/PlayerLookFeature).
      */
     public void drawLook(MatrixStack m, VertexConsumerProvider buffers, int light, JsonObject look, boolean blink, boolean asleep, boolean talking, int id) {
-        this.buffers = buffers;
-        VertexConsumer hair = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
-        hairTag = hair;
-        int ov = OverlayTexture.DEFAULT_UV;
-        int hc = color(look, "hair", 1.0f);
-        boolean hat = look.has("cap") || look.has("beanie") || look.has("helmet") || look.has("fedora") || look.has("bandana") || look.has("cap_back");
-        String style = look.get("style").getAsString();
-        switch (style) {
-            case "buzz" -> render("buzz", m, hair, light, hc);
-            case "bald" -> render("bald_ring", m, hair, light, hc);
-            case "curly" -> {
-                if (!hat) render("curly", m, hair, light, hc);
-                else render("back_short", m, hair, light, hc);
-            }
-            case "afro" -> {
-                if (!hat) render("afro", m, hair, light, hc);
-                else render("curly", m, hair, light, hc);
-            }
-            case "mohawk" -> {
-                render("buzz", m, hair, light, hc);
-                if (!hat) render("mohawk", m, hair, light, hc);
-            }
-            default -> {
-                if (!hat) {
-                    render("top", m, hair, light, hc);
-                    render("fringe", m, hair, light, hc);
-                }
-                switch (style) {
-                    case "long" -> render(look.has("girl") ? "long_girl" : "long", m, hair, light, hc);
-                    case "bob" -> render("bob", m, hair, light, hc);
-                    case "ponytail" -> render("ponytail", m, hair, light, hc);
-                    case "slick" -> {
-                        render("back_short", m, hair, light, hc);
-                        if (!hat) render("quiff", m, hair, light, hc);
-                    }
-                    default -> render("back_short", m, hair, light, hc);
-                }
-            }
-        }
-        if (look.has("beard")) render("beard", m, hair, light, color(look, "beard", 0.95f));
-        if (look.has("goatee")) render("goatee", m, hair, light, color(look, "goatee", 0.95f));
-        VertexConsumer flat = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
-        if (look.has("bow")) render(style.equals("ponytail") ? "bow_pony" : "bow", m, flat, light, color(look, "bow", 1f));
-        if (look.has("skin")) {
-            // спящий — глаза закрыты (и в очках тоже)
-            if (asleep) render("lids", m, flat, light, color(look, "skin", 0.82f));
-            else if (blink && !look.has("glasses")) render("lids", m, flat, light, color(look, "skin", 0.82f));
-            int lip = com.yompix.novograd.client.story.CutsceneScreen.mouth(id); // 1.0: рот по огибающей озвучки
-            if (lip >= 0) {
-                if (lip >= 7) render("mouth_wide", m, flat, light, 0xFF4A1414);
-                else if (lip >= 3) render("mouth_open", m, flat, light, 0xFF5A1A1A);
-            } else if (talking) {
-                int phase = (int) ((System.currentTimeMillis() / 110 + id) % 4);
-                if (phase == 1) render("mouth_open", m, flat, light, 0xFF5A1A1A);
-                else if (phase == 2) render("mouth_wide", m, flat, light, 0xFF4A1414);
-            }
-        }
-        if (look.has("mustache")) render("mustache", m, hair, light, color(look, "mustache", 0.95f));
-        VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
-        if (look.has("helmet")) render("helmet", m, solid, light, color(look, "helmet", 1f));
-        else if (look.has("cap")) render("cap", m, solid, light, color(look, "cap", 1f));
-        else if (look.has("beanie")) render("beanie", m, solid, light, color(look, "beanie", 1f));
-        else if (look.has("bandana")) render("bandana", m, solid, light, color(look, "bandana", 1f));
-        else if (look.has("fedora")) {
-            render("fedora", m, solid, light, color(look, "fedora", 1f));
-            render("fedora_band", m, solid, light, look.has("band") ? color(look, "band", 1f) : 0xFF2A1A12);
-        }
-        if (look.has("beret") && !look.has("cap") && !look.has("fedora")) render("beret", m, solid, light, color(look, "beret", 1f));
-        if (look.has("cap_back")) render("cap_back", m, solid, light, color(look, "cap_back", 1f));
-        if (look.has("goggles")) {
-            render("goggles_strap", m, solid, light, color(look, "goggles", 0.8f));
-            render("goggles_lens", m, solid, light, 0xFF8FD3FF);
-        }
-        if (look.has("earrings")) render("earrings", m, solid, light, color(look, "earrings", 1f));
-        if (look.has("glasses")) {
-            String g = look.get("glasses").getAsString();
-            int frame = g.equals("gold") || g.equals("aviator") ? 0xFFD4AF37 : 0xFF1A1A1A;
-            render("glasses_frame", m, solid, light, frame);
-            VertexConsumer lens = buffers.getBuffer(RenderLayer.getEntityTranslucent(SOLID));
-            parts.get("glasses_lens").render(m, lens, light, ov, g.equals("shades") ? 0xF0101010 : g.equals("aviator") ? 0xE0302010 : 0x70A8D8FF);
-        }
+        Compiled c = compile(look);
+        for (int pass = 0; pass < 3; pass++) headPass(m, buffers, light, c, pass, blink, asleep, talking, id);
     }
 
-    private VertexConsumerProvider buffers;
 
     /**
      * 0.8: живое моргание — в каждом окне 6 с одно-два моргания в разные моменты (по хешу окна, без состояния),
@@ -300,11 +327,4 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         return lt >= a && lt < a + 2 || two && lt >= b && lt < b + 3 || dbl && lt >= a + 5 && lt < a + 7;
     }
 
-    /** vc — только метка слоя; сам буфер берём заново, ведь смена слоя закрывает предыдущий. */
-    private void render(String name, MatrixStack m, VertexConsumer vc, int light, int color) {
-        Identifier tex = vc == hairTag ? HAIR : SOLID;
-        parts.get(name).render(m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(tex)), light, OverlayTexture.DEFAULT_UV, color);
-    }
-
-    private VertexConsumer hairTag;
 }

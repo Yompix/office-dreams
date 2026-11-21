@@ -671,7 +671,7 @@ public final class Story {
     }
 
     /** Безопасная точка на земле рядом с местом. */
-    static BlockPos ground(ServerWorld w, Vec3d v) {
+    public static BlockPos ground(ServerWorld w, Vec3d v) {
         BlockPos p = BlockPos.ofFloored(v);
         for (int i = 0; i < 6 && !w.getBlockState(p).isAir(); i++) p = p.up();
         return p;

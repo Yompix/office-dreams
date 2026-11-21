@@ -34,7 +34,10 @@
     "ParticleBudgetMixin",
     "AutoGuiScaleMixin",
     "FreeCamOverlayMixin",
-    "FreeCamSubmersionMixin"
+    "FreeCamSubmersionMixin",
+    "PlayerAnimMixin",
+    "HandOnlyBobMixin",
+    "DisplayTickBiomeMixin"
   ],
   "injectors": {
     "defaultRequire": 0

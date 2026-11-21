@@ -578,7 +578,10 @@ public class CutsceneScreen extends LifeScreen {
     }
 
     private final java.util.Map<Integer, Rig> rigs = new java.util.HashMap<>();
-    private Vec3d trackAim, folStart;
+    private Vec3d trackAim, folStart, folLastP, folLastV = Vec3d.ZERO, folGap;
+    private double folLastT, folGapT;
+    private String folDbg = "";
+    private boolean folLost;
     private double[] folHead;
 
     /** Собрать оснастку плана (один раз, до его начала): всё, что можно посчитать заранее, считается заранее. */
@@ -618,6 +621,21 @@ public class CutsceneScreen extends LifeScreen {
         return r;
     }
 
+    /**
+     * Курс оснастки «за целью»: поворот от курса a к курсу b на долю w ПО УГЛУ (линейное смешение векторов при
+     * разнице около 180° проходило через ноль и переворачивало камеру за кадр). Цель едет почти назад (> 120°,
+     * задний ход) — курс не меняем (с плавным переходом 90…150°).
+     */
+    private static double[] turnToward(double ax, double az, double bx, double bz, double w) {
+        double a0 = Math.atan2(az, ax), a1 = Math.atan2(bz, bx);
+        double d = MathHelper.wrapDegrees(Math.toDegrees(a1 - a0));
+        // почти назад — не поворачиваем; переход между «поворачиваем» и «нет» плавный (90…150°), без порога
+        double g = MathHelper.clamp((150 - Math.abs(d)) / 60, 0, 1);
+        g = g * g * (3 - 2 * g);
+        double a = a0 + Math.toRadians(d) * w * g;
+        return new double[]{Math.cos(a), Math.sin(a)};
+    }
+
     /** Ключи: время плана → параметр узлов (кусочно-линейно по временам ключей). */
     private static double keyParam(double[] keyT, double t) {
         int n = keyT.length;
@@ -636,39 +654,75 @@ public class CutsceneScreen extends LifeScreen {
         double local = time - shotStart(si), sec = Math.max(0.05, s.sec());
         double u = MathHelper.clamp(local / sec, 0, 1);
         boolean cut = Double.isNaN(camX) || si != lastShot;
-        if (cut) trackAim = null;
+        folDbg = "";
+        if (cut) {
+            trackAim = null;
+            folGap = null;
+            folLost = false;
+        }
         double x, y, z;
         Vec3d look;
         float fovA, fovB, rollV = 0;
         var fol = actor(s.follow());
         var trk = actor(s.track());
-        if (fol != null) {
-            // за машиной/героем: опора — сглаженная траектория цели (не сама цель: её позиция приходит ступеньками)
-            double[] sm = CineRig.smooth(fol, clock, 0.45);
-            Vec3d at = sm != null ? new Vec3d(sm[0], sm[1], sm[2]) : fol.getLerpedPos(delta);
+        boolean folShot = !s.follow().isEmpty() && s.keys() == null && s.from() == null;
+        if (folShot && (fol != null || folLastP != null && !cut)) {
+            // за машиной/героем: опора — сглаженная траектория цели (не сама цель: её позиция приходит ступеньками).
+            // Цель на миг пропала с клиента (район перезагрузился) — опора идёт по инерции (последняя скорость), а когда
+            // цель вернулась, расхождение гасится за 0.6 с — без стоп-кадра и без скачка
+            double[] sm = fol == null ? null : CineRig.smooth(s.follow(), clock, 0.45); // цели нет на клиенте — по инерции
+            Vec3d at;
+            if (sm != null) {
+                at = new Vec3d(sm[0], sm[1], sm[2]);
+                if (folLost && folLastP != null && !cut) {
+                    folGap = folLastP.add(folLastV.multiply(clock - folLastT)).subtract(at);
+                    folGapT = clock;
+                }
+                folLost = false;
+                folLastV = new Vec3d(sm[5], 0, sm[6]);
+            } else if (folLastP != null && !cut) {
+                at = folLastP.add(folLastV.multiply(clock - folLastT));
+                folLost = true;
+            } else at = fol.getLerpedPos(delta);
+            if (!folLost) {
+                if (folGap != null) {
+                    double k = MathHelper.clamp((clock - folGapT) / 0.6, 0, 1);
+                    double w = 1 - k * k * (3 - 2 * k);
+                    if (w <= 0) folGap = null;
+                    else at = at.add(folGap.multiply(w));
+                }
+                folLastP = at;
+                folLastT = clock;
+            }
+            if (sm == null && folLastV == null) folLastV = Vec3d.ZERO;
             // курс оснастки — не курс тела (герой поворачивается к собеседнику — камера облетала его по дуге):
             // на склейке берём курс тела, дальше — направление пройденного с начала плана пути (остановился —
             // курс остаётся), у быстрой машины — направление скорости; переходы по smoothstep
             if (cut || folStart == null) {
                 folStart = at;
-                folHead = sm != null ? new double[]{sm[3], sm[4]} : new double[]{-Math.sin(Math.toRadians(fol.getYaw())), Math.cos(Math.toRadians(fol.getYaw()))};
+                folHead = sm != null ? new double[]{sm[3], sm[4]} : fol != null ? new double[]{-Math.sin(Math.toRadians(fol.getYaw())), Math.cos(Math.toRadians(fol.getYaw()))} : new double[]{0, 1};
             }
             double fx = folHead[0], fz = folHead[1];
             double dx = at.x - folStart.x, dz = at.z - folStart.z, dl = Math.hypot(dx, dz);
             double wd = MathHelper.clamp(dl / 2.5, 0, 1);
             wd = wd * wd * (3 - 2 * wd);
             if (dl > 1e-4) {
-                fx = MathHelper.lerp(wd, fx, dx / dl);
-                fz = MathHelper.lerp(wd, fz, dz / dl);
+                double[] h = turnToward(fx, fz, dx / dl, dz / dl, wd);
+                fx = h[0];
+                fz = h[1];
             }
-            if (sm != null) {
-                double sp = Math.hypot(sm[5], sm[6]), wv = MathHelper.clamp((sp - 3) / 5, 0, 1);
+            // курс по скорости — по окну 1.8 с (по короткому окну машина в повороте разворачивала камеру за 3–4 кадра)
+            double[] sl = sm == null ? null : CineRig.smooth(s.follow(), clock, 0.9);
+            if (sl != null) {
+                double sp = Math.hypot(sl[5], sl[6]), wv = MathHelper.clamp((sp - 3) / 5, 0, 1);
                 wv = wv * wv * (3 - 2 * wv);
                 if (wv > 0) {
-                    fx = MathHelper.lerp(wv, fx, sm[5] / sp);
-                    fz = MathHelper.lerp(wv, fz, sm[6] / sp);
+                    double[] h = turnToward(fx, fz, sl[5] / sp, sl[6] / sp, wv);
+                    fx = h[0];
+                    fz = h[1];
                 }
             }
+            if (CAMCHECK) folDbg = String.format(Locale.ROOT, "%s|%d|%.2f|%.2f|%.2f|%.2f|%.2f", sm == null ? "N" : "S", fol == null ? -1 : fol.getId(), at.x, at.z, dl, fx, fz);
             double hl = Math.hypot(fx, fz);
             if (hl > 1e-6) {
                 fx /= hl;
@@ -678,7 +732,7 @@ public class CutsceneScreen extends LifeScreen {
             x = at.x - fx * back + fz * side;
             y = at.y + up;
             z = at.z - fz * back - fx * side;
-            Vec3d focus = at.add(fx * 1.5, fol.getHeight() * 0.8, fz * 1.5);
+            Vec3d focus = at.add(fx * 1.5, (fol != null ? fol.getHeight() : 1.8) * 0.8, fz * 1.5);
             look = focus.subtract(x, y, z).normalize();
             fovA = 80;
             fovB = 76;
@@ -707,7 +761,7 @@ public class CutsceneScreen extends LifeScreen {
             }
             if (trk != null) {
                 // герой плана: смотрим на сглаженную траекторию героя (без ступенек сетевых позиций)
-                double[] sm = CineRig.smooth(trk, clock, 0.35);
+                double[] sm = CineRig.smooth(s.track(), clock, 0.35);
                 Vec3d a = sm != null ? new Vec3d(sm[0], sm[1], sm[2]) : trk.getLerpedPos(delta);
                 trackAim = a.add(0, trk.getHeight() * 0.75, 0);
             }
@@ -768,7 +822,7 @@ public class CutsceneScreen extends LifeScreen {
             String b = System.getProperty("novograd.rec", System.getProperty("java.io.tmpdir") + "/novograd_cam.mp4");
             if (sceneNo++ > 0) b = b.replace(".mp4", "_" + sceneNo + ".mp4");
             camLog = new PrintWriter(new FileWriter(b.replace(".mp4", ".cam.tsv")), true);
-            camLog.println("t\tshot\tcut\tx\ty\tz\tyaw\tpitch\tinside\tcrossed\tstep\tguard\tfov\troll\tdelta");
+            camLog.println("t\tshot\tcut\tx\ty\tz\tyaw\tpitch\tinside\tcrossed\tstep\tguard\tfov\troll\tdelta\tfol\tclk");
         } catch (Exception e) {
             camLog = null;
         }
@@ -795,7 +849,7 @@ public class CutsceneScreen extends LifeScreen {
         lastYawLog = pyaw;
         if (camLog != null)
             camLog.println(String.format(Locale.ROOT, "%.4f\t%d\t%d\t%.5f\t%.5f\t%.5f\t%.4f\t%.4f\t%d\t%d\t%.4f\t%d\t%.3f\t%.3f\t%.3f", t, si, cut ? 1 : 0, px, py, pz, pyaw, ppitch, in ? 1 : 0, cross ? 1 : 0, step, guard,
-                    com.yompix.novograd.client.studio.CineCam.fov, com.yompix.novograd.client.studio.CineCam.roll, lastDelta));
+                    com.yompix.novograd.client.studio.CineCam.fov, com.yompix.novograd.client.studio.CineCam.roll, lastDelta) + "\t" + folDbg + String.format(Locale.ROOT, "\t%.4f", clock));
     }
 
     private void closeCamLog() {
@@ -1060,9 +1114,9 @@ public class CutsceneScreen extends LifeScreen {
     public void tick() {
         if (cam == null) return;
         screenTicks++;
-        if (FREE && mc().world != null) for (Integer id : ACTORS.values()) { // отсчёты для сглаженных траекторий героев
-            var e = mc().world.getEntityById(id);
-            if (e != null) CineRig.sample(screenTicks / 20.0, e);
+        if (FREE && mc().world != null) for (var en : ACTORS.entrySet()) { // отсчёты для сглаженных траекторий героев
+            var e = mc().world.getEntityById(en.getValue());
+            if (e != null) CineRig.sample(screenTicks / 20.0, en.getKey(), e);
         }
         com.yompix.novograd.client.studio.CineCam.filter(mc(), grade);
         // ---- старт: ждём участки, отрисовку и актёров (до 8 с), сервер тем временем держит таймлайн

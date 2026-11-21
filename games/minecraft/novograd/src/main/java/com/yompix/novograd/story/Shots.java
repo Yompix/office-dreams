@@ -60,6 +60,30 @@ public final class Shots {
             }
         }
         Novograd.LOG.info("Постановка 1.0: переснято кат-сцен {}", n);
+        // 0.8: взгляды и жесты по репликам во всех остальных сценах (tools/auto_cues.py)
+        int m = 0;
+        try (var in = Shots.class.getResourceAsStream("/novograd_cues.json")) {
+            if (in != null) {
+                JsonObject cues = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonObject("scenes");
+                for (Map.Entry<String, JsonElement> en : cues.entrySet()) {
+                    String[] k = en.getKey().split(":");
+                    try {
+                        JsonObject step = chs.get(Integer.parseInt(k[0])).getAsJsonObject().getAsJsonArray("missions").get(Integer.parseInt(k[1]))
+                                .getAsJsonObject().getAsJsonArray("steps").get(Integer.parseInt(k[2])).getAsJsonObject();
+                        if (!"cutscene".equals(Story.str(step, "type", ""))) continue;
+                        JsonArray acts = step.has("actors") ? step.getAsJsonArray("actors") : new JsonArray();
+                        for (JsonElement c : en.getValue().getAsJsonObject().getAsJsonArray("cues")) acts.add(c);
+                        step.add("actors", acts);
+                        m++;
+                    } catch (RuntimeException e) {
+                        Novograd.LOG.warn("novograd_cues.json: сцена {} пропущена: {}", en.getKey(), e.toString());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Novograd.LOG.warn("novograd_cues.json не прочитан: {}", e.toString());
+        }
+        Novograd.LOG.info("Живые сцены 0.8: взгляды и жесты добавлены в {} сцен", m);
     }
 
     /** План с ключами → пакет клиенту. */
