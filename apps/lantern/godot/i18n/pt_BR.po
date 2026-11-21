@@ -102,6 +102,9 @@ msgstr "%d KB"
 msgid "%d в мире"
 msgstr "%d no mundo"
 
+msgid "%d пламени — "
+msgstr "%d chamas — "
+
 msgid "%d ч %02d мин"
 msgstr "%d h %02d min"
 
@@ -167,6 +170,9 @@ msgstr "%s; permissão=%s"
 
 msgid "+%d искр"
 msgstr "+%d faíscas"
+
+msgid "+10% искр за задания и золотые искры короны у «Костра» — для всех у огня."
+msgstr "+10% mais faíscas nas tarefas e faíscas douradas de coroa na Fogueira — para todos perto do fogo."
 
 msgid "+20 искр за просмотр"
 msgstr "+20 faíscas por assistir"
@@ -432,6 +438,9 @@ msgstr "Endereço copiado — cole no Minecraft"
 msgid "Активна до "
 msgstr "Ativo até "
 
+msgid "Аура вокруг вашей игры и сети в «Играх» и «Найти игроков»."
+msgstr "Uma aura ao redor do seu jogo e rede em Jogos e Encontrar jogadores."
+
 msgid "БУМ! ✦"
 msgstr "BUM! ✦"
 
@@ -468,8 +477,14 @@ msgstr "Sem anúncios, código de sala próprio, backups na nuvem, 32 vagas nas 
 msgid "Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает."
 msgstr "Sem deslizes nem flashes — para celulares fracos e quem fica enjoado."
 
+msgid "Без случайных наград. Пламя даёт фишки, но не влияет на связь, скорость и честность игры."
+msgstr "Sem recompensas aleatórias. As chamas dão extras, mas não afetam conexão, velocidade nem jogo justo."
+
 msgid "Без телеметрии. Не требует прав администратора. Пароли не спрашивает."
 msgstr "Sem telemetria. Não precisa de direitos de administrador. Não pede senhas."
+
+msgid "Белое пламя"
+msgstr "Chama branca"
 
 msgid "Белый ник"
 msgstr "Nick branco"
@@ -582,6 +597,9 @@ msgstr "Seu mundo do Minecraft ou um servidor à parte — os amigos entram por 
 msgid "Ваш ник в Minecraft"
 msgstr "Seu nick no Minecraft"
 
+msgid "Ваш ник светится неоном в чатах и списках — у всех."
+msgstr "Seu apelido brilha em neon nos chats e listas — para todos."
+
 msgid "Ваш тег"
 msgstr "Sua tag"
 
@@ -596,6 +614,9 @@ msgstr "Seu jogo"
 
 msgid "Ваша игра — открыть снова"
 msgstr "Seu jogo — abrir de novo"
+
+msgid "Ваше пламя"
+msgstr "Sua chama"
 
 msgid "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft."
 msgstr "Digite o código de 6 caracteres que seu amigo mandou — o mundo aparece direto no Minecraft."
@@ -732,6 +753,9 @@ msgstr "Todas as vagas ocupadas."
 msgid "Все режимы"
 msgstr "Todos os modos"
 
+msgid "Вспышка входа: друзья видят огненную вспышку, когда вы заходите к ним в игру"
+msgstr "Clarão de entrada: amigos veem uma explosão de fogo quando você entra no jogo deles"
+
 msgid "Вставить"
 msgstr "Colar"
 
@@ -839,6 +863,9 @@ msgstr "Onde guardar mundos e servidores"
 
 msgid "Главное меню и список миров не считаются — зайдите в мир."
 msgstr "O menu principal e a lista de mundos não contam — entre no mundo."
+
+msgid "Глитч-пламя"
+msgstr "Chama glitch"
 
 msgid "Го!"
 msgstr "Bora!"
@@ -1083,6 +1110,9 @@ msgstr "Tem versão para PC"
 msgid "Ещё"
 msgstr "Mais"
 
+msgid "Ещё 4 реакции в чате «Любых игр»: 👾 🕹️ 💾 ⭐ — видят все."
+msgstr "Mais 4 reações no chat de Qualquer jogo: 👾 🕹️ 💾 ⭐ — todos veem."
+
 msgid "Ещё админы"
 msgstr "Mais admins"
 
@@ -1097,6 +1127,9 @@ msgstr "Denúncia enviada. Valeu!"
 
 msgid "Ждём ваш мир в Minecraft"
 msgstr "Esperando seu mundo no Minecraft"
+
+msgid "Живой фон профиля и радужная аура в списке друзей у всех."
+msgstr "Fundo de perfil animado e uma aura arco-íris na lista de amigos de todos."
 
 msgid "Журнал сервера и команды"
 msgstr "Log do servidor e comandos"
@@ -1305,6 +1338,9 @@ msgstr "Semente (seed)"
 msgid "Зимняя поляна"
 msgstr "Clareira de inverno"
 
+msgid "Золотая корона"
+msgstr "Coroa dourada"
+
 msgid "Золотая рамка"
 msgstr "Moldura dourada"
 
@@ -1410,9 +1446,6 @@ msgstr "Mudar código"
 msgid "Изменить…"
 msgstr "Mudar…"
 
-msgid "Изумрудное пламя"
-msgstr "Chama esmeralda"
-
 msgid "Или зайдите к другу"
 msgstr "Ou entre com um amigo"
 
@@ -1481,6 +1514,9 @@ msgstr "Mundo de bolso"
 
 msgid "Кирка и блоки"
 msgstr "Picareta e blocos"
+
+msgid "Классика: чистый белый жар. Пламя по умолчанию."
+msgstr "O clássico: calor branco puro. A chama padrão."
 
 msgid "Кнопка не видна в игре?"
 msgstr "Não vê o botão no jogo?"
@@ -1553,6 +1589,15 @@ msgstr "Código, ex.: 7KQ-M2X"
 
 msgid "Код, ссылка или адрес сервера"
 msgstr "Código, link ou endereço do servidor"
+
+msgid "Коллекционер"
+msgstr "Colecionador"
+
+msgid "Коллекция огня"
+msgstr "Coleção de fogo"
+
+msgid "Коллекция: %d из %d"
+msgstr "Coleção: %d de %d"
 
 msgid "Команда серверу, например: op ВашНик"
 msgstr "Comando para o servidor, ex.: op SeuNick"
@@ -1653,11 +1698,11 @@ msgstr "Lanterna cúbica"
 msgid "Купить"
 msgstr "Comprar"
 
+msgid "Легенда сезона: неоновый ник и радужная аура."
+msgstr "Lenda da temporada: apelido neon e aura arco-íris."
+
 msgid "Легендарное пламя"
 msgstr "Chama lendária"
-
-msgid "Ледяное пламя"
-msgstr "Chama de gelo"
 
 msgid "Личные сообщения"
 msgstr "Mensagens privadas"
@@ -2091,6 +2136,9 @@ msgstr "Não pode ser equipado"
 msgid "Нельзя написать этому игроку"
 msgstr "Não é possível escrever para este jogador"
 
+msgid "Неоновое пламя"
+msgstr "Chama neon"
+
 msgid "Нет доступа к папке LANTERN."
 msgstr "Sem acesso à pasta do LANTERN."
 
@@ -2327,9 +2375,6 @@ msgstr "Memória RAM: %.1f GB, %.1f GB livres. Um servidor Java precisa de 1,5�
 
 msgid "Оплата ожидает подтверждения — начислим, как только Google её примет."
 msgstr "O pagamento está pendente — vamos creditar assim que o Google confirmar."
-
-msgid "Оранжевое пламя"
-msgstr "Chama laranja"
 
 msgid "Освободите место или выберите другой диск в «Настройках»."
 msgstr "Libere espaço ou escolha outro disco em Configurações."
@@ -2573,6 +2618,9 @@ msgstr "Reiniciar agora"
 
 msgid "Переподключаемся к LANTERN…"
 msgstr "Reconectando ao LANTERN…"
+
+msgid "Пиксельное пламя"
+msgstr "Chama pixelada"
 
 msgid "Писать можно только друзьям"
 msgstr "Você só pode escrever para amigos"
@@ -2838,6 +2886,12 @@ msgstr "Crie um nick"
 msgid "Придумать ник"
 msgstr "Criar nick"
 
+msgid "Призрачная QR-карточка, когда вы делитесь кодом игры или сети."
+msgstr "Um cartão QR fantasmagórico quando você compartilha o código de um jogo ou rede."
+
+msgid "Призрачное пламя"
+msgstr "Chama fantasma"
+
 msgid "Приключение"
 msgstr "Aventura"
 
@@ -3027,9 +3081,6 @@ msgstr "Os anúncios só aparecem depois de sair do mundo. No Pro não tem."
 msgid "Рекорд: %d · пропуск раз в неделю не сжигает серию"
 msgstr "Recorde: %d · pular uma vez por semana não quebra a sequência"
 
-msgid "Розовое пламя"
-msgstr "Chama rosa"
-
 msgid "Ролевая"
 msgstr "Roleplay"
 
@@ -3119,6 +3170,12 @@ msgstr "Temporada 1 · Primeiras luzes"
 
 msgid "Сезон «Первые огни»"
 msgstr "Temporada “Primeiras Luzes”"
+
+msgid "Сезонное: алый жар и искры."
+msgstr "Sazonal: calor escarlate e faíscas."
+
+msgid "Сезонное: искры поднимаются над фонарём."
+msgstr "Sazonal: faíscas sobem acima da lanterna."
 
 msgid "Сейчас буду"
 msgstr "Já vou"
@@ -3507,6 +3564,9 @@ msgstr "Tipo de mundo e semente"
 msgid "Титул «%s» · +%d искр"
 msgstr "Título “%s” · +%d faíscas"
 
+msgid "Титул «Хранитель пламени» и +80 искр"
+msgstr "O título «Guardião da chama» e +80 faíscas"
+
 msgid "Титул обновлён"
 msgstr "Título atualizado"
 
@@ -3518,9 +3578,6 @@ msgstr "Só Bedrock"
 
 msgid "Только буквы, цифры и «_»"
 msgstr "Só letras, números e “_”"
-
-msgid "Только внешний вид — никаких преимуществ в игре и случайных наград."
-msgstr "Só visual — nenhuma vantagem no jogo nem recompensas aleatórias."
 
 msgid "Только вы."
 msgstr "Só você."
@@ -3606,9 +3663,6 @@ msgstr "Termos de uso"
 msgid "Файлы мира на этом компьютере."
 msgstr "Arquivos do mundo neste computador."
 
-msgid "Фиолетовое пламя"
-msgstr "Chama violeta"
-
 msgid "Фонарь"
 msgstr "Lanterna"
 
@@ -3641,6 +3695,9 @@ msgstr "Anfitrião: "
 
 msgid "Хранитель огня"
 msgstr "Guardião do fogo"
+
+msgid "Хранитель пламени"
+msgstr "Guardião da chama"
 
 msgid "Цвет акцента"
 msgstr "Cor de destaque"
@@ -3749,9 +3806,6 @@ msgstr "Aceito o Contrato de Licença do Minecraft e a Política de Privacidade"
 
 msgid "Язык"
 msgstr "Idioma"
-
-msgid "Янтарное пламя"
-msgstr "Chama âmbar"
 
 msgid "Яркий фонарь"
 msgstr "Lanterna brilhante"
@@ -4274,6 +4328,9 @@ msgstr "✓ sim"
 
 msgid "✗ Не отвечает: "
 msgstr "✗ Não responde: "
+
+msgid "✦ %s входит с пламенем «%s»"
+msgstr "✦ %s entra com a %s"
 
 msgid "❦ осень"
 msgstr "❦ outono"

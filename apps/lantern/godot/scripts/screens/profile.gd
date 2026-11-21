@@ -55,7 +55,22 @@ func _render() -> void:
 	var nick_col := Color(preload("res://scripts/screens/shop.gd").NICK_COLORS.get(e.get("equip", {}).get("nick", ""), "eef1f7"))
 	var n := UI.label(me.get("nick", ""), 30, nick_col, UI.font_black)
 	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var my_flame := FlameFX.mine()
+	FlameFX.style_nick(n, my_flame)
 	lv.add_child(n)
+	# 2.0.3: пламя и его фишка; «Радужное»/«Легендарное» — живой фон профиля
+	var fl := UI.label(FlameFX.name_of(my_flame), 13, UI.TEXT, UI.font_caps)
+	fl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lv.add_child(fl)
+	var fp := UI.para(FlameFX.perk_of(my_flame), 12, UI.MUTED)
+	fp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lv.add_child(fp)
+	if FlameFX.has(my_flame, "rainbow"):
+		var bg := FlameFX.make(my_flame)
+		bg._mat.set_shader_parameter("style", 100)
+		bg._mat.set_shader_parameter("c_mid", Color(1, 1, 1, 0))
+		bg.set_intensity(1.2)
+		FlameFX._attach(hero, bg, 4.0)
 	var t := UI.label(me.get("tag", ""), 15, UI.MUTED, UI.font_bold)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lv.add_child(t)

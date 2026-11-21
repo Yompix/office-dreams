@@ -46,6 +46,8 @@ public final class LifeEvents {
         com.yompix.novograd.gta.DriveHooks.init(); // бензин, камеры и штрафы, эвакуатор, авиарейсы, яхт-клуб, тотализатор, аукцион
         com.yompix.novograd.gta.CityServices.init(); // светофоры, автобусы, скорая/пожарные/патрули, полицейская рация
         com.yompix.novograd.gta.Underworld.init(); // тёмные дела: большие ограбления, заказы, контрабанда
+        com.yompix.novograd.gta.Empire.init(); // 0.9: «Империя» — рейды, найм, цели
+        com.yompix.novograd.world.CityEvents.init(); // 0.9: блэкаут, шторм, «Ночь музыки»
         com.yompix.novograd.gta.NoGrief.init(); // город — не стройка: в выживании блоки не ломаются и не ставятся
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Economy::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.News::tick);

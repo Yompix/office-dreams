@@ -29,6 +29,31 @@ public final class TrafficLights {
     /** Стоп-линия: от центра перекрёстка до переднего бампера (за «зеброй» 7–8). */
     private static final double STOP = 9.6;
 
+    /** 0.9, «Сеть»: перекрёсток → до какого времени мира все сигналы красные. */
+    private static final Map<Long, Long> HACKED = new HashMap<>();
+
+    public static void hack(int gx, int gz, long until) {
+        HACKED.put(key(gx, gz), until);
+    }
+
+    /** Ближайший перекрёсток со светофором к точке: {gx, gz} или null. */
+    @org.jetbrains.annotations.Nullable
+    public static int[] nearestSignal(ServerWorld w, double x, double z) {
+        int gx = line(x), gz = line(z);
+        return signalled(w, gx, gz) ? new int[]{gx, gz} : null;
+    }
+
+    /** Сигнал перекрёстка с учётом взлома и блэкаута: −1 — светофор не работает (нерегулируемый). */
+    static int stateAt(ServerWorld w, int gx, int gz, long time, boolean alongZ) {
+        if (com.yompix.novograd.world.CityEvents.dark(gx, gz, time)) return -1;
+        Long until = HACKED.get(key(gx, gz));
+        if (until != null) {
+            if (time < until) return RED;
+            HACKED.remove(key(gx, gz));
+        }
+        return state(time, alongZ);
+    }
+
     /** Свет для тех, кто едет вдоль оси Z (alongZ) или X — то же, что у блока светофора. */
     public static int state(long time, boolean alongZ) {
         int s = (int) (time / 20 % 30);
@@ -98,14 +123,17 @@ public final class TrafficLights {
         int gx = line(pos.getX()), gz = line(pos.getZ());
         if (Math.abs(pos.getX() - gx) > 14 || Math.abs(pos.getZ() - gz) > 14 || !signalled(w, gx, gz)) return true;
         boolean crossingZRoad = dir == 0 || dir == 2;
-        return state(w.getTime(), crossingZRoad) == RED && secondsLeft(w.getTime(), crossingZRoad) > 2;
+        int st = stateAt(w, gx, gz, w.getTime(), crossingZRoad);
+        if (st < 0 || HACKED.containsKey(key(gx, gz))) return true;
+        return st == RED && secondsLeft(w.getTime(), crossingZRoad) > 2;
     }
 
     /** Красный (или жёлтый) для машины у pos, едущей по направлению dir. Нерегулируемый — false. */
     public static boolean isRed(ServerWorld w, BlockPos pos, int dir) {
         int gx = line(pos.getX()), gz = line(pos.getZ());
         if (!signalled(w, gx, gz)) return false;
-        return state(w.getTime(), dir == 1 || dir == 3) != GREEN;
+        int st = stateAt(w, gx, gz, w.getTime(), dir == 1 || dir == 3);
+        return st >= 0 && st != GREEN;
     }
 
     // ------------------------------------------------------------------ подход машины к перекрёстку
@@ -147,8 +175,8 @@ public final class TrafficLights {
         Approach ap = approach(car.getPos(), fwd, 2.1);
         if (ap == null || ap.d < -1.2 || ap.d > 40) return Float.MAX_VALUE;
         if (!signalled(w, ap.gx, ap.gz)) return Float.MAX_VALUE;
-        int st = state(w.getTime(), ap.alongZ);
-        if (st == GREEN) return Float.MAX_VALUE;
+        int st = stateAt(w, ap.gx, ap.gz, w.getTime(), ap.alongZ);
+        if (st == GREEN || st < 0) return Float.MAX_VALUE;
         if (st == YELLOW) {
             double brake = car.speed * car.speed * 10 + 1.5; // не успеваем остановиться — проезжаем на жёлтый
             if (ap.d < brake) return Float.MAX_VALUE;
@@ -185,7 +213,8 @@ public final class TrafficLights {
             if (!w.isChunkLoaded(b)) continue;
             BlockState s = w.getBlockState(b);
             if (!s.isOf(ModContent.TRAFFIC_LIGHT)) { removed = true; continue; } // сломали — пересчитаем
-            int l = state(time, s.get(HorizontalFacingBlock.FACING).getAxis() == Direction.Axis.Z);
+            int l = stateAt(w, gx, gz, time, s.get(HorizontalFacingBlock.FACING).getAxis() == Direction.Axis.Z);
+            if (l < 0) l = (time / 40) % 2 == 0 ? YELLOW : RED; // блэкаут: мигает аварийный
             if (s.get(TrafficLightBlock.LIGHT) != l) w.setBlockState(b, s.with(TrafficLightBlock.LIGHT, l), net.minecraft.block.Block.NOTIFY_LISTENERS);
         }
         if (removed) LIGHTS.remove(key(gx, gz));
@@ -203,7 +232,7 @@ public final class TrafficLights {
         Double before = LAST_D.get(p.getUuid());
         LAST_D.put(p.getUuid(), ap == null ? null : ap.d);
         if (ap == null || before == null || !(before > 0 && ap.d <= 0 && ap.d > -6)) return;
-        if (car.hitSpeed() < 0.12 || !signalled(w, ap.gx, ap.gz) || state(w.getTime(), ap.alongZ) != RED) return;
+        if (car.hitSpeed() < 0.12 || !signalled(w, ap.gx, ap.gz) || stateAt(w, ap.gx, ap.gz, w.getTime(), ap.alongZ) != RED || HACKED.containsKey(key(ap.gx, ap.gz))) return;
         long now = w.getTime();
         if (now - LAST_FINE.getOrDefault(p.getUuid(), -10000L) < 20 * 20) return;
         LAST_FINE.put(p.getUuid(), now);

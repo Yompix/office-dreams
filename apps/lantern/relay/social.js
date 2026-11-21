@@ -442,7 +442,7 @@ class Social {
       if (f.version && f.version !== 'any' && !String(r.meta.version).startsWith(String(f.version))) continue;
       const owner = r.ownerId ? this.pub(this.user(r.ownerId)) : null;
       out.push({ code: r.code, title: r.meta.title, tags: r.meta.tags, version: r.meta.version, slots: r.meta.slots,
-        edition: r.edition, players: r.joiners.size, host: owner ? { nick: owner.nick, tag: owner.tag, lantern: owner.lantern } : null,
+        edition: r.edition, players: r.joiners.size, host: owner ? { nick: owner.nick, tag: owner.tag, lantern: owner.lantern, flame: this.eco ? this.eco.flameOf(r.ownerId) : '' } : null,
         likes: r.likes ? r.likes.size : 0, age: Math.round((Date.now() - r.created) / 60000),
         // 1.5: номер, режим, места (cap — всего, с хозяином), пароль, связь хозяина, размер мира
         num: r.num || '', mode: r.mode || 'other', cap: r.cap || 0, locked: !!r.passHash, size_mb: r.sizeMb || 0,

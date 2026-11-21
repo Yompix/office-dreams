@@ -422,6 +422,7 @@ func _make_code_card(compact: bool) -> PanelContainer:
 	_qr.visible = not compact
 	if not compact:
 		cmid.add_child(_qr)
+		FlameFX.qr_skin(_qr)     # 2.0.3: «Призрачное пламя» — призрачная карточка кода
 	var acts: BoxContainer = UI.vbox(8) if compact else UI.hbox(8)
 	var cb := UI.button(L.t("Скопировать код"), "primary", _copy_code, "copy")
 	cb.clip_text = true
@@ -888,6 +889,7 @@ func _qr_sheet() -> void:
 	var v: VBoxContainer = Overlays.sheet(app, L.t("QR-код комнаты"), L.t("Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — мир появится у него в Minecraft"))
 	var t := TextureRect.new()
 	QR.encode(_qr_link(), QR.ECC_M).show_in(t, 220)
+	FlameFX.qr_skin(t)     # 2.0.3: «Призрачное пламя»
 	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(t)
 	var cl := UI.label(_shown_code, 30, UI.accent(), UI.font_black)

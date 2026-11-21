@@ -78,7 +78,15 @@ public final class LifeNet {
     private static void handle(ServerPlayerEntity p, String type, NbtCompound d) {
         switch (type) {
             case "hello" -> Life.sync(p);
-            case "emote" -> emote(p, d.getString("id")); // 0.8: жест игрока (V) — видят игроки рядом
+            case "emote" -> emote(p, d.getString("id"));
+            // 0.9: прогресс, «Империя», «Сеть», значки карты
+            case "progress_state" -> com.yompix.novograd.gta.Progress.send(p);
+            case "map_acts" -> com.yompix.novograd.gta.Progress.mapActs(p);
+            case "empire_state" -> com.yompix.novograd.gta.Empire.send(p);
+            case "empire_hire" -> com.yompix.novograd.gta.Empire.hire(p, d.getInt("i"), d.getString("who"));
+            case "grid_scan" -> com.yompix.novograd.gta.Grid.scan(p);
+            case "grid_hack" -> com.yompix.novograd.gta.Grid.hack(p, d.getString("id"));
+            case "grid_fail" -> com.yompix.novograd.gta.Grid.fail(p); // 0.8: жест игрока (V) — видят игроки рядом
             case "ready" -> com.yompix.novograd.story.Story.onClientReady(p);
             case "perf_level" -> com.yompix.novograd.perf.PerfLevel.level = Math.max(0, Math.min(2, d.getInt("level"))); // настройка «Производительность»
             case "taxi_call" -> Taxi.call(p, d.getString("dest"));

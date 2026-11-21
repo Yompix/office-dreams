@@ -716,6 +716,16 @@ public final class Director {
     }
 
     private static void face(ServerPlayerEntity p, Scene sc, CitizenEntity c, String who) {
+        if (who.equals("cam")) { // 0.9: лицом к камере следующего плана (крупный план не со спины)
+            Vec3d at = camAt(p.getServerWorld(), sc, 2);
+            if (at == null) return;
+            float yaw = (float) Math.toDegrees(Math.atan2(-(at.x - c.getX()), at.z - c.getZ()));
+            c.getNavigation().stop();
+            c.setYaw(yaw);
+            c.setBodyYaw(yaw);
+            c.setHeadYaw(yaw);
+            return;
+        }
         if (who.equals("player")) {
             c.face(p);
             return;

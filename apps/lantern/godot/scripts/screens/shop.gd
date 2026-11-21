@@ -28,7 +28,7 @@ func _ready() -> void:
 	_body = UI.vbox(14)
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_body)
-	var foot := UI.para(L.t("Только внешний вид — никаких преимуществ в игре и случайных наград."), 12, UI.DIM)
+	var foot := UI.para(L.t("Без случайных наград. Пламя даёт фишки, но не влияет на связь, скорость и честность игры."), 12, UI.DIM)
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(foot)
 	Social.changed.connect(func(w): if w in ["shop", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
@@ -71,6 +71,8 @@ func _render() -> void:
 		for i in 4:
 			g.add_child(FX.skeleton(210, UI.R_L))
 	var equip: Dictionary = Social.shop.get("equip", {})
+	if _kind == "flame" and not items.is_empty():
+		_body.add_child(_flame_head(items, equip))
 	for it in items:
 		if it.kind != _kind:
 			continue
@@ -86,7 +88,7 @@ func _preview(it: Dictionary) -> Control:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	match it.kind:
 		"flame":
-			box.add_child(LanternIcon.new().setup(6, {"flame": it.id}, 84))
+			box.add_child(LanternIcon.new().setup(6, {"flame": it.id}, 96))
 		"shape":
 			box.add_child(LanternIcon.new().setup(5, {"shape": it.id, "flame": Social.eco.get("equip", {}).get("flame", "")}, 84))
 		"nick":
@@ -119,13 +121,19 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	stage.add_theme_stylebox_override("panel", UI.box(Color(0.033, 0.033, 0.033, 0.45), UI.R_L, 0, Color(1, 1, 1, 0.06), 1))
 	stage.add_child(_preview(it))
 	v.add_child(stage)
-	var nl := UI.label(L.t(String(it.name)), 14, UI.TEXT, UI.font_bold)
+	var nl := UI.label(FlameFX.name_of(it.id) if it.kind == "flame" else L.t(String(it.name)), 14, UI.TEXT, UI.font_bold)
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	nl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nl.custom_minimum_size = Vector2(60, 40)
 	nl.max_lines_visible = 2
 	v.add_child(nl)
+	if it.kind == "flame":
+		# 2.0.3: что даёт пламя, пока надето
+		var pl := UI.para(FlameFX.perk_of(it.id), 12, UI.MUTED)
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pl.custom_minimum_size.y = 48
+		v.add_child(pl)
 	var b: Button
 	if it.get("season", null) != null and not it.owned:
 		b = UI.button(L.t("Сезон"), "ghost", func(): app.go("quests", true, {"tab": "season"}), "star")
@@ -150,6 +158,44 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	UI.fit_font(b, 14, 11)          # 1.8.2: «Надягнено» / «Temporada» на 320 dp — мельче, а не обрезано
 	b.custom_minimum_size.y = 44
 	v.add_child(b)
+	return p
+
+
+## 2.0.3: шапка вкладки «Пламя»: надетое пламя крупно, его фишка и прогресс коллекции
+func _flame_head(items: Array, equip: Dictionary) -> Control:
+	var cur := String(equip.get("flame", "flame_amber"))
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.pix(Color(0.03, 0.03, 0.03, 0.92), Color(1, 1, 1, 0.55), 4), 18, 14))
+	var r: BoxContainer = UI.vbox(10) if UI.compact() else UI.hbox(18)     # телефон: фонарь над текстом
+	p.add_child(r)
+	var li := LanternIcon.new().setup(9, {"flame": cur}, 96 if UI.compact() else 120)
+	li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	r.add_child(li)
+	var v := UI.vbox(6)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	v.add_child(UI.caption(L.t("Ваше пламя")))
+	var nm := UI.label(FlameFX.name_of(cur), 24, UI.TEXT, UI.font_title)
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.custom_minimum_size.x = 120
+	v.add_child(nm)
+	v.add_child(UI.para(FlameFX.perk_of(cur), 14, UI.TEXT))
+	var have := 0
+	var total := 0
+	for it in items:
+		if it.kind == "flame" and it.price != 0:
+			total += 1
+			if it.owned:
+				have += 1
+	var col := UI.label(L.t("Коллекция: %d из %d") % [have, total], 13 if not UI.compact() else 11, UI.TEXT, UI.font_caps)
+	col.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.custom_minimum_size.x = 120
+	v.add_child(col)
+	for c in FlameFX.COLLECT:
+		var ok := have >= int(c[0])
+		var line := UI.para(("✓ " if ok else "· ") + (L.t("%d пламени — ") % int(c[0])) + L.t(String(c[1])), 12, UI.TEXT if ok else UI.DIM)
+		v.add_child(line)
+	r.add_child(v)
 	return p
 
 

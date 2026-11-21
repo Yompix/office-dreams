@@ -37,7 +37,8 @@
     "FreeCamSubmersionMixin",
     "PlayerAnimMixin",
     "HandOnlyBobMixin",
-    "DisplayTickBiomeMixin"
+    "DisplayTickBiomeMixin",
+    "BlackoutLightMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -317,6 +317,10 @@ func _process(d: float) -> void:
 			_mc_names.erase(e.peer)
 		var text := L.t("%s %s ваш мир") % [nm, L.t("зашёл в") if e.on else L.t("вышел из")]
 		app.toast(text, UI.JAVA if e.on else UI.MUTED)
+		# 2.0.3: «Вспышка входа» — у гостя 3+ пламени (коллекция, проверено сервером): огненная вспышка его пламенем
+		var u: Variant = e.user
+		if e.on and u is Dictionary and u.get("collector", false):
+			FlameFX.flare(app, String(u.get("flame", "")), L.t("✦ %s входит с пламенем «%s»") % [nm, FlameFX.name_of(String(u.get("flame", "")))])
 		_attention(text, false, e.on)
 		if app.server.is_alive() and app.server.edition == "java" and not app.own.active:
 			app.server.command('tellraw @a {"text":"[LANTERN] %s","color":"%s"}' % [text.json_escape(), "green" if e.on else "gray"])

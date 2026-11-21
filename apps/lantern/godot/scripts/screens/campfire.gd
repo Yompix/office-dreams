@@ -68,6 +68,23 @@ func _rebuild() -> void:
 		st.size.x = 184
 		add_child(st)
 		_spots.append({"f": f, "icon": li, "label": l, "status": st})
+	# 2.0.3: огонь горит живым пламенем: «Золотая корона» у кого-то у огня — корона с искрами для всех,
+	# иначе — самое редкое пламя среди тех, кто у костра (ваше пламя меняет огонь и у друзей)
+	var best := "flame_amber"
+	var crown := false
+	for f in people:
+		var fl := FlameFX.flame_of(f.get("equip", ""))
+		if fl == "":
+			continue
+		if FlameFX.has(fl, "crown"):
+			crown = true
+		if int(FlameFX.info(fl).rank) > int(FlameFX.info(best).rank):
+			best = fl
+	_fire = FlameFX.make("flame_emerald" if crown else best)
+	_fire.set_glow(1.0)
+	_fire.set_meta("spot", true)
+	add_child(_fire)
+	move_child(_fire, 0)
 	_layout()
 
 
@@ -83,7 +100,15 @@ func _notification(what: int) -> void:
 		_layout()
 
 
+var _fire: FlameFX
+
+
 func _layout() -> void:
+	if is_instance_valid(_fire) and size.x > 0:
+		var fc := Vector2(size.x / 2, size.y * 0.66)
+		var fw := clampf(size.x * 0.26, 140.0, 260.0)
+		_fire.size = Vector2(fw, fw * 1.3)
+		_fire.position = Vector2(fc.x - fw / 2, fc.y + 14 - fw * 1.3)
 	# 1.8.2: подсказка-таблетка не шире экрана (на 320 dp — в две строки)
 	if is_instance_valid(_hint) and size.x > 0:
 		_hint.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -184,8 +209,8 @@ func _draw() -> void:
 	# дрова
 	draw_line(c + Vector2(-46, 18), c + Vector2(46, -2), Color("4a2e1c"), 14)
 	draw_line(c + Vector2(-46, -2), c + Vector2(46, 18), Color("5a3822"), 14)
-	# пламя
-	for layer in 3:
+	# пламя (2.0.3: живое пламя — FlameFX поверх; рисованное — только если его нет)
+	for layer in (0 if is_instance_valid(_fire) else 3):
 		var col: Color = [Color("ff5a1f"), Color("ff9a2e"), Color("ffe08a")][layer]
 		var hh: float = (110 - layer * 30) * flick
 		var ww: float = 46 - layer * 12

@@ -45,13 +45,24 @@ const ACHIEVEMENTS = [
   ['lantern_9', 'Звезда', 'Звезда', ['lantern', 9], 500],
   ['likes_10', 'Любимый мир', 'Любимец', ['likes', 10], 60],
   ['referral_1', 'Привёл друга', 'Проводник', ['referrals', 1], 50],
+  // 2.0.3: коллекция пламени (белое не считается): 3 — «вспышка входа» у друзей, 6 — титул
+  ['flames_3', 'Коллекция огня', 'Коллекционер', ['flames', 3], 30],
+  ['flames_6', 'Хранитель пламени', 'Хранитель пламени', ['flames', 6], 80],
 ];
+// 2.0.3: фишки пламени, которые решает сервер (остальное — внешний вид у клиентов по equip)
+const FLAME_PERKS = {
+  sparks10: ['flame_emerald'],                    // +10% искр за задания
+  pixel_react: ['flame_orange'],                  // ещё 4 реакции в чате «Любых игр»
+};
+const PIXEL_REACTIONS = ['👾', '🕹️', '💾', '⭐'];
 
 // Косметика: [id, вид, название, цена искр, сезонная/премиум]
 const SHOP = [
-  ['flame_amber', 'flame', 'Янтарное пламя', 0], ['flame_orange', 'flame', 'Оранжевое пламя', 150],
-  ['flame_rose', 'flame', 'Розовое пламя', 300], ['flame_violet', 'flame', 'Фиолетовое пламя', 450],
-  ['flame_ice', 'flame', 'Ледяное пламя', 600], ['flame_emerald', 'flame', 'Изумрудное пламя', 800],
+  // 2.0.3: пламя в стиле Yompix — яркое, у каждого своя «фишка», пока надето (клиент: ui/flame_fx.gd).
+  // id прежние (покупки игроков сохраняются), меняются только названия.
+  ['flame_amber', 'flame', 'Белое пламя', 0], ['flame_orange', 'flame', 'Пиксельное пламя', 150],
+  ['flame_rose', 'flame', 'Неоновое пламя', 300], ['flame_violet', 'flame', 'Глитч-пламя', 450],
+  ['flame_ice', 'flame', 'Призрачное пламя', 600], ['flame_emerald', 'flame', 'Золотая корона', 800],
   ['flame_rainbow', 'flame', 'Радужное пламя', 1500],
   ['shape_cube', 'shape', 'Кубический фонарь', 0], ['shape_round', 'shape', 'Круглый фонарь', 400],
   ['shape_tall', 'shape', 'Башенка', 600], ['shape_star', 'shape', 'Звёздный фонарь', 1000],
@@ -163,7 +174,9 @@ class Economy {
     if (r.claimed) return 'Награда уже получена';
     if (period !== 'd' + dayKey() && period !== weekKey()) return 'Задание устарело';
     this.q('UPDATE quests SET claimed=1 WHERE uid=? AND period=? AND qid=?').run(uid, period, qid);
-    this.give(uid, q.sparks, q.xp);
+    // 2.0.3: «Золотая корона» — +10% искр за задания (минимум +1), пока надета
+    const bonus = this.flamePerk(uid, 'sparks10') ? Math.max(1, Math.round(q.sparks * 0.1)) : 0;
+    this.give(uid, q.sparks + bonus, q.xp);
     this.addStat(uid, 'quests', 1);
     this.checkAchievements(uid);
     return '';
@@ -202,7 +215,7 @@ class Economy {
   checkAchievements(uid) {
     const u = this.social.user(uid);
     if (!u) return;
-    const vals = { friends: this.social.friendsOf(uid).length, lantern: require('./social').lanternLevel(u.xp).level, best_streak: u.best_streak };
+    const vals = { friends: this.social.friendsOf(uid).length, lantern: require('./social').lanternLevel(u.xp).level, best_streak: u.best_streak, flames: this.flamesOwned(uid) };
     const have = new Set(this.q('SELECT id FROM ach WHERE uid=?').all(uid).map((r) => r.id));
     for (const [id, name, title, [key, need], sparks] of ACHIEVEMENTS) {
       if (have.has(id)) continue;
@@ -234,7 +247,15 @@ class Economy {
 
   // ---- магазин
   owns(uid, item) { return SHOP.find((s) => s.id === item && s.price === 0) || !!this.q('SELECT 1 FROM owned WHERE uid=? AND item=?').get(uid, item); }
-  equip(uid) { const u = this.social.user(uid); let e = {}; try { e = JSON.parse(u.equip || '{}'); } catch {} return { ...DEFAULT_EQUIP, ...e }; }
+  equip(uid) { const u = this.social.user(uid); let e = {}; try { e = JSON.parse((u && u.equip) || '{}'); } catch {} return { ...DEFAULT_EQUIP, ...e }; }
+  // 2.0.3: пламя и коллекция — только по таблице owned/экипировке на сервере (клиенту не верим)
+  flameOf(uid) { if (!uid) return ''; const f = this.equip(uid).flame; return this.owns(uid, f) ? f : 'flame_amber'; }
+  flamePerk(uid, perk) { return (FLAME_PERKS[perk] || []).includes(this.flameOf(uid)); }
+  flamesOwned(uid) {
+    const ids = new Set(SHOP.filter((s) => s.kind === 'flame' && s.price !== 0).map((s) => s.id));
+    return this.q('SELECT item FROM owned WHERE uid=?').all(uid).filter((r) => ids.has(r.item)).length;
+  }
+  collector(uid) { return uid ? this.flamesOwned(uid) >= 3 : false; }
 
   buy(uid, item) {
     const it = SHOP.find((s) => s.id === item);
@@ -245,6 +266,7 @@ class Economy {
     if (u.sparks < it.price) return 'Не хватает искр';
     this.q('UPDATE users SET sparks=sparks-? WHERE id=?').run(it.price, uid);
     this.q('INSERT INTO owned(uid,item,ts) VALUES(?,?,?)').run(uid, item, Date.now());
+    if (it.kind === 'flame') this.checkAchievements(uid);
     return '';
   }
 
@@ -259,7 +281,7 @@ class Economy {
 
   shopView(uid) {
     const owned = new Set(this.q('SELECT item FROM owned WHERE uid=?').all(uid).map((r) => r.item));
-    return { items: SHOP.map((s) => ({ ...s, owned: s.price === 0 || owned.has(s.id) })), equip: this.equip(uid) };
+    return { items: SHOP.map((s) => ({ ...s, owned: s.price === 0 || owned.has(s.id) })), equip: this.equip(uid), flames: this.flamesOwned(uid) };
   }
 
   // ---- сезон
@@ -288,7 +310,7 @@ class Economy {
     const reward = track === 'premium' ? ['item', SEASON.premium[tier]] : SEASON.free[tier];
     if (!reward || !reward[1]) return 'На этой ступени нет награды';
     if (reward[0] === 'sparks') this.give(uid, reward[1]);
-    else this.q('INSERT OR IGNORE INTO owned(uid,item,ts) VALUES(?,?,?)').run(uid, reward[1], Date.now());
+    else { this.q('INSERT OR IGNORE INTO owned(uid,item,ts) VALUES(?,?,?)').run(uid, reward[1], Date.now()); this.checkAchievements(uid); }
     const claimed = [...v.claimed, key].join(',');
     this.q('INSERT INTO season(uid,sid,claimed) VALUES(?,?,?) ON CONFLICT(uid,sid) DO UPDATE SET claimed=?').run(uid, v.id, claimed, claimed);
     return '';
@@ -420,4 +442,4 @@ class Economy {
 }
 
 const ECO_CMDS = new Set(['demo_purchase', 'demo_wipe', 'ad_reward', 'eco', 'quest_claim', 'streak_claim', 'achievements', 'set_title', 'shop', 'buy', 'wear', 'season', 'season_claim', 'referral', 'top', 'purchase']);
-module.exports = { Economy, ECO_CMDS, QUESTS_DAILY, QUESTS_WEEKLY, ACHIEVEMENTS, SHOP, SEASON, STREAK_REWARD, dayKey, weekKey };
+module.exports = { FLAME_PERKS, PIXEL_REACTIONS, Economy, ECO_CMDS, QUESTS_DAILY, QUESTS_WEEKLY, ACHIEVEMENTS, SHOP, SEASON, STREAK_REWARD, dayKey, weekKey };

@@ -125,6 +125,9 @@ public final class UiAudit {
         screen("realestate", c -> new com.yompix.novograd.client.screen.RealEstateScreen());
         screen("guard", c -> new com.yompix.novograd.client.screen.BodyguardScreen());
         screen("dark", c -> new com.yompix.novograd.client.screen.DarkJobsScreen());
+        screen("progress", c -> new com.yompix.novograd.client.city.ProgressScreen()); // 0.9
+        screen("empire", c -> new com.yompix.novograd.client.city.EmpireScreen());
+        screen("grid", c -> new com.yompix.novograd.client.city.GridScreen());
         screen("drive", c -> new com.yompix.novograd.client.screen.DriveScreen());
         screen("skills", c -> new com.yompix.novograd.client.screen.SkillsScreen());
         screen("outdoor", c -> new com.yompix.novograd.client.screen.OutdoorScreen(""));

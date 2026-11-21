@@ -317,6 +317,14 @@ public final class BigHeists {
     }
 
     private static final Map<UUID, Run> RUNS = new HashMap<>();
+
+    /** 0.9, «Сеть»: ослепить камеры текущего дела игрока на ticks. false — дела нет. */
+    public static boolean hackCams(ServerPlayerEntity p, int ticks) {
+        Run r = RUNS.get(p.getUuid());
+        if (r == null || r.camsOff < 0) return false;
+        r.camsOff = Math.max(r.camsOff, ticks);
+        return true;
+    }
     private static final Set<UUID> CREW_IDS = new HashSet<>();
     /** Охрана, ещё не поднявшая тревогу: не бросается на вооружённого игрока сама (CitizenEntity) и не слышит чужую драку (Crime). */
     private static final Set<UUID> CALM = new HashSet<>();

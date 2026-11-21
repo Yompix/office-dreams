@@ -95,6 +95,7 @@ func _qr_sheet(tag: String) -> void:
 	var v: VBoxContainer = Overlays.sheet(app, L.t("Ваш QR-код"), L.t("Друг наводит камеру телефона и нажимает «Открыть в LANTERN» — заявка отправится сама"))
 	var t := TextureRect.new()
 	QR.encode(DeepLink.friend_web_link(tag), QR.ECC_M).show_in(t, 200)
+	FlameFX.qr_skin(t)     # 2.0.3: «Призрачное пламя»
 	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(t)
 	var l := UI.label(tag, 22, UI.accent(), UI.font_black)
@@ -213,6 +214,11 @@ func _row(u: Dictionary, status: String, trail: Control, cb := Callable()) -> Pa
 		var tt := UI.label(L.t(String(u.title)), 12, UI.accent(), UI.font_bold)
 		tt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # 1.8.2: титул («Constructor de puentes») не распирает строку друга
 		tv.add_child(tt)
+	# 2.0.3: фишки пламени друга (с сервера, equip проверен при «надеть»): неоновый ник, радужная аура
+	var fl := FlameFX.flame_of(u.get("equip", ""))
+	FlameFX.style_nick(title, fl)
+	if FlameFX.has(fl, "rainbow"):
+		FlameFX.aura(r, fl)
 	return r
 
 
