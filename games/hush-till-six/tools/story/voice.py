@@ -14,6 +14,9 @@ import json, os, re, subprocess, sys, difflib
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GAME = os.path.join(ROOT, 'web')
 LINES = json.load(open(os.path.join(ROOT, 'tools/story/lines.json')))
+# 19 ноя: русский СМЕНЩИК (дневной охранник) — запись владельца (его голос), НЕ генерировать заново в ElevenLabs:
+# 21 ноя p09/p11/dg04 по ошибке переозвучили старым голосом — вернули записи владельца. Новые реплики сменщика — просить владельца записать.
+OWNER_RU = {'СМЕНЩИК'}
 VOICES = {
   'ru': {'ИТАН': '9fof2VPjlqYRNgXCv1cT', 'СМЕНЩИК': '26NxJyRo8NCmbvY1KNWp', 'ГАС': 'FXmXRAbqIOvSE0Op0Jo0', 'ЛИЛИ': 'CamFZN2KIaqnyvcaFe3E',
          'ФРЭНК': '9AjtU6o19uipv7QL8dLL', '???': 'SkGOoi8yfK3ONMNKMKj0', 'ВЕРА': 'IExsTwnJMk9vWMW4SzsN'},
@@ -47,6 +50,7 @@ def sdir(lang):
 def plan(lang):
     by = {}
     for k, L in LINES.items():
+        if lang == 'ru' and L['who'] in OWNER_RU: continue
         if k in SKIP or L['who'] in EXCLUDE or L['who'] == '???' or (L['who'] in SKIP_WHO and lang in ('ru', 'en')) or (ONLY and not re.match(ONLY, k)): continue
         by.setdefault(L['who'], []).append(k)
     out = []
