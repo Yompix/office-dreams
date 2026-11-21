@@ -190,6 +190,7 @@ public class CutsceneScreen extends LifeScreen {
                 cam.setPosition(f[0], f[1] - cam.getStandingEyeHeight(), f[2]);
             }
             mc().setCameraEntity(cam);
+            freeView(true);
             sendHold(true);
             if (CAMCHECK && CineRec.armed) openCamLog();
         }
@@ -221,7 +222,7 @@ public class CutsceneScreen extends LifeScreen {
         return speakerCache;
     }
 
-    private int speakerCacheIdx = -2;
+    private int speakerCacheIdx = -2, emoLine = -1;
     private net.minecraft.entity.Entity speakerCache;
 
     // ======================================================================= камера
@@ -273,10 +274,53 @@ public class CutsceneScreen extends LifeScreen {
 
     /** Каждый кадр: время сцены и камера. */
     private void frame(float delta) {
-        if (running) shown = Math.max(shown, Math.min(total + 0.5, base + delta * 0.05));
-        clock = Math.max(clock, (screenTicks + delta) / 20.0);
-        place(Math.min(shown, total), delta);
+        if (!FREE) {
+            if (running) shown = Math.max(shown, Math.min(total + 0.5, base + delta * 0.05));
+            clock = Math.max(clock, (screenTicks + delta) / 20.0);
+            place(Math.min(shown, total), delta);
+            return;
+        }
+        // 0.8: время сцены идёт по часам кадра; пауза на догрузку не обрывает движение, а плавно тормозит его
+        // (скорость времени 1 → 0 за ~0.3 с по smoothstep) и так же плавно разгоняет; сервер стоит на паузе
+        // весь «холд», клиент на разгоне и торможении теряет и догоняет одно и то же время — сдвига нет
+        double c = (screenTicks + delta) / 20.0;
+        if (c > clock) {
+            double d = Math.min(0.1, c - clock);
+            clock = c;
+            if (ready) {
+                double target = running ? 1 : 0;
+                rateLin += MathHelper.clamp(target - rateLin, -d / 0.3, d / 0.3);
+                double r = rateLin * rateLin * (3 - 2 * rateLin);
+                shown = Math.min(total + 0.5, shown + d * r);
+            }
+        }
+        placeFree(Math.min(shown, total), delta);
     }
+
+    private static Boolean cullWas;
+
+    /**
+     * 0.8: камера летит сквозь блоки — на время сцены выключить отсечение участков по видимости (ванильное
+     * chunkCullingEnabled; Sodium читает тот же флаг), иначе изнутри стены или за ней пропадает геометрия.
+     */
+    private void freeView(boolean on) {
+        if (!FREE) return;
+        var c = mc();
+        if (on) {
+            if (cullWas == null) cullWas = c.chunkCullingEnabled;
+            c.chunkCullingEnabled = false;
+        } else if (cullWas != null) {
+            c.chunkCullingEnabled = cullWas;
+            cullWas = null;
+        } else return;
+        if (c.worldRenderer != null) c.worldRenderer.scheduleTerrainUpdate();
+    }
+
+    /** 0.8: свободная камера (кривые без поправок). -Dnovograd.freecam=false — камера 0.7 (для сравнения). */
+    static final boolean FREE = !"false".equals(System.getProperty("novograd.freecam"));
+    private double rateLin = 1;
+    private float lastDelta;
+    private boolean wasUnderBlack;
 
     /** Критически демпфированная пружина (неявный Эйлер — устойчива при любом шаге кадра). Возвращает {x, v}. */
     private static double[] spring(double x, double v, double target, double omega, double dt) {
@@ -521,7 +565,194 @@ public class CutsceneScreen extends LifeScreen {
         cam.prevPitch = cam.getPitch();
         cam.setHeadYaw(cam.getYaw());
         cam.prevHeadYaw = cam.getYaw();
-        logFrame(time, si, cut, guard);
+        logFrame(time, si, cut, guard, camX, camY, camZ, camYaw, camPitch);
+    }
+
+    // ======================================================================= 0.8: свободная камера
+    /** Готовая «оснастка» плана: кривая позиции, направления и FOV в узлах. */
+    private static final class Rig {
+        CineRig.Curve curve;
+        Vec3d[] dirs;
+        double[] fov, roll, keyT;
+        boolean arc;
+    }
+
+    private final java.util.Map<Integer, Rig> rigs = new java.util.HashMap<>();
+    private Vec3d trackAim, folStart;
+    private double[] folHead;
+
+    /** Собрать оснастку плана (один раз, до его начала): всё, что можно посчитать заранее, считается заранее. */
+    private Rig rig(int si) {
+        Rig r = rigs.get(si);
+        if (r != null) return r;
+        Shot s = shots.get(si);
+        r = new Rig();
+        List<Vec3d> pts = new ArrayList<>();
+        if (s.keys() != null) {
+            double[] k = s.keys();
+            int n = k.length / 8;
+            r.dirs = new Vec3d[n];
+            r.fov = new double[n];
+            r.roll = new double[n];
+            r.keyT = new double[n];
+            for (int i = 0; i < n; i++) {
+                pts.add(new Vec3d(k[i * 8 + 1], k[i * 8 + 2], k[i * 8 + 3]));
+                r.dirs[i] = CineRig.dir(k[i * 8 + 4], k[i * 8 + 5]);
+                r.fov[i] = k[i * 8 + 6];
+                r.roll[i] = k[i * 8 + 7];
+                r.keyT[i] = k[i * 8];
+            }
+        } else if (s.from() != null) {
+            double[] to0 = s.to() != null ? s.to() : s.from();
+            double[] f = fromL[si] != null ? fromL[si] : s.from(), to = toL[si] != null ? toL[si] : to0;
+            int v = Math.max(0, variant[si]);
+            for (int i = 0; i <= 16; i++) pts.add(CamPath.at(f, to, i / 16.0, si, v, craneY[si]));
+            r.dirs = new Vec3d[]{CineRig.dir(s.from()[3], s.from()[4]), CineRig.dir(to0[3], to0[4])};
+        }
+        if (!pts.isEmpty()) {
+            r.curve = new CineRig.Curve(pts);
+            // заметный пролёт — ровная скорость по длине дуги; почти на месте (панорама) — по времени ключей
+            r.arc = r.curve.length > 0.6;
+        }
+        rigs.put(si, r);
+        return r;
+    }
+
+    /** Ключи: время плана → параметр узлов (кусочно-линейно по временам ключей). */
+    private static double keyParam(double[] keyT, double t) {
+        int n = keyT.length;
+        if (n < 2 || t <= keyT[0]) return 0;
+        if (t >= keyT[n - 1]) return n - 1;
+        int i = 0;
+        while (i < n - 2 && keyT[i + 1] < t) i++;
+        return i + (t - keyT[i]) / Math.max(1e-6, keyT[i + 1] - keyT[i]);
+    }
+
+    private void placeFree(double time, float delta) {
+        if (shots.isEmpty() || mc().world == null) return;
+        int si = shotIndex(time);
+        Shot s = shots.get(si);
+        if (ready) planShot(si); // вариант пролёта — до начала плана (обычно уже посчитан за 0.3 с), дальше не меняется
+        double local = time - shotStart(si), sec = Math.max(0.05, s.sec());
+        double u = MathHelper.clamp(local / sec, 0, 1);
+        boolean cut = Double.isNaN(camX) || si != lastShot;
+        if (cut) trackAim = null;
+        double x, y, z;
+        Vec3d look;
+        float fovA, fovB, rollV = 0;
+        var fol = actor(s.follow());
+        var trk = actor(s.track());
+        if (fol != null) {
+            // за машиной/героем: опора — сглаженная траектория цели (не сама цель: её позиция приходит ступеньками)
+            double[] sm = CineRig.smooth(fol, clock, 0.45);
+            Vec3d at = sm != null ? new Vec3d(sm[0], sm[1], sm[2]) : fol.getLerpedPos(delta);
+            // курс оснастки — не курс тела (герой поворачивается к собеседнику — камера облетала его по дуге):
+            // на склейке берём курс тела, дальше — направление пройденного с начала плана пути (остановился —
+            // курс остаётся), у быстрой машины — направление скорости; переходы по smoothstep
+            if (cut || folStart == null) {
+                folStart = at;
+                folHead = sm != null ? new double[]{sm[3], sm[4]} : new double[]{-Math.sin(Math.toRadians(fol.getYaw())), Math.cos(Math.toRadians(fol.getYaw()))};
+            }
+            double fx = folHead[0], fz = folHead[1];
+            double dx = at.x - folStart.x, dz = at.z - folStart.z, dl = Math.hypot(dx, dz);
+            double wd = MathHelper.clamp(dl / 2.5, 0, 1);
+            wd = wd * wd * (3 - 2 * wd);
+            if (dl > 1e-4) {
+                fx = MathHelper.lerp(wd, fx, dx / dl);
+                fz = MathHelper.lerp(wd, fz, dz / dl);
+            }
+            if (sm != null) {
+                double sp = Math.hypot(sm[5], sm[6]), wv = MathHelper.clamp((sp - 3) / 5, 0, 1);
+                wv = wv * wv * (3 - 2 * wv);
+                if (wv > 0) {
+                    fx = MathHelper.lerp(wv, fx, sm[5] / sp);
+                    fz = MathHelper.lerp(wv, fz, sm[6] / sp);
+                }
+            }
+            double hl = Math.hypot(fx, fz);
+            if (hl > 1e-6) {
+                fx /= hl;
+                fz /= hl;
+            }
+            double back = s.off()[0], up = s.off()[1], side = s.off()[2];
+            x = at.x - fx * back + fz * side;
+            y = at.y + up;
+            z = at.z - fz * back - fx * side;
+            Vec3d focus = at.add(fx * 1.5, fol.getHeight() * 0.8, fz * 1.5);
+            look = focus.subtract(x, y, z).normalize();
+            fovA = 80;
+            fovB = 76;
+        } else {
+            Rig r = rig(si);
+            if (r.curve == null) return;
+            double e = CineRig.ease(u, CineRig.RAMP);
+            double param;
+            if (r.arc) param = r.curve.paramAtArc(e);
+            else if (r.keyT != null) param = keyParam(r.keyT, e * r.keyT[r.keyT.length - 1]);
+            else param = e * (r.curve.points() - 1);
+            Vec3d p = r.curve.atParam(param);
+            x = p.x;
+            y = p.y;
+            z = p.z;
+            if (r.keyT != null) {
+                // ключи постановщика: курс/наклон/FOV/крен по тем же узлам, что и позиция (кадр и движение синхронны)
+                double kp = param * (r.dirs.length - 1) / Math.max(1, r.curve.points() - 1);
+                look = CineRig.dirSpline(r.dirs, kp);
+                fovA = fovB = (float) CineRig.spline(r.fov, kp);
+                rollV = (float) CineRig.spline(r.roll, kp);
+            } else {
+                look = CineRig.slerp(r.dirs[0], r.dirs[1], e);
+                fovA = trk != null || !s.track().isEmpty() ? 66 : 72;
+                fovB = trk != null || !s.track().isEmpty() ? 58 : 62;
+            }
+            if (trk != null) {
+                // герой плана: смотрим на сглаженную траекторию героя (без ступенек сетевых позиций)
+                double[] sm = CineRig.smooth(trk, clock, 0.35);
+                Vec3d a = sm != null ? new Vec3d(sm[0], sm[1], sm[2]) : trk.getLerpedPos(delta);
+                trackAim = a.add(0, trk.getHeight() * 0.75, 0);
+            }
+            if (trackAim != null && r.keyT == null) look = trackAim.subtract(x, y, z).normalize();
+        }
+        float yaw = CineRig.yawOf(look), pitch = CineRig.pitchOf(look);
+        camYaw = cut || Float.isNaN(camYaw) ? yaw : camYaw + MathHelper.wrapDegrees(yaw - camYaw); // курс без скачков ±360
+        camPitch = pitch;
+        camX = x;
+        camY = y;
+        camZ = z;
+        lastPos = new Vec3d(x, y, z);
+        lastShot = si;
+        // FOV и крен: явные из сценария важнее; плавно по тому же профилю движения, без «пульсов»
+        double e = CineRig.ease(u, CineRig.RAMP);
+        float a = !Float.isNaN(s.fov()) ? s.fov() : fovA;
+        float b = !Float.isNaN(s.fov2()) ? s.fov2() : !Float.isNaN(s.fov()) ? s.fov() : fovB;
+        if (s.keys() != null) a = b = fovA;
+        com.yompix.novograd.client.studio.CineCam.cutscene = true;
+        com.yompix.novograd.client.studio.CineCam.fov = (float) MathHelper.lerp(e, a, b);
+        com.yompix.novograd.client.studio.CineCam.roll = !Float.isNaN(s.roll()) ? s.roll() : rollV;
+        double ox = camX, oy = camY, oz = camZ;
+        float oyaw = camYaw, opitch = camPitch;
+        double[] bl = blend(ox, oy, oz, oyaw, opitch);
+        if (bl != null) {
+            ox = bl[0];
+            oy = bl[1];
+            oz = bl[2];
+            oyaw = (float) bl[3];
+            opitch = (float) bl[4];
+        }
+        cam.prevX = cam.lastRenderX = ox;
+        cam.prevY = cam.lastRenderY = oy - cam.getStandingEyeHeight();
+        cam.prevZ = cam.lastRenderZ = oz;
+        cam.setPosition(ox, oy - cam.getStandingEyeHeight(), oz);
+        cam.setYaw(oyaw);
+        cam.setPitch(opitch);
+        cam.prevYaw = cam.getYaw();
+        cam.prevPitch = cam.getPitch();
+        cam.setHeadYaw(cam.getYaw());
+        cam.prevHeadYaw = cam.getYaw();
+        lastDelta = delta;
+        boolean underBlack = outT >= 0 && outFade && outT >= BLEND_OUT * 0.5; // выход через затемнение: камера уже у игрока
+        logFrame(time, si, cut || underBlack && !wasUnderBlack, 0, ox, oy, oz, oyaw, opitch);
+        wasUnderBlack = underBlack;
     }
 
     // ======================================================================= проверка камеры по кадрам
@@ -537,19 +768,19 @@ public class CutsceneScreen extends LifeScreen {
             String b = System.getProperty("novograd.rec", System.getProperty("java.io.tmpdir") + "/novograd_cam.mp4");
             if (sceneNo++ > 0) b = b.replace(".mp4", "_" + sceneNo + ".mp4");
             camLog = new PrintWriter(new FileWriter(b.replace(".mp4", ".cam.tsv")), true);
-            camLog.println("t\tshot\tcut\tx\ty\tz\tyaw\tpitch\tinside\tcrossed\tstep\tguard");
+            camLog.println("t\tshot\tcut\tx\ty\tz\tyaw\tpitch\tinside\tcrossed\tstep\tguard\tfov\troll\tdelta");
         } catch (Exception e) {
             camLog = null;
         }
     }
 
-    private void logFrame(double t, int si, boolean cut, int guard) {
+    private void logFrame(double t, int si, boolean cut, int guard, double px, double py, double pz, float pyaw, float ppitch) {
         if (!CAMCHECK || camLog == null || !ready || CineRec.on && !CineRec.capturing()) return;
-        Vec3d now = new Vec3d(camX, camY, camZ);
+        Vec3d now = new Vec3d(px, py, pz);
         boolean in = !CamPath.clear(mc().world, now, 0.1);
         boolean cross = !cut && lastFinal != null && !CamPath.free(mc().world, lastFinal, now);
         double step = cut || lastFinal == null ? 0 : now.distanceTo(lastFinal);
-        float turn = cut || lastFinal == null ? 0 : Math.abs(MathHelper.wrapDegrees(camYaw - lastYawLog)); // первый записанный кадр — как склейка
+        float turn = cut || lastFinal == null ? 0 : Math.abs(MathHelper.wrapDegrees(pyaw - lastYawLog)); // первый записанный кадр — как склейка
         frames++;
         if (in) inside++;
         if (cross) crossed++;
@@ -561,9 +792,10 @@ public class CutsceneScreen extends LifeScreen {
         maxStep = Math.max(maxStep, step);
         maxTurn = Math.max(maxTurn, turn);
         lastFinal = now;
-        lastYawLog = camYaw;
+        lastYawLog = pyaw;
         if (camLog != null)
-            camLog.println(String.format(Locale.ROOT, "%.3f\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.2f\t%.2f\t%d\t%d\t%.3f\t%d", t, si, cut ? 1 : 0, camX, camY, camZ, camYaw, camPitch, in ? 1 : 0, cross ? 1 : 0, step, guard));
+            camLog.println(String.format(Locale.ROOT, "%.4f\t%d\t%d\t%.5f\t%.5f\t%.5f\t%.4f\t%.4f\t%d\t%d\t%.4f\t%d\t%.3f\t%.3f\t%.3f", t, si, cut ? 1 : 0, px, py, pz, pyaw, ppitch, in ? 1 : 0, cross ? 1 : 0, step, guard,
+                    com.yompix.novograd.client.studio.CineCam.fov, com.yompix.novograd.client.studio.CineCam.roll, lastDelta));
     }
 
     private void closeCamLog() {
@@ -828,6 +1060,10 @@ public class CutsceneScreen extends LifeScreen {
     public void tick() {
         if (cam == null) return;
         screenTicks++;
+        if (FREE && mc().world != null) for (Integer id : ACTORS.values()) { // отсчёты для сглаженных траекторий героев
+            var e = mc().world.getEntityById(id);
+            if (e != null) CineRig.sample(screenTicks / 20.0, e);
+        }
         com.yompix.novograd.client.studio.CineCam.filter(mc(), grade);
         // ---- старт: ждём участки, отрисовку и актёров (до 8 с), сервер тем временем держит таймлайн
         if (!ready) {
@@ -1015,6 +1251,15 @@ public class CutsceneScreen extends LifeScreen {
             }
         }
         Sub sub = subs.get(subIndex);
+        // 0.8: поза по смыслу реплики (злость, грусть, смех, испуг, «да/нет») — в начале реплики, если режиссёр не задал свой жест
+        if (V10 && emoLine != subIndex && sp instanceof com.yompix.novograd.entity.CitizenEntity se && !se.hasVehicle()) {
+            emoLine = subIndex;
+            String emo = com.yompix.novograd.client.story.StoryLife.emotion(sub.text());
+            if (emo != null && (se.cineGesture == null || se.age >= se.cineGestUntil || "g_walktalk".equals(se.cineGesture) || "g_point".equals(se.cineGesture))) {
+                se.cineGesture = emo;
+                se.cineGestUntil = se.age + (int) Math.max(30, Math.min(80, Voice.length(sub.voice()) * 20 * 0.8));
+            }
+        }
         int line = (sub.text().hashCode() ^ subIndex * 31) & 0x7fffffff;
         java.util.Set<net.minecraft.entity.Entity> cast = new java.util.HashSet<>();
         for (Integer id : ACTORS.values()) {
@@ -1052,6 +1297,8 @@ public class CutsceneScreen extends LifeScreen {
         closeCamLog();
         if (CineRec.on && System.getProperty("novograd.rec") != null) CineRec.stop();
         com.yompix.novograd.client.studio.CineCam.reset(mc());
+        freeView(false);
+        CineRig.clear();
         mc().options.hudHidden = hudWas;
         if (mc().player != null) mc().setCameraEntity(mc().player);
         ACTORS.clear();
@@ -1069,10 +1316,12 @@ public class CutsceneScreen extends LifeScreen {
     public void removed() {
         if (done || cam == null) return;
         com.yompix.novograd.client.studio.CineCam.reset(mc());
+        freeView(false);
         mc().options.hudHidden = hudWas;
         if (mc().player != null) mc().setCameraEntity(mc().player);
         Voice.stop();
         cam = null;
+        rigs.clear();
         camX = Double.NaN;
         lastShot = -1;
         lastFrameT = -1;

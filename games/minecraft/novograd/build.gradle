@@ -41,3 +41,13 @@ tasks.withType(JavaCompile).configureEach { it.options.release = 21; it.options.
 java { withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
 
 jar { from("LICENSE") { rename { "${it}_${project.base.archivesName.get()}" } } }
+
+// 0.8: ни один из 5000 сгенерированных жителей не похож на героя сюжета (life/LooksCheck)
+tasks.register('lookalikeTest', JavaExec) {
+    group = 'verification'
+    dependsOn 'classes'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.yompix.novograd.life.LooksCheck'
+    args '5000'
+    jvmArgs '-Dstdout.encoding=UTF-8', '-Dfile.encoding=UTF-8'
+}

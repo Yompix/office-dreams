@@ -82,6 +82,19 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         part("fedora", b().cuboid(-4.7f, -10.8f, -4.7f, 9.4f, 4.2f, 9.4f).cuboid(-6.8f, -7f, -6.8f, 13.6f, 0.6f, 13.6f));
         part("fedora_band", b().cuboid(-4.8f, -7.9f, -4.8f, 9.6f, 0.9f, 9.6f));
         part("bandana", b().cuboid(-4.65f, -8.9f, -4.65f, 9.3f, 3.1f, 9.3f).cuboid(-1.2f, -7f, 4.4f, 2.4f, 2.4f, 1.2f).cuboid(-0.6f, -5f, 4.9f, 1.2f, 3f, 0.6f));
+        // 0.8: «подписи» героев сюжета — у прохожих этого нет (tools/gen_story_looks.py, life/Looks)
+        part("beret", b().cuboid(-4.3f, -9.75f, -5.0f, 10.0f, 1.5f, 9.8f).cuboid(-0.6f, -10.4f, -0.6f, 1.2f, 0.7f, 1.2f));
+        part("cap_back", b().cuboid(-4.6f, -9.3f, -4.6f, 9.2f, 2.6f, 9.2f).cuboid(-4.6f, -7.2f, 4.4f, 9.2f, 0.6f, 3.2f));
+        part("goggles_strap", b().cuboid(-4.65f, -7.5f, -4.65f, 9.3f, 0.8f, 9.3f));
+        part("goggles_lens", b().cuboid(-3.6f, -8.1f, -5.05f, 3.0f, 1.9f, 0.7f).cuboid(0.6f, -8.1f, -5.05f, 3.0f, 1.9f, 0.7f));
+        part("earrings", b().cuboid(-4.7f, -2.7f, -0.6f, 0.6f, 1.5f, 0.6f).cuboid(4.1f, -2.7f, -0.6f, 0.6f, 1.5f, 0.6f));
+        // корпус (пространство тела: шея y = 0, пояс y = 12, грудь в −z)
+        part("scarf", b().cuboid(-4.45f, -0.5f, -2.45f, 8.9f, 2.1f, 4.9f).cuboid(0.8f, 1.4f, -2.7f, 2.2f, 7.5f, 0.6f).cuboid(-2.6f, 1.4f, 2.2f, 2.0f, 5.0f, 0.6f));
+        part("chain", b().cuboid(-2.7f, 0.2f, -2.3f, 0.5f, 3.2f, 0.3f).cuboid(2.2f, 0.2f, -2.3f, 0.5f, 3.2f, 0.3f).cuboid(-2.2f, 3.0f, -2.3f, 4.4f, 0.5f, 0.3f)
+                .cuboid(-0.55f, 3.4f, -2.4f, 1.1f, 1.2f, 0.4f));
+        part("coat_collar", b().cuboid(-4.55f, -0.7f, -2.55f, 9.1f, 1.8f, 5.1f));
+        part("coat_tails", b().cuboid(-4.5f, 10.0f, 2.05f, 9.0f, 10.5f, 0.7f).cuboid(-4.75f, 10.0f, -2.35f, 0.7f, 10.5f, 4.7f).cuboid(4.05f, 10.0f, -2.35f, 0.7f, 10.5f, 4.7f)
+                .cuboid(-4.75f, 10.0f, -2.6f, 2.4f, 10.5f, 0.6f).cuboid(2.35f, 10.0f, -2.6f, 2.4f, 10.5f, 0.6f));
     }
 
     private static ModelPartBuilder b() {
@@ -124,6 +137,21 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         this.buffers = buffers;
         hairTag = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
         if (look.has("skirt")) render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+        if (look.has("coat")) render("coat_tails", m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID)), light, color(look, "coat", 0.92f));
+    }
+
+    /** 0.8: шарф, цепь, воротник плаща — на груди (пространство тела ванильной модели). */
+    public void torso(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
+        JsonArray all = looks();
+        if (e.getSkin() >= all.size()) return;
+        JsonObject look = all.get(e.getSkin()).getAsJsonObject();
+        if (!look.has("scarf") && !look.has("chain") && !look.has("coat")) return;
+        this.buffers = buffers;
+        hairTag = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
+        VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
+        if (look.has("coat")) render("coat_collar", m, solid, light, color(look, "coat", 0.85f));
+        if (look.has("scarf")) render("scarf", m, solid, light, color(look, "scarf", 1f));
+        if (look.has("chain")) render("chain", m, solid, light, color(look, "chain", 1f));
     }
 
     @Override
@@ -147,16 +175,23 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         }
         JsonObject look = all.get(skin).getAsJsonObject();
         long t = e.age + e.getId() * 37L;
-        boolean blink = t % 90 < 3 || (t % 230 > 100 && t % 230 < 103);
+        boolean blink = blink(e.getId(), e.age);
         boolean talking = com.yompix.novograd.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK;
         drawLook(m, buffers, light, look, blink, e.asleep(), talking, e.getId());
         com.yompix.novograd.client.HolidayHats.render(m, buffers, light, e.getId()); // праздничные шапки и тыквы (world/Holidays)
         if (vanilla) {
             m.pop();
-            if (look.has("skirt")) {
+            if (look.has("skirt") || look.has("coat") || look.has("scarf") || look.has("chain")) {
                 m.push();
                 getContextModel().body.rotate(m);
-                render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+                if (look.has("skirt")) render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+                VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
+                if (look.has("coat")) {
+                    render("coat_tails", m, solid, light, color(look, "coat", 0.92f));
+                    render("coat_collar", m, solid, light, color(look, "coat", 0.85f));
+                }
+                if (look.has("scarf")) render("scarf", m, solid, light, color(look, "scarf", 1f));
+                if (look.has("chain")) render("chain", m, solid, light, color(look, "chain", 1f));
                 m.pop();
             }
         }
@@ -234,6 +269,13 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             render("fedora", m, solid, light, color(look, "fedora", 1f));
             render("fedora_band", m, solid, light, look.has("band") ? color(look, "band", 1f) : 0xFF2A1A12);
         }
+        if (look.has("beret") && !look.has("cap") && !look.has("fedora")) render("beret", m, solid, light, color(look, "beret", 1f));
+        if (look.has("cap_back")) render("cap_back", m, solid, light, color(look, "cap_back", 1f));
+        if (look.has("goggles")) {
+            render("goggles_strap", m, solid, light, color(look, "goggles", 0.8f));
+            render("goggles_lens", m, solid, light, 0xFF8FD3FF);
+        }
+        if (look.has("earrings")) render("earrings", m, solid, light, color(look, "earrings", 1f));
         if (look.has("glasses")) {
             String g = look.get("glasses").getAsString();
             int frame = g.equals("gold") || g.equals("aviator") ? 0xFFD4AF37 : 0xFF1A1A1A;
@@ -244,6 +286,19 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
     }
 
     private VertexConsumerProvider buffers;
+
+    /**
+     * 0.8: живое моргание — в каждом окне 6 с одно-два моргания в разные моменты (по хешу окна, без состояния),
+     * иногда двойное; веки закрыты 2–3 тика. Раньше — ровно раз в 4.5 с, как метроном.
+     */
+    public static boolean blink(int id, int age) {
+        int t = age + Math.floorMod(id * 977, 97);
+        int base = Math.floorDiv(t, 120) * 120;
+        int h = (int) (((id * 31L + (base / 120) * 7919L) * 2654435761L) >>> 33);
+        int a = Math.floorMod(h, 60), b = 62 + Math.floorMod(h >>> 7, 50), lt = t - base;
+        boolean two = Math.floorMod(h >>> 11, 3) != 0, dbl = Math.floorMod(h >>> 13, 5) == 0;
+        return lt >= a && lt < a + 2 || two && lt >= b && lt < b + 3 || dbl && lt >= a + 5 && lt < a + 7;
+    }
 
     /** vc — только метка слоя; сам буфер берём заново, ведь смена слоя закрывает предыдущий. */
     private void render(String name, MatrixStack m, VertexConsumer vc, int light, int color) {

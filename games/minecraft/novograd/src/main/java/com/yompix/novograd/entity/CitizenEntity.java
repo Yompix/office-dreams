@@ -38,10 +38,25 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final boolean[] BASE_SLIM = {true, false, false, true, false, false, false, true,
             true, false, false, true, false, false, false, false};
 
+    /** 0.8: свои скины героев сюжета (story_<id>) — после обычных; прохожим не выдаются никогда. */
+    public static final int STORY_FROM = com.yompix.novograd.life.Looks.STORY_FROM;
+
     static {
-        SKINS = new String[BASE.length + RANDOM_COUNT];
+        var ids = com.yompix.novograd.life.Looks.STORY_IDS;
+        SKINS = new String[BASE.length + RANDOM_COUNT + ids.size()];
         System.arraycopy(BASE, 0, SKINS, 0, BASE.length);
         for (int i = 0; i < RANDOM_COUNT; i++) SKINS[RANDOM_FROM + i] = String.format("c%02d", i);
+        for (int i = 0; i < ids.size(); i++) SKINS[STORY_FROM + i] = "story_" + ids.get(i);
+    }
+
+    /** Скин героя сюжета или −1. */
+    public static int storySkin(String id) {
+        int i = com.yompix.novograd.life.Looks.STORY_IDS.indexOf(id);
+        return i < 0 ? -1 : STORY_FROM + i;
+    }
+
+    public static boolean isStorySkin(int skin) {
+        return com.yompix.novograd.life.Looks.isStorySkin(skin);
     }
 
     public enum Role { CITIZEN, TEACHER, SHOPKEEPER, CROUPIER, DEALER, BANKER, POLICE, GANG, GUNSMITH, MECHANIC, TAILOR, BOUTIQUE, BARBER, COACH }
@@ -122,6 +137,11 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @org.jetbrains.annotations.Nullable public String cineGesture;
     public int cineGestUntil;
     private static final java.util.Map<String, software.bernie.geckolib.animation.RawAnimation> GESTURES = new java.util.HashMap<>();
+    /** Клиент ставит сюда темп шага героя (StoryLife.stride); на сервере — 1. */
+    public static java.util.function.ToDoubleFunction<CitizenEntity> STRIDE = e -> 1;
+    /** Слои-жесты, которые повторяются, пока не сняты (0.8: курит, телефон, думает, грустит, злится, руки на груди…). */
+    public static final java.util.Set<String> LOOP_GESTURES = java.util.Set.of("g_fidget", "g_laugh", "g_walktalk", "g_smoke", "g_phonecheck",
+            "g_think", "g_sad", "g_angry", "g_clap", "g_cheer", "g_crossarms");
 
     /** Клиент: сглаженный квадрат скорости по позиции (блоки за тик). */
     private double clientSpeedSq;
@@ -161,7 +181,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (sp > 2.5e-4 && !a.pose() && e.knockPhase() == KO_NONE) {
                 // шаг и бег — темп ног под реальную скорость, чтобы не «скользили»
                 double v = Math.sqrt(sp);
-                return sp > 0.012 ? Math.max(0.8, Math.min(1.5, v / 0.17)) : Math.max(0.6, Math.min(1.6, v / 0.075));
+                double m = e.getWorld().isClient ? STRIDE.applyAsDouble(e) : 1; // 0.8: своя походка героя (клиент)
+                return m * (sp > 0.012 ? Math.max(0.8, Math.min(1.5, v / 0.17)) : Math.max(0.6, Math.min(1.6, v / 0.075)));
             }
             if (e.knockPhase() != KO_NONE) return 1.0;
             return 0.86 + Math.floorMod(e.getUuid().hashCode() >>> 3, 29) / 100.0;
@@ -172,7 +193,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             String g = cineGesture;
             var raw = GESTURES.computeIfAbsent(g, k -> {
                 var b = software.bernie.geckolib.animation.RawAnimation.begin();
-                return k.equals("g_fidget") || k.equals("g_laugh") || k.equals("g_walktalk") ? b.thenLoop("animation.citizen." + k)
+                return LOOP_GESTURES.contains(k) ? b.thenLoop("animation.citizen." + k)
                         : k.equals("g_phone") ? b.thenPlayAndHold("animation.citizen." + k) : b.thenPlay("animation.citizen." + k);
             });
             return state.setAndContinue(raw);
@@ -216,7 +237,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     }
 
     public static boolean isSlim(int skin) {
-        return skin < BASE.length ? BASE_SLIM[skin] : (skin - RANDOM_FROM) % 2 == 0;
+        return com.yompix.novograd.life.Looks.isSlim(skin);
     }
 
     public static int skinIndex(String name) {
@@ -226,7 +247,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Случайный прохожий: скин, рост (ребёнок/подросток/взрослый) и скорость шага. */
     public static int randomSkin(Random r) {
-        return RANDOM_FROM + r.nextInt(RANDOM_COUNT);
+        return com.yompix.novograd.life.Looks.randomSkin(r);
     }
 
     public void randomizeBody(Random r, boolean kid) {
@@ -293,6 +314,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     }
 
     public void setup(int skin, Role role, boolean stationary, String name) {
+        // 0.8: облик и имя героя сюжета — только у самого героя (setStoryId вернёт ему и скин, и имя)
+        if (isStorySkin(skin) && storyId.isEmpty()) skin = RANDOM_FROM + Math.floorMod(getUuid().hashCode(), RANDOM_COUNT);
+        if (storyId.isEmpty()) name = com.yompix.novograd.life.Looks.cleanName(name, getUuid().getLeastSignificantBits(), isSlim(skin));
         dataTracker.set(SKIN, skin);
         this.role = role;
         this.stationary = stationary;
@@ -305,6 +329,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
      * заданное («Продавщица Сьюзи», «Мистер Стив») — оставляем, а внешность подбираем под имя.
      */
     private String matchGender(String name) {
+        if (isStorySkin(getSkin())) return name; // герой: имя и облик из сценария
         boolean female = isSlim(getSkin());
         String fixed = com.yompix.novograd.life.Names.fixGender(name, female, getUuid().getLeastSignificantBits());
         if (!fixed.equals(name)) return fixed;
@@ -316,9 +341,35 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         return name;
     }
 
+    /** 0.8: массовка кат-сцены в облике героя (без метки героя: после сцены её убирают). */
+    public void setupAsHero(String heroId, Role role, String name) {
+        dataTracker.set(SKIN, storySkin(heroId));
+        this.role = role;
+        this.stationary = true;
+        setCustomName(net.minecraft.text.Text.literal(name));
+        heroLook = true;
+    }
+
+    /** Массовка в облике героя (не сохраняется в мире — после сцены/миссии её всё равно убирают). */
+    private boolean heroLook;
+
     public void setStoryId(String id) {
         storyId = id;
         setCustomNameVisible(true);
+        applyStoryLook();
+    }
+
+    /** 0.8: герою — его собственный скин и имя из сценария (и в старых мирах, где он носил скин прохожего). */
+    private void applyStoryLook() {
+        if (storyId.isEmpty() || getWorld().isClient) return;
+        int sk = storySkin(storyId);
+        if (sk >= 0) dataTracker.set(SKIN, sk);
+        try {
+            var ch = Story.root().getAsJsonObject("characters").getAsJsonObject(storyId);
+            if (ch != null && ch.has("name"))
+                setCustomName(net.minecraft.text.Text.literal(ch.get("name").getAsString()));
+        } catch (RuntimeException ignored) {
+        }
     }
 
     public String getStoryId() {
@@ -1610,6 +1661,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         nbt.putString("Role", role.name());
         nbt.putBoolean("Stationary", stationary);
         nbt.putString("StoryId", storyId);
+        if (heroLook) nbt.putBoolean("HeroLook", true);
         nbt.putString("Home", home);
         nbt.putBoolean("Ambient", ambient);
         nbt.putBoolean("Hidden", hidden);
@@ -1639,6 +1691,15 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         ambient = nbt.getBoolean("Ambient");
         hidden = nbt.getBoolean("Hidden");
         if (nbt.getBoolean("Asleep")) dataTracker.set(ACTIVITY, Activity.SLEEP.ordinal());
+        // 0.8: герой — в свой скин; прохожий с именем героя или (никак не должен) со скином героя — в обычные
+        heroLook = nbt.getBoolean("HeroLook");
+        if (!storyId.isEmpty()) applyStoryLook();
+        else if (!heroLook) {
+            if (isStorySkin(getSkin())) dataTracker.set(SKIN, RANDOM_FROM + Math.floorMod(getUuid().hashCode(), RANDOM_COUNT));
+            if (hasCustomName() && com.yompix.novograd.life.Looks.hasStoryName(getCustomName().getString()))
+                setCustomName(net.minecraft.text.Text.literal(com.yompix.novograd.life.Looks.cleanName(getCustomName().getString(),
+                        getUuid().getLeastSignificantBits(), isSlim(getSkin()))));
+        }
         // жители из старых версий: имя и внешность по полу
         if (storyId.isEmpty() && hasCustomName()) {
             String n = getCustomName().getString(), f = matchGender(n);

@@ -44,6 +44,10 @@ public final class NovogradConfig {
     public int vanillaFor = -1;
     /** 1.0: настройки чата один раз сделаны читаемыми (ChatStyle). */
     public boolean chatStyled;
+    /** 0.8: живые анимации — походка, дыхание, позы и жесты игроков (и у друзей), паузы и реакции героев сюжета. */
+    public boolean liveAnims = true;
+    /** 0.8: от первого лица качается только предмет в руке; камера при ходьбе не качается (true — как в Minecraft). */
+    public boolean camBob = false;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static NovogradConfig cfg;

@@ -117,6 +117,10 @@ public class SettingsScreen extends Screen {
                         () -> (cfg().subtitleScale - 0.6f) / 0.8f, v -> cfg().subtitleScale = Math.round((0.6f + v * 0.8f) * 20) / 20f, null, null));
                 rows.add(new Row("Подсказки", "Каждая — один раз.", () -> onOff(cfg().hints), null, null,
                         d -> cfg().hints = !cfg().hints, null));
+                rows.add(new Row("Живые анимации", "Походка, позы и жесты игроков; герои живут. V — жесты.", () -> onOff(cfg().liveAnims), null, null,
+                        d -> cfg().liveAnims = !cfg().liveAnims, null));
+                rows.add(new Row("Качание камеры", "От первого лица при ходьбе.", () -> onOff(cfg().camBob), null, null,
+                        d -> cfg().camBob = !cfg().camBob, null));
                 rows.add(new Row("Размер HUD", "", () -> pct(cfg().hudScale),
                         () -> (cfg().hudScale - 0.75f) / 0.75f, v -> cfg().hudScale = Math.round((0.75f + v * 0.75f) * 20) / 20f, null, null));
                 rows.add(new Row("Управление", "", () -> "›", null, null, null,

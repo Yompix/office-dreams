@@ -33,7 +33,7 @@ public final class BoatClub {
 
     public static final String CLUB = "riv_marina+0,-9"; // рядом с бизнесом «Пристань», не поверх
     public static final int FEE = 200, RENT = 120, BUY = 3800, LIMIT = 20 * 240;
-    static final String[] RIVALS = {"Капитан Марко", "Лиза «Волна»", "Дед Михалыч"};
+    static final String[] RIVALS = {"Капитан Гас", "Лиза «Волна»", "Дед Михалыч"};
     static final float[] RIVAL_K = {1.12f, 1.24f, 1.42f};
     static final int[] PRIZES = {1500, 700, 300};
 

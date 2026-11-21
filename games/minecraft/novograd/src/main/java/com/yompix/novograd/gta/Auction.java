@@ -32,7 +32,7 @@ public final class Auction {
     private Auction() {}
 
     public static final String GATE = "chop_shop+0,8";
-    static final String[] BUYERS = {"Хромой Сэм", "Армянин Гриша", "Близнецы Ли", "Мадам Роза", "Дядя Витя", "Курьер из порта"};
+    static final String[] BUYERS = {"Хромой Сэм", "Армянин Гриша", "Близнецы Ли", "Мадам Зизи", "Дядя Витя", "Курьер из порта"};
     private static final Map<UUID, Long> COOLDOWN = new HashMap<>();
     private static final Map<UUID, int[]> RESULT = new HashMap<>(); // игрок → {цена, тик выплаты, стук}
 

@@ -50,6 +50,9 @@ public final class Director {
         int ticks;
         String track = "", follow = "";
         double[] off = {7, 3, 0};
+        /** 0.8: план постановщика — где должен стоять герой кадра (глаза) в начале плана. */
+        String subject = "";
+        @Nullable double[] aim;
     }
 
     private static final class Scene {
@@ -73,6 +76,7 @@ public final class Director {
         final List<int[]> bursts = new ArrayList<>(); // [индекс очереди, осталось, кд]
         final List<Object[]> burstInfo = new ArrayList<>();
         int t, next;
+        int markedShot = -1;
     }
 
     private static final Map<UUID, Scene> SCENES = new HashMap<>();
@@ -99,6 +103,11 @@ public final class Director {
             s.ticks = Math.round(j.get("sec").getAsFloat() * 20);
             s.track = Story.str(j, "track", "");
             s.follow = Story.str(j, "follow", "");
+            s.subject = Story.str(j, "subject", "");
+            if (j.has("aim") && j.getAsJsonArray("aim").size() >= 3) {
+                JsonArray a = j.getAsJsonArray("aim");
+                s.aim = new double[]{a.get(0).getAsDouble(), a.get(1).getAsDouble(), a.get(2).getAsDouble()};
+            }
             if (j.has("off")) {
                 JsonArray o = j.getAsJsonArray("off");
                 for (int i = 0; i < 3 && i < o.size(); i++) s.off[i] = o.get(i).getAsDouble();
@@ -133,6 +142,7 @@ public final class Director {
             }
         // нулевая секунда — до первого кадра
         run(p, sc, 0);
+        toMark(w, sc, 0); // пока экран чёрный (вход сцены)
         Stage.started(p); // заготовка сцены больше не нужна (лишнюю массовку — убрать)
     }
 
@@ -291,6 +301,10 @@ public final class Director {
         }
         sc.t++;
         if (!sc.viewer) run(p, sc, sc.t);
+        if (!sc.viewer) {
+            int si = shotIndex(sc, sc.t);
+            if (si != sc.markedShot) toMark(w, sc, si); // склейка — герой встаёт на метку плана
+        }
         // очереди выстрелов
         for (int i = sc.bursts.size() - 1; i >= 0; i--) {
             int[] b = sc.bursts.get(i);
@@ -319,6 +333,36 @@ public final class Director {
         int total = 0;
         for (Shot s : sc.shots) total += s.ticks;
         if (sc.t > total + 20 * 60) stop(p); // страховка, если клиент так и не ответил
+    }
+
+    private static int shotIndex(Scene sc, int t) {
+        for (int i = 0; i < sc.shots.size(); i++) {
+            if (t <= sc.shots.get(i).ticks) return i;
+            t -= sc.shots.get(i).ticks;
+        }
+        return sc.shots.size() - 1;
+    }
+
+    /**
+     * 0.8: камера больше не подстраивается под героя — если герой плана стоит не на своей метке (дальше 1.2 блока
+     * от точки, которую ждал постановщик), на склейке (или в затемнении входа) переставляем ГЕРОЯ на метку.
+     * Идущего героя (ему задан путь) не трогаем: его ведёт таймлайн.
+     */
+    private static void toMark(ServerWorld w, Scene sc, int si) {
+        sc.markedShot = si;
+        if (si < 0 || si >= sc.shots.size()) return;
+        Shot s = sc.shots.get(si);
+        if (s.aim == null || s.subject.isEmpty()) return;
+        if (!(actor(w, sc, s.subject) instanceof CitizenEntity c) || c.hasVehicle() || c.directTo != null || !c.route.isEmpty()) return;
+        Vec3d eye = c.getPos().add(0, c.getHeight() * 0.9, 0);
+        double d = eye.distanceTo(new Vec3d(s.aim[0], s.aim[1], s.aim[2]));
+        if (d < 1.2 || d > 12) return;
+        Vec3d feet = new Vec3d(s.aim[0], s.aim[1] - c.getHeight() * 0.9, s.aim[2]);
+        c.getNavigation().stop();
+        c.refreshPositionAndAngles(feet.x, feet.y, feet.z, c.getYaw(), c.getPitch());
+        c.setVelocity(Vec3d.ZERO);
+        if (c.isStationary()) c.setStationary(true); // якорь стоящего героя — на новой метке
+        com.yompix.novograd.Novograd.LOG.info("[cut] герой {} переставлен на метку плана {} ({} блока)", s.subject, si, String.format(java.util.Locale.ROOT, "%.1f", d));
     }
 
     /** Пересчитать, отправлена ли сущность игроку (см. mixin/EntityTrackerInvoker). */
@@ -440,9 +484,47 @@ public final class Director {
             default -> CitizenEntity.skinIndex(look);
         };
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
+        // 0.8: массовка «в роли героя» (вступление: Джейк у гаража — старый скин c25 + имя героя) — в облике героя
+        String as = heroByOldSkin(look, name);
+        if (as != null) {
+            c.setupAsHero(as, role, name);
+            c.setCustomNameVisible(false);
+            return c;
+        }
         c.setup(skin, role, true, name != null ? name : role == CitizenEntity.Role.POLICE ? "Полицейский" : role == CitizenEntity.Role.GANG ? "Бандит" : "Прохожий");
         c.setCustomNameVisible(false);
         return c;
+    }
+
+    /** Герой по имени («Брик», «Виктор Кроу», «Шеф Харрис») или null. */
+    @Nullable
+    public static String heroByName(@Nullable String name) {
+        if (name == null || name.isEmpty()) return null;
+        try {
+            for (var en : Story.root().getAsJsonObject("characters").entrySet()) {
+                var ch = en.getValue().getAsJsonObject();
+                if (!ch.has("name") || CitizenEntity.storySkin(en.getKey()) < 0) continue;
+                String full = ch.get("name").getAsString();
+                if (full.equals(name) || full.split(" ")[0].equals(name) || full.endsWith(" " + name)) return en.getKey();
+            }
+        } catch (RuntimeException ignored) {
+        }
+        return null;
+    }
+
+    /** Герой, которого изображает массовка: её облик — бывший скин героя, а имя — его имя. */
+    @Nullable
+    private static String heroByOldSkin(String look, @Nullable String name) {
+        if (name == null) return null;
+        try {
+            for (var en : Story.root().getAsJsonObject("characters").entrySet()) {
+                var ch = en.getValue().getAsJsonObject();
+                if (ch.has("skin") && !ch.get("skin").isJsonNull() && look.equals(ch.get("skin").getAsString()) && ch.has("name")
+                        && ch.get("name").getAsString().startsWith(name.split(" ")[0]) && CitizenEntity.storySkin(en.getKey()) >= 0) return en.getKey();
+            }
+        } catch (RuntimeException ignored) {
+        }
+        return null;
     }
 
     /** Для Stage: массовка нулевой секунды по реплике таймлайна [0, "spawn", id, place, look, name]. */

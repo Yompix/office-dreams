@@ -67,7 +67,11 @@ final class GtaSteps {
 
     private static CitizenEntity npc(ServerWorld w, Vec3d at, CitizenEntity.Role role, String name, int skin) {
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
-        c.setup(skin, role, false, name);
+        String hero = Director.heroByName(name); // 0.8: соперник/босс — сам герой: в его облике
+        if (hero != null) {
+            c.setupAsHero(hero, role, name);
+            c.setStationary(false);
+        } else c.setup(skin, role, false, name);
         c.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, 0, 0);
         c.setCustomNameVisible(true);
         w.spawnEntity(c);
