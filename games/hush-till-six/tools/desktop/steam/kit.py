@@ -10,7 +10,7 @@ import os, sys
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance, ImageOps
 HERE = os.path.dirname(os.path.abspath(__file__)); GAME = os.path.join(HERE, '../../../web'); FONTS = os.path.join(GAME, 'fonts')
 out = sys.argv[1]; FR = os.path.join(out, 'frames')
-BONE, GOLD = (236, 232, 220), (242, 194, 27)
+BONE, GOLD = (236, 232, 220), (255, 59, 71)   # 21 ноя: «TILL SIX» красным, как в игре (--acc #ff3b47)
 LILY = (.52, .5)   # где Лили в горизонтальном кадре door_katya (доли)
 for d in ('store', 'library', 'achievements', 'icons'): os.makedirs(os.path.join(out, d), exist_ok=True)
 

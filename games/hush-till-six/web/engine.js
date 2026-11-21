@@ -84,7 +84,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { drone: 5, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { drone: 5, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 6, p11: 6, p12: 5, h08: 5, dg02: 5, dg04: 6, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 , r01: 6, h01: 6, h10: 6, n08: 6, fb00: 6, fb01: 6, n22: 7, s01: 7};   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -1267,9 +1267,17 @@ function shiftUI() {
   if (tut) $('tutCard').classList.remove('hide');
   shiftTask();
 }
+// 21 ноя: смена камеры — экран монитора гаснет на миг, в чёрном стекле твоё отражение; после полуночи иногда за плечом стоит ещё кто-то (раз в 1,5 мин, не в первые два часа)
+let monBooT = -999;
+function monFlip() {
+  const el = $('mon'); if (!el) return; el.classList.remove('flip', 'boo'); void el.offsetWidth;
+  const t = now(), boo = shf && !/^S[12]$/.test(shf.id) && t - monBooT > 90 && Math.random() < .12;
+  if (boo) { monBooT = t; setTimeout(() => play('breath_close', { gain: .3, cut: .8 }), 60); buzz(30); }
+  el.classList.add('flip'); if (boo) el.classList.add('boo');
+}
 function shiftCam(c) {
   if (c === '13') { if (!shf.warn13) { shf.warn13 = true; play('static', { gain: .5, cut: .4 }); shiftToast('«НЕ СМОТРИ В НЕЁ» — журнал, 18.10'); return; } return shiftDie('over_k1'); }
-  if (c === shf.cam) return; shf.cam = c; shf.camT = now(); play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9;
+  if (c === shf.cam) return; shf.cam = c; shf.camT = now(); play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9; monFlip();
   mgEl.querySelectorAll('.sh-cams button').forEach(b => b.classList.toggle('on', b.dataset.c === c));
 }
 function shiftPop(html, noX) { const el = $('shPop'); if (!el) return; shf && (shf.pop = html ? 1 : null); if (!html) { el.classList.add('hide'); el.innerHTML = ''; return; }
@@ -1404,7 +1412,7 @@ function tutEnd(done) {
 function shiftHelp() {   // шпаргалка: как играть; можно пройти обучение снова
   shiftPop(`<h3>${tr('Как играть')}</h3><ul class="sh-page">${['Камеры — кнопки внизу. Переключай и запоминай, как там обычно.', 'Заметил, что не так, — «Записать» и выбери, что это: свет, дверь, лифт, помехи, кто-то, звук, другое.',
     'MIC слева вверху: прыгают столбики — на этой камере звук.', '«Пульт»: свет на этажах, вход, лифт. Лишний свет — выключи. К 22:00 вход запри, лифт останови.',
-    'Три пропущенные странности за час — оно придёт к будке.', 'Помехи на камере — не засматривайся: записал и переключил.', 'Не отзывайся, если зовут по имени. Не открывай дверь.'].map(x => `<li>${tr(x)}</li>`).join('')}</ul>
+    'Три пропущенные странности за час — оно придёт к кабинету.', 'Помехи на камере — не засматривайся: записал и переключил.', 'Не отзывайся, если зовут по имени. Не открывай дверь.'].map(x => `<li>${tr(x)}</li>`).join('')}</ul>
     <button class="sh-x" id="tutAgain">${tr('Пройти обучение снова')}</button>`);
   $('tutAgain').onclick = e => { e.stopPropagation(); shiftPop(null); if (!tut) tutorial(); };
 }
@@ -1432,7 +1440,7 @@ function shiftCall(c) {   // внутренний телефон будки: с�
       const r = Math.max(.74, .93 - .03 * (rings - 1));
       play('ring', { gain: .7, rate: r, rev: .45 }); play('ring', { gain: .32, rate: r * .965, lp: 2400, rev: .6, when: .03 }); play('static', { gain: .1 + .02 * rings, cut: 1.6, lp: 3200 }); }
     buzz(80); setTimeout(ring, 2200); };
-  shiftPop(`<h3>${tr(c.title || 'Звонит внутренний телефон')}</h3><p>${tr(c.sub || 'В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr(c.take || 'Снять трубку')}</button><button id="cNo">${tr(c.no || 'Не брать')}</button></div>`);
+  shiftPop(`<h3>${tr(c.title || 'Звонит внутренний телефон')}</h3><p>${tr(c.sub || 'В кабинете. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr(c.take || 'Снять трубку')}</button><button id="cNo">${tr(c.no || 'Не брать')}</button></div>`);
   btn = $('cTake'); ring();
   $('cNo').onclick = e => { e.stopPropagation(); c.taken = 'no'; shiftPop(null); play('click'); if (c.noSay) sayV(c.noSay); };   // сбросил — что он подумал (noSay)
   $('cTake').onclick = e => { e.stopPropagation(); c.taken = 'yes'; shiftPop(null); play('click'); if (c.takeDie) return shiftDie(c.die);   // ответить на такой звонок — уже ответить ему

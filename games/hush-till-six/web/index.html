@@ -617,6 +617,25 @@ body.pad .title .mlist button.pfocus { filter: none !important; }
 body.calm #choice button, body.calm .screen .btn, body.calm .screen .set, body.calm .title.open .mlist button, body.calm .sh-cams button.on, body.calm #choice h2 { animation: none; }
 body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .set:hover::after { animation: none; }
 #act.lock button, #choice.lock button { opacity: .55; transition: opacity .12s; } #act button, #choice button { transition: opacity .25s; }
+/* 21 ноя: смена — сидишь за монитором в будке: корпус, выпуклое стекло, блик, лампочка; смена камеры — экран гаснет на миг, в чёрном стекле отражение (иногда — не только твоё) */
+#mon { position: absolute; inset: 0; pointer-events: none; display: none; }
+body.shifting #mon { display: block; }
+#mon .bz { position: absolute; inset: 0; border-radius: calc(3.2 * var(--u)); border: calc(1.6 * var(--u)) solid #15171b; border-top-color: #22252b; border-bottom-width: calc(2.4 * var(--u)); box-shadow: 0 0 0 calc(40 * var(--u)) #060709, inset 0 0 0 calc(.3 * var(--u)) #000, inset 0 0 calc(10 * var(--u)) calc(2.4 * var(--u)) rgba(0,0,0,.9); }
+#mon .gl { position: absolute; inset: 0; border-radius: calc(3.2 * var(--u)); background: radial-gradient(120% 90% at 30% 12%, rgba(255,255,255,.07), rgba(255,255,255,0) 42%), radial-gradient(140% 120% at 50% 50%, rgba(0,0,0,0) 62%, rgba(0,0,0,.38) 100%); }
+#mon .led { position: absolute; right: calc(3 * var(--u)); bottom: calc(.85 * var(--u)); width: calc(.7 * var(--u)); height: calc(.7 * var(--u)); border-radius: 50%; background: #3dff6a; box-shadow: 0 0 calc(1.2 * var(--u)) #3dff6a; opacity: .75; }
+#mon .bk { position: absolute; inset: 0; background: #020203; opacity: 0; border-radius: calc(3.2 * var(--u)); }
+#mon .rf { position: absolute; inset: 0; opacity: 0; }
+#mon .rf i { position: absolute; bottom: -4%; border-radius: 50% 50% 0 0 / 60% 60% 0 0; background: radial-gradient(closest-side, rgba(150,160,175,.4), rgba(150,160,175,0)); }
+#mon .rf .me { left: 36%; width: 28%; height: 34%; }
+#mon .rf .me::before, #mon .rf .it::before { content: ''; position: absolute; left: 28%; width: 44%; top: -62%; height: 70%; border-radius: 50%; background: radial-gradient(closest-side, rgba(150,160,175,.42), rgba(150,160,175,0)); }
+#mon .rf .it { left: 58%; width: 22%; height: 52%; display: none; transform: rotate(-7deg); }
+#mon .rf .it::before { top: -44%; height: 52%; transform: rotate(18deg); background: radial-gradient(closest-side, rgba(200,200,210,.55), rgba(150,160,175,0)); }
+#mon.flip .bk { animation: monbk .32s ease-out; }
+#mon.flip .rf { animation: monrf .32s ease-out; }
+#mon.flip.boo .rf .it { display: block; }
+#mon.flip.boo .bk, #mon.flip.boo .rf { animation-duration: .7s; }
+@keyframes monbk { 0% { opacity: 1; } 55% { opacity: .96; } 100% { opacity: 0; } }
+@keyframes monrf { 0% { opacity: 1; } 55% { opacity: .9; } 100% { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -643,6 +662,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
 <div id="keys"><div><kbd>␣</kbd>дальше</div><div><kbd>1–4</kbd>выбор</div><div><kbd>мышь</kbd>свет и действия</div><div><kbd>ESC</kbd>меню</div><div><kbd>O</kbd>повернуть экран</div><div><kbd>V</kbd>озвучка</div></div>
 <div id="stage">
   <canvas id="cv" width="1080" height="1920"></canvas>
+  <div id="mon"><div class="bk"></div><div class="rf"><i class="me"></i><i class="it"></i></div><div class="gl"></div><div class="bz"></div><div class="led"></div></div>
   <div class="layer"><div id="rule" class="hide"></div><div id="chap" class="hide"></div><div id="tap" class="hide"></div>
     <div id="dlg" class="hide"><div class="nm"></div><div class="ln"></div><span class="nh"></span><i class="nx">▼</i></div></div>
   <div id="mg" class="hide"></div>
@@ -656,7 +676,7 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=29"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=30"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
@@ -664,8 +684,8 @@ body.calm #choice button:hover::after, body.calm .btn:hover::after, body.calm .s
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=53"></script>
 <script src="scenes.js?v=90"></script>
-<script src="story.js?v=39"></script>
-<script src="engine.js?v=96"></script>
+<script src="story.js?v=40"></script>
+<script src="engine.js?v=97"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
