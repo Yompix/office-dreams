@@ -196,6 +196,7 @@ public class NovogradClient implements ClientModInitializer {
         PerfAutotest.init(); // -Dnovograd.autotest=perf: замер MSPT/кадров в людном центре
         CineAutotest.init(); // -Dnovograd.autotest=cine:гл:мис:шаг (запись кат-сцены), camaudit (пути камеры всех сцен)
         FpsHunt.init(); // 1.0: -Dnovograd.autotest=fpshunt — где падает FPS (сценарии, рывки, GC)
+        ShowAutotest.init(); // 0.8: -Dnovograd.autotest=animshow / lookshow — ролики анимаций игрока и «нет двойников»
         UiAudit.init(); // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
         UiInvAutotest.init(); // -Dnovograd.autotest=uiinv: инвентарь «как в GTA», сундук, экран смерти
         DevAutotest.init();
@@ -233,6 +234,7 @@ public class NovogradClient implements ClientModInitializer {
             case "news_feed" -> com.yompix.novograd.client.screen.NewsScreen.feed = n;
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
+            case "emote" -> com.yompix.novograd.client.anim.PlayerAnim.receive(n); // 0.8: жест другого игрока
             case "cut_gest" -> com.yompix.novograd.client.story.CutsceneScreen.gesture(client, n); // 1.0: слой-жест актёра
             case "cut_prep" -> com.yompix.novograd.client.story.CutsceneScreen.prep(client, n); // 1.0: прогрев озвучки и скинов до сцены
             case "cut_music" -> com.yompix.novograd.client.story.CutsceneMusic.handle(n); // музыка кат-сцены (story/DirectorCues)

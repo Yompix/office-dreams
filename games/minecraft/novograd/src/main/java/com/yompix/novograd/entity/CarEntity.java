@@ -30,6 +30,7 @@ import java.util.UUID;
  * Анимации (колёса, руль, крен, фары, выхлоп) рисует клиент по движению машины.
  */
 public class CarEntity extends Entity {
+    static final boolean PERF08 = !"false".equals(System.getProperty("novograd.perf08"));
     /** Кузова: 0 седан, 1 хэтчбек, 2 спорткупе, 3 люкс-седан, 4 фургон, 5 такси, 6 полиция, 7 внедорожник,
      *  8 пикап, 9 маслкар, 10 лимузин, 11 грузовик; 0.4: 12 суперкар, 13 классика 70-х, 14 лоурайдер, 15 багги,
      *  16 малолитражка, 17 спецназ (бронефургон), 18 скорая, 19 пожарная (см. CarBody). */
@@ -1083,6 +1084,8 @@ public class CarEntity extends Entity {
 
     private void pushOthers() {
         if (getWorld().isClient) return;
+        // 0.8: стоящая пустая машина толкает соседей раз в 4 тика (поиск сущностей вокруг каждой из ~40 машин каждый тик)
+        if (PERF08 && !hasPassengers() && getVelocity().horizontalLengthSquared() < 1e-4 && (age + getId()) % 4 != 0) return;
         for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(0.15, -0.01, 0.15), e -> e.isPushable() && !isConnectedThroughVehicle(e))) {
             pushAwayFrom(e);
         }

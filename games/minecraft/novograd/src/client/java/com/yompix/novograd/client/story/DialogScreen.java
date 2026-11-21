@@ -67,6 +67,15 @@ public class DialogScreen extends LifeScreen {
         if (index < lines.size()) {
             Voice.play(lines.get(index).voice());
             if (lines.get(index).entity() >= 0) ClientStory.talk(lines.get(index).entity(), 60L * lines.get(index).text().length() + 400);
+            // 0.8: в разговоре вне кат-сцены герой тоже держит позу по смыслу реплики
+            if (lines.get(index).entity() >= 0 && client != null && client.world != null
+                    && client.world.getEntityById(lines.get(index).entity()) instanceof com.yompix.novograd.entity.CitizenEntity ce && StoryLife.on()) {
+                String emo = StoryLife.emotion(lines.get(index).text());
+                if (emo != null) {
+                    ce.cineGesture = emo;
+                    ce.cineGestUntil = ce.age + (int) Math.max(30, Math.min(80, 1.2 * lines.get(index).text().length()));
+                }
+            }
         }
     }
 

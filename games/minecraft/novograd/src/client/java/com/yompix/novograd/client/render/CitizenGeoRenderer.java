@@ -39,11 +39,19 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         shadowRadius = 0.45f;
         HairFeature hair = new HairFeature(null);
         addRenderLayer(new GeoRenderLayer<>(this) {
+            // 0.8: позы костей запоминаем по ходу модели, а рисуем всё ПОСЛЕ неё и по слоям (пряди → сплошные → стёкла):
+            // раньше причёска/лицо/юбка рисовались посреди модели, и каждая смена слоя рвала пачку отрисовки (8–10 на жителя)
+            private final org.joml.Matrix4f[] pos = {new org.joml.Matrix4f(), new org.joml.Matrix4f(), new org.joml.Matrix4f()};
+            private final org.joml.Matrix3f[] nrm = {new org.joml.Matrix3f(), new org.joml.Matrix3f(), new org.joml.Matrix3f()};
+            private final boolean[] has = new boolean[3]; // 0 голова, 1 грудь, 2 пояс
+            private final MatrixStack tmp = new MatrixStack();
+
             @Override
             public void renderForBone(MatrixStack m, CitizenEntity e, GeoBone bone, RenderLayer type, VertexConsumerProvider buffers, VertexConsumer buffer,
                                       float partialTick, int light, int overlay) {
-                boolean head = bone.getName().equals("head"), waist = bone.getName().equals("waist"), chest = bone.getName().equals("chest");
-                if (!head && !waist && !chest) return;
+                String n = bone.getName();
+                int k = n.equals("head") ? 0 : n.equals("chest") ? 1 : n.equals("waist") ? 2 : -1;
+                if (k < 0) return;
                 // вдали (дальше «Производительность» → дальняя граница) причёску, лицо и юбку не дорисовываем — их не различить
                 float far = com.yompix.novograd.client.NovogradConfig.lodFar();
                 var camPos = net.minecraft.client.MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
@@ -52,11 +60,32 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                 m.push();
                 m.translate(0, 24 / 16f, 0);
                 m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
-                if (head) hair.head(m, buffers, light, e);
-                else if (chest) hair.torso(m, buffers, light, e); // то же пространство тела: шея — y = 0
-                else hair.skirt(m, buffers, light, e);
+                pos[k].set(m.peek().getPositionMatrix());
+                nrm[k].set(m.peek().getNormalMatrix());
+                has[k] = true;
                 m.pop();
-                buffers.getBuffer(type);
+            }
+
+            @Override
+            public void render(MatrixStack m, CitizenEntity e, software.bernie.geckolib.cache.object.BakedGeoModel model, RenderLayer type,
+                               VertexConsumerProvider buffers, VertexConsumer buffer, float partialTick, int light, int overlay) {
+                if (!has[0] && !has[1] && !has[2]) return;
+                HairFeature.Compiled c = hair.compiled(e);
+                if (c != null) {
+                    boolean blink = HairFeature.blink(e.getId(), e.age), talk = HairFeature.talking(e), asleep = e.asleep();
+                    for (int pass = 0; pass < 3; pass++) {
+                        for (int k = 0; k < 3; k++) {
+                            if (!has[k] || k > 0 && (pass == 2 || !c.body())) continue;
+                            tmp.peek().getPositionMatrix().set(pos[k]);
+                            tmp.peek().getNormalMatrix().set(nrm[k]);
+                            if (k == 0) {
+                                hair.headPass(tmp, buffers, light, c, pass, blink, asleep, talk, e.getId());
+                                if (pass == 1) com.yompix.novograd.client.HolidayHats.render(tmp, buffers, light, e.getId());
+                            } else hair.bodyPass(tmp, buffers, light, c, pass, k == 1, k == 2);
+                        }
+                    }
+                }
+                has[0] = has[1] = has[2] = false;
             }
         });
         addRenderLayer(new BlockAndItemGeoLayer<>(this) {

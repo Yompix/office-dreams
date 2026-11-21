@@ -1,0 +1,406 @@
+{
+"scenes": {
+"0:1:0": {
+"cues": [
+[
+6.35,
+"look",
+"nika",
+"shtorm"
+],
+[
+9.7,
+"look",
+"shtorm",
+"nika"
+],
+[
+9.65,
+"look",
+"nika",
+"shtorm"
+],
+[
+18.2,
+"look",
+"nika",
+"none"
+],
+[
+18.2,
+"look",
+"shtorm",
+"none"
+]
+]
+},
+"0:4:2": {
+"cues": [
+[
+6.4,
+"look",
+"nika",
+"rosa"
+],
+[
+19.2,
+"look",
+"nika",
+"none"
+],
+[
+19.2,
+"look",
+"rosa",
+"none"
+]
+]
+},
+"0:5:1": {
+"cues": [
+[
+14.7,
+"look",
+"vince",
+"none"
+]
+]
+},
+"0:6:0": {
+"cues": [
+[
+15.7,
+"look",
+"vince",
+"none"
+]
+]
+},
+"1:0:1": {
+"cues": [
+[
+5.75,
+"look",
+"gleb",
+"kirpich"
+],
+[
+18.2,
+"look",
+"gleb",
+"none"
+],
+[
+18.2,
+"look",
+"kirpich",
+"none"
+]
+]
+},
+"1:2:3": {
+"cues": [
+[
+12.7,
+"look",
+"marco",
+"none"
+]
+]
+},
+"1:5:2": {
+"cues": [
+[
+11.7,
+"look",
+"marco",
+"none"
+]
+]
+},
+"2:2:4": {
+"cues": [
+[
+15.2,
+"look",
+"harris",
+"none"
+]
+]
+},
+"2:4:0": {
+"cues": [
+[
+5.0,
+"gest",
+"lena",
+"g_scared",
+1.6
+],
+[
+14.2,
+"look",
+"lena",
+"none"
+]
+]
+},
+"2:5:2": {
+"cues": [
+[
+0.15,
+"look",
+"harris",
+"petrov"
+],
+[
+4.65,
+"look",
+"petrov",
+"harris"
+],
+[
+4.6,
+"look",
+"harris",
+"petrov"
+],
+[
+8.2,
+"look",
+"harris",
+"petrov"
+],
+[
+8.15,
+"look",
+"petrov",
+"harris"
+],
+[
+15.2,
+"look",
+"harris",
+"none"
+],
+[
+15.2,
+"look",
+"petrov",
+"none"
+]
+]
+},
+"2:6:3": {
+"cues": [
+[
+27.7,
+"look",
+"kirpich",
+"none"
+]
+]
+},
+"3:2:0": {
+"cues": [
+[
+0.25,
+"gest",
+"shakal",
+"g_laugh",
+4.0
+],
+[
+12.7,
+"look",
+"shakal",
+"none"
+]
+]
+},
+"3:8:1": {
+"cues": [
+[
+10.7,
+"look",
+"sofi",
+"none"
+]
+]
+},
+"4:6:3": {
+"cues": [
+[
+24.7,
+"look",
+"crow",
+"none"
+],
+[
+24.7,
+"look",
+"petrov",
+"none"
+]
+]
+},
+"5:0:1": {
+"cues": [
+[
+7.1,
+"look",
+"diaz",
+"petrov"
+],
+[
+12.5,
+"look",
+"petrov",
+"diaz"
+],
+[
+12.45,
+"look",
+"diaz",
+"petrov"
+],
+[
+21.55,
+"look",
+"diaz",
+"none"
+],
+[
+21.55,
+"look",
+"petrov",
+"none"
+]
+]
+},
+"5:2:0": {
+"cues": [
+[
+15.5,
+"look",
+"lena",
+"none"
+]
+]
+},
+"5:3:2": {
+"cues": [
+[
+16.7,
+"look",
+"marco",
+"none"
+]
+]
+},
+"5:5:0": {
+"cues": [
+[
+16.2,
+"look",
+"harris",
+"none"
+]
+]
+},
+"5:6:3": {
+"cues": [
+[
+0.25,
+"gest",
+"sofi",
+"g_angry",
+3.9
+],
+[
+15.2,
+"look",
+"sofi",
+"none"
+]
+]
+},
+"5:7:2": {
+"cues": [
+[
+14.2,
+"look",
+"diaz",
+"none"
+]
+]
+},
+"5:9:1": {
+"cues": [
+[
+0.15,
+"look",
+"lena",
+"harris"
+],
+[
+4.2,
+"look",
+"harris",
+"lena"
+],
+[
+4.15,
+"look",
+"lena",
+"harris"
+],
+[
+4.3,
+"gest",
+"lena",
+"g_angry",
+1.9
+],
+[
+12.2,
+"look",
+"harris",
+"none"
+],
+[
+12.2,
+"look",
+"lena",
+"none"
+]
+]
+},
+"5:9:3": {
+"cues": [
+[
+10.3,
+"look",
+"harris",
+"none"
+],
+[
+10.3,
+"look",
+"lena",
+"none"
+]
+]
+},
+"5:11:1": {
+"cues": [
+[
+14.2,
+"look",
+"harris",
+"none"
+]
+]
+}
+}
+}

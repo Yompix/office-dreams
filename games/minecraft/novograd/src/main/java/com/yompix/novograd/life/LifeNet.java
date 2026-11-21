@@ -63,9 +63,22 @@ public final class LifeNet {
         ServerPlayNetworking.send(p, new S2C(type, data));
     }
 
+    private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none");
+
+    /** 0.8: разослать жест игрокам в том же мире ближе 160 блоков (только внешний вид, без механики). */
+    private static void emote(ServerPlayerEntity p, String id) {
+        if (!EMOTES.contains(id)) return;
+        NbtCompound n = new NbtCompound();
+        n.putUuid("who", p.getUuid());
+        n.putString("id", id);
+        for (ServerPlayerEntity q : p.getServerWorld().getPlayers())
+            if (q != p && q.squaredDistanceTo(p) < 160 * 160) send(q, "emote", n.copy());
+    }
+
     private static void handle(ServerPlayerEntity p, String type, NbtCompound d) {
         switch (type) {
             case "hello" -> Life.sync(p);
+            case "emote" -> emote(p, d.getString("id")); // 0.8: жест игрока (V) — видят игроки рядом
             case "ready" -> com.yompix.novograd.story.Story.onClientReady(p);
             case "perf_level" -> com.yompix.novograd.perf.PerfLevel.level = Math.max(0, Math.min(2, d.getInt("level"))); // настройка «Производительность»
             case "taxi_call" -> Taxi.call(p, d.getString("dest"));
