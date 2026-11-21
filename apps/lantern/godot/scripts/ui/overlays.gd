@@ -18,7 +18,7 @@ static func _dim(app: Control, alpha := 0.6) -> ColorRect:
 	ov.mouse_filter = Control.MOUSE_FILTER_STOP
 	app.add_child(ov)
 	if FX.on():
-		ov.create_tween().tween_property(ov, "color:a", alpha, 0.22)
+		FX.drive(ov.create_tween()).tween_property(ov, "color:a", alpha, 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	else:
 		ov.color.a = alpha
 	return ov
@@ -33,9 +33,10 @@ static func _center(ov: Control, child: Control) -> void:
 		child.modulate.a = 0
 		child.scale = Vector2(0.94, 0.94)
 		child.resized.connect(func(): child.pivot_offset = child.size / 2)
-		var tw := child.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.tween_property(child, "scale", Vector2.ONE, 0.22)
-		tw.tween_property(child, "modulate:a", 1.0, 0.18)
+		child.scale = Vector2(0.96, 0.96)
+		var tw := FX.smooth(child)
+		tw.tween_property(child, "scale", Vector2.ONE, 0.3)
+		tw.tween_property(child, "modulate:a", 1.0, 0.22)
 
 
 static func _safe_bottom(app: Control) -> float:
@@ -119,11 +120,24 @@ static func sheet(app: Control, title := "", sub := "", light := false) -> VBoxC
 		if FX.on():
 			p.modulate.a = 0
 			# через кадр (после раскладки) — выезд снизу с пружинкой; твин живёт вместе с листом
+			# 2.0.1: сдвиг листа — отдельная величина поверх раскладки: если контейнер пересоберётся посреди
+			# выезда (лист дорисовал содержимое), лист не прыгает на место, а едет дальше
+			var off := [0.0]
+			var base := [0.0]
+			col.sort_children.connect(func():
+				base[0] = p.position.y
+				p.position.y = base[0] + off[0])
+			var slide := func(v: float):
+				off[0] = v
+				if is_instance_valid(p):
+					p.set_meta("slide_v", v)
+					p.position.y = base[0] + v
+			p.set_meta("slide", slide)
 			p.create_tween().tween_callback(func():
-				var y := p.position.y
-				p.position.y = y + p.size.y * 0.6
+				base[0] = p.position.y
 				p.modulate.a = 1
-				p.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(p, "position:y", y, 0.24))
+				slide.call(p.size.y * 0.5)
+				FX.smooth(p).tween_method(slide, p.size.y * 0.5, 0.0, 0.32))
 	else:
 		p.custom_minimum_size.x = 480
 		_center(ov, p)
@@ -147,12 +161,17 @@ static func _fade_out(ov: Control) -> void:
 		ov.queue_free()
 		return
 	var p: Control = ov.get_meta("panel") if ov.has_meta("panel") else null
-	var tw := ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(ov, "color:a", 0.0, 0.2)
-	if p and UI.compact():
-		tw.tween_property(p, "position:y", p.position.y + p.size.y, 0.2)
+	var tw := FX.smooth(ov, false)
+	tw.tween_property(ov, "color:a", 0.0, FX.T_EXIT)
+	if p and UI.compact() and p.has_meta("slide"):
+		var slide: Callable = p.get_meta("slide")
+		var from_: float = p.get_meta("slide_v", 0.0)
+		tw.tween_method(slide, from_, p.size.y, FX.T_EXIT)
+	elif p and UI.compact():
+		tw.tween_property(p, "position:y", p.position.y + p.size.y, FX.T_EXIT)
 	elif p:
-		tw.tween_property(p, "modulate:a", 0.0, 0.15)
+		tw.tween_property(p, "modulate:a", 0.0, 0.16)
+		tw.tween_property(p, "scale", Vector2(0.97, 0.97), 0.16)
 	tw.chain().tween_callback(ov.queue_free)
 
 
@@ -215,10 +234,10 @@ static func register(app: Control) -> void:
 		if FX.on() and old != nw:
 			nw.position.x = 60 * dir
 			nw.modulate.a = 0
-			var tw := nw.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			var tw := FX.drive(nw.create_tween().set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT))
 			tw.tween_property(nw, "position:x", 0.0, 0.22)
 			tw.tween_property(nw, "modulate:a", 1.0, 0.22)
-			var to := old.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			var to := FX.drive(old.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN))
 			to.tween_property(old, "position:x", -60.0 * dir, 0.2)
 			to.tween_property(old, "modulate:a", 0.0, 0.16)
 			to.chain().tween_callback(func(): old.visible = false; old.position.x = 0)

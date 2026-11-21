@@ -94,8 +94,9 @@ func _process(_d: float) -> void:
 	var now := Time.get_ticks_msec()
 	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return
-	_watch_network(now)
-	_flush_cache(now)
+	if not FX.busy():     # 2.0.1: опрос сетевых адаптеров и запись кэша на диск — не посреди перехода
+		_watch_network(now)
+		_flush_cache(now)
 	if not _active:
 		if now >= _next_try and not (_bg and OS.has_feature("mobile") and _fails > 3):
 			_connect()

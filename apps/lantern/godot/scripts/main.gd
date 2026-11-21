@@ -10,6 +10,7 @@ var room: RoomControl              # хозяин мира: статус «др�
 var vnet: VNet                     # 2.0 «Любые игры»: виртуальная локальная сеть (scripts/vnet/vnet.gd)
 
 var _content: MarginContainer      # сюда кладётся экран (автотесты ищут переполнение здесь)
+var _slot: Control                 # 2.0.1: место для экрана внутри _content (не контейнер — переходы без рывков)
 var _screen: Control               # сам экран (без обёртки прокрутки)
 var _screen_root: Control          # экран или его ScrollContainer
 var _nav := {}                     # ключ → кнопка меню
@@ -187,13 +188,18 @@ func _splash(force := false) -> void:
 		if done[0] or not is_instance_valid(ov):
 			return
 		done[0] = true
-		var out := ov.create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
-		out.tween_property(ov, "modulate:a", 0.0, 0.24)
+		var out := FX.drive(ov.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT))
+		out.tween_property(ov, "modulate:a", 0.0, 0.3)
 		out.tween_callback(ov.queue_free)
 	ov.gui_input.connect(func(e):
 		if (e is InputEventMouseButton or e is InputEventScreenTouch) and e.pressed:
 			finish.call())
-	var tw := ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# 2.0.1: пока заставка закрывает экран — прогреваем тяжёлые экраны (скрипты, шейдеры, глифы шрифтов),
+	# чтобы первый переход в раздел не строил всё это в одном кадре. Анимация заставки — после прогрева.
+	await _prewarm(ov)
+	if not is_instance_valid(ov):
+		return
+	var tw := FX.drive(ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT))
 	tw.tween_property(ch, "assemble", 1.0, 0.75)
 	wm.position.y += 14
 	tw.tween_property(wm, "modulate:a", 1.0, 0.25).set_delay(0.5)
@@ -203,6 +209,58 @@ func _splash(force := false) -> void:
 		tw.tween_callback(func(): if is_instance_valid(name_l): name_l.text = word.substr(0, i) + ("_" if i < word.length() else "")).set_delay(0.75 + i * 0.05)
 	tw.chain().tween_interval(0.35)
 	tw.chain().tween_callback(finish)
+
+
+## 2.0.1: прогрев под заставкой — по экрану за кадр, в настоящем окне (глифы нужного размера, шейдеры
+## фона/кнопок/растворения). Скрипты экранов остаются в памяти, сами экраны удаляются.
+const WARM := ["net", "friends", "profile", "settings", "join"]
+var _warmed := false
+var _warming := false
+var _warm_keep := []
+
+
+func _prewarm(cover: Control) -> void:
+	if _warmed or not FX.on() or not is_instance_valid(_content):
+		return
+	_warmed = true
+	await get_tree().process_frame      # раскладка уже есть — знаем размер области экрана
+	_warming = true
+	var t0 := Time.get_ticks_msec()
+	var wipe := ColorRect.new()      # шейдер растворения компилируется заранее
+	var wm := ShaderMaterial.new()
+	wm.shader = preload("res://assets/shaders/pixel_wipe.gdshader")
+	wm.set_shader_parameter("progress", 0.5)
+	wipe.material = wm
+	wipe.size = Vector2(64, 64)
+	wipe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(wipe)
+	for n in WARM:
+		if not is_instance_valid(cover):
+			break
+		var sc: Script = load("res://scripts/screens/%s.gd" % n)
+		_warm_keep.append(sc)
+		var scr: Control = sc.new()
+		scr.set("app", self)
+		scr.set_meta("warm", true)
+		scr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		scr.position = _content.global_position
+		scr.size = _content.size
+		add_child(scr)
+		move_child(scr, cover.get_index())    # под заставкой
+		await _drawn()
+		scr.queue_free()
+	wipe.queue_free()
+	await _drawn()
+	_warming = false
+	AppLog.add("app", "прогрев экранов: %d мс" % (Time.get_ticks_msec() - t0))
+
+
+## Кадр нарисован (без отрисовки, --headless, — просто следующий кадр).
+func _drawn() -> void:
+	if DisplayServer.get_name() == "headless":
+		await get_tree().process_frame
+	else:
+		await RenderingServer.frame_post_draw
 
 
 ## --startup=1: время до первого кадра и средний кадр на главной (для отчёта о скорости), затем выход
@@ -375,6 +433,10 @@ func _build() -> void:
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content.clip_contents = true
+	_slot = preload("res://scripts/ui/screen_slot.gd").new()
+	_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_content.add_child(_slot)
 	if _compact:
 		_build_phone()
 	else:
@@ -1324,18 +1386,16 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 	set_back(Callable())
 	set_nav_visible(true)
 	_center_content()
-	# старый экран уходит, новый приходит (общая ось: вперёд — справа, назад — слева, разделы — проявление)
+	# старый экран уходит, новый приходит (общая ось: вперёд — справа, назад — слева, разделы — проявление).
+	# 2.0.1: сначала строим новый экран, анимацию запускаем на «часах» FX — тяжёлый кадр постройки не
+	# превращается в скачок анимации; оба экрана лежат в _slot (не контейнер), раскладка их не двигает.
 	var old := _screen_root
+	var animate := FX.on() and prev_name != name and prev_name != ""
 	if is_instance_valid(old):
 		old.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_set_tree_ignore(old)
-		if FX.on() and prev_name != name:
-			var tw := old.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-			tw.tween_property(old, "modulate:a", 0.0, 0.14)
-			if dir != 0:
-				tw.tween_property(old, "position:x", old.position.x - 36 * dir, 0.16)
-			tw.chain().tween_callback(old.queue_free)
-		else:
+		old.set_meta("leaving", true)
+		if not animate:
 			old.queue_free()
 	# экраны грузятся при первом открытии (быстрее старт), дальше — из кэша ресурсов
 	var scr: Control = load("res://scripts/screens/%s.gd" % name).new()
@@ -1371,22 +1431,62 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		sc.add_child(scr)
 		root = sc
 	_screen_root = root
-	_content.add_child(root)
-	if FX.on() and dir == 0 and prev_name != "" and prev_name != name:
+	_slot.add_child(root)
+	if animate:
+		_progressive(scr)
+		_transition(old, root, dir)
+
+
+## 2.0.1: в кадре перехода раскладывается только видимый сразу верх экрана (первые блоки колонки), остальное —
+## ниже края экрана — появляется по блоку за кадр, когда анимация доехала. Раскладка и перенос строк длинного экрана больше не
+## ложатся одним тяжёлым кадром в начало анимации.
+func _progressive(scr: Control) -> void:
+	var col: Node = scr
+	for _i in 4:     # спускаемся через обёртки с одним ребёнком до настоящей колонки
+		var vis := col.get_children().filter(func(c): return c is Control and (c as Control).visible)
+		if vis.size() == 1 and vis[0] is Container:
+			col = vis[0]
+		else:
+			break
+	if not (col is VBoxContainer):
+		return
+	var later := []
+	var shown := 0
+	for c in col.get_children():
+		if c is Control and (c as Control).visible:
+			shown += 1
+			if shown > 3:
+				(c as Control).visible = false
+				later.append(c)
+	if later.is_empty():
+		return
+	await FX.settled(self)
+	for c in later:
+		if is_instance_valid(c) and c.is_inside_tree():
+			(c as Control).visible = true
+		await get_tree().process_frame
+
+
+## 2.0.1: переход между экранами. Уход — CUBIC/EASE_IN 0,2 с, появление — QUINT/EASE_OUT 0,3 с, внахлёст.
+## Вперёд/назад — сдвиг на 28 dp; смена раздела — «пиксельное растворение» поверх и лёгкое всплытие.
+func _transition(old: Control, root: Control, dir: int) -> void:
+	# старый экран: прозрачность уходит быстро (0,12 с), чтобы два экрана не просвечивали друг через друга;
+	# сдвиг — CUBIC/EASE_IN 0,22 с. Новый проявляется, когда старый почти ушёл (вперёд/назад — с 0,07 с,
+	# смена раздела — на пике «растворения», 0,11 с) и встаёт на место по QUINT/EASE_OUT за 0,3 с.
+	if is_instance_valid(old):
+		var to := FX.smooth(old, false)
+		to.tween_property(old, "modulate:a", 0.0, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		if dir != 0:
+			to.tween_property(old, "position:x", -20.0 * dir, FX.T_EXIT)
+		to.chain().tween_callback(old.queue_free)
+	if dir == 0:
 		_pixel_wipe()
-	if FX.on():
-		root.modulate.a = 0
-		var from := Vector2(40 * dir, 0) if dir != 0 else Vector2(0, 10)
-		var start := func():
-			if not is_instance_valid(root):
-				return
-			var p := root.position
-			root.position = p + from
-			var tw := root.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(root, "modulate:a", 1.0, 0.18).set_delay(0.03)
-			tw.tween_property(root, "position", p, 0.22).set_delay(0.02)
-			tw.chain().tween_callback(func(): if is_instance_valid(_content): _content.queue_sort())
-		root.create_tween().tween_callback(start)
+	root.modulate.a = 0.0
+	root.position = Vector2(28.0 * dir, 0.0) if dir != 0 else Vector2(0.0, 8.0)
+	var ti := FX.smooth(root)
+	ti.tween_property(root, "modulate:a", 1.0, 0.22).set_delay(0.07 if dir != 0 else 0.11)
+	ti.tween_property(root, "position", Vector2.ZERO, 0.3).set_delay(0.0 if dir != 0 else 0.08)
+	ti.chain().tween_callback(func(): if is_instance_valid(_slot): _slot.settle(root))
 
 
 ## 2.0: события виртуальной сети — коротким уведомлением, где бы игрок ни был.
@@ -1408,28 +1508,34 @@ func _on_vnet_event(e: Dictionary) -> void:
 
 
 ## 2.0: смена раздела — «пиксельное растворение» (чёрные блоки тают за 0,3 с) поверх области экрана.
+var _wipe_mat: ShaderMaterial    # для замера плавности (tests transbench)
+
+
 func _pixel_wipe() -> void:
+	# 2.0.1: блоки мельче (12 dp) и каждый тает мягко, а не щелчком; сначала быстро «набегают» поверх старого
+	# экрана (0,12 с), затем растворяются над новым (0,24 с). Цвет — тон фона, не чистый чёрный.
 	var w := ColorRect.new()
 	w.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://assets/shaders/pixel_wipe.gdshader")
 	w.material = m
+	_wipe_mat = m
 	w.z_index = 10
 	add_child(w)
 	w.global_position = _content.global_position
 	w.size = _content.size
 	m.set_shader_parameter("px", w.size)
-	m.set_shader_parameter("progress", 1.0)
-	var tw := w.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_method(func(v: float): m.set_shader_parameter("progress", v), 1.0, 0.0, 0.3)
+	m.set_shader_parameter("progress", 0.0)
+	var set_p := func(v: float): m.set_shader_parameter("progress", v)
+	var tw := FX.drive(w.create_tween())
+	tw.tween_method(set_p, 0.0, 1.0, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_method(set_p, 1.0, 0.0, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(w.queue_free)
 
 
 func _set_tree_ignore(n: Node) -> void:
-	if n is Control:
-		(n as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for c in n.get_children():
-		_set_tree_ignore(c)
+	# 2.0.1: обход внутри движка (раньше — рекурсия на GDScript по сотням узлов в кадре перехода)
+	n.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
 
 
 func _select_nav(name: String) -> void:

@@ -23,6 +23,107 @@ static func d(t: float) -> float:
 	return t if on() else 0.0
 
 
+# ------------------------------------------------------------------ 2.0.1: плавные переходы
+## Длительности и кривые переходов: появление — QUINT/EASE_OUT, уход — CUBIC/EASE_IN, без «пружин».
+const T_ENTER := 0.28
+const T_EXIT := 0.22
+
+## Твин шагает от общих «часов» с ограниченным шагом (не больше 1/40 с). Если кадр задержался (строится
+## экран, чужая нагрузка), анимация не перепрыгивает вперёд, а продолжается с того же места — без видимого
+## рывка. Первый шаг нового твина — не больше 1/60 с (тяжёлый кадр, в котором его создали, не в счёт).
+## Пока что-то едет, элементы не прилипают к целым пикселям (движение без «ступенек»); в покое — снова чётко.
+static var _driven: Array = []
+static var _fresh: Dictionary = {}
+static var _hooked := false
+
+
+static func drive(tw: Tween) -> Tween:
+	var st := Engine.get_main_loop() as SceneTree
+	if st == null or not tw.is_valid():
+		return tw
+	tw.pause()
+	if not _hooked:
+		_hooked = true
+		st.process_frame.connect(_tick)
+	if _driven.is_empty():
+		_snap(false)
+	_driven.append(tw)
+	_fresh[tw] = true
+	return tw
+
+
+static func busy() -> bool:
+	return not _driven.is_empty()
+
+
+## Дождаться, пока переходы доедут (для того, что ниже края экрана: строим после анимации, а не в её кадрах).
+static func settled(n: Node) -> void:
+	await n.get_tree().process_frame
+	while busy() and is_instance_valid(n) and n.is_inside_tree():
+		await n.get_tree().process_frame
+
+
+static func _tick() -> void:
+	# шаг кадра — от движка (при записи ролика с --fixed-fps он ровно 1/60), не больше 1/40 с
+	var st := Engine.get_main_loop() as SceneTree
+	var dt := clampf(st.root.get_process_delta_time() if st and st.root else 1.0 / 60.0, 0.0, 1.0 / 40.0)
+	if _driven.is_empty():
+		return
+	for tw in _driven.duplicate():
+		var t: Tween = tw
+		var step := dt
+		if _fresh.has(t):
+			_fresh.erase(t)
+			step = minf(dt, 1.0 / 60.0)
+		if not t.is_valid() or not t.custom_step(step):
+			_driven.erase(t)
+			_fresh.erase(t)
+	if _driven.is_empty():
+		_snap(true)
+		if not _calm.is_empty():
+			_flush_calm.call_deferred()
+
+
+static func _snap(on_: bool) -> void:
+	var st := Engine.get_main_loop() as SceneTree
+	if st and st.root:
+		st.root.gui_snap_controls_to_pixels = on_
+
+
+## Перестройка списка по данным сервера (друзья, сети, комнаты), пока едет переход, откладывается до его
+## конца: ответ приходит в том же кадре, и полная перестройка (10–16 мс) давала рывок в начале анимации.
+## Повторные вызовы за это время схлопываются в один.
+static var _calm: Array = []
+
+
+static func calm(cb: Callable) -> void:
+	if not busy():
+		cb.call()
+		return
+	for c in _calm:
+		if c == cb:
+			return
+	_calm.append(cb)
+
+
+static func _flush_calm() -> void:
+	var list := _calm.duplicate()
+	_calm.clear()
+	for cb in list:
+		if (cb as Callable).is_valid():
+			(cb as Callable).call()
+
+
+## Твин на «часах» переходов с общей кривой (появление по умолчанию).
+static func smooth(n: Node, enter_ := true) -> Tween:
+	var t := n.create_tween().set_parallel()
+	if enter_:
+		t.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	else:
+		t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	return drive(t)
+
+
 ## Нажатие: сжатие до 0.96 и пружинистый возврат + «волна» от пальца.
 static func press(c: Control, k := 0.96) -> void:
 	c.resized.connect(func(): c.pivot_offset = c.size / 2)
@@ -30,13 +131,16 @@ static func press(c: Control, k := 0.96) -> void:
 		if not on():
 			return
 		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
-			var tw := c.create_tween()
+			if c.has_meta("press_tw") and (c.get_meta("press_tw") as Tween).is_valid():
+				(c.get_meta("press_tw") as Tween).kill()     # новое нажатие продолжает с текущего масштаба, без скачка
+			var t := drive(c.create_tween())
+			c.set_meta("press_tw", t)
 			if e.pressed:
-				tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE * k, 0.09)
+				t.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE * k, 0.1)
 				if c is BaseButton and not (c as BaseButton).disabled:
 					ripple(c, e.position)
 			else:
-				tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE, 0.16))
+				t.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT).tween_property(c, "scale", Vector2.ONE, 0.24))
 
 
 class Ripple extends Control:
@@ -65,7 +169,7 @@ static func ripple(c: Control, at: Vector2) -> void:
 	clip.add_child(rp)
 	rp.tree_exited.connect(clip.queue_free)
 	var maxr := Vector2(maxf(at.x, c.size.x - at.x), maxf(at.y, c.size.y - at.y)).length()
-	var tw := rp.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	var tw := drive(rp.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT))
 	tw.tween_method(func(v): rp.r = v; rp.queue_redraw(), 6.0, maxr, 0.28)
 	tw.tween_method(func(v): rp.a = v; rp.queue_redraw(), 0.16, 0.0, 0.3).set_delay(0.06)
 	tw.chain().tween_callback(rp.queue_free)
@@ -73,35 +177,36 @@ static func ripple(c: Control, at: Vector2) -> void:
 
 ## Появление: проявление + лёгкое «всплытие» (масштаб от точки сбоку/снизу).
 ## Позицию не трогаем: ею управляют контейнеры, и сдвиг ломал бы раскладку.
-static func enter(c: Control, from := Vector2(0, 12), delay := 0.0, dur := 0.22) -> void:
+static func enter(c: Control, from := Vector2(0, 12), delay := 0.0, dur := 0.26) -> void:
 	if not on():
 		return
 	c.modulate.a = 0.0
-	var k := 0.94 if from.x != 0 else 0.97
+	# 2.0.1: масштаб чуть заметный (0.985), длиннее и мягче (QUINT) — элементы «проявляются», а не прыгают
+	var k := 0.97 if from.x != 0 else 0.985
 	c.scale = Vector2(k, k)
-	var tw := c.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(func():
+	var t := smooth(c)
+	t.tween_callback(func():
 		# точка опоры с той стороны, откуда «приезжает» элемент
-		var px := c.size.x * (0.5 if from.x == 0 else (0.0 if from.x < 0 else 1.0) * 1.0)
+		var px := c.size.x * 0.5
 		var py := c.size.y * (1.0 if from.y > 0 else (0.0 if from.y < 0 else 0.5))
 		if from.x > 0:
 			px = -c.size.x * 0.4
 		elif from.x < 0:
 			px = c.size.x * 1.4
 		c.pivot_offset = Vector2(px, py)).set_delay(delay)
-	tw.tween_property(c, "modulate:a", 1.0, dur * 0.8).set_delay(delay)
-	tw.tween_property(c, "scale", Vector2.ONE, dur).set_delay(delay)
+	t.tween_property(c, "modulate:a", 1.0, dur * 0.85).set_delay(delay)
+	t.tween_property(c, "scale", Vector2.ONE, dur).set_delay(delay)
 
 
-## Элементы списка появляются по очереди (шаг до 25 мс, не дольше 8 шагов — весь список виден за ~0,4 с).
-static func stagger(box: Container, step := 0.035, from := Vector2(0, 14), max_items := 8) -> void:
-	step = minf(step, 0.025)
+## Элементы списка появляются по очереди, внахлёст: шаг 18 мс, не больше 8 шагов (весь список — за ~0,4 с).
+static func stagger(box: Container, step := 0.018, from := Vector2(0, 14), max_items := 8) -> void:
+	step = minf(step, 0.018)
 	if not on():
 		return
 	var i := 0
 	for ch in box.get_children():
 		if ch is Control and (ch as Control).visible:
-			enter(ch, from, minf(i, max_items) * step, 0.22)
+			enter(ch, from, minf(i, max_items) * step, 0.3)
 			i += 1
 
 

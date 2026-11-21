@@ -13,7 +13,7 @@ func _ready() -> void:
 		if w == "me" and _nick_wait != "" and is_inside_tree() and Social.me is Dictionary and String(Social.me.get("nick", "")) == _nick_wait:
 			_nick_wait = ""
 			app.toast(L.t("Ник изменён"), UI.JAVA)
-		if w in ["me", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
+		if w in ["me", "eco", "conn"] and is_inside_tree() and not _typing(): FX.calm(_render))
 	Social.failed.connect(func(what, text):
 		if what == "register" and _nick_wait != "" and is_inside_tree():
 			_nick_wait = ""

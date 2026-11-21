@@ -56,6 +56,7 @@ func run(a) -> void:
 		"ownreal": code = await _ownreal()
 		"vnet": code = await _vnet()
 		"brandvid": code = await _brandvid()
+		"transbench": code = await _transbench()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
@@ -2375,6 +2376,11 @@ var _brec := false
 
 
 func _process(_d: float) -> void:
+	if _tb_mark.is_valid():
+		_tb_mark.call("узлы")
+		_tb_mark = Callable()
+	if _brec:
+		_bv_props.append(_tb_sample())
 	if _brec and _frames != "":
 		var img := get_viewport().get_texture().get_image()
 		img.save_jpg(_frames.path_join("f%05d.jpg" % _fi), 0.9)
@@ -2395,24 +2401,251 @@ func _brandvid() -> int:
 	await _hold(0.5)
 	_brec = true
 	app._splash(true)
-	await _hold(2.0)
-	await _hold(0.8)
+	await _hold(2.6)
+	_bv_mark("home→net")
 	app.go("net")
-	await _hold(1.3)
+	await _hold(1.2)
 	app.vnet.create({"name": "Terraria night", "game": "terraria", "public": true})
 	await _wait(func(): return str(app.vnet.snapshot().get("state", "")) == "online", 10, "сеть")
-	await _hold(1.4)
+	await _hold(1.0)
+	_bv_mark("net→friends")
 	app.go("friends")
-	await _hold(1.0)
+	await _hold(0.9)
+	_bv_mark("friends→profile")
 	app.go("profile")
-	await _hold(1.0)
+	await _hold(0.9)
+	_bv_mark("profile→home")
 	app.go("home")
-	await _hold(1.0)
+	await _hold(0.9)
+	_bv_mark("home→join (push)")
+	app.go("join")
+	await _hold(0.9)
+	_bv_mark("join→back")
+	app.back()
+	await _hold(0.9)
+	_bv_mark("home→settings")
+	app.go("settings")
+	await _hold(0.9)
+	_bv_mark("settings→home")
+	app.go("home")
+	await _hold(0.9)
+	_bv_mark("sheet open")
 	app._more_menu()
-	await _hold(1.2)
-	await _close_overlays()
-	await _hold(0.6)
+	await _hold(1.0)
+	_bv_mark("sheet close")
+	Overlays.close_sheet(app)
+	await _hold(0.7)
 	_brec = false
 	app.vnet.leave()
 	_log("кадров: %d" % _fi)
+	# лог свойств по кадрам (шаг ровно 1/60 с): шаги против кривой в каждом переходе
+	var total := 0
+	for i in _bv_marks.size():
+		var a: int = _bv_marks[i][1]
+		var b: int = _bv_marks[i + 1][1] if i + 1 < _bv_marks.size() else _bv_props.size()
+		var seg := _bv_props.slice(a, b)
+		var st := 0
+		for k in ["x", "y", "a", "wipe", "sy", "sa", "spl"]:
+			st += _tb_steps(seg, k)
+		total += st
+		_log("VID %-18s кадры %d–%d  шагов: %d" % [_bv_marks[i][0], a, b - 1, st])
+	var pl := String(Cfg.autotest_args.get("proplog", ""))
+	if pl != "":
+		FileAccess.open(pl, FileAccess.WRITE).store_string(JSON.stringify({"marks": _bv_marks, "frames": _bv_props}))
+	_log("VID шагов всего: %d" % total)
+	return 0
+
+
+var _bv_marks := []
+var _bv_props := []
+
+
+func _bv_mark(n: String) -> void:
+	_bv_marks.append([n, _bv_props.size()])
+
+
+# ------------------------------------------------------------------ 2.0.1: замер плавности переходов
+## --autotest transbench --anim=1 [--out=файл.json]: для каждого перехода — время каждого кадра (между
+## frame_post_draw, без вертикальной синхронизации = цена кадра), сколько занял сам go() (кадр, в котором
+## строится экран), и значения анимируемых свойств по кадрам. «Шаг» — кадр, где свойство дёрнулось против
+## кривой (вернулось назад или скакнуло больше чем в 2,5 раза от соседних шагов).
+var _tb_t := []
+var _tb_v := []
+var _tb_on := false
+var _tb_last := 0
+var _tb_sig: Signal
+var _tb_mark := Callable()
+
+
+class _TbMark extends Node:
+	var cb := Callable()
+	func _process(_d: float) -> void:
+		if cb.is_valid():
+			cb.call()
+			cb = Callable()
+
+var _tb_last_proc := 0
+
+
+func _tb_frame() -> void:
+	var now := Time.get_ticks_usec()
+	if _tb_on:
+		_tb_t.append((now - _tb_last) / 1000.0)
+		var smp := _tb_sample()
+		# работа главного потока в этом кадре: скрипты/твины/раскладка + отрисовка (CPU)
+		smp["f"] = Engine.get_frames_drawn()
+		smp["busy"] = 1 if FX.busy() else 0
+		smp["warm"] = 1 if app.get("_warming") else 0
+		_tb_v.append(smp)
+	_tb_last = now
+
+
+func _tb_sample() -> Dictionary:
+	var d := {}
+	var r: Control = app._screen_root
+	if is_instance_valid(r):
+		d["x"] = r.position.x
+		d["y"] = r.position.y
+		d["a"] = r.modulate.a
+	var w = app.get("_wipe_mat")
+	if w is ShaderMaterial and is_instance_valid(w):
+		d["wipe"] = float(w.get_shader_parameter("progress"))
+	for c in app.get_children():
+		if c is ColorRect and c.has_meta("sheet") and c.has_meta("panel"):
+			var p: Control = c.get_meta("panel")
+			if is_instance_valid(p):
+				d["sy"] = p.global_position.y
+				d["sa"] = p.modulate.a
+		if c is ColorRect and c.name == "Splash":
+			d["spl"] = c.modulate.a
+	return d
+
+
+func _tb_steps(vals: Array, key: String) -> int:
+	var xs := []
+	for v in vals:
+		if v.has(key):
+			xs.append(float(v[key]))
+	var bad := 0
+	var prev_d := 0.0
+	var dir := 0.0
+	for i in range(1, xs.size()):
+		var dd: float = xs[i] - xs[i - 1]
+		if absf(dd) < 0.0005:
+			continue
+		if dir != 0.0 and signf(dd) != dir and absf(dd) > 0.6:
+			bad += 1    # пошло назад — рывок (раскладка вернула позицию и т. п.)
+		if prev_d != 0.0 and absf(dd) > absf(prev_d) * 2.5 + 0.02 and absf(dd) > 6.0:
+			bad += 1    # резкий скачок посреди плавного движения
+		dir = signf(dd)
+		prev_d = dd
+	return bad
+
+
+func _tb_run(label: String, act: Callable, sec := 0.6) -> Dictionary:
+	await _tb_sig
+	await _tb_sig
+	_tb_t.clear()
+	_tb_v.clear()
+	_tb_on = true
+	var g0 := Time.get_ticks_usec()
+	act.call()
+	var gms := (Time.get_ticks_usec() - g0) / 1000.0
+	var l0 := Time.get_ticks_usec()
+	var lms := 0.0
+	var marks := {}
+	if Cfg.autotest_args.has("tb_layout"):
+		# где уходит время кадра 0: очередь отложенных вызовов (раскладка) и всё до начала следующего кадра
+		var mark := func(k: String): marks[k] = (Time.get_ticks_usec() - l0) / 1000.0
+		mark.call_deferred("очередь")
+		get_tree().process_frame.connect(func(): mark.call("след.кадр"), CONNECT_ONE_SHOT)
+		get_tree().physics_frame.connect(func(): mark.call("физика"), CONNECT_ONE_SHOT)
+		var first := _TbMark.new()
+		first.process_priority = -100000
+		first.cb = func(): mark.call("узлы-начало")
+		get_tree().root.add_child(first)
+		var sc := func(w): mark.call("social:" + str(w))
+		Social.changed.connect(sc)
+		get_tree().create_timer(0.05).timeout.connect(func():
+			Social.changed.disconnect(sc)
+			first.queue_free())
+		var pn := Node.new()
+		add_child(pn)
+		var tl := pn.create_tween()
+		tl.tween_callback(func(): mark.call("твины"))
+		var dn := Node.new()
+		add_child(dn)
+		dn.tree_exited.connect(func(): mark.call("удаление"))
+		dn.queue_free()
+		_tb_mark = mark
+		get_tree().create_timer(0.0).timeout.connect(func(): mark.call("таймеры"))
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < sec * 1000:
+		await _tb_sig
+	_tb_on = false
+	var mx := 0.0
+	var sum := 0.0
+	var over := 0
+	for t in _tb_t:
+		mx = maxf(mx, t)
+		sum += t
+		if t > 20.0:
+			over += 1
+	var steps := 0
+	for k in ["x", "y", "a", "wipe", "sy", "sa", "spl"]:
+		steps += _tb_steps(_tb_v, k)
+	var amx := 0.0     # худший кадр без кадров прогрева под заставкой (экран там статичный и чёрный)
+	var warm := 0
+	for i in _tb_v.size():
+		var v: Dictionary = _tb_v[i]
+		if int(v.get("warm", 0)) == 1 or (i > 0 and int(_tb_v[i - 1].get("warm", 0)) == 1):
+			warm += 1
+		else:
+			amx = maxf(amx, _tb_t[i])
+
+	var r := {"name": label, "go_ms": snappedf(gms, 0.1), "max_ms": snappedf(mx, 0.1), "avg_ms": snappedf(sum / maxf(1, _tb_t.size()), 0.1),
+		"over20": over, "anim_max": snappedf(amx, 0.1), "warm_frames": warm, "frames": _tb_t.size(), "steps": steps, "t": _tb_t.duplicate(), "v": _tb_v.duplicate()}
+	if not marks.is_empty():
+		_log("TB   └ после go: %s" % JSON.stringify(marks))
+	_log("TB %-22s go %6.1f мс  кадр макс %6.1f (без прогрева %6.1f)  сред %5.1f  >20мс: %d  шагов: %d" % [label, gms, mx, amx, r.avg_ms, over, steps])
+	return r
+
+
+func _transbench() -> int:
+	OS.low_processor_usage_mode = false
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	# без отрисовки (--headless) сигнала «кадр нарисован» нет — меряем по началу кадра
+	_tb_sig = get_tree().process_frame if DisplayServer.get_name() == "headless" else RenderingServer.frame_post_draw
+	_tb_sig.connect(_tb_frame)
+	if Social.conn == "need_register":
+		Social.register("Ночной_Лис")
+		await _wait(func(): return Social.online(), 10, "профиль")
+	app.go("home", true)
+	await get_tree().create_timer(1.0).timeout
+	var res := []
+	res.append(await _tb_run("покой (home)", func(): pass, 1.0))
+	res.append(await _tb_run("покой, фон ожил", func(): app._deco.wake(), 1.0))
+	res.append(await _tb_run("splash", func(): app._splash(true), 2.6))
+	for pass_i in 2:
+		var sfx := " (1)" if pass_i == 0 else " (2)"
+		res.append(await _tb_run("home→net" + sfx, func(): app.go("net")))
+		res.append(await _tb_run("net→friends" + sfx, func(): app.go("friends")))
+		res.append(await _tb_run("friends→profile" + sfx, func(): app.go("profile")))
+		res.append(await _tb_run("profile→home" + sfx, func(): app.go("home")))
+		res.append(await _tb_run("home→join (push)" + sfx, func(): app.go("join")))
+		res.append(await _tb_run("join→back" + sfx, func(): app.back()))
+		res.append(await _tb_run("home→settings" + sfx, func(): app.go("settings")))
+		res.append(await _tb_run("settings→home" + sfx, func(): app.go("home")))
+		res.append(await _tb_run("sheet open" + sfx, func(): app._more_menu()))
+		res.append(await _tb_run("sheet close" + sfx, func(): Overlays.close_sheet(app)))
+	var out := String(Cfg.autotest_args.get("out", ""))
+	if out != "":
+		var f := FileAccess.open(out, FileAccess.WRITE)
+		f.store_string(JSON.stringify(res))
+	var worst := 0.0
+	var steps := 0
+	for r in res:
+		worst = maxf(worst, r.max_ms)
+		steps += int(r.steps)
+	_log("TB ИТОГ: худший кадр %.1f мс, шагов %d" % [worst, steps])
 	return 0

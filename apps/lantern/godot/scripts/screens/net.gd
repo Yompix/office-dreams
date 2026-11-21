@@ -128,6 +128,12 @@ func _load_browse() -> void:
 	var r: Dictionary = await Net.get_json(Social.http_base() + "/vnets?game=" + _browse_game.uri_encode())
 	if not is_instance_valid(_browse):
 		return
+	FX.calm(_show_browse.bind(r))
+
+
+func _show_browse(r: Dictionary) -> void:
+	if not is_instance_valid(_browse):
+		return
 	for c in _browse.get_children():
 		c.queue_free()
 	var nets: Array = (r.get("data", {}) as Dictionary).get("nets", []) if r.get("data") is Dictionary else []
@@ -464,26 +470,41 @@ func _qr(s: Dictionary) -> void:
 func _guide() -> Control:
 	var v := UI.vbox(8)
 	v.add_child(UI.section(L.t("Как играть по сети")))
+	_fill_guide(v)
+	return v
+
+
+## 2.0.1: справочник ниже края экрана — строки добавляются по 4 за кадр, подробности строятся при раскрытии
+## (раньше 19 строк с подробностями строились разом — 30+ мс в кадре перехода на этот экран).
+func _fill_guide(v: VBoxContainer) -> void:
 	var plats := [[L.t("Телефоны (Android)"), VGames.ANDROID], [L.t("Компьютер"), VGames.PC]]
 	if not Cfg.mobile():
 		plats.reverse()
+	var n := 0
+	await FX.settled(v)
 	for pl in plats:
-		v.add_child(UI.caption(pl[0], UI.MUTED))
 		for g in pl[1]:
+			if n % 4 == 0:
+				await get_tree().process_frame
+				if not is_instance_valid(v) or not v.is_inside_tree():
+					return
+			if n == 0 or g == pl[1][0]:
+				v.add_child(UI.caption(pl[0], UI.MUTED))
+			n += 1
 			var holder := UI.vbox(4)
 			var det := UI.vbox(4)
 			det.visible = false
-			det.add_child(UI.para(L.t("Хозяин: ") + str(g.host), 13, UI.TEXT))
-			det.add_child(UI.para(L.t("Друзья: ") + str(g.join) + ("" if g.way == "list" else L.t(" — IP хозяина из списка «Кто в сети»")), 13, UI.TEXT))
-			det.add_child(UI.para(L.t("Порт: ") + str(g.port), 12, UI.DIM))
 			var row := UI.list_row(UI.icon_tile("play", UI.MUTED, 36, 18), str(g.name), VGames.way_text(g), UI.icon("chevron_down", 20, UI.DIM), func():
+				if det.get_child_count() == 0:
+					det.add_child(UI.para(L.t("Хозяин: ") + str(g.host), 13, UI.TEXT))
+					det.add_child(UI.para(L.t("Друзья: ") + str(g.join) + ("" if g.way == "list" else L.t(" — IP хозяина из списка «Кто в сети»")), 13, UI.TEXT))
+					det.add_child(UI.para(L.t("Порт: ") + str(g.port), 12, UI.DIM))
 				det.visible = not det.visible
 				if det.visible:
 					FX.enter(det, Vector2(0, -6)), Color(0, 0, 0, 0))
 			holder.add_child(row)
 			holder.add_child(det)
 			v.add_child(holder)
-	return v
 
 
 func _limits_note() -> Control:
