@@ -1,4 +1,7 @@
 extends Control
+## 2.0: фон в стиле Yompix Games — стена пиксельных блоков, плывущие пиксельные облака и зерно (assets/shaders/yompix_bg.gdshader),
+## поверх — медленно парящие белые пиксельные значки бренда (сердце, куб, шестерёнка, геймпад, хлопушка, плюс, искры).
+## Ниже — описание бюджета из 1.7 (тот же SubViewport 1/4, 30 к/с, замирание на простое):
 ## Живой фон 1.7: ночное небо (assets/shaders/sky.gdshader), слабая лента сияния, тёплый свет «фонаря» слева сверху
 ## и до 22 медленных светлячков (одна мягкая текстура, одна пачка).
 ## Бюджет: небо считается в маленьком SubViewport (1/4 стороны экрана — в 16 раз меньше пикселей; картинка гладкая,
@@ -8,7 +11,7 @@ extends Control
 
 const FPS := 30.0
 const IDLE_SEC := 3.0
-const FLIES := 22
+const FLIES := 14
 const SKY_DIV := 4.0             # небо рисуется в 1/4 стороны экрана
 
 var warm := 1.0                 # сила света фонаря (экран знакомства — ярче)
@@ -38,8 +41,7 @@ func _ready() -> void:
 	_sky = ColorRect.new()
 	_sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mat = ShaderMaterial.new()
-	_mat.shader = load("res://assets/shaders/sky.gdshader")
-	_mat.set_shader_parameter("accent", Cfg.accent())
+	_mat.shader = load("res://assets/shaders/yompix_bg.gdshader")
 	_mat.set_shader_parameter("warm", warm)
 	_sky.material = _mat
 	_vp.add_child(_sky)
@@ -47,7 +49,7 @@ func _ready() -> void:
 	_view.texture = _vp.get_texture()
 	_view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_view.stretch_mode = TextureRect.STRETCH_SCALE
-	_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST     # пиксели бренда — чёткие
 	_view.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_view.show_behind_parent = true
@@ -55,11 +57,11 @@ func _ready() -> void:
 	_dot = UI.ui_tex("dot")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
+	var kinds := ["heart", "cube", "gear", "pad", "clap", "plus", "star", "plus", "star", "dot", "dot", "dot"]
 	for i in FLIES:
-		_flies.append({"p": Vector2(rng.randf(), rng.randf()), "r": rng.randf_range(2.0, 4.5), "ph": rng.randf() * TAU,
-			"sp": rng.randf_range(0.25, 0.8), "k": rng.randf_range(0.6, 1.4), "warm": rng.randf() < 0.75})
+		_flies.append({"p": Vector2(rng.randf(), rng.randf()), "r": rng.randf_range(2.0, 3.2), "ph": rng.randf() * TAU,
+			"sp": rng.randf_range(0.25, 0.8), "k": rng.randf_range(0.6, 1.4), "kind": kinds[i % kinds.size()], "dim": rng.randf() < 0.5})
 	resized.connect(_fit)
-	Cfg.accent_changed.connect(func(c): _mat.set_shader_parameter("accent", c))
 	_t = 12.0
 	_fit()
 	_apply()
@@ -68,6 +70,7 @@ func _ready() -> void:
 func _fit() -> void:
 	if size.x > 0.0 and size.y > 0.0:
 		_mat.set_shader_parameter("px", size)
+		_mat.set_shader_parameter("cells", clampf(size.x / 18.0, 16.0, 64.0))   # блок ≈ 18 dp на любом экране
 		# размер в настоящих пикселях экрана / 4
 		var k := get_viewport_transform().get_scale().x if is_inside_tree() else 1.0
 		_vp.size = Vector2i(maxi(16, int(ceil(size.x * k / SKY_DIV))), maxi(16, int(ceil(size.y * k / SKY_DIV))))
@@ -119,13 +122,13 @@ func _apply() -> void:
 
 func _draw() -> void:
 	var t := frozen_t if frozen_t >= 0.0 else _t
-	var a := Cfg.accent()
 	for f in _flies:
 		var p: Vector2 = f.p
 		var x := fposmod(p.x + sin(t * 0.11 * f.k + f.ph) * 0.06 + _shift.x * 0.2 * f.k, 1.0) * size.x
 		var y := fposmod(p.y - t * 0.006 * f.sp + cos(t * 0.09 * f.k + f.ph * 1.7) * 0.04 + _shift.y * 2.0 * f.k, 1.0) * size.y
 		var tw := 0.35 + 0.65 * (0.5 + 0.5 * sin(t * f.sp * 1.6 + f.ph * 3.0))
-		var col: Color = (a.lightened(0.25) if f.warm else Color(0.62, 0.92, 0.86))
-		var r: float = f.r
-		draw_texture_rect(_dot, Rect2(x - r * 3.0, y - r * 3.0, r * 6.0, r * 6.0), false, Color(col, 0.07 * tw))
-		draw_texture_rect(_dot, Rect2(x - r * 0.7, y - r * 0.7, r * 1.4, r * 1.4), false, Color(col.lightened(0.2), 0.42 * tw))
+		# белый пиксельный значок; «пиксель» значка — 2–3 dp, позиции по сетке 2 dp (не размывается)
+		var cell: float = f.r
+		var sz := Vector2(PixelArt.size_of(f.kind)) * cell
+		var pos := (Vector2(x, y) - sz / 2).snapped(Vector2(2, 2))
+		PixelArt.draw(self, f.kind, pos, cell, Color(1, 1, 1, (0.16 if f.dim else 0.38) * tw))

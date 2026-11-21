@@ -1,4 +1,5 @@
 'use strict';
+const billing = require('./billing');
 // LANTERN: задания, серия, достижения, магазин косметики, сезон, рефералы, лайки, топ миров.
 // Всё считает сервер по реальным событиям relay (время в комнате, гости, чат) — клиент только показывает.
 // Цифры и баланс — godot/playtogether/docs/ECONOMY.md. Никаких лутбоксов и случайных платных наград.
@@ -332,14 +333,28 @@ class Economy {
       .map((r) => ({ ...this.social.pub(this.social.user(r.host)), visits: r.visits, likes: this.stat(r.host, 'likes') }));
   }
 
-  // ---- покупки (заготовка: проверка через Google Play Developer API — когда владелец добавит ключ сервисного аккаунта)
-  verifyPurchase(uid, product, token) {
+  // ---- покупки Google Play (2.0): проверка у Google (billing.js), потом начисление. Один токен — одно начисление.
+  async verifyPurchase(uid, product, token) {
     if (!PRODUCTS.includes(product)) return { ok: false, error: 'unknown_product' };
     if (!/^[A-Za-z0-9._-]{20,4096}$/.test(String(token || ''))) return { ok: false, error: 'bad_token' };
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return { ok: false, error: 'billing_not_configured' };
-    // TODO(владелец): androidpublisher.purchases.products/subscriptionsv2.get по ключу из GOOGLE_SERVICE_ACCOUNT_JSON,
-    // затем начислить: sparks_500 → +500, sparks_1200 → +1200, lantern_pass_s1 → season.premium=1, lantern_pro_month → pro_until.
-    return { ok: false, error: 'verification_pending' };
+    if (!billing.configured()) return { ok: false, error: 'billing_not_configured' };
+    const prev = this.q('SELECT uid, state FROM purchases WHERE token=?').get(token);
+    if (prev && prev.uid !== uid) return { ok: false, error: 'token_used' };   // чужая покупка — не начисляем второй раз
+    const v = await billing.verify(product, token);
+    if (!v.ok) return { ok: false, error: v.error };
+    if (v.kind === 'sub') {
+      // подписка: продлеваем до даты окончания у Google (повторная проверка того же токена — только продление)
+      this.q('UPDATE users SET pro_until=MAX(pro_until, ?) WHERE id=?').run(v.until, uid);
+      this.q('INSERT INTO purchases(token,uid,product,ts,state) VALUES(?,?,?,?,?) ON CONFLICT(token) DO UPDATE SET state=excluded.state, ts=excluded.ts')
+        .run(token, uid, product, Date.now(), 'active');
+      return { ok: true, until: v.until, already: !!prev };
+    }
+    if (prev) return { ok: true, already: true, consume: !!v.consumable };   // уже начислено — клиенту можно «израсходовать»
+    if (product === 'sparks_500') this.q('UPDATE users SET sparks=sparks+500 WHERE id=?').run(uid);
+    if (product === 'sparks_1200') this.q('UPDATE users SET sparks=sparks+1200 WHERE id=?').run(uid);
+    if (product === 'lantern_pass_s1') this.q('INSERT INTO season(uid,sid,premium) VALUES(?,?,1) ON CONFLICT(uid,sid) DO UPDATE SET premium=1').run(uid, SEASON.id);
+    this.q('INSERT INTO purchases(token,uid,product,ts,state) VALUES(?,?,?,?,?)').run(token, uid, product, Date.now(), 'granted');
+    return { ok: true, consume: !!v.consumable };
   }
 
   // ---- ДЕМО-режим: покупки без денег (помечены отдельно и стираются при выключении демо)
@@ -377,7 +392,7 @@ class Economy {
     const { lanternLevel } = require('./social');
     return { sparks: u.sparks, xp: u.xp, lantern: lanternLevel(u.xp), streak: u.streak, best_streak: u.best_streak,
       streak_reward: STREAK_REWARD(u.streak), streak_claimed: u.streak_claimed === dayKey(), title: u.title, equip: this.equip(uid),
-      pro: u.pro_until > Date.now(), pro_until: u.pro_until, demo: process.env.DEMO_PURCHASES !== '0', ads_left: 3 - this.stat(uid, 'ads_' + dayKey()), referrer: !!u.referrer, store: { enabled: false, products: PRODUCTS },
+      pro: u.pro_until > Date.now(), pro_until: u.pro_until, demo: process.env.DEMO_PURCHASES !== '0', ads_left: 3 - this.stat(uid, 'ads_' + dayKey()), referrer: !!u.referrer, store: { enabled: billing.configured(), products: PRODUCTS },
       vanity: this.social.pro ? this.social.pro.vanityOf(uid) : '', cloud: !!(this.social.pro && this.social.pro.cloudEnabled()) };
   }
 
@@ -399,7 +414,7 @@ class Economy {
       case 'demo_purchase': { const e = this.demoPurchase(uid, String(msg.product)); return send(ws, { t: 'demo_purchase', product: msg.product, error: e, profile: this.profile(uid) }); }
       case 'demo_wipe': this.demoWipe(uid); return send(ws, { t: 'eco', profile: this.profile(uid), quests: this.questsView(uid) });
       case 'ad_reward': { const e = this.adReward(uid); return send(ws, { t: 'ad_reward', error: e, profile: this.profile(uid) }); }
-      case 'purchase': return send(ws, { t: 'purchase', product: msg.product, ...this.verifyPurchase(uid, msg.product, msg.token) });
+      case 'purchase': return this.verifyPurchase(uid, String(msg.product), String(msg.token || '')).then((r) => send(ws, { t: 'purchase', product: msg.product, token: msg.token, ...r, profile: this.profile(uid) }));
     }
   }
 }

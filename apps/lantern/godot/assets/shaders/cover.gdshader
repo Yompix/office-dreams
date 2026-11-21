@@ -118,5 +118,9 @@ void fragment() {
 	// тонкая светлая кромка сверху — как у стекла
 	col += vec3(1.0) * smoothstep(-2.0, -0.4, d) * (1.0 - uv.y) * 0.22 * a;
 	a *= 1.0 - fade * smoothstep(0.55, 1.0, uv.y);
-	COLOR = vec4(col, a * COLOR.a);
+	// 2.0: монохром бренда Yompix Games — пейзаж в оттенках серого с лёгким контрастом и пиксельным зерном
+	float lum = dot(col, vec3(0.299, 0.587, 0.114));
+	lum = clamp((lum - 0.5) * 1.15 + 0.5, 0.0, 1.0);
+	lum += (fract(sin(dot(floor(UV * 64.0), vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.05;
+	COLOR = vec4(vec3(lum), a * COLOR.a);
 }

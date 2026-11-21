@@ -5,28 +5,29 @@ extends RefCounted
 ## поэтому 48 здесь — это 48 dp, удобная для пальца высота кнопки на любом экране.
 ## Анимации — в fx.gd (FX).
 
-# ---------------------------------------------------------------- цвета 1.7: «ночной лагерь, освещённый фонарём»
-# Фон — живое ночное небо (backdrop.gd), поверх него «стекло»: полупрозрачные поверхности со светлой кромкой сверху,
-# мягкой тенью и тёплым свечением у главного элемента. Один акцент (янтарь) + цвета режимов игры (cover.gd).
-const BG := Color("080a14")                    # самый низ неба
-const BG_TOP := Color("171a3d")                # индиго вверху
-const PANEL := Color("13162c")                 # плотная поверхность (то, что должно закрывать фон)
-const CARD := Color(0.72, 0.76, 1.0, 0.075)    # стекло 1: карточки
-const CARD_HI := Color(0.76, 0.80, 1.0, 0.125) # стекло 2: кнопки, выделение
-const SURFACE_4 := Color(0.80, 0.84, 1.0, 0.19)
-const LINE := Color(1, 1, 1, 0.10)             # тонкие разделители и кромки
-const FIELD := Color(0.02, 0.03, 0.09, 0.42)   # поля ввода — «углубление» в стекле
-const TEXT := Color("f5f3ee")                  # тёплый белый
-const MUTED := Color("b6b8cc")                 # второстепенный текст (≈9:1 на стекле)
-const DIM := Color("8d90ab")                   # подписи, подсказки (≥4.5:1 на стекле)
-const RED := Color("ff6b6b")
-const YELLOW := Color("ffc857")
-const GREEN := Color("5fd38a")
-const JAVA := Color("5fd38a")
-const BEDROCK := Color("6aaeff")
-const AMBER := Color("ffb648")
-const ORANGE := Color("ff8a3d")
-const ON_ACCENT := Color("1a1206")   # текст на акцентной кнопке
+# ---------------------------------------------------------------- цвета 2.0: фирменный стиль Yompix Games
+# Строгий чёрно-белый «гранж-пиксель» (как аватар и заставки канала Yompix): почти чёрный фон с зерном и пиксельными
+# облаками (backdrop.gd), поверхности — тёмные плашки с жёсткой белой пиксельной рамкой и сдвинутой тенью (tools/make_ui.py),
+# главный акцент — белый (текст на нём чёрный). Цвет остаётся только у смысловых точек: «в сети», ошибка.
+const BG := Color("050505")                    # самый низ
+const BG_TOP := Color("1c1c1c")                # верх фона
+const PANEL := Color("0e0e0e")                 # плотная поверхность
+const CARD := Color(1, 1, 1, 0.06)             # плашка 1: карточки
+const CARD_HI := Color(1, 1, 1, 0.11)          # плашка 2: кнопки, выделение
+const SURFACE_4 := Color(1, 1, 1, 0.18)
+const LINE := Color(1, 1, 1, 0.16)             # тонкие разделители и рамки
+const FIELD := Color(0, 0, 0, 0.62)            # поля ввода — «колодец»
+const TEXT := Color("f4f4f2")                  # белый бренда
+const MUTED := Color("bdbdbd")                 # второстепенный текст
+const DIM := Color("8e8e8e")                   # подписи, подсказки (≥4.5:1 на чёрном)
+const RED := Color("ff6b6b")                   # ошибка — единственный «тревожный» цвет
+const YELLOW := Color("e9e3c4")                # предупреждение: бледный, почти белый
+const GREEN := Color("8fe3a8")                 # «в сети / работает»: маленькие точки
+const JAVA := Color("e6e6e6")
+const BEDROCK := Color("a8a8a8")
+const AMBER := Color("f4f4f2")                 # бывший янтарный акцент → белый бренда
+const ORANGE := Color("d6d6d6")
+const ON_ACCENT := Color("050505")   # текст на акцентной (белой) кнопке
 
 # ---------------------------------------------------------------- отступы (сетка 4/8 dp)
 const S1 := 4
@@ -58,8 +59,10 @@ static var font_regular: Font = preload("res://assets/fonts/Montserrat-Medium.tt
 static var font_bold: Font = preload("res://assets/fonts/Montserrat-Bold.ttf")
 static var font_black: Font = preload("res://assets/fonts/Montserrat-ExtraBold.ttf")
 static var font_mono: Font = preload("res://assets/fonts/JetBrainsMono-Regular.ttf")
-static var font_caps: FontVariation
-static var font_title: FontVariation      # крупные заголовки: ExtraBold с плотной разрядкой
+static var font_caps: FontVariation       # 2.0: пиксельный Press Start 2P (подписи разделов, марка LANTERN)
+static var font_title: FontVariation      # 2.0: заголовки — кистевой Rubik Dirt (как «СКОРО НАЧНЁМ»), нет буквы — Montserrat
+static var font_pixel: Font = preload("res://assets/fonts/PressStart2P-Regular.ttf")
+static var font_brush: Font = preload("res://assets/fonts/RubikDirt-Regular.ttf")
 static var font_num: FontVariation        # номера комнат, счётчики: табличные цифры одной ширины
 
 static var _fallback_done := false
@@ -73,12 +76,14 @@ static func _fallbacks() -> void:
 	var sym: Font = load("res://assets/fonts/NotoSansSymbols2.ttf")
 	for f in [font_regular, font_bold, font_black, font_mono]:
 		f.fallbacks = [sym]
+	font_pixel.fallbacks = [font_bold, sym]
+	font_brush.fallbacks = [font_black, sym]     # польские/французские буквы, которых нет в Rubik Dirt
 	font_caps = FontVariation.new()
-	font_caps.base_font = font_bold
-	font_caps.set_spacing(TextServer.SPACING_GLYPH, 2)
+	font_caps.base_font = font_pixel
+	font_caps.set_spacing(TextServer.SPACING_GLYPH, 0)
 	font_title = FontVariation.new()
-	font_title.base_font = font_black
-	font_title.set_spacing(TextServer.SPACING_GLYPH, -1)
+	font_title.base_font = font_brush
+	font_title.set_spacing(TextServer.SPACING_GLYPH, 0)
 	font_num = FontVariation.new()
 	font_num.base_font = font_bold
 	font_num.opentype_features = {TextServerManager.get_primary_interface().name_to_tag("tnum"): 1}
@@ -92,13 +97,24 @@ static func accent() -> Color:
 static func box(color: Color, radius := 16, pad := 0, border := Color(0, 0, 0, 0), bw := 0) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = color
-	s.set_corner_radius_all(radius)
+	# 2.0: пиксельный стиль — углы прямые (крошечный срез только у «таблеток», чтобы они не слипались с фоном)
+	s.set_corner_radius_all(0 if radius < 90 else 2)
 	s.set_content_margin_all(pad)
 	if bw > 0:
 		s.border_color = border
-		s.set_border_width_all(bw)
-	s.anti_aliasing = true
-	s.corner_detail = 10
+		s.set_border_width_all(maxi(bw, 2) if border.a >= 0.3 else bw)
+	s.anti_aliasing = false
+	s.corner_detail = 1
+	return s
+
+
+## 2.0: плашка бренда — рамка 2 dp и жёсткая сдвинутая тень (как «СКОРО ЭФИР» и таймер на заставках Yompix).
+static func pix(color: Color, border := Color(1, 1, 1, 0.35), off := 3, pad := 0) -> StyleBoxFlat:
+	var s := box(color, 0, pad, border, 2)
+	if off > 0:
+		s.shadow_color = Color(1, 1, 1, 0.14)
+		s.shadow_size = 1
+		s.shadow_offset = Vector2(off, off)
 	return s
 
 
@@ -204,15 +220,15 @@ static func make_theme() -> Theme:
 	t.set_color("font_color", "Label", TEXT)
 	t.set_constant("line_spacing", "Label", 0)
 	# кнопки (по умолчанию — тональные серые)
-	t.set_stylebox("normal", "Button", _hpad(box(CARD_HI, R_BTN, 0, LINE, 1), 16, 10))
-	t.set_stylebox("hover", "Button", _hpad(box(SURFACE_4, R_BTN, 0, Color(1, 1, 1, 0.16), 1), 16, 10))
-	t.set_stylebox("pressed", "Button", _hpad(box(Color(CARD_HI, 0.08), R_BTN, 0, LINE, 1), 16, 10))
-	t.set_stylebox("hover_pressed", "Button", _hpad(box(Color(CARD_HI, 0.08), R_BTN, 0, LINE, 1), 16, 10))
+	t.set_stylebox("normal", "Button", _hpad(pix(Color(0.07, 0.07, 0.07, 0.92), Color(1, 1, 1, 0.42)), 16, 10))
+	t.set_stylebox("hover", "Button", _hpad(pix(Color(0.13, 0.13, 0.13, 0.95), Color(1, 1, 1, 0.75)), 16, 10))
+	t.set_stylebox("pressed", "Button", _hpad(pix(Color(0.18, 0.18, 0.18, 0.95), Color(1, 1, 1, 0.8), 1), 16, 10))
+	t.set_stylebox("hover_pressed", "Button", _hpad(pix(Color(0.18, 0.18, 0.18, 0.95), Color(1, 1, 1, 0.8), 1), 16, 10))
 	t.set_stylebox("disabled", "Button", _hpad(box(Color(CARD_HI, 0.05), R_BTN, 0, Color(1, 1, 1, 0.05), 1), 16, 10))
 	t.set_stylebox("focus", "Button", box(Color(0, 0, 0, 0), R_M, 0, Color(a, 0.6) if not Cfg.mobile() else Color(0, 0, 0, 0), 2))
 	if Cfg.mobile():
 		# на телефоне нет «наведения»: после касания кнопка не остаётся подсвеченной
-		t.set_stylebox("hover", "Button", _hpad(box(CARD_HI, R_BTN, 0, LINE, 1), 16, 10))
+		t.set_stylebox("hover", "Button", _hpad(pix(Color(0.07, 0.07, 0.07, 0.92), Color(1, 1, 1, 0.42)), 16, 10))
 		t.set_color("font_hover_color", "Button", TEXT)
 	t.set_font("font", "Button", font_bold)
 	t.set_font_size("font_size", "Button", T_BODY)
@@ -252,7 +268,7 @@ static func make_theme() -> Theme:
 	t.set_stylebox("focus", "OptionButton", box(Color(0, 0, 0, 0), R_BTN, 0, a, 2))
 	t.set_font("font", "OptionButton", font_regular)
 	t.set_color("font_color", "OptionButton", TEXT)
-	t.set_stylebox("panel", "PopupMenu", box(Color("1a1d38"), R_L, 8, Color(1, 1, 1, 0.14), 1))
+	t.set_stylebox("panel", "PopupMenu", pix(Color("101010"), Color(1, 1, 1, 0.6), 4, 8))
 	t.set_stylebox("hover", "PopupMenu", box(Color(a, 0.18), R_S, 0))
 	t.set_color("font_color", "PopupMenu", TEXT)
 	t.set_color("font_hover_color", "PopupMenu", Color.WHITE)
@@ -290,7 +306,7 @@ static func make_theme() -> Theme:
 		t.set_stylebox("grabber", cls, box(Color(1, 1, 1, 0.12), 4))
 		t.set_stylebox("grabber_highlight", cls, box(Color(1, 1, 1, 0.22), 4))
 		t.set_stylebox("grabber_pressed", cls, box(Color(a, 0.7), 4))
-	t.set_stylebox("panel", "TooltipPanel", _hpad(box(Color("23274a"), R_S, 0, Color(1, 1, 1, 0.14), 1), 10, 6))
+	t.set_stylebox("panel", "TooltipPanel", _hpad(pix(Color("161616"), Color(1, 1, 1, 0.5), 2), 10, 6))
 	t.set_stylebox("panel", "PanelContainer", glass(1, R_XL, 0))
 	t.set_stylebox("slider", "HSlider", box(Color(1, 1, 1, 0.08), 4, 3))
 	t.set_stylebox("grabber_area", "HSlider", box(a, 4, 3))
@@ -391,7 +407,9 @@ static func h3(text: String) -> Label:
 ## Подпись раздела: «ДРУЗЬЯ · 3» (капс с разрядкой).
 static func caption(text: String, color := DIM) -> Label:
 	_fallbacks()
-	return label(text.to_upper(), T_CAPTION, color, font_caps)
+	var l := label(text.to_upper(), T_CAPTION - 2, color, font_caps)   # пиксельный шрифт шире — на 2 sp меньше
+	l.add_theme_constant_override("line_spacing", 4)
+	return l
 
 
 static func section(text: String, action := "", cb := Callable()) -> Control:

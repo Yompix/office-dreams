@@ -7,6 +7,7 @@ var relay_host := RelayHost.new()
 var relay_join := RelayJoin.new()
 var own: OwnWorld                  # «Мой мир из Minecraft» — мир, открытый в самой игре
 var room: RoomControl              # хозяин мира: статус «друзья могут зайти», игроки, окошко поверх игры
+var vnet: VNet                     # 2.0 «Любые игры»: виртуальная локальная сеть (scripts/vnet/vnet.gd)
 
 var _content: MarginContainer      # сюда кладётся экран (автотесты ищут переполнение здесь)
 var _screen: Control               # сам экран (без обёртки прокрутки)
@@ -42,15 +43,15 @@ var _deco: Control                 # живой фон (backdrop.gd)
 var _orb: Orb                      # «Создать» в нижнем меню
 
 ## На телефоне эти экраны прокручиваются целиком (у остальных — свои списки с прокруткой).
-const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create"]
+const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create", "net"]
 const TITLES := {"home": "Игры", "create": "Создать игру", "gamesettings": "Настройки игры", "setup": "Мой мир из Minecraft", "host": "Мой мир", "join": "Зайти к другу",
 	"settings": "Настройки", "friends": "Друзья", "campfire": "Костёр",
-	"quests": "Задания", "shop": "Магазин", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров"}
+	"quests": "Задания", "shop": "Магазин", "net": "Любые игры", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров"}
 ## Корневые разделы телефона (без стрелки «Назад»)
 const ROOTS := ["home", "friends", "profile"]
 ## Узкая колонка на широком экране — для форм и списков настроек
 ## (профиль — две колонки: в узкой не помещался, экран становился шире окна — 1.8.2)
-const NARROW := ["settings", "backups", "syscheck", "join", "setup", "create"]
+const NARROW := ["settings", "backups", "syscheck", "join", "setup", "create", "net"]
 
 
 const TOUCH_DEADZONE := 14   # px: меньше — это ещё нажатие, больше — уже прокрутка
@@ -64,7 +65,7 @@ func _ready() -> void:
 		get_window().min_size = Vector2i(1024, 700)
 	get_window().size_changed.connect(_on_resize)
 	get_viewport().gui_focus_changed.connect(func(_c): if _kb_h > 0.0: _kb_reveal.call_deferred())
-	get_window().title = "LANTERN — by Yompix"
+	get_window().title = "LANTERN — by Yompix Games"
 	get_tree().node_added.connect(_on_node_added)
 	server = ServerHost.new()
 	server.name = "Server"
@@ -78,9 +79,17 @@ func _ready() -> void:
 	room.name = "RoomControl"
 	room.app = self
 	add_child(room)
+	vnet = VNet.new()
+	vnet.name = "VNet"
+	vnet.relay_url = Cfg.relay_url()
+	vnet.allow_p2p = Cfg.get_value("net", "p2p", true) and Cfg.autotest_args.get("vnet_p2p", "1") != "0"
+	vnet.token_fn = func() -> String: return Social.token
+	add_child(vnet)
+	vnet.event.connect(_on_vnet_event)
 	theme = UI.make_theme()
 	Cfg.accent_changed.connect(func(_c): theme = UI.make_theme(); _rebuild())
 	_build()
+	Store.init_billing()      # 2.0: Google Play (только в сборке Android с плагином LanternBilling)
 	Social.changed.connect(_on_social)
 	Social.notice.connect(_on_notice)
 	Social.failed.connect(func(what, text):
@@ -133,59 +142,66 @@ func _auto_perf() -> void:
 func _splash(force := false) -> void:
 	if not FX.on() or (Cfg.autotest_args.has("nosplash") and not force):
 		return
+	# 2.0: заставка бренда — на чёрном с зерном «собирается» чиби (тело → голова → глаза → корона → орбита),
+	# проявляется кистевая надпись YOMPIX GAMES, затем печатается LANTERN. ~1,4 с, касание — пропустить.
 	var ov := ColorRect.new()
 	ov.name = "Splash"
-	ov.color = Color("05060c")
+	ov.color = Color("050505")
 	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ov.mouse_filter = Control.MOUSE_FILTER_STOP
 	ov.z_index = 50
 	add_child(ov)
-	var glow := TextureRect.new()
-	glow.texture = UI.ui_tex("dot")
-	glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	glow.modulate = Color(UI.accent(), 0.0)
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ov.add_child(glow)
-	var li := LanternIcon.new().setup(1, {"flame": "flame_amber"}, 120)
-	li.animate = false
-	li.modulate = Color(0.35, 0.35, 0.45, 0.0)
-	ov.add_child(li)
-	var name_l := UI.label("LANTERN", 30, Color("ffe3b8"), UI.font_caps)
+	var grain := TextureRect.new()
+	grain.texture = load("res://assets/brand/grain.png")
+	grain.stretch_mode = TextureRect.STRETCH_TILE
+	grain.set_anchors_preset(Control.PRESET_FULL_RECT)
+	grain.modulate.a = 0.35
+	grain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(grain)
+	var ch := Chibi.new()
+	ch.assemble = 0.0
+	ov.add_child(ch)
+	var wm := TextureRect.new()
+	wm.texture = load("res://assets/brand/wordmark.png")
+	wm.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	wm.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	wm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wm.modulate.a = 0.0
+	ov.add_child(wm)
+	var name_l := UI.label("", 22, UI.TEXT, UI.font_caps)
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_l.modulate.a = 0.0
 	ov.add_child(name_l)
 	var place := func():
-		var c := ov.size / 2 - Vector2(0, 30)
-		li.position = c - Vector2(60, 60)
-		li.size = Vector2(120, 120)
-		var r := maxf(ov.size.x, ov.size.y) * 0.9
-		glow.position = c - Vector2(r, r)
-		glow.size = Vector2(r, r) * 2
-		glow.pivot_offset = Vector2(r, r)
-		name_l.position = Vector2(0, c.y + 84)
+		var w := minf(ov.size.x * 0.62, 320.0)
+		var c := ov.size / 2 - Vector2(0, w * 0.45)
+		ch.size = Vector2(w, w * 0.96)
+		ch.position = c - ch.size / 2
+		wm.size = Vector2(w * 1.05, w * 0.36)
+		wm.position = Vector2(ov.size.x / 2 - wm.size.x / 2, c.y + ch.size.y * 0.42)
+		name_l.position = Vector2(0, wm.position.y + wm.size.y + 18)
 		name_l.size = Vector2(ov.size.x, 40)
 	place.call()
 	ov.resized.connect(place)
-	glow.scale = Vector2(0.12, 0.12)
 	var done := [false]
 	var finish := func():
 		if done[0] or not is_instance_valid(ov):
 			return
 		done[0] = true
-		var out := ov.create_tween()
-		out.tween_property(ov, "modulate:a", 0.0, 0.22)
+		var out := ov.create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
+		out.tween_property(ov, "modulate:a", 0.0, 0.24)
 		out.tween_callback(ov.queue_free)
 	ov.gui_input.connect(func(e):
 		if (e is InputEventMouseButton or e is InputEventScreenTouch) and e.pressed:
 			finish.call())
 	var tw := ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(li, "modulate", Color(0.35, 0.35, 0.45, 1.0), 0.18)                      # тёмный фонарь
-	tw.tween_callback(func(): li.level = 9; li.queue_redraw()).set_delay(0.22)                  # загорелся
-	tw.tween_property(li, "modulate", Color.WHITE, 0.25).set_delay(0.22)
-	tw.tween_property(glow, "modulate:a", 0.55, 0.3).set_delay(0.22)                            # свет расходится
-	tw.tween_property(glow, "scale", Vector2.ONE, 0.75).set_delay(0.22)
-	tw.tween_property(name_l, "modulate:a", 1.0, 0.3).set_delay(0.5)                            # название
-	tw.chain().tween_interval(0.12)
+	tw.tween_property(ch, "assemble", 1.0, 0.75)
+	wm.position.y += 14
+	tw.tween_property(wm, "modulate:a", 1.0, 0.25).set_delay(0.5)
+	tw.tween_property(wm, "position:y", wm.position.y - 14, 0.3).set_delay(0.5)
+	var word := "LANTERN"
+	for i in word.length() + 1:
+		tw.tween_callback(func(): if is_instance_valid(name_l): name_l.text = word.substr(0, i) + ("_" if i < word.length() else "")).set_delay(0.75 + i * 0.05)
+	tw.chain().tween_interval(0.35)
 	tw.chain().tween_callback(finish)
 
 
@@ -274,7 +290,7 @@ func _rebuild() -> void:
 	# 1.8: «Мой мир из Minecraft», управление комнатой и окошко поверх игры — не часть оболочки, их не трогаем
 	# (раньше смена цвета акцента или поворот экрана удаляли их — и комната переставала работать)
 	for c in get_children():
-		if c.name != "Autotest" and c != server and c != own and c != room and c != room.mini:
+		if c.name != "Autotest" and c != server and c != own and c != room and c != room.mini and c != vnet:
 			c.queue_free()
 	_screen = null
 	_screen_root = null
@@ -334,6 +350,9 @@ func open_deeplink(url: String) -> bool:
 	match d.get("kind", ""):
 		"join":
 			go("join", true, {"input": url, "edition": d.get("edition", "") if d.get("edition", "") != "" else Cfg.get_value("join", "plays", "both")})
+			return true
+		"net":
+			go("net", true, {"code": d.code})
 			return true
 		"friend":
 			go("friends", true, {"add": d.tag})
@@ -396,13 +415,17 @@ func _build_phone() -> void:
 	_bar_back.visibility_changed.connect(func(): lead.visible = not _bar_back.visible)
 	_bar_brand = UI.hbox(10)
 	_bar_brand.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var li := LanternIcon.new().setup(6, {"flame": "flame_amber"}, 30)
+	var li := Chibi.new()
+	li.orbit = false
+	li.custom_minimum_size = Vector2(34, 38)
 	li.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_bar_brand.add_child(li)
-	var bt := UI.label("LANTERN", 17, Color("ffe3b8"), UI.font_caps)
-	bt.add_theme_font_override("font", UI.font_caps)
-	bt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_bar_brand.add_child(bt)
+	var btv := UI.vbox(5)
+	btv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var bt := UI.label("LANTERN", 14, UI.TEXT, UI.font_caps)
+	btv.add_child(bt)
+	btv.add_child(UI.label("BY YOMPIX GAMES", 6, UI.DIM, UI.font_caps))
+	_bar_brand.add_child(btv)
 	row.add_child(_bar_brand)
 	var tv := UI.vbox(-2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -410,7 +433,7 @@ func _build_phone() -> void:
 	_bar_title = UI.label("", 21, UI.TEXT, UI.font_title)
 	_bar_title.clip_text = true
 	_bar_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_bar_title.set_meta("fs", Vector2i(21, 15))     # 1.8.2: длинный заголовок («Налаштування гри») уменьшается, а не «Налаштув…»
+	_bar_title.set_meta("fs", Vector2i(21, 12))     # 2.0: кистевой шрифт шире — можно мельче     # 1.8.2: длинный заголовок («Налаштування гри») уменьшается, а не «Налаштув…»
 	_bar_title.resized.connect(_fit_bar_text.bind(_bar_title))
 	tv.add_child(_bar_title)
 	_bar_sub = UI.label("", 12, UI.MUTED)
@@ -577,15 +600,18 @@ func _build_desktop() -> void:
 	bm.add_theme_constant_override("margin_left", 8)
 	bm.add_theme_constant_override("margin_bottom", 18)
 	bm.add_child(brand)
-	brand.add_child(LanternIcon.new().setup(6, {"flame": "flame_amber"}, 40))
-	var bv := UI.vbox(-4)
+	var ch := Chibi.new()
+	ch.orbit = false
+	ch.custom_minimum_size = Vector2(44, 48)
+	brand.add_child(ch)
+	var bv := UI.vbox(6)
 	bv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bv.add_child(UI.label("LANTERN", 19, Color("ffe3b8"), UI.font_caps))
-	bv.add_child(UI.label("by Yompix", 12, UI.DIM, UI.font_bold))
+	bv.add_child(UI.label("LANTERN", 17, UI.TEXT, UI.font_caps))
+	bv.add_child(UI.label("BY YOMPIX GAMES", 7, UI.DIM, UI.font_caps))
 	brand.add_child(bv)
 	sv.add_child(bm)
 	var groups := [
-		[["home", "globe", L.t("Игры")], ["create", "plus", L.t("Создать игру")], ["join", "play", L.t("Зайти по коду")]],
+		[["home", "globe", L.t("Игры")], ["net", "wifi", L.t("Любые игры")], ["create", "plus", L.t("Создать игру")], ["join", "play", L.t("Зайти по коду")]],
 		[["friends", "friends", L.t("Друзья")], ["campfire", "campfire", L.t("Костёр")]],
 		[["quests", "quests", L.t("Задания и сезон")], ["shop", "shop", L.t("Магазин")], ["backups", "cloud", L.t("Копии миров")], ["settings", "settings", L.t("Настройки")]],
 	]
@@ -825,7 +851,7 @@ func _num_row(n: String, t: String, sub: String) -> Control:
 
 func _more_menu(_b: Button = null) -> void:
 	var v: VBoxContainer = Overlays.sheet(self, L.t("Ещё"))
-	var items := [["join", "play", L.t("Зайти по коду"), L.t("Код или номер комнаты от друга")], ["shop", "shop", L.t("Магазин"), L.t("Пламя и рамки за искры")], ["campfire", "campfire", L.t("Костёр"), L.t("Друзья в сети — у огня")], ["quests", "quests", L.t("Задания и сезон"), L.t("Искры за игру с друзьями")],
+	var items := [["net", "wifi", L.t("Любые игры"), L.t("Виртуальная сеть для любых игр по LAN")], ["join", "play", L.t("Зайти по коду"), L.t("Код или номер комнаты от друга")], ["shop", "shop", L.t("Магазин"), L.t("Пламя и рамки за искры")], ["campfire", "campfire", L.t("Костёр"), L.t("Друзья в сети — у огня")], ["quests", "quests", L.t("Задания и сезон"), L.t("Искры за игру с друзьями")],
 		["backups", "cloud", L.t("Копии миров"), L.t("Резервные копии и облако")], ["settings", "settings", L.t("Настройки"), L.t("Цвет, анимации, сервер")]]
 	if Cfg.mobile():      # копии мира делает только сервер на ПК — на телефоне экран пустой
 		items = items.filter(func(i): return i[0] != "backups")
@@ -1264,7 +1290,7 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 	var dir := 1
 	if _going_back:
 		dir = -1
-	elif name in ROOTS or (not _compact and name in ["home", "create", "join", "friends", "campfire", "quests", "shop", "backups", "settings"]):
+	elif name in ROOTS or (not _compact and name in ["home", "net", "create", "join", "friends", "campfire", "quests", "shop", "backups", "settings"]):
 		_stack.clear()
 		dir = 0
 	elif current != "" and current != name:
@@ -1346,6 +1372,8 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		root = sc
 	_screen_root = root
 	_content.add_child(root)
+	if FX.on() and dir == 0 and prev_name != "" and prev_name != name:
+		_pixel_wipe()
 	if FX.on():
 		root.modulate.a = 0
 		var from := Vector2(40 * dir, 0) if dir != 0 else Vector2(0, 10)
@@ -1359,6 +1387,42 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 			tw.tween_property(root, "position", p, 0.22).set_delay(0.02)
 			tw.chain().tween_callback(func(): if is_instance_valid(_content): _content.queue_sort())
 		root.create_tween().tween_callback(start)
+
+
+## 2.0: события виртуальной сети — коротким уведомлением, где бы игрок ни был.
+func _on_vnet_event(e: Dictionary) -> void:
+	vnet.nick = str(Social.me.get("nick", ""))
+	match str(e.get("k", "")):
+		"peer_on": toast(L.t("%s в сети · %s") % [e.get("name", ""), e.get("ip", "")])
+		"peer_off": toast(L.t("%s вышел из сети") % e.get("name", ""), UI.MUTED)
+		"p2p":
+			if e.get("on", false):
+				toast(L.t("Прямое соединение с %s — меньше задержка") % e.get("name", ""))
+		"adapter":
+			if e.get("ok", false):
+				FX.haptic(20)
+				toast(L.t("Адаптер подключён — запускайте игру"))
+		"chat":
+			if current != "net" and not e.get("mine", false):
+				toast("%s: %s" % [e.get("name", ""), str(e.get("text", "")).left(60)])
+
+
+## 2.0: смена раздела — «пиксельное растворение» (чёрные блоки тают за 0,3 с) поверх области экрана.
+func _pixel_wipe() -> void:
+	var w := ColorRect.new()
+	w.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://assets/shaders/pixel_wipe.gdshader")
+	w.material = m
+	w.z_index = 10
+	add_child(w)
+	w.global_position = _content.global_position
+	w.size = _content.size
+	m.set_shader_parameter("px", w.size)
+	m.set_shader_parameter("progress", 1.0)
+	var tw := w.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_method(func(v: float): m.set_shader_parameter("progress", v), 1.0, 0.0, 0.3)
+	tw.tween_callback(w.queue_free)
 
 
 func _set_tree_ignore(n: Node) -> void:

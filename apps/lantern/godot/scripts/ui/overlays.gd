@@ -7,7 +7,7 @@ const PRODUCTS := {
 	"sparks_500": {"title": "500 искр", "desc": "Искры для магазина косметики", "uah": "79,99 ₴", "usd": "$1.99"},
 	"sparks_1200": {"title": "1200 искр", "desc": "Выгоднее на 20%", "uah": "169,99 ₴", "usd": "$3.99"},
 	"lantern_pass_s1": {"title": "Пропуск сезона «Первые огни»", "desc": "Премиум-путь сезона: 9 эксклюзивных предметов", "uah": "149,99 ₴", "usd": "$3.49"},
-	"lantern_pro_month": {"title": "LANTERN Pro — месяц", "desc": "Без рекламы, свой код комнаты, облачные копии миров, особая косметика", "uah": "99,99 ₴/мес", "usd": "$2.49/mo"},
+	"lantern_pro_month": {"title": "LANTERN Plus — месяц", "desc": "Без рекламы, свой код комнаты, облачные копии миров, 32 места в сети «Любые игры», особая косметика", "uah": "99,99 ₴/мес", "usd": "$2.49/mo"},
 }
 
 
@@ -404,6 +404,10 @@ static func _how_card(n: String, icon: String, col: Color, title: String, desc: 
 
 # ------------------------------------------------------------------ лист покупки (как в Google Play)
 static func purchase(app: Control, product: String, on_success := Callable()) -> void:
+	# 2.0: настоящая покупка — сразу окно Google Play (своё окно «под Google Play» — только в ДЕМО-режиме)
+	if not Social.demo:
+		Store.buy(product)
+		return
 	var info: Dictionary = PRODUCTS.get(product, {})
 	var v := sheet(app, "", "", true)
 	var ov: Control = v.get_parent().get_parent()

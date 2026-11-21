@@ -54,7 +54,7 @@ func _ready() -> void:
 		b.custom_minimum_size = Vector2(44, 44)
 		b.focus_mode = Control.FOCUS_NONE
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		var on: bool = Cfg.get_value("app", "accent", "amber") == key
+		var on: bool = Cfg.get_value("app", "accent2", "mono") == key
 		b.add_theme_stylebox_override("normal", UI.box(c, 99, 0, Color.WHITE if on else Color(0, 0, 0, 0), 3 if on else 0))
 		b.add_theme_stylebox_override("hover", UI.box(c.lightened(0.15), 99, 0, Color(1, 1, 1, 0.6), 2))
 		b.add_theme_stylebox_override("pressed", UI.box(c, 99, 0, Color.WHITE, 3))
@@ -147,21 +147,34 @@ func _ready() -> void:
 	gp.add_child(db)
 	gp.add_child(UI.para(L.t("Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."), 12, UI.DIM))
 
-	# --- о программе
-	var ga := _group(v, L.t("О программе"))
+	# --- 2.0: «Любые игры» — прямое соединение (P2P) можно выключить: тогда всё идёт через relay и IP не раскрывается
+	var gn := _group(v, L.t("Любые игры"))
+	var p2p := UI.switch_row(L.t("Напрямую (P2P)"), L.t("Меньше задержка. Участники вашей сети увидят ваш IP-адрес."), Cfg.get_value("net", "p2p", true), func(on):
+		Cfg.set_value("net", "p2p", on)
+		app.vnet.allow_p2p = on)
+	gn.add_child(p2p.row)
+
+	# --- 2.0: связь с автором (предложения и проблемы)
+	var gc := _group(v, L.t("Предложения и проблемы"))
+	gc.add_child(UI.list_row(UI.icon_tile("chat", UI.MUTED, 40, 20), L.t("Связь с автором"), L.t("Идея, ошибка, вопрос — напишите нам"), UI.icon("chevron", 20, UI.DIM), func(): Contacts.sheet(app), Color(0, 0, 0, 0)))
 	var rep := Report.button(app, "settings")
 	rep.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	ga.add_child(rep)
+	gc.add_child(rep)
+
+	# --- о программе
+	var ga := _group(v, L.t("О программе"))
+	ga.add_child(Promo.other_row())
 	var ah := UI.hbox(14)
 	ah.add_child(UI.texture("res://assets/img/icon.png", 52, 52))
 	var at := UI.vbox(0)
 	at.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	at.add_child(UI.label("LANTERN " + Cfg.APP_VERSION, 17, UI.TEXT, UI.font_bold))
-	at.add_child(UI.label(L.t("Создатель — Yompix"), 13, UI.accent(), UI.font_bold))
+	at.add_child(UI.label(L.t("LANTERN by Yompix Games"), 13, UI.accent(), UI.font_bold))
 	ah.add_child(at)
 	ga.add_child(ah)
 	ga.add_child(UI.para(L.t("Без телеметрии. Не требует прав администратора. Пароли не спрашивает."), 13, UI.MUTED))
 	ga.add_child(UI.para(L.t("Сервер Paper (PaperMC), Geyser и Floodgate (GeyserMC), Java (Eclipse Temurin), Bedrock Dedicated Server (Mojang) скачиваются с официальных сайтов. Шрифты Montserrat и JetBrains Mono — лицензия SIL OFL 1.1. Движок Godot — MIT."), 12, UI.DIM))
+	ga.add_child(UI.para("Press Start 2P, Rubik Dirt — SIL OFL 1.1 · Wintun — WireGuard LLC · Google Play Billing Library — Android SDK License", 12, UI.DIM))
 	# 1.8.2: на выбранном языке (+ английский оригинал, если язык другой) — не по-русски в английской версии
 	var disc := L.t(Cfg.DISCLAIMER)
 	ga.add_child(UI.para(disc if disc == Cfg.DISCLAIMER_EN else disc + "\n" + Cfg.DISCLAIMER_EN, 12, UI.DIM))

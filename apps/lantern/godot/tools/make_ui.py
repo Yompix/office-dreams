@@ -1,87 +1,80 @@
-# Графика интерфейса LANTERN 1.7 («ночной лагерь, освещённый фонарём»): 9-patch «стекло», кнопка-градиент, свечения.
-# Всё процедурное, гладкое (никаких блоков и пикселей — docs/LEGAL.md). Рисуется в 3× и подключается с size override,
-# поэтому на любом экране углы чёткие. Цвет акцента накладывается в приложении (modulate), здесь — нейтральные тона.
+# Графика интерфейса LANTERN 2.0 — фирменный стиль Yompix Games: строгий чёрно-белый, жёсткие пиксельные рамки
+# со сдвинутой тенью (как плашки и таймер на заставках канала), без скруглений — «ступенька» в 1 пиксель на углах.
+# 9-patch: тот же набор файлов и те же поля, что в 1.7 (UI.glass/solid/halo/primary не меняются), рисуется в 3×.
+# Это собственный бренд-стиль владельца: никаких текстур, блоков, шрифтов и цветов Minecraft (docs/LEGAL.md §3).
 # python3 tools/make_ui.py [assets/ui]
-import sys, os, math
+import sys, os
 import numpy as np
 from PIL import Image
 OUT = sys.argv[1] if len(sys.argv) > 1 else "assets/ui"
 os.makedirs(OUT, exist_ok=True)
 K = 3            # плотность
 M = 20           # поле вокруг панели под тень (dp)
+P = 2            # «пиксель» бренда в dp (толщина рамки, шаг ступеньки на углу)
 
 
-def sdf_round(w, h, r, k=K, m=M, dy=0.0):
-    """Расстояние до скруглённого прямоугольника (в dp) для картинки (w+2m)x(h+2m) dp в k×."""
-    W, H = int((w + 2 * m) * k), int((h + 2 * m) * k)
-    y, x = np.mgrid[0:H, 0:W].astype(np.float32)
-    x = (x + 0.5) / k - m - w / 2
-    y = (y + 0.5) / k - m - h / 2 - dy
-    qx = np.abs(x) - (w / 2 - r)
-    qy = np.abs(y) - (h / 2 - r)
-    d = np.sqrt(np.maximum(qx, 0) ** 2 + np.maximum(qy, 0) ** 2) + np.minimum(np.maximum(qx, qy), 0) - r
-    return d, x, y
+def canvas(w, h):
+    return np.zeros((int((h + 2 * M) * K), int((w + 2 * M) * K), 4), np.float32)
 
 
-def over(dst, src):
-    """Наложение RGBA (float 0..1), обычный альфа-композит."""
-    a = src[..., 3:4] + dst[..., 3:4] * (1 - src[..., 3:4])
-    rgb = (src[..., :3] * src[..., 3:4] + dst[..., :3] * dst[..., 3:4] * (1 - src[..., 3:4])) / np.maximum(a, 1e-6)
-    return np.concatenate([rgb, a], axis=-1)
+def rect(img, x0, y0, x1, y1, rgb, a, notch=True):
+    """Прямоугольник в dp (относительно панели) со срезанными «пиксельными» углами; альфа-композит поверх."""
+    H, W = img.shape[:2]
+    X0, Y0, X1, Y1 = [int(round((v + M) * K)) for v in (x0, y0, x1, y1)]
+    n = int(P * K) if notch else 0
+    col = np.array(rgb, np.float32)
+    for yy in range(max(0, Y0), min(H, Y1)):
+        inset = n if n and (yy - Y0 < n or Y1 - 1 - yy < n) else 0
+        xa, xb = max(0, X0 + inset), min(W, X1 - inset)
+        if xa >= xb:
+            continue
+        da = img[yy, xa:xb, 3:4]
+        oa = a + da * (1 - a)
+        img[yy, xa:xb, :3] = (col * a + img[yy, xa:xb, :3] * da * (1 - a)) / np.maximum(oa, 1e-6)
+        img[yy, xa:xb, 3:4] = oa
 
 
-def layer(shape, rgb, alpha):
-    out = np.zeros(shape + (4,), np.float32)
-    out[..., 0], out[..., 1], out[..., 2] = rgb
-    out[..., 3] = np.clip(alpha, 0, 1)
-    return out
+def frame(img, x0, y0, x1, y1, rgb, a, bw=P):
+    """Рамка толщиной bw dp; углы срезаны ступенькой."""
+    rect(img, x0 + P, y0, x1 - P, y0 + bw, rgb, a, False)
+    rect(img, x0 + P, y1 - bw, x1 - P, y1, rgb, a, False)
+    rect(img, x0, y0 + P, x0 + bw, y1 - P, rgb, a, False)
+    rect(img, x1 - bw, y0 + P, x1, y1 - P, rgb, a, False)
 
 
 def save(img, name):
     Image.fromarray((np.clip(img, 0, 1) * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT, name), optimize=True)
 
 
-def glass(r, fill_top, fill_bot, rim_top, rim_bot, shadow, name, fill_rgb=(0.80, 0.83, 1.0), blur=14.0, off=7.0, hi=0.10):
+def panel(r, fill, fill_a, rim_a, shadow_a, off, name, rim=(0.957, 0.957, 0.949), shadow=(0.55, 0.55, 0.55), bw=P):
     w = h = 2 * r + 4
-    d, x, y = sdf_round(w, h, r)
-    ds, _, _ = sdf_round(w, h, r, dy=off)
-    t = np.clip((y + h / 2) / h, 0, 1)                      # 0 сверху → 1 снизу
-    inside = np.clip(0.5 - d * K, 0, 1)
-    img = layer(d.shape, (0, 0, 0), shadow * np.exp(-np.maximum(ds, 0) / blur * 2.2) * (1 - inside))   # мягкая тень
-    img = over(img, layer(d.shape, fill_rgb, (fill_top + (fill_bot - fill_top) * t) * inside))          # полупрозрачная заливка
-    glow = np.exp(-np.maximum(-d - 0.5, 0) / 9.0) * np.clip(1 - t * 2.2, 0, 1)                          # внутренний блик сверху
-    img = over(img, layer(d.shape, (1, 1, 1), hi * glow * inside))
-    rim = np.clip(1 - np.abs(d + 0.5) * 1.0, 0, 1)                                                     # кромка 1 dp: светлее сверху
-    img = over(img, layer(d.shape, (1, 1, 1), (rim_top + (rim_bot - rim_top) * t ** 0.7) * rim))
+    img = canvas(w, h)
+    if shadow_a > 0:
+        rect(img, off, off, w + off, h + off, shadow, shadow_a)          # жёсткая сдвинутая тень (без размытия)
+    rect(img, 0, 0, w, h, fill, fill_a)
+    if rim_a > 0:
+        frame(img, 0, 0, w, h, rim, rim_a, bw)
     save(img, name)
 
 
-# --- стекло: 3 уровня высоты × 2 радиуса
+# --- поверхности: 3 уровня (карточка · выделенная · плавающая) × 2 «радиуса» (здесь — только размер 9-patch)
 for r in (16, 24):
-    glass(r, 0.070, 0.040, 0.20, 0.05, 0.26, "glass_%d_1.png" % r, blur=10.0, off=5.0, hi=0.05)
-    glass(r, 0.105, 0.060, 0.28, 0.07, 0.36, "glass_%d_2.png" % r, blur=14.0, off=7.0, hi=0.08)
-    glass(r, 0.150, 0.085, 0.36, 0.10, 0.46, "glass_%d_3.png" % r, blur=17.0, off=9.0, hi=0.11)
-# --- плотное тёмное стекло для листов, всплывашек и окна поверх игры (под ним контент — нужна читаемость)
-glass(24, 1.0, 1.0, 0.30, 0.08, 0.55, "solid_24.png", fill_rgb=(0.085, 0.095, 0.185), blur=18.0, off=8.0, hi=0.06)
-glass(16, 1.0, 1.0, 0.30, 0.08, 0.50, "solid_16.png", fill_rgb=(0.105, 0.115, 0.215), blur=14.0, off=6.0, hi=0.06)
+    panel(r, (0.03, 0.03, 0.03), 0.66, 0.22, 0.10, 3, "glass_%d_1.png" % r)
+    panel(r, (0.05, 0.05, 0.05), 0.78, 0.42, 0.16, 4, "glass_%d_2.png" % r)
+    panel(r, (0.06, 0.06, 0.06), 0.90, 0.75, 0.22, 5, "glass_%d_3.png" % r)
+# --- плотные: листы, диалоги, окно поверх игры
+panel(24, (0.045, 0.045, 0.045), 1.0, 0.85, 0.30, 6, "solid_24.png")
+panel(16, (0.06, 0.06, 0.06), 1.0, 0.80, 0.30, 5, "solid_16.png")
 
 
 def primary(r, name, pressed=False):
-    """Главная кнопка: градиент (в приложении умножается на акцент: слева светлее, справа теплее), блик сверху, тёплое свечение."""
+    """Главная кнопка: белая плашка, чёрный текст, жёсткая серая тень. Нажата — плашка «садится» на тень."""
     w = h = 2 * r + 4
-    d, x, y = sdf_round(w, h, r)
-    ds, _, _ = sdf_round(w, h, r, dy=5.0)
-    t = np.clip((y + h / 2) / h, 0, 1)
-    u = np.clip((x + w / 2) / w, 0, 1)
-    inside = np.clip(0.5 - d * K, 0, 1)
-    img = layer(d.shape, (1.0, 0.72, 0.42), (0.20 if pressed else 0.38) * np.exp(-np.maximum(ds, 0) / 11.0 * 2.2) * (1 - inside))
-    rgb = np.stack([np.ones_like(u), 1.0 - 0.20 * u - 0.06 * t, 1.0 - 0.34 * u - 0.10 * t], axis=-1) * (0.90 if pressed else 1.0)
-    body = np.concatenate([rgb, inside[..., None]], axis=-1)
-    img = over(img, body)
-    glow = np.clip(1 - t * 2.4, 0, 1) * inside
-    img = over(img, layer(d.shape, (1, 1, 1), (0.10 if pressed else 0.26) * glow))
-    rim = np.clip(1 - np.abs(d + 0.5), 0, 1)
-    img = over(img, layer(d.shape, (1, 1, 1), (0.55 - 0.45 * t) * rim))
+    img = canvas(w, h)
+    off = 5
+    d = 3 if pressed else 0
+    rect(img, off, off, w + off, h + off, (0.42, 0.42, 0.42), 1.0)
+    rect(img, d, d, w + d, h + d, (0.957, 0.957, 0.949), 1.0)
     save(img, name)
 
 
@@ -90,24 +83,26 @@ primary(16, "primary_16_pressed.png", True)
 
 
 def halo(r, name):
-    """Свечение вокруг активного элемента (центр прозрачный) + тонкая светящаяся кромка. Красится акцентом."""
+    """Выделение активного: двойная пиксельная рамка (внутренняя яркая, внешняя — слабая). Центр прозрачный."""
     w = h = 2 * r + 4
-    d, x, y = sdf_round(w, h, r)
-    out = np.exp(-np.maximum(d, 0) / 7.0) * np.clip(d * K + 0.5, 0, 1) * 0.55
-    rim = np.clip(1 - np.abs(d + 0.75) / 1.25, 0, 1) * 0.95
-    save(layer(d.shape, (1, 1, 1), np.maximum(out, rim)), name)
+    img = canvas(w, h)
+    frame(img, -4, -4, w + 4, h + 4, (1, 1, 1), 0.28)
+    frame(img, 0, 0, w, h, (1, 1, 1), 0.95)
+    save(img, name)
 
 
 halo(16, "halo_16.png")
 halo(24, "halo_24.png")
 
-# --- мягкая точка (светлячки, ореолы) и «луч» блика для кнопок
+# --- мягкая точка (свечения) и «луч» блика для кнопок: блик — ступенчатая диагональная полоса
 S = 128
 y, x = np.mgrid[0:S, 0:S].astype(np.float32)
 rr = np.sqrt((x - S / 2 + 0.5) ** 2 + (y - S / 2 + 0.5) ** 2) / (S / 2)
-save(layer((S, S), (1, 1, 1), np.clip(1 - rr, 0, 1) ** 2.2), "dot.png")
+dot = np.zeros((S, S, 4), np.float32); dot[..., :3] = 1; dot[..., 3] = np.clip(1 - rr, 0, 1) ** 2.2
+save(dot, "dot.png")
 W, H = 96, 32
 y, x = np.mgrid[0:H, 0:W].astype(np.float32)
-u = (x + (y - H / 2) * 0.6) / W
-save(layer((H, W), (1, 1, 1), np.exp(-((u - 0.5) / 0.13) ** 2) * 0.55), "sheen.png")
-print("ok:", ", ".join(sorted(os.listdir(OUT))))
+u = (np.floor(x / 4) * 4 + np.floor(y / 4) * 4 * 0.6) / W
+sh = np.zeros((H, W, 4), np.float32); sh[..., :3] = 1; sh[..., 3] = (np.abs(u - 0.5) < 0.09) * 0.40
+save(sh, "sheen.png")
+print("ok:", ", ".join(sorted(f for f in os.listdir(OUT) if f.endswith(".png"))))

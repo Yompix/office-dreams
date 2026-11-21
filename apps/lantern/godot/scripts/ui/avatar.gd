@@ -45,7 +45,9 @@ func _colors() -> Array:
 	if cols.size() >= 2:
 		return cols
 	var h := float(absi(hash(nick)) % 360) / 360.0
-	return [Color.from_hsv(h, 0.62, 0.98), Color.from_hsv(fmod(h + 0.11, 1.0), 0.78, 0.62)]
+	# 2.0: монохром бренда — оттенки серого (у каждого ника свой), белая буква читается на любом
+	var v := 0.30 + h * 0.28
+	return [Color(v + 0.12, v + 0.12, v + 0.12), Color(v * 0.55, v * 0.55, v * 0.55)]
 
 
 func _draw() -> void:

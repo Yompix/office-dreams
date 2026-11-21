@@ -169,13 +169,13 @@ func _pro() -> void:
 	hr.add_child(pli)
 	var hv := UI.vbox(2)
 	hv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	hv.add_child(UI.label("LANTERN Pro", 26, UI.AMBER, UI.font_black))
+	hv.add_child(UI.label("LANTERN Plus", 26, UI.TEXT, UI.font_title))
 	var active: bool = Social.eco.get("pro", false)
 	var until := int(Social.eco.get("pro_until", 0))
-	hv.add_child(UI.label((L.t("Активна до ") + Time.get_date_string_from_unix_time(until / 1000) + (L.t(" (ДЕМО)") if Social.demo else "")) if active else L.t("99,99 ₴ в месяц · $2.49"), 14, UI.JAVA if active else UI.MUTED, UI.font_bold))
+	hv.add_child(UI.label((L.t("Активна до ") + Time.get_date_string_from_unix_time(until / 1000) + (L.t(" (ДЕМО)") if Social.demo else "")) if active else (Store.prices.get("lantern_pro_month", "") if Store.prices.has("lantern_pro_month") else L.t("99,99 ₴ в месяц · $2.49")), 14, UI.JAVA if active else UI.MUTED, UI.font_bold))
 	hr.add_child(hv)
 	v.add_child(hr)
-	for line in [["close", L.t("Без рекламы совсем")], ["lock", L.t("Свой код комнаты, например LUNA7")], ["cloud", L.t("Облачные копии миров")], ["star", L.t("Особая косметика каждый месяц")], ["heart", L.t("Поддержка автора LANTERN — Yompix")]]:
+	for line in [["close", L.t("Без рекламы совсем")], ["lock", L.t("Свой код комнаты, например LUNA7")], ["cloud", L.t("Облачные копии миров")], ["friends", L.t("До 32 игроков в сети «Любые игры» (без Plus — 16)")], ["star", L.t("Особая косметика каждый месяц")], ["heart", L.t("Поддержка автора LANTERN — Yompix")]]:
 		var r := UI.hbox(12)
 		var ic := UI.icon("check", 18, UI.AMBER)
 		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -186,7 +186,7 @@ func _pro() -> void:
 		v.add_child(r)
 	v.add_child(UI.gap(4))
 	if active:
-		v.add_child(UI.pill(L.t("✓ Pro активна"), UI.JAVA))
+		v.add_child(UI.pill(L.t("✓ Plus активна"), UI.GREEN))
 		v.add_child(UI.caption(L.t("Свой код комнаты")))
 		var vr := UI.hbox(8)
 		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), L.t("Например LUNA7"))
