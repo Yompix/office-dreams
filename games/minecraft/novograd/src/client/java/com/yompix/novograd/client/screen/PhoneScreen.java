@@ -49,7 +49,8 @@ public class PhoneScreen extends LifeScreen {
             new App("skills", "Навыки", 0xFF3FB8B0), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
             new App("cnr", "Копы и воры", 0xFF3F7FC0), // «Полицейские и воры» по сети (gta/CopsAndRobbers)
             new App("contacts", "Контакты", 0xFF4FA886), // звонки героев и дружба (story/Calls)
-            new App("dark", "Дела", 0xFF8A1020));
+            new App("dark", "Дела", 0xFF8A1020),
+            new App("progress", "Прогресс", 0xFFFFB300), new App("empire", "Империя", 0xFFB8860B), new App("grid", "Сеть", 0xFF00838F)); // 0.9
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -283,6 +284,9 @@ public class PhoneScreen extends LifeScreen {
             case "auto" -> mc().setScreen(new DriveScreen()); // штрафы, штрафстоянка, бензин
             case "skills" -> mc().setScreen(new SkillsScreen()); // навыки как в SA
             case "outdoor" -> mc().setScreen(new OutdoorScreen("")); // календарь, охота, рыбалка
+            case "progress" -> mc().setScreen(new com.yompix.novograd.client.city.ProgressScreen()); // 0.9
+            case "empire" -> mc().setScreen(new com.yompix.novograd.client.city.EmpireScreen());
+            case "grid" -> mc().setScreen(new com.yompix.novograd.client.city.GridScreen());
             case "casino" -> {
                 if (NovogradClient.data.adult()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
                 else openApp("casino");

@@ -62,6 +62,10 @@ public final class Territories {
             for (int i = 0; i < TURF.length; i++) owner[i] = (int) TURF[i][5];
         }
 
+        public int ownerOf(int i) {
+            return owner[i];
+        }
+
         static State load(NbtCompound n) {
             State s = new State();
             int[] o = n.getIntArray("owner");

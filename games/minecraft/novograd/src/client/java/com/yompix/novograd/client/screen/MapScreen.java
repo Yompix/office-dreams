@@ -49,6 +49,22 @@ public class MapScreen extends LifeScreen {
     private boolean dragging;
     private double lastMx, lastMy;
     private String tab = "story";
+    /** 0.9: значки активностей с сервера (gta/Progress.mapActs) и фильтры по типам. */
+    public static NbtCompound acts = new NbtCompound();
+    private static final String[][] KINDS = {{"biz", "$", "F9A825", "Бизнесы"}, {"raid", "!", "E53935", "Рейды"}, {"home", "⌂", "2E7D32", "Мой дом"},
+            {"turf", "■", "8E24AA", "Районы"}, {"event", "★", "26C6DA", "События"}};
+    private static final java.util.Set<String> OFF = new java.util.HashSet<>();
+
+    /** Для ролика/автотеста: вкладка «Дела». */
+    public void showActs() {
+        tab = "acts";
+    }
+
+    private static String[] kind(String k) {
+        String base = k.startsWith("biz") ? "biz" : k.startsWith("turf") ? "turf" : k;
+        for (String[] x : KINDS) if (x[0].equals(base)) return x;
+        return null;
+    }
 
     public MapScreen() {
         super("Карта");
@@ -63,6 +79,8 @@ public class MapScreen extends LifeScreen {
         }
         bake((int) mc().player.getX() - SIZE / 2, (int) mc().player.getZ() - SIZE / 2);
         bakeIsland();
+        acts = new NbtCompound();
+        NovogradClient.send("map_acts");
     }
 
     /** Рисуем карту в текстуру один раз (цвета карты Майнкрафта, с тенью по высоте). */
@@ -157,6 +175,23 @@ public class MapScreen extends LifeScreen {
                 ctx.drawText(textRenderer, name, x - tw / 2, y + 8, 0xFFFFFFFF, false);
             }
         }
+        // 0.9: значки активностей (бизнесы, рейд, жильё, районы, событие города) — с фильтрами во вкладке «Дела»
+        for (var el : acts.getList("acts", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            NbtCompound a = (NbtCompound) el;
+            String k = a.getString("k");
+            String[] kd = kind(k);
+            if (kd == null || OFF.contains(kd[0])) continue;
+            int x = sx(a.getDouble("x")), y = sy(a.getDouble("z"));
+            boolean own = k.endsWith("_own");
+            String col = k.equals("turf") ? "5E5E66" : own && kd[0].equals("biz") ? "43A047" : kd[2];
+            com.yompix.novograd.client.PlaceIcons.draw(ctx, textRenderer, new String[]{kd[1], col}, x, y);
+            if (zoom > 2.2f || Math.abs(mouseX - x) < 7 && Math.abs(mouseY - y) < 7) {
+                String name = a.getString("name");
+                int tw = textRenderer.getWidth(name);
+                ctx.fill(x - tw / 2 - 2, y + 7, x + tw / 2 + 2, y + 17, 0xCC000000);
+                ctx.drawText(textRenderer, name, x - tw / 2, y + 8, 0xFFFFFFFF, false);
+            }
+        }
         long now = System.currentTimeMillis();
         // цель сюжета
         Vec3d target = ClientStory.target();
@@ -209,7 +244,7 @@ public class MapScreen extends LifeScreen {
     private void panel(DrawContext ctx, int x, int y, int w, int h) {
         ctx.fill(x, y, x + w, y + h, 0xE0181C2C);
         ctx.fill(x, y, x + w, y + 1, 0xFFD42A3A);
-        String[][] tabs = {{"story", "Сюжет"}, {"tasks", "Задания"}};
+        String[][] tabs = {{"story", "Сюжет"}, {"tasks", "Задания"}, {"acts", "Дела"}};
         int tx = x + 4;
         for (String[] t : tabs) {
             int tw = textRenderer.getWidth(t[1]) + 10;
@@ -243,6 +278,16 @@ public class MapScreen extends LifeScreen {
                 ctx.drawText(textRenderer, (done ? "✔ " : cur ? "▶ " : "· ") + chapters[i], x + 6, yy, done ? 0xFF7CFF8A : cur ? 0xFFFFC107 : 0xFF777777, false);
                 yy += 11;
             }
+        } else if (tab.equals("acts")) {
+            for (String[] k : KINDS) {
+                boolean on = !OFF.contains(k[0]);
+                com.yompix.novograd.client.PlaceIcons.draw(ctx, textRenderer, new String[]{k[1], k[2]}, x + 12, yy + 4);
+                ctx.drawText(textRenderer, k[3], x + 22, yy, on ? 0xFFFFFFFF : 0xFF666666, false);
+                area(x + 4, yy - 2, w - 8, 12, () -> { if (!OFF.remove(k[0])) OFF.add(k[0]); });
+                yy += 14;
+            }
+            yy += 4;
+            yy += wrap(ctx, "Клик — показать/скрыть", x + 6, yy, w - 12, 0xFF888888);
         } else {
             if (d.taskPos != null && !d.taskKind.isEmpty()) {
                 ctx.drawText(textRenderer, "Текущее задание:", x + 6, yy, 0xFF7CFF8A, false);

@@ -288,6 +288,7 @@ final class GtaSteps {
                 LifeNet.send(p, "countdown", Story.text("text", n == 0 ? "ГАЗ!" : String.valueOf(n)));
                 p.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.MASTER, 1f, n == 0 ? 2f : 1f);
             }
+            if (r.countdown == 1) RACE_START.put(p.getUuid(), w.getTime()); // 0.9: рекорд трассы
             if (--r.countdown == 0 && rc != null) rc.setRoute(pts, Story.num(s, "rival_speed", 75) / 100f, () -> r.rivalIndex = 999);
             return;
         }
@@ -297,11 +298,34 @@ final class GtaSteps {
         }
         if (d.stepCount >= pts.size()) {
             Story.say(p, "ПОБЕДА!", Formatting.GOLD);
+            record(p, d, w);
             cleanup(p);
             Story.advance(p);
         } else if (r.rivalIndex == 999) {
             Story.say(p, "Соперник финишировал первым! Возвращайся на старт", Formatting.RED);
             Story.reenter(p);
+        }
+    }
+
+    private static final java.util.Map<java.util.UUID, Long> RACE_START = new java.util.HashMap<>();
+
+    /** 0.9: время гонки и рекорд трассы (флаг {@code rec:<трасса>=тики}); новый рекорд — титр и достижение. */
+    private static void record(ServerPlayerEntity p, LifeData d, ServerWorld w) {
+        Long t0 = RACE_START.remove(p.getUuid());
+        if (t0 == null) return;
+        long t = w.getTime() - t0;
+        String key = !d.side.isEmpty() ? d.side : d.chapter + "_" + d.mission;
+        String pref = "rec:" + key + "=";
+        long best = d.flags.stream().filter(f -> f.startsWith(pref)).mapToLong(f -> Long.parseLong(f.substring(pref.length()))).min().orElse(Long.MAX_VALUE);
+        String time = String.format(java.util.Locale.ROOT, "%d:%04.1f", t / 1200, (t % 1200) / 20.0);
+        if (t < best) {
+            d.flags.removeIf(f -> f.startsWith(pref));
+            d.flags.add(pref + t);
+            com.yompix.novograd.gta.Activities.title(p, "РЕКОРД ТРАССЫ", time);
+            com.yompix.novograd.life.Achievements.give(p, "race_record");
+        } else {
+            String b = String.format(java.util.Locale.ROOT, "%d:%04.1f", best / 1200, (best % 1200) / 20.0);
+            com.yompix.novograd.gta.Activities.title(p, "ФИНИШ", time + " · рекорд " + b);
         }
     }
 

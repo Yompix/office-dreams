@@ -79,6 +79,7 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.entity.CitizenEntity.STRIDE = com.yompix.novograd.client.story.StoryLife::stride;
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.story.StoryLife::tick);
         com.yompix.novograd.client.anim.PlayerAnim.init();
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.city.CityFx::tick);
         // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
         net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
                 world.isClient && noGrief && !player.isCreative() && !player.isSpectator() ? net.minecraft.util.ActionResult.FAIL : net.minecraft.util.ActionResult.PASS);
@@ -235,6 +236,13 @@ public class NovogradClient implements ClientModInitializer {
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "emote" -> com.yompix.novograd.client.anim.PlayerAnim.receive(n); // 0.8: жест другого игрока
+            // 0.9: прогресс, «Империя», «Сеть», значки карты, события города
+            case "progress_state" -> com.yompix.novograd.client.city.ProgressScreen.state = n;
+            case "empire_state" -> com.yompix.novograd.client.city.EmpireScreen.state = n;
+            case "grid_nodes" -> com.yompix.novograd.client.city.GridScreen.nodes = n;
+            case "map_acts" -> com.yompix.novograd.client.screen.MapScreen.acts = n;
+            case "blackout" -> com.yompix.novograd.client.city.CityFx.blackout(client, n);
+            case "city_event" -> com.yompix.novograd.client.city.CityFx.event = n;
             case "cut_gest" -> com.yompix.novograd.client.story.CutsceneScreen.gesture(client, n); // 1.0: слой-жест актёра
             case "cut_prep" -> com.yompix.novograd.client.story.CutsceneScreen.prep(client, n); // 1.0: прогрев озвучки и скинов до сцены
             case "cut_music" -> com.yompix.novograd.client.story.CutsceneMusic.handle(n); // музыка кат-сцены (story/DirectorCues)

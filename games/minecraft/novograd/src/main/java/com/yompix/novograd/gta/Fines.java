@@ -55,6 +55,31 @@ public final class Fines {
     }
 
     private static final Map<UUID, long[]> FLASHED = new HashMap<>();
+    /** 0.9, «Сеть»: до какого времени мира камера ослеплена. */
+    static final long[] CAM_OFF = new long[CAMS.length];
+
+    /** Ближайшая камера скорости к точке (индекс) или −1, если дальше r. */
+    public static int nearestCam(double x, double z, double r) {
+        int best = -1;
+        double bd = r * r;
+        for (int i = 0; i < CAMS.length; i++) {
+            double d = (x - CAMS[i].x) * (x - CAMS[i].x) + (z - CAMS[i].z) * (z - CAMS[i].z);
+            if (d < bd) { bd = d; best = i; }
+        }
+        return best;
+    }
+
+    public static double[] camPos(int i) {
+        return new double[]{CAMS[i].x + 0.5, CAMS[i].z + 0.5};
+    }
+
+    public static String camName(int i) {
+        return CAMS[i].name;
+    }
+
+    public static void blind(int i, long until) {
+        if (i >= 0 && i < CAM_OFF.length) CAM_OFF[i] = Math.max(CAM_OFF[i], until);
+    }
 
     static void tick(ServerPlayerEntity p) {
         ServerWorld w = p.getServerWorld();
@@ -64,6 +89,7 @@ public final class Fines {
             double d2 = dx * dx + dz * dz;
             if (d2 < 70 * 70) build(w, i);
             if (d2 > 14 * 14) continue;
+            if (w.getTime() < CAM_OFF[i]) continue; // 0.9: камера взломана («Сеть»)
             if (!(p.getVehicle() instanceof CarEntity car) || car.getControllingPassenger() != p || car.isScooter()) continue;
             if (car instanceof com.yompix.novograd.vehicle.MotorVehicle mv && !(car.isBike())) continue; // катер, вертолёт, самолёт
             if (car.body().service() && !car.isTaxi() || p.isCreative()) continue;

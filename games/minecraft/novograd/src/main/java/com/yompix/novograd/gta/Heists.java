@@ -381,8 +381,35 @@ public final class Heists {
         return (int) d.flags.stream().filter(f -> f.startsWith("bizlvl:" + i + "=")).mapToLong(f -> Long.parseLong(f.substring(f.indexOf('=') + 1))).max().orElse(0);
     }
 
-    private static int income(LifeData d, int i) {
-        return (int) BUSINESS[i][3] * (2 + level(d, i)) / 2; // каждый уровень +50%
+    static int income(LifeData d, int i) {
+        int v = (int) BUSINESS[i][3] * (2 + level(d, i)) / 2; // каждый уровень +50%
+        if (d.flags.contains("bizmgr:" + i)) v = v * 115 / 100; // 0.9, «Империя»: управляющий +15%
+        return v;
+    }
+
+    // ---- 0.9: для «Империи» и карты
+    public static int businessCount() {
+        return BUSINESS.length;
+    }
+
+    public static String businessName(int i) {
+        return (String) BUSINESS[i][0];
+    }
+
+    public static String businessPlace(int i) {
+        return (String) BUSINESS[i][1];
+    }
+
+    public static int businessPrice(int i) {
+        return (int) BUSINESS[i][2];
+    }
+
+    static int safeOf(LifeData d, int i) {
+        return safe(d, i);
+    }
+
+    static void setSafeOf(LifeData d, int i, int v) {
+        setSafe(d, i, v);
     }
 
     private static int safe(LifeData d, int i) {

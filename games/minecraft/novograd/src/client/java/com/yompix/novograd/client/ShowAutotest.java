@@ -41,7 +41,7 @@ public final class ShowAutotest {
 
     public static void init() {
         String mode = System.getProperty("novograd.autotest");
-        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow"))) return;
+        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -54,6 +54,7 @@ public final class ShowAutotest {
         cmd(5, "clear " + P);
         cmd(5, "effect clear " + P);
         if (mode.equals("animshow")) animshow();
+        else if (mode.equals("gridshow")) cityshow();
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }
@@ -165,6 +166,98 @@ public final class ShowAutotest {
         finish();
     }
 
+    // ===================================================================== 0.9: прогресс, «Империя», «Сеть», события
+    private static void screen(int delay, java.util.function.Supplier<net.minecraft.client.gui.screen.Screen> sc, String what) {
+        run(delay, c -> c.setScreen(sc.get()));
+        label(1, what);
+    }
+
+    private static void tp(String place, double dx, double dz, float yaw, float pitch) {
+        server(1, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            Vec3d at = Story.place(w, place);
+            if (at == null) return;
+            BlockPos g = Story.ground(w, at.add(dx, 0, dz));
+            p.teleport(w, at.x + dx, g.getY(), at.z + dz, yaw, pitch);
+        });
+    }
+
+    private static void cityshow() {
+        server(10, s -> {
+            ServerPlayerEntity p = pl(s);
+            var d = com.yompix.novograd.life.Life.get(p);
+            d.money = Math.max(d.money, 400_000);
+            d.flags.add("biz:0");
+            d.flags.add("biz:1");
+            d.flags.add("bizmgr:0");
+            com.yompix.novograd.life.Life.sync(p);
+            p.getAbilities().flying = false;
+            p.sendAbilitiesUpdate();
+        });
+        cmd(5, "gamemode survival " + P);
+        cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+        cmd(5, "time set 14500");
+        tp("dt_1", 0, 0, 0, 10);
+        run(60, c -> {
+            c.options.setPerspective(Perspective.FIRST_PERSON);
+            c.options.hudHidden = false;
+        });
+        cmd(5, "tick rate " + System.getProperty("novograd.rectps", "4"));
+        run(5, c -> rec(c));
+        screen(10, com.yompix.novograd.client.city.ProgressScreen::new, "прогресс");
+        screen(80, com.yompix.novograd.client.city.EmpireScreen::new, "империя");
+        run(80, c -> c.setScreen(new com.yompix.novograd.client.screen.MapScreen()));
+        label(1, "карта");
+        run(40, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.screen.MapScreen m) m.showActs(); });
+        run(70, c -> c.setScreen(null));
+        // «Сеть»: светофор перекрёстка
+        server(1, s -> {
+            ServerPlayerEntity p = pl(s);
+            int[] sig = com.yompix.novograd.gta.TrafficLights.nearestSignal(p.getServerWorld(), p.getX(), p.getZ());
+            Novograd.LOG.info("[show] перекрёсток рядом: {}", sig == null ? "нет" : sig[0] + "," + sig[1]);
+            if (sig != null) p.teleport(p.getServerWorld(), sig[0] + 9.5, p.getY(), sig[1] + 9.5, 135, 15);
+        });
+        run(20, c -> {
+            com.yompix.novograd.client.city.GridScreen.autoWin = true;
+            c.setScreen(new com.yompix.novograd.client.city.GridScreen());
+        });
+        label(1, "сеть");
+        run(30, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.city.GridScreen g) Novograd.LOG.info("[show] взлом светофора: {}", g.autoHack("lights")); });
+        label(90, "светофоры красные");
+        // щиток района — блэкаут
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.city.GridScreen()));
+        run(30, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.city.GridScreen g) Novograd.LOG.info("[show] взлом щитка: {}", g.autoHack("district")); });
+        label(110, "блэкаут");
+        server(1, s -> Novograd.LOG.info("[show] сеть: уровень {} опыт {}", com.yompix.novograd.gta.Grid.level(com.yompix.novograd.life.Life.get(pl(s))),
+                com.yompix.novograd.gta.Grid.xp(com.yompix.novograd.life.Life.get(pl(s)))));
+        // «Ночь музыки»
+        tp("park_center", 0, 6, 180, 10);
+        cmd(20, "event festival");
+        label(110, "ночь музыки");
+        cmd(5, "event stop");
+        // шторм
+        cmd(5, "time set 6000");
+        tp("dt_2", 0, 0, 0, -10);
+        cmd(20, "event storm");
+        label(120, "шторм");
+        cmd(5, "event stop");
+        // рейд на свой бизнес
+        server(5, s -> com.yompix.novograd.gta.Empire.forceRaid(pl(s), 0));
+        tp("bar_door", 6, 6, 135, 10);
+        label(120, "рейд");
+        server(1, s -> {
+            var p = pl(s);
+            java.util.List<String> names = new java.util.ArrayList<>();
+            int[][] parts = com.yompix.novograd.gta.Progress.parts(p, names);
+            Novograd.LOG.info("[show] прогресс {}% {}", com.yompix.novograd.gta.Progress.percent(parts), names);
+            Novograd.LOG.info("[show] рейдеров рядом: {}", p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(30),
+                    c -> c.hasCustomName() && c.getCustomName().getString().equals("Рейдер")).size());
+        });
+        cmd(1, "effect clear " + P);
+        finish();
+    }
+
     // ===================================================================== герои и прохожие
     private static void lookshow() {
         server(10, s -> {
@@ -272,12 +365,24 @@ public final class ShowAutotest {
         run(20, MinecraftClient::scheduleStop);
     }
 
+    private static boolean pendingOpen;
+
     private static void openWorld(MinecraftClient c) {
+        // пока висит оверлей (загрузка ресурсов), клиент ждёт его в цикле старта сервера и не дождётся — сначала пусть уйдёт
+        if (c.getOverlay() != null) {
+            pendingOpen = true;
+            return;
+        }
+        pendingOpen = false;
         c.createIntegratedServerLoader().start(System.getProperty("novograd.cineworld", "Island"),
                 () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()));
     }
 
     private static void tick(MinecraftClient c) {
+        if (pendingOpen) {
+            openWorld(c);
+            return;
+        }
         if (perTick != null) perTick.run();
         if (index >= STEPS.size()) return;
         if (index < 0) {
