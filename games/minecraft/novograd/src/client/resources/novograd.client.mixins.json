@@ -32,7 +32,9 @@
     "SeasonFoliageMixin",
     "OverlayMessageMixin",
     "ParticleBudgetMixin",
-    "AutoGuiScaleMixin"
+    "AutoGuiScaleMixin",
+    "FreeCamOverlayMixin",
+    "FreeCamSubmersionMixin"
   ],
   "injectors": {
     "defaultRequire": 0

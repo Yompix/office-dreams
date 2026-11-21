@@ -75,6 +75,10 @@ public class NovogradClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // 0.8: живые герои сюжета и анимации игроков
+        com.yompix.novograd.entity.CitizenEntity.STRIDE = com.yompix.novograd.client.story.StoryLife::stride;
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.story.StoryLife::tick);
+        com.yompix.novograd.client.anim.PlayerAnim.init();
         // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
         net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
                 world.isClient && noGrief && !player.isCreative() && !player.isSpectator() ? net.minecraft.util.ActionResult.FAIL : net.minecraft.util.ActionResult.PASS);

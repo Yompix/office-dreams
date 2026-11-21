@@ -711,7 +711,7 @@ public final class TownBuilder {
             b.set(x, 3, -14, Blocks.JUKEBOX.getDefaultState());
         }
         for (int z = -10; z <= -2; z++) b.set(13, 0, z, facing(ModContent.SHOP_COUNTER, Direction.WEST));
-        b.citizen(14, 0, -6, CitizenEntity.RANDOM_FROM + 9, CitizenEntity.Role.SHOPKEEPER, true, "Бармен Рэй", 90);
+        b.citizen(14, 0, -6, CitizenEntity.RANDOM_FROM + 9, CitizenEntity.Role.SHOPKEEPER, true, "Бармен Лео", 90);
         for (int y = 2; y <= 5; y += 3) {
             for (int x = x1 + 1; x <= x2 - 1; x++) b.set(x, y, z1 + 1, neon(ModContent.NEON, y == 2 ? NeonBlock.Color.PINK : NeonBlock.Color.CYAN, Direction.NORTH));
         }

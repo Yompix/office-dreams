@@ -56,8 +56,9 @@ public final class Npcs {
             JsonObject ch = Story.root().getAsJsonObject("characters").getAsJsonObject(id);
             c = new CitizenEntity(ModContent.CITIZEN, w);
             String skin = ch != null && ch.has("skin") && !ch.get("skin").isJsonNull() ? ch.get("skin").getAsString() : "student";
-            c.setup(CitizenEntity.skinIndex(skin), CitizenEntity.Role.CITIZEN, true, ch != null ? ch.get("name").getAsString() : id);
+            int own = CitizenEntity.storySkin(id); // 0.8: свой скин героя (у прохожих такого нет)
             c.setStoryId(id);
+            c.setup(own >= 0 ? own : CitizenEntity.skinIndex(skin), CitizenEntity.Role.CITIZEN, true, ch != null ? ch.get("name").getAsString() : id);
             BlockPos g = Story.ground(w, at);
             c.refreshPositionAndAngles(at.x, g.getY(), at.z, Story.placeYaw(w, place), 0);
             w.spawnEntity(c);

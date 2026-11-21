@@ -42,8 +42,8 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
             @Override
             public void renderForBone(MatrixStack m, CitizenEntity e, GeoBone bone, RenderLayer type, VertexConsumerProvider buffers, VertexConsumer buffer,
                                       float partialTick, int light, int overlay) {
-                boolean head = bone.getName().equals("head"), waist = bone.getName().equals("waist");
-                if (!head && !waist) return;
+                boolean head = bone.getName().equals("head"), waist = bone.getName().equals("waist"), chest = bone.getName().equals("chest");
+                if (!head && !waist && !chest) return;
                 // вдали (дальше «Производительность» → дальняя граница) причёску, лицо и юбку не дорисовываем — их не различить
                 float far = com.yompix.novograd.client.NovogradConfig.lodFar();
                 var camPos = net.minecraft.client.MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
@@ -53,6 +53,7 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                 m.translate(0, 24 / 16f, 0);
                 m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
                 if (head) hair.head(m, buffers, light, e);
+                else if (chest) hair.torso(m, buffers, light, e); // то же пространство тела: шея — y = 0
                 else hair.skirt(m, buffers, light, e);
                 m.pop();
                 buffers.getBuffer(type);
@@ -186,6 +187,24 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                     head.setRotX(look[1] * MathHelper.RADIANS_PER_DEGREE);
                     head.setRotY(look[0] * MathHelper.RADIANS_PER_DEGREE);
                     head.setRotZ(look[2] * MathHelper.RADIANS_PER_DEGREE);
+                }
+                else {
+                    // 0.8: герой сюжета смотрит на игрока, когда тот рядом (плавно смешиваем с обычным поворотом головы)
+                    float[] lp = com.yompix.novograd.client.story.StoryLife.look(e, state.getPartialTick());
+                    if (lp != null) {
+                        float w = lp[2];
+                        head.setRotX(MathHelper.lerp(w, head.getRotX(), lp[1] * MathHelper.RADIANS_PER_DEGREE));
+                        head.setRotY(MathHelper.lerp(w, head.getRotY(), lp[0] * MathHelper.RADIANS_PER_DEGREE));
+                    }
+                }
+                // 0.8: своя походка героя: раскачка корпуса на шаге (клип ходьбы сам ставит грудь каждый кадр)
+                float sway = com.yompix.novograd.client.story.StoryLife.sway(e);
+                var chest = getAnimationProcessor().getBone("chest");
+                double mv = e.getVelocity().horizontalLengthSquared() + (e.getX() - e.prevX) * (e.getX() - e.prevX) + (e.getZ() - e.prevZ) * (e.getZ() - e.prevZ);
+                if (sway > 0 && chest != null && mv > 2.5e-4) {
+                    float ph = e.limbAnimator.getPos(state.getPartialTick()) * 0.6662f;
+                    chest.setRotZ(chest.getRotZ() + MathHelper.sin(ph) * sway * MathHelper.RADIANS_PER_DEGREE);
+                    chest.setRotY(chest.getRotY() + MathHelper.cos(ph) * sway * 0.6f * MathHelper.RADIANS_PER_DEGREE);
                 }
             }
         }
