@@ -51,6 +51,7 @@ async function load(onFile) {
     if (/^(Rk_|Cmu_).*_Loop$/.test(c.name)) loopSeam(c);
     CLIP[c.name] = c;
   }
+  if (CLIP.Rk_Walk_Loop) CLIP.Rk_Walk_M = walkCalm(CLIP.Rk_Walk_Loop, .4);   // 22 ноя: Итану — прежний мокап-шаг, но таз качается в 2,5 раза меньше
   if (V3) { const sk = G.anims.scene; sk.updateMatrixWorld(true); QW = {}; sk.traverse(n => { if (n.name) QW[n.name] = n.getWorldQuaternion(new T.Quaternion()); });
     QW.pelvisZ = sk.getObjectByName('pelvis').position.z; }
   window.__W3chars.cast = cast; window.__W3chars.v2 = true; window.__W3chars.v3 = V3;
@@ -1287,8 +1288,22 @@ const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Lo
   katya: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], katyaSmile: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], martha: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 2.6] };
 const WALK_RK = new Set(['katya', 'katyaSmile', 'martha']);   // мокап-ходьба только у женщин
 const WALK_K = .74;   // Rk_Walk_Loop: опорная стопа едет назад 1,25 м/с времени клипа (у Walk_Loop — 1,04): на тот же путь время клипа ×0,74 (подобрано по скольжению стопы)
+// мокап-шаг без «подиума»: поворот и боковой сдвиг таза тянем к среднему (k — сколько качания оставить)
+function walkCalm(c0, k) {
+  const c = c0.clone(); c.name = c0.name.replace('Loop', 'M');
+  for (const t of c.tracks) {
+    if (t.name === 'pelvis.quaternion') { const v = t.values, n = v.length / 4, m = new T.Quaternion(0, 0, 0, 0), q = new T.Quaternion();
+      for (let i = 0; i < n; i++) { q.fromArray(v, i * 4); if (i && q.dot(m) < 0) q.set(-q.x, -q.y, -q.z, -q.w); m.x += q.x; m.y += q.y; m.z += q.z; m.w += q.w; }
+      m.normalize(); for (let i = 0; i < n; i++) { q.fromArray(v, i * 4); m.clone().slerp(q, k).toArray(v, i * 4); } }
+    if (t.name === 'pelvis.position') { const v = t.values, n = v.length / 3; for (const ax of [0, 2]) { let s = 0; for (let i = 0; i < n; i++) s += v[i * 3 + ax]; s /= n;
+      if (ax === 0) for (let i = 0; i < n; i++) v[i * 3] = s + (v[i * 3] - s) * k; } }   // x — вбок; z (вперёд) не трогаем
+  }
+  return c;
+}
+const WALK_CALM = new Set(['temych']);
 function natClip(C, nm) {   // → [клип, сдвиг фазы, масштаб времени]
   const n = !C.o.monster && G.anims2 && !window.__NOMOCAP && NAT[C.o.name]; if (!n) return [nm, 0];
+  if (nm === 'Walk_Loop' && CLIP.Rk_Walk_M && WALK_CALM.has(C.o.name) && !window.__WALKQ) return ['Rk_Walk_M', 0, window.__WALK_K ?? WALK_K];
   if (nm === 'Walk_Loop' && CLIP.Rk_Walk_Loop && WALK_RK.has(C.o.name)) return ['Rk_Walk_Loop', 0, window.__WALK_K ?? WALK_K];   // 21 ноя: мужчинам — свой Walk_Loop (в мокапе стопы на одной линии, «подиумная» походка тазом)   // шаг идёт от пройденного пути — фазу не сдвигаем
   if (nm === 'Idle_Loop' && CLIP[n[0]]) return [n[0], n[2]];
   if (nm === 'Idle_Talking_Loop' && CLIP[n[1]]) return [n[1], n[2]];
