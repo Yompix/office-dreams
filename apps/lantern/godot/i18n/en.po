@@ -246,6 +246,9 @@ msgstr "Java: installed Paper %s build %d — %s"
 msgid "LANTERN Plus — месяц"
 msgstr "LANTERN Plus — month"
 
+msgid "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ."
+msgstr "LANTERN is free and ad-free on PC. If it helped you, you can support the author. It’s simply a thank-you: a donation unlocks nothing and gives no advantages."
+
 msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
 msgstr "LANTERN will still download its own if the world needs a newer version."
 
@@ -1284,6 +1287,12 @@ msgstr "Starry sky"
 msgid "Звёздный фонарь"
 msgstr "Star lantern"
 
+msgid "Звёзды Telegram"
+msgstr "Telegram Stars"
+
+msgid "Звёзды Telegram или SOL — просто спасибо автору"
+msgstr "Telegram Stars or SOL — simply a thank-you to the author"
+
 msgid "Здесь будет реклама"
 msgstr "An ad will be here"
 
@@ -1617,6 +1626,9 @@ msgstr "Backup saved: %s — find it in “World backups”"
 msgid "Костёр"
 msgstr "Campfire"
 
+msgid "Кошелёк не найден — адрес скопирован"
+msgstr "No wallet found — address copied"
+
 msgid "Красиво"
 msgstr "Pretty"
 
@@ -1874,6 +1886,9 @@ msgstr "Light mode is on for this device: the background is still so the app sta
 
 msgid "Наборы искр"
 msgstr "Spark packs"
+
+msgid "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana."
+msgstr "Point your wallet camera (Phantom, Solflare) at the QR or copy the address. Solana network only."
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Permanently deletes your nickname, friends, messages and cloud backups from the server. Worlds on the device stay."
@@ -2355,6 +2370,9 @@ msgstr "Decline"
 msgid "Отключить"
 msgstr "Disconnect"
 
+msgid "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -."
+msgstr "Telegram will open: choose an amount in Stars. Your name may appear in the Yompix games sponsor list — or hide it with /sponsor -."
+
 msgid "Откройте Minecraft"
 msgstr "Open Minecraft"
 
@@ -2405,6 +2423,12 @@ msgstr "Open “My world”"
 
 msgid "Открыть в Minecraft"
 msgstr "Open in Minecraft"
+
+msgid "Открыть в Telegram"
+msgstr "Open in Telegram"
+
+msgid "Открыть в кошельке"
+msgstr "Open in wallet"
 
 msgid "Открыть для друзей"
 msgstr "Open to friends"
@@ -2565,6 +2589,9 @@ msgstr "First Lights flame"
 msgid "Пламя сезона (премиум)"
 msgstr "Season flame (premium)"
 
+msgid "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают."
+msgstr "The payment goes directly to the author. LANTERN doesn’t see your wallet and stores no payment data. Never share your seed phrase or keys — nobody will ever ask for them."
+
 msgid "Плоский"
 msgstr "Flat"
 
@@ -2585,6 +2612,12 @@ msgstr "Retry"
 
 msgid "Погода"
 msgstr "Weather"
+
+msgid "Поддержать"
+msgstr "Support"
+
+msgid "Поддержать LANTERN"
+msgstr "Support LANTERN"
 
 msgid "Поддержка автора LANTERN — Yompix"
 msgstr "Support LANTERN's author — Yompix"
@@ -3342,6 +3375,9 @@ msgstr "Saving the world and stopping the server…"
 msgid "Сохраняем…"
 msgstr "Saving…"
 
+msgid "Спасибо за LANTERN"
+msgstr "Thanks for LANTERN"
+
 msgid "Спасибо за лайк!"
 msgstr "Thanks for the like!"
 
@@ -3626,6 +3662,9 @@ msgstr "Network chat"
 
 msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
 msgstr "The harder it is, the stronger the monsters. “Peaceful” has none at all."
+
+msgid "Через бота Yompix"
+msgstr "Via the Yompix bot"
 
 msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
 msgstr "Friends join by code through it: it only passes game data between you and stores nothing. Change the address only if you run your own server."

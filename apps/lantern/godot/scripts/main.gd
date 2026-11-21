@@ -47,9 +47,10 @@ var _orb: Orb                      # «Создать» в нижнем меню
 const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile", "host", "quests", "shop", "create", "net"]
 const TITLES := {"home": "Игры", "create": "Создать игру", "gamesettings": "Настройки игры", "setup": "Мой мир из Minecraft", "host": "Мой мир", "join": "Зайти к другу",
 	"settings": "Настройки", "friends": "Друзья", "campfire": "Костёр",
-	"quests": "Задания", "shop": "Магазин", "net": "Любые игры", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров"}
+	"quests": "Задания", "shop": "Магазин", "net": "Любые игры", "profile": "Профиль", "syscheck": "Проверка системы", "backups": "Копии миров", "support": "Поддержать"}
 ## Корневые разделы телефона (без стрелки «Назад»)
 const ROOTS := ["home", "friends", "profile"]
+const SUPPORT := preload("res://scripts/screens/support.gd")
 ## Узкая колонка на широком экране — для форм и списков настроек
 ## (профиль — две колонки: в узкой не помещался, экран становился шире окна — 1.8.2)
 const NARROW := ["settings", "backups", "syscheck", "join", "setup", "create", "net"]
@@ -546,7 +547,7 @@ func _bottom_nav() -> Control:
 	wrap.add_child(p)
 	# плотная подложка под стеклом: список под меню не просвечивает сквозь подписи
 	var under := Panel.new()
-	under.add_theme_stylebox_override("panel", UI.box(Color(0.045, 0.05, 0.11, 0.86), UI.R_2XL - 1))
+	under.add_theme_stylebox_override("panel", UI.box(Color(0.055, 0.055, 0.055, 0.86), UI.R_2XL - 1))
 	under.show_behind_parent = true
 	under.set_anchors_preset(Control.PRESET_FULL_RECT)
 	under.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -677,6 +678,8 @@ func _build_desktop() -> void:
 		[["friends", "friends", L.t("Друзья")], ["campfire", "campfire", L.t("Костёр")]],
 		[["quests", "quests", L.t("Задания и сезон")], ["shop", "shop", L.t("Магазин")], ["backups", "cloud", L.t("Копии миров")], ["settings", "settings", L.t("Настройки")]],
 	]
+	if SUPPORT.available():     # 2.0.2: «Поддержать» — только ПК
+		groups[2].append(["support", "heart", L.t("Поддержать")])
 	for gi in groups.size():
 		if gi > 0:
 			var dm := MarginContainer.new()
@@ -1346,13 +1349,15 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		return
 	if name == "host" and arg == null and not own.active and not server.state in ["installing", "starting", "running", "stopping", "error"]:
 		name = "create"
+	if name == "support" and not SUPPORT.available():
+		name = "home"
 	if name == "setup" and not Cfg.mobile() and not (arg is Dictionary and arg.get("own", false)):
 		name = "create"       # 1.8: мастера «Отдельный сервер» больше нет — сервер создаётся в «Создать игру»
 	# история «Назад»
 	var dir := 1
 	if _going_back:
 		dir = -1
-	elif name in ROOTS or (not _compact and name in ["home", "net", "create", "join", "friends", "campfire", "quests", "shop", "backups", "settings"]):
+	elif name in ROOTS or (not _compact and name in ["home", "net", "create", "join", "friends", "campfire", "quests", "shop", "backups", "settings", "support"]):
 		_stack.clear()
 		dir = 0
 	elif current != "" and current != name:

@@ -461,7 +461,7 @@ func _show_room() -> void:
 	var status_text := L.t("Связь прервалась — восстанавливаем…") if recon else (L.t("Хозяин переподключается…") if not ok else (L.t("Вы в игре") if in_game else L.t("Мост готов")))
 	# статус — тёмная «таблетка» в углу обложки: читается на любом пейзаже
 	var sp := PanelContainer.new()
-	sp.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(0.03, 0.04, 0.10, 0.62), 99, 0, Color(status_col, 0.5), 1), 10, 4))
+	sp.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(0.044, 0.044, 0.044, 0.62), 99, 0, Color(status_col, 0.5), 1), 10, 4))
 	sp.add_child(UI.dot_label(status_text, status_col, 12))
 	sp.position = Vector2(14, 14)
 	sp.mouse_filter = Control.MOUSE_FILTER_IGNORE

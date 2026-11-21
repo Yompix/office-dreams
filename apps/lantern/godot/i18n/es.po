@@ -246,6 +246,9 @@ msgstr "Java: instalado Paper %s build %d — %s"
 msgid "LANTERN Plus — месяц"
 msgstr "LANTERN Plus — mes"
 
+msgid "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ."
+msgstr "LANTERN es gratis y sin anuncios en PC. Si te ha ayudado, puedes apoyar al autor. Es solo un agradecimiento: la donación no desbloquea nada ni da ventajas."
+
 msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
 msgstr "LANTERN descargará la suya igualmente si el mundo necesita una versión más nueva."
 
@@ -1284,6 +1287,12 @@ msgstr "Cielo estrellado"
 msgid "Звёздный фонарь"
 msgstr "Farol estrella"
 
+msgid "Звёзды Telegram"
+msgstr "Estrellas de Telegram"
+
+msgid "Звёзды Telegram или SOL — просто спасибо автору"
+msgstr "Estrellas de Telegram o SOL: simplemente un gracias al autor"
+
 msgid "Здесь будет реклама"
 msgstr "Aquí irá un anuncio"
 
@@ -1617,6 +1626,9 @@ msgstr "Copia guardada: %s. Está en “Copias de mundos”"
 msgid "Костёр"
 msgstr "Hoguera"
 
+msgid "Кошелёк не найден — адрес скопирован"
+msgstr "No se encontró billetera: dirección copiada"
+
 msgid "Красиво"
 msgstr "Bonito"
 
@@ -1874,6 +1886,9 @@ msgstr "En este dispositivo está activado el modo ligero: el fondo no se mueve 
 
 msgid "Наборы искр"
 msgstr "Packs de chispas"
+
+msgid "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana."
+msgstr "Apunta la cámara de tu billetera (Phantom, Solflare) al QR o copia la dirección. Solo red Solana."
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Borra para siempre del servidor tu nick, amigos, mensajes y copias en la nube. Los mundos del dispositivo se quedan."
@@ -2355,6 +2370,9 @@ msgstr "Rechazar"
 msgid "Отключить"
 msgstr "Desconectar"
 
+msgid "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -."
+msgstr "Se abrirá Telegram: elige una cantidad en estrellas. Tu nombre puede aparecer en la lista de patrocinadores de juegos de Yompix, o escóndelo con /sponsor -."
+
 msgid "Откройте Minecraft"
 msgstr "Abre Minecraft"
 
@@ -2405,6 +2423,12 @@ msgstr "Abrir “Mi mundo”"
 
 msgid "Открыть в Minecraft"
 msgstr "Abrir en Minecraft"
+
+msgid "Открыть в Telegram"
+msgstr "Abrir en Telegram"
+
+msgid "Открыть в кошельке"
+msgstr "Abrir en la billetera"
 
 msgid "Открыть для друзей"
 msgstr "Abrir a amigos"
@@ -2565,6 +2589,9 @@ msgstr "Llama de las primeras luces"
 msgid "Пламя сезона (премиум)"
 msgstr "Llama de temporada (prémium)"
 
+msgid "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают."
+msgstr "El pago va directamente al autor. LANTERN no ve tu billetera ni guarda datos de pago. Nunca compartas tu frase semilla ni tus claves: nadie te las pedirá."
+
 msgid "Плоский"
 msgstr "Extraplano"
 
@@ -2585,6 +2612,12 @@ msgstr "Reintentar"
 
 msgid "Погода"
 msgstr "Clima"
+
+msgid "Поддержать"
+msgstr "Apoyar"
+
+msgid "Поддержать LANTERN"
+msgstr "Apoyar LANTERN"
 
 msgid "Поддержка автора LANTERN — Yompix"
 msgstr "Apoya al autor de LANTERN — Yompix"
@@ -3342,6 +3375,9 @@ msgstr "Guardando el mundo y deteniendo el servidor…"
 msgid "Сохраняем…"
 msgstr "Guardando…"
 
+msgid "Спасибо за LANTERN"
+msgstr "Gracias por LANTERN"
+
 msgid "Спасибо за лайк!"
 msgstr "¡Gracias por el like!"
 
@@ -3626,6 +3662,9 @@ msgstr "Chat de la red"
 
 msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
 msgstr "Cuanto más difícil, más fuertes los monstruos. En “Pacífico” no hay ninguno."
+
+msgid "Через бота Yompix"
+msgstr "Con el bot de Yompix"
 
 msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
 msgstr "Por él entran tus amigos con código: solo pasa los datos del juego entre vosotros y no guarda nada. Cambia la dirección solo si tienes tu propio servidor."

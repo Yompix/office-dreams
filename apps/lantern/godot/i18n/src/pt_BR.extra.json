@@ -275,5 +275,22 @@
  "создатель": "criador",
  "✓ Plus активна": "✓ Plus ativo",
  "Меньше задержка. Участники вашей сети увидят ваш IP-адрес.": "Menos atraso. Os membros da sua rede verão seu endereço IP.",
- "Напрямую (P2P)": "Direta (P2P)"
+ "Напрямую (P2P)": "Direta (P2P)",
+ "Поддержать": "Apoiar",
+ "Поддержать LANTERN": "Apoiar o LANTERN",
+ "Звёзды Telegram или SOL — просто спасибо автору": "Estrelas do Telegram ou SOL — apenas um obrigado ao autor",
+ "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ.": "O LANTERN é grátis e sem anúncios no PC. Se ele te ajudou, você pode apoiar o autor. É só um obrigado: a doação não desbloqueia nada nem dá vantagens.",
+ "Звёзды Telegram": "Estrelas do Telegram",
+ "Через бота Yompix": "Pelo bot da Yompix",
+ "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -.": "O Telegram vai abrir: escolha um valor em estrelas. Seu nome pode aparecer na lista de patrocinadores dos jogos Yompix — ou oculte com /sponsor -.",
+ "Открыть в Telegram": "Abrir no Telegram",
+ "Скопировать ссылку": "Copiar link",
+ "Solana (SOL)": "Solana (SOL)",
+ "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana.": "Aponte a câmera da carteira (Phantom, Solflare) para o QR ou copie o endereço. Somente rede Solana.",
+ "Адрес скопирован": "Endereço copiado",
+ "Скопировать адрес": "Copiar endereço",
+ "Открыть в кошельке": "Abrir na carteira",
+ "Кошелёк не найден — адрес скопирован": "Carteira não encontrada — endereço copiado",
+ "Спасибо за LANTERN": "Obrigado pelo LANTERN",
+ "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают.": "O pagamento vai direto para o autor. O LANTERN não vê sua carteira nem guarda dados de pagamento. Nunca compartilhe sua frase-semente ou chaves — ninguém vai pedi-las."
 }

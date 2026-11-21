@@ -246,6 +246,9 @@ msgstr "Java: zainstalowano Paper %s build %d — %s"
 msgid "LANTERN Plus — месяц"
 msgstr "LANTERN Plus — miesiąc"
 
+msgid "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ."
+msgstr "LANTERN jest darmowy i bez reklam na PC. Jeśli ci pomógł, możesz wesprzeć autora. To tylko podziękowanie: darowizna niczego nie odblokowuje i nie daje przewagi."
+
 msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
 msgstr "LANTERN i tak pobierze własną, jeśli świat wymaga nowszej wersji."
 
@@ -1284,6 +1287,12 @@ msgstr "Gwiaździste niebo"
 msgid "Звёздный фонарь"
 msgstr "Gwiezdna latarnia"
 
+msgid "Звёзды Telegram"
+msgstr "Gwiazdki Telegram"
+
+msgid "Звёзды Telegram или SOL — просто спасибо автору"
+msgstr "Gwiazdki Telegram lub SOL — po prostu podziękowanie dla autora"
+
 msgid "Здесь будет реклама"
 msgstr "Tu będzie reklama"
 
@@ -1617,6 +1626,9 @@ msgstr "Kopia zapisana: %s — jest w „Kopiach światów”"
 msgid "Костёр"
 msgstr "Ognisko"
 
+msgid "Кошелёк не найден — адрес скопирован"
+msgstr "Nie znaleziono portfela — adres skopiowany"
+
 msgid "Красиво"
 msgstr "Ładnie"
 
@@ -1874,6 +1886,9 @@ msgstr "Na tym urządzeniu włączony jest tryb lekki: tło jest nieruchome, że
 
 msgid "Наборы искр"
 msgstr "Pakiety iskier"
+
+msgid "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana."
+msgstr "Skieruj aparat portfela (Phantom, Solflare) na kod QR lub skopiuj adres. Tylko sieć Solana."
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Na zawsze usunie z serwera nick, znajomych, wiadomości i kopie w chmurze. Światy na urządzeniu zostaną."
@@ -2355,6 +2370,9 @@ msgstr "Odrzuć"
 msgid "Отключить"
 msgstr "Rozłącz"
 
+msgid "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -."
+msgstr "Otworzy się Telegram: wybierz kwotę w gwiazdkach. Twoje imię może trafić na listę sponsorów gier Yompix — albo ukryj je komendą /sponsor -."
+
 msgid "Откройте Minecraft"
 msgstr "Otwórz Minecrafta"
 
@@ -2405,6 +2423,12 @@ msgstr "Otwórz „Mój świat”"
 
 msgid "Открыть в Minecraft"
 msgstr "Otwórz w Minecrafcie"
+
+msgid "Открыть в Telegram"
+msgstr "Otwórz w Telegramie"
+
+msgid "Открыть в кошельке"
+msgstr "Otwórz w portfelu"
 
 msgid "Открыть для друзей"
 msgstr "Otwórz dla znajomych"
@@ -2565,6 +2589,9 @@ msgstr "Płomień pierwszych ogni"
 msgid "Пламя сезона (премиум)"
 msgstr "Płomień sezonu (premium)"
 
+msgid "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают."
+msgstr "Płatność trafia bezpośrednio do autora. LANTERN nie widzi twojego portfela i nie przechowuje danych płatności. Nikomu nie podawaj frazy seed ani kluczy — nikt o nie nie prosi."
+
 msgid "Плоский"
 msgstr "Superpłaski"
 
@@ -2585,6 +2612,12 @@ msgstr "Powtórz"
 
 msgid "Погода"
 msgstr "Pogoda"
+
+msgid "Поддержать"
+msgstr "Wesprzyj"
+
+msgid "Поддержать LANTERN"
+msgstr "Wesprzyj LANTERN"
 
 msgid "Поддержка автора LANTERN — Yompix"
 msgstr "Wesprzyj autora LANTERN — Yompix"
@@ -3342,6 +3375,9 @@ msgstr "Zapisujemy świat i zatrzymujemy serwer…"
 msgid "Сохраняем…"
 msgstr "Zapisujemy…"
 
+msgid "Спасибо за LANTERN"
+msgstr "Dzięki za LANTERN"
+
 msgid "Спасибо за лайк!"
 msgstr "Dzięki za lajka!"
 
@@ -3626,6 +3662,9 @@ msgstr "Czat sieci"
 
 msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
 msgstr "Im trudniej, tym silniejsze potwory. „Pokojowy” — całkiem bez nich."
+
+msgid "Через бота Yompix"
+msgstr "Przez bota Yompix"
 
 msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
 msgstr "Przez niego znajomi wchodzą po kodzie: tylko przekazuje dane gry między wami i niczego nie przechowuje. Adres zmieniaj tylko, jeśli masz własny serwer."

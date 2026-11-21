@@ -55,7 +55,7 @@ func _draw() -> void:
 		var col: Color = e[2]
 		var pulse := 0.5 + 0.5 * sin(t * 2.4 + (0.0 if e[3] == L.t("Вы") else 1.6))
 		draw_texture_rect(dot, Rect2(c - Vector2(r, r) * (2.0 + 0.3 * pulse), Vector2(r, r) * (4.0 + 0.6 * pulse)), false, Color(col, 0.22 + 0.10 * pulse))
-		draw_circle(c, r, Color(0.07, 0.08, 0.17), true, -1, true)
+		draw_circle(c, r, Color(0.087, 0.087, 0.087), true, -1, true)
 		draw_arc(c, r, 0, TAU, 48, col, 2.0, true)
 		var ch := String(e[1]).substr(0, 1).to_upper()
 		var fs := 24

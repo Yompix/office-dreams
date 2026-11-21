@@ -275,5 +275,22 @@
  "создатель": "créateur",
  "✓ Plus активна": "✓ Plus actif",
  "Меньше задержка. Участники вашей сети увидят ваш IP-адрес.": "Moins de latence. Les membres de votre réseau verront votre adresse IP.",
- "Напрямую (P2P)": "Direct (P2P)"
+ "Напрямую (P2P)": "Direct (P2P)",
+ "Поддержать": "Soutenir",
+ "Поддержать LANTERN": "Soutenir LANTERN",
+ "Звёзды Telegram или SOL — просто спасибо автору": "Étoiles Telegram ou SOL — un simple merci à l’auteur",
+ "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ.": "LANTERN est gratuit et sans publicité sur PC. S’il vous a aidé, vous pouvez soutenir l’auteur. C’est simplement un merci : le don ne débloque rien et ne donne aucun avantage.",
+ "Звёзды Telegram": "Étoiles Telegram",
+ "Через бота Yompix": "Via le bot Yompix",
+ "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -.": "Telegram va s’ouvrir : choisissez un montant en étoiles. Votre nom peut apparaître dans la liste des sponsors des jeux Yompix — ou masquez-le avec /sponsor -.",
+ "Открыть в Telegram": "Ouvrir dans Telegram",
+ "Скопировать ссылку": "Copier le lien",
+ "Solana (SOL)": "Solana (SOL)",
+ "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana.": "Pointez la caméra de votre portefeuille (Phantom, Solflare) vers le QR ou copiez l’adresse. Réseau Solana uniquement.",
+ "Адрес скопирован": "Adresse copiée",
+ "Скопировать адрес": "Copier l’adresse",
+ "Открыть в кошельке": "Ouvrir dans le portefeuille",
+ "Кошелёк не найден — адрес скопирован": "Aucun portefeuille trouvé — adresse copiée",
+ "Спасибо за LANTERN": "Merci pour LANTERN",
+ "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают.": "Le paiement va directement à l’auteur. LANTERN ne voit pas votre portefeuille et ne conserve aucune donnée de paiement. Ne partagez jamais votre phrase secrète ni vos clés — personne ne vous les demandera."
 }

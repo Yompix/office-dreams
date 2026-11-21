@@ -23,6 +23,7 @@ var _live := 0.0
 
 
 func setup(lvl: int, equip: Variant = null, size_px := 48) -> LanternIcon:
+	material = UI.mono_mat()     # 2.0.2: фонарь и пламя — в монохроме бренда (пламя различается яркостью)
 	level = clampi(lvl, 1, 9)
 	var e: Dictionary = {}
 	if equip is Dictionary:

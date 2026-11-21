@@ -246,6 +246,9 @@ msgstr "Java: instalado Paper %s build %d — %s"
 msgid "LANTERN Plus — месяц"
 msgstr "LANTERN Plus — mês"
 
+msgid "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ."
+msgstr "O LANTERN é grátis e sem anúncios no PC. Se ele te ajudou, você pode apoiar o autor. É só um obrigado: a doação não desbloqueia nada nem dá vantagens."
+
 msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
 msgstr "O LANTERN baixa a dele mesmo assim se o mundo precisar de uma versão mais nova."
 
@@ -1284,6 +1287,12 @@ msgstr "Céu estrelado"
 msgid "Звёздный фонарь"
 msgstr "Lanterna estrela"
 
+msgid "Звёзды Telegram"
+msgstr "Estrelas do Telegram"
+
+msgid "Звёзды Telegram или SOL — просто спасибо автору"
+msgstr "Estrelas do Telegram ou SOL — apenas um obrigado ao autor"
+
 msgid "Здесь будет реклама"
 msgstr "Aqui vai um anúncio"
 
@@ -1617,6 +1626,9 @@ msgstr "Backup salvo: %s — está em “Backups de mundos”"
 msgid "Костёр"
 msgstr "Fogueira"
 
+msgid "Кошелёк не найден — адрес скопирован"
+msgstr "Carteira não encontrada — endereço copiado"
+
 msgid "Красиво"
 msgstr "Bonito"
 
@@ -1874,6 +1886,9 @@ msgstr "Neste aparelho o modo leve está ativado: o fundo fica parado para o app
 
 msgid "Наборы искр"
 msgstr "Pacotes de faíscas"
+
+msgid "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana."
+msgstr "Aponte a câmera da carteira (Phantom, Solflare) para o QR ou copie o endereço. Somente rede Solana."
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Apaga para sempre do servidor o nick, amigos, mensagens e backups na nuvem. Os mundos no aparelho ficam."
@@ -2355,6 +2370,9 @@ msgstr "Recusar"
 msgid "Отключить"
 msgstr "Desconectar"
 
+msgid "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -."
+msgstr "O Telegram vai abrir: escolha um valor em estrelas. Seu nome pode aparecer na lista de patrocinadores dos jogos Yompix — ou oculte com /sponsor -."
+
 msgid "Откройте Minecraft"
 msgstr "Abra o Minecraft"
 
@@ -2405,6 +2423,12 @@ msgstr "Abrir “Meu mundo”"
 
 msgid "Открыть в Minecraft"
 msgstr "Abrir no Minecraft"
+
+msgid "Открыть в Telegram"
+msgstr "Abrir no Telegram"
+
+msgid "Открыть в кошельке"
+msgstr "Abrir na carteira"
 
 msgid "Открыть для друзей"
 msgstr "Abrir para amigos"
@@ -2565,6 +2589,9 @@ msgstr "Chama das primeiras luzes"
 msgid "Пламя сезона (премиум)"
 msgstr "Chama da temporada (premium)"
 
+msgid "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают."
+msgstr "O pagamento vai direto para o autor. O LANTERN não vê sua carteira nem guarda dados de pagamento. Nunca compartilhe sua frase-semente ou chaves — ninguém vai pedi-las."
+
 msgid "Плоский"
 msgstr "Superplano"
 
@@ -2585,6 +2612,12 @@ msgstr "Repetir"
 
 msgid "Погода"
 msgstr "Clima"
+
+msgid "Поддержать"
+msgstr "Apoiar"
+
+msgid "Поддержать LANTERN"
+msgstr "Apoiar o LANTERN"
 
 msgid "Поддержка автора LANTERN — Yompix"
 msgstr "Apoie o autor do LANTERN — Yompix"
@@ -3342,6 +3375,9 @@ msgstr "Salvando o mundo e parando o servidor…"
 msgid "Сохраняем…"
 msgstr "Salvando…"
 
+msgid "Спасибо за LANTERN"
+msgstr "Obrigado pelo LANTERN"
+
 msgid "Спасибо за лайк!"
 msgstr "Valeu pelo like!"
 
@@ -3626,6 +3662,9 @@ msgstr "Chat da rede"
 
 msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
 msgstr "Quanto mais difícil, mais fortes os monstros. No “Pacífico” não tem nenhum."
+
+msgid "Через бота Yompix"
+msgstr "Pelo bot da Yompix"
 
 msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
 msgstr "É por ele que os amigos entram por código: ele só passa os dados do jogo entre vocês e não guarda nada. Só mude o endereço se você tiver seu próprio servidor."

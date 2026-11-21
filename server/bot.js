@@ -180,6 +180,11 @@ async function handleMessage(ctx, m) {
   const cmd = /^\/(\w+)(?:@\w+)?(?:\s+(.*))?$/.exec(text);
   if (!cmd) return;
   const name = cmd[1].toLowerCase(), arg = (cmd[2] || '').trim();
+  if (name === 'start' && arg === 'lantern') {
+    // LANTERN (PC app, «Поддержать»): the same Stars sponsor invoices as the games site (game_sponsors, not the Office fund)
+    const mk = await Sp.invoiceMarkup(ctx, from.id);
+    return send(ctx, m.chat.id, '🏮 <b>LANTERN</b> · YOMPIX GAMES\n\nСпасибо, что хочешь поддержать LANTERN! 🖤\nВыбери сумму в звёздах Telegram ⭐ — это просто спасибо автору, в приложении ничего не открывается.\n\n🎬 Твоё имя появится в списке «Спонсоры игр Yompix» на сайте.\n\n✏️ Поменять имя: /sponsor Имя\n🙈 Скрыть себя: /sponsor -', mk);
+  }
   if (name === 'start' && arg === 'games') {
     // from the games site: Stars donation buttons for YOMPIX GAMES
     const mk = await Sp.invoiceMarkup(ctx, from.id);

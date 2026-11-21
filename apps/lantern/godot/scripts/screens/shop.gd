@@ -116,7 +116,7 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 	var v := UI.vbox(8)
 	p.add_child(v)
 	var stage := PanelContainer.new()
-	stage.add_theme_stylebox_override("panel", UI.box(Color(0.02, 0.03, 0.08, 0.45), UI.R_L, 0, Color(1, 1, 1, 0.06), 1))
+	stage.add_theme_stylebox_override("panel", UI.box(Color(0.033, 0.033, 0.033, 0.45), UI.R_L, 0, Color(1, 1, 1, 0.06), 1))
 	stage.add_child(_preview(it))
 	v.add_child(stage)
 	var nl := UI.label(L.t(String(it.name)), 14, UI.TEXT, UI.font_bold)

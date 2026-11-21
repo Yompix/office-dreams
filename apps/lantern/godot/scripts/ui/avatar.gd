@@ -43,7 +43,7 @@ static func of(user: Variant, px := 44, quality := "") -> Avatar:
 
 func _colors() -> Array:
 	if cols.size() >= 2:
-		return cols
+		return [UI.mono(cols[0]), UI.mono(cols[1])]     # 2.0.2: пламя из магазина — оттенком серого
 	var h := float(absi(hash(nick)) % 360) / 360.0
 	# 2.0: монохром бренда — оттенки серого (у каждого ника свой), белая буква читается на любом
 	var v := 0.30 + h * 0.28
@@ -81,9 +81,9 @@ func _draw() -> void:
 		# значок уровня «Фонаря»: маленький светящийся кружок справа внизу
 		var br := maxf(8.0, s * 0.19)
 		var bc := Vector2(size.x / 2 + s / 2 - br * 0.9, size.y / 2 + s / 2 - br * 0.9)
-		var lc := Color(LanternIcon.LEVEL_FLAMES[clampi(level, 1, 9) - 1])
-		draw_circle(bc, br + 3.0, Color(lc, 0.22), true, -1, true)
-		draw_circle(bc, br + 1.5, Color(0.06, 0.07, 0.15), true, -1, true)
+		var lc := UI.TEXT     # 2.0.2: значок уровня — белый бренда на чёрной кромке
+		draw_circle(bc, br + 3.0, Color(lc, 0.18), true, -1, true)
+		draw_circle(bc, br + 1.5, Color(0.02, 0.02, 0.02), true, -1, true)
 		draw_circle(bc, br, lc, true, -1, true)
 		var ls := str(level)
 		var lfs := int(br * 1.25)

@@ -58,9 +58,10 @@ static func busy() -> bool:
 
 ## Дождаться, пока переходы доедут (для того, что ниже края экрана: строим после анимации, а не в её кадрах).
 static func settled(n: Node) -> void:
-	await n.get_tree().process_frame
+	var st := Engine.get_main_loop() as SceneTree
+	await st.process_frame
 	while busy() and is_instance_valid(n) and n.is_inside_tree():
-		await n.get_tree().process_frame
+		await st.process_frame
 
 
 static func _tick() -> void:
@@ -259,7 +260,7 @@ class Embers extends Control:
 			var a := rng.randf_range(-PI, 0) if rng.randf() < 0.8 else rng.randf_range(0, PI)
 			var sp := rng.randf_range(80, 260)
 			parts.append({"p": at, "v": Vector2(cos(a), sin(a)) * sp, "life": rng.randf_range(0.6, 1.2), "age": 0.0,
-				"r": rng.randf_range(1.5, 3.5), "c": [Color("ffd27a"), Color("ff9a3d"), Color("ffb648"), Color("fff0c2")][i % 4]})
+				"r": rng.randf_range(1.5, 3.5), "c": [Color("ffffff"), Color("d6d6d6"), Color("a8a8a8"), Color("f4f4f2")][i % 4]})
 		set_process(true)
 
 	func _process(dt: float) -> void:

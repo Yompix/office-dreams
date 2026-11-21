@@ -94,6 +94,23 @@ static func accent() -> Color:
 	return Cfg.accent()
 
 
+## 2.0.2: монохром бренда. mono(c) — тот же цвет в оттенках серого (та же яркость);
+## mono_mat() — общий материал для узлов, которые рисуют цвет сами (костёр, фонари, аватары с пламенем).
+static func mono(c: Color) -> Color:
+	var l := clampf(c.r * 0.299 + c.g * 0.587 + c.b * 0.114, 0.0, 1.0)
+	return Color(l, l, l, c.a)
+
+
+static var _mono_mat: ShaderMaterial
+
+
+static func mono_mat() -> ShaderMaterial:
+	if _mono_mat == null:
+		_mono_mat = ShaderMaterial.new()
+		_mono_mat.shader = load("res://assets/shaders/mono.gdshader")
+	return _mono_mat
+
+
 static func box(color: Color, radius := 16, pad := 0, border := Color(0, 0, 0, 0), bw := 0) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = color
@@ -246,8 +263,8 @@ static func make_theme() -> Theme:
 	t.set_font("font", "MenuButton", font_bold)
 	# поля ввода
 	for cls in ["LineEdit", "TextEdit", "SpinBox"]:
-		t.set_stylebox("normal", cls, _hpad(box(FIELD, R_BTN, 0, Color(1, 1, 1, 0.13), 1), 16, 10))
-		t.set_stylebox("focus", cls, _hpad(box(FIELD, R_BTN, 0, a, 2), 16, 10))
+		t.set_stylebox("normal", cls, _hpad(box(FIELD, R_BTN, 0, Color(1, 1, 1, 0.3), 2), 16, 10))     # 2.0.2: пиксельная рамка
+		t.set_stylebox("focus", cls, _hpad(pix(FIELD, Color(a, 0.95), 3), 16, 10))
 		t.set_stylebox("read_only", cls, _hpad(box(Color(FIELD, 0.25), R_BTN, 0, LINE, 1), 16, 10))
 		t.set_color("font_color", cls, TEXT)
 		t.set_color("font_placeholder_color", cls, DIM)
@@ -259,17 +276,18 @@ static func make_theme() -> Theme:
 	t.set_font_size("font_size", "TextEdit", 13)
 	t.set_font("normal_font", "RichTextLabel", font_mono)
 	t.set_font_size("normal_font_size", "RichTextLabel", 13)
-	t.set_color("default_color", "RichTextLabel", Color("c9cfdc"))
+	t.set_color("default_color", "RichTextLabel", MUTED)
 	# выпадающий список
-	t.set_stylebox("normal", "OptionButton", _hpad(box(FIELD, R_BTN, 0, Color(1, 1, 1, 0.13), 1), 16, 10))
-	t.set_stylebox("hover", "OptionButton", _hpad(box(Color(FIELD, 0.3), R_BTN, 0, Color(1, 1, 1, 0.2), 1), 16, 10))
-	t.set_stylebox("pressed", "OptionButton", _hpad(box(FIELD, R_BTN, 0, a, 1), 16, 10))
+	t.set_stylebox("normal", "OptionButton", _hpad(pix(FIELD, Color(1, 1, 1, 0.42)), 16, 10))
+	t.set_stylebox("hover", "OptionButton", _hpad(pix(Color(0.13, 0.13, 0.13, 0.95), Color(1, 1, 1, 0.75)), 16, 10))
+	t.set_stylebox("pressed", "OptionButton", _hpad(pix(Color(0.18, 0.18, 0.18, 0.95), Color(a, 0.9), 1), 16, 10))
 	t.set_stylebox("disabled", "OptionButton", _hpad(box(Color(FIELD, 0.2), R_BTN, 0, LINE, 1), 16, 10))
 	t.set_stylebox("focus", "OptionButton", box(Color(0, 0, 0, 0), R_BTN, 0, a, 2))
 	t.set_font("font", "OptionButton", font_regular)
 	t.set_color("font_color", "OptionButton", TEXT)
 	t.set_stylebox("panel", "PopupMenu", pix(Color("101010"), Color(1, 1, 1, 0.6), 4, 8))
-	t.set_stylebox("hover", "PopupMenu", box(Color(a, 0.18), R_S, 0))
+	t.set_stylebox("hover", "PopupMenu", box(Color(1, 1, 1, 0.12), 0, 0, Color(1, 1, 1, 0.6), 1))
+	t.set_stylebox("separator", "PopupMenu", box(Color(1, 1, 1, 0.16), 0))
 	t.set_color("font_color", "PopupMenu", TEXT)
 	t.set_color("font_hover_color", "PopupMenu", Color.WHITE)
 	t.set_font("font", "PopupMenu", font_regular)
@@ -293,8 +311,8 @@ static func make_theme() -> Theme:
 	t.set_icon("checked", "CheckButton", _switch_icon(true, a))
 	t.set_icon("unchecked", "CheckButton", _switch_icon(false, a))
 	# прогресс
-	t.set_stylebox("background", "ProgressBar", box(Color(1, 1, 1, 0.07), 99))
-	t.set_stylebox("fill", "ProgressBar", box(a, 99))
+	t.set_stylebox("background", "ProgressBar", box(Color(1, 1, 1, 0.07), 0, 0, Color(1, 1, 1, 0.3), 1))
+	t.set_stylebox("fill", "ProgressBar", box(a, 0))
 	t.set_font_size("font_size", "ProgressBar", 12)
 	t.set_color("font_color", "ProgressBar", TEXT)
 	# полосы прокрутки — тонкие; на телефоне их не видно совсем (main.gd)
@@ -303,18 +321,32 @@ static func make_theme() -> Theme:
 		sc.set_content_margin_all(2)
 		t.set_stylebox("scroll", cls, sc)
 		t.set_stylebox("scroll_focus", cls, sc)
-		t.set_stylebox("grabber", cls, box(Color(1, 1, 1, 0.12), 4))
-		t.set_stylebox("grabber_highlight", cls, box(Color(1, 1, 1, 0.22), 4))
-		t.set_stylebox("grabber_pressed", cls, box(Color(a, 0.7), 4))
+		t.set_stylebox("grabber", cls, box(Color(1, 1, 1, 0.22), 0))
+		t.set_stylebox("grabber_highlight", cls, box(Color(1, 1, 1, 0.45), 0))
+		t.set_stylebox("grabber_pressed", cls, box(Color(1, 1, 1, 0.7), 0))
 	t.set_stylebox("panel", "TooltipPanel", _hpad(pix(Color("161616"), Color(1, 1, 1, 0.5), 2), 10, 6))
 	t.set_stylebox("panel", "PanelContainer", glass(1, R_XL, 0))
 	t.set_stylebox("slider", "HSlider", box(Color(1, 1, 1, 0.08), 4, 3))
 	t.set_stylebox("grabber_area", "HSlider", box(a, 4, 3))
 	t.set_stylebox("grabber_area_highlight", "HSlider", box(a.lightened(0.1), 4, 3))
-	t.set_icon("grabber", "HSlider", _dot(11, Color.WHITE))
-	t.set_icon("grabber_highlight", "HSlider", _dot(12, Color.WHITE))
-	t.set_stylebox("panel", "Window", box(PANEL, R_L, 18, LINE, 1))
-	t.set_stylebox("embedded_border", "Window", box(PANEL, R_L, 18, LINE, 1))
+	t.set_icon("grabber", "HSlider", _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect x="2" y="2" width="16" height="16" fill="#f4f4f2" stroke="#050505" stroke-width="2"/></svg>', 20, 20))
+	t.set_icon("grabber_highlight", "HSlider", _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="2" y="2" width="18" height="18" fill="#ffffff" stroke="#050505" stroke-width="2"/></svg>', 22, 22))
+	t.set_stylebox("panel", "Window", pix(PANEL, Color(1, 1, 1, 0.6), 4, 18))
+	t.set_stylebox("embedded_border", "Window", pix(PANEL, Color(1, 1, 1, 0.6), 4, 18))
+	# 2.0.2: системные окна Godot (подтверждение, выбор папки) — шрифты и кнопки бренда
+	t.set_font("title_font", "Window", font_caps)
+	t.set_font_size("title_font_size", "Window", 12)
+	t.set_color("title_color", "Window", TEXT)
+	t.set_stylebox("panel", "AcceptDialog", pix(PANEL, Color(1, 1, 1, 0.6), 4, 16))
+	t.set_stylebox("panel", "Tree", box(FIELD, 0, 6, Color(1, 1, 1, 0.3), 2))
+	t.set_stylebox("selected", "Tree", box(Color(1, 1, 1, 0.14), 0))
+	t.set_stylebox("selected_focus", "Tree", box(Color(1, 1, 1, 0.2), 0, 0, Color(1, 1, 1, 0.7), 1))
+	t.set_stylebox("panel", "ItemList", box(FIELD, 0, 6, Color(1, 1, 1, 0.3), 2))
+	t.set_stylebox("selected", "ItemList", box(Color(1, 1, 1, 0.14), 0))
+	t.set_stylebox("selected_focus", "ItemList", box(Color(1, 1, 1, 0.2), 0, 0, Color(1, 1, 1, 0.7), 1))
+	t.set_stylebox("tab_selected", "TabContainer", box(Color(1, 1, 1, 0.12), 0, 8, Color(1, 1, 1, 0.7), 2))
+	t.set_stylebox("tab_unselected", "TabContainer", box(Color(0, 0, 0, 0), 0, 8))
+	t.set_stylebox("panel", "TabContainer", box(PANEL, 0, 12, Color(1, 1, 1, 0.3), 2))
 	t.set_color("font_color", "Label", TEXT)
 	return t
 
@@ -329,16 +361,19 @@ static func _dot(r: int, c: Color) -> ImageTexture:
 
 
 static func _check_icon(on: bool, a: Color) -> Texture2D:
-	var fill := ("#%s" % a.to_html(false)) if on else "none"
-	var stroke := "none" if on else "#59616f"
-	var mark := '<polyline points="6,11.5 9.5,15 16,7.5" fill="none" stroke="#%s" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' % ON_ACCENT.to_html(false) if on else ""
-	return _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="1" y="1" width="20" height="20" rx="6" fill="%s" stroke="%s" stroke-width="2"/>%s</svg>' % [fill, stroke, mark], 22, 22)
+	# 2.0.2: квадратный пиксельный флажок бренда
+	var fill := ("#%s" % a.to_html(false)) if on else "#050505"
+	var stroke := "#%s" % (a.to_html(false) if on else "8e8e8e")
+	var mark := '<polyline points="6,11 9,14 9,14 16,7" fill="none" stroke="#%s" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>' % ON_ACCENT.to_html(false) if on else ""
+	return _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="1" y="1" width="20" height="20" fill="%s" stroke="%s" stroke-width="2"/>%s</svg>' % [fill, stroke, mark], 22, 22)
 
 
 static func _switch_icon(on: bool, a: Color) -> Texture2D:
-	var track := ("#%s" % a.to_html(false)) if on else "#3b3f63"
-	var knob := '<circle cx="36" cy="16" r="12" fill="#fffaf0"/>' if on else '<circle cx="16" cy="16" r="9" fill="#b6b8cc"/>'
-	return _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="52" height="32"><rect x="0" y="0" width="52" height="32" rx="16" fill="%s"/>%s</svg>' % [track, knob], 52, 32)
+	# 2.0.2: пиксельный переключатель бренда — прямоугольная дорожка с рамкой и квадратный «ползунок»
+	var track := ("#%s" % a.to_html(false)) if on else "#050505"
+	var frame := "#%s" % (a.to_html(false) if on else "8e8e8e")
+	var knob := '<rect x="27" y="5" width="21" height="22" fill="#050505"/>' if on else '<rect x="6" y="7" width="17" height="18" fill="#8e8e8e"/>'
+	return _svg_tex('<svg xmlns="http://www.w3.org/2000/svg" width="52" height="32"><rect x="1" y="1" width="50" height="30" fill="%s" stroke="%s" stroke-width="2"/>%s</svg>' % [track, frame, knob], 52, 32)
 
 
 static func _svg_tex(svg: String, w: int, h: int) -> Texture2D:
@@ -841,7 +876,7 @@ static func empty(icon_name: String, text: String, action := "", cb := Callable(
 	cov.set_anchors_preset(Control.PRESET_FULL_RECT)
 	art.add_child(cov)
 	var ring := PanelContainer.new()
-	var rst := box(Color(0.03, 0.04, 0.10, 0.55), 99, 0, Color(accent(), 0.8), 2)
+	var rst := box(Color(0.044, 0.044, 0.044, 0.55), 99, 0, Color(accent(), 0.8), 2)
 	rst.shadow_color = Color(accent(), 0.35)
 	rst.shadow_size = 16
 	ring.add_theme_stylebox_override("panel", rst)
@@ -1210,7 +1245,7 @@ static func avatar_stack(names: Array, total: int, cap: int, full := false) -> H
 		var a := Avatar.make(String(names[i]), 22)
 		a.position = Vector2(i * 14, 0)
 		a.size = Vector2(22, 22)
-		a.rim = Color(0.07, 0.08, 0.16)
+		a.rim = Color(0.086, 0.086, 0.086)
 		st.add_child(a)
 	if n > 0:
 		h.add_child(st)
