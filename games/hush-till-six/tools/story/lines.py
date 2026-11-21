@@ -294,7 +294,7 @@ L = [
  ('n24', 'ИТАН', '', 'Трубку я положил молча.', 'I put the phone down without a word.', T),
  # --- смена S5 (ветка «остаться в будке», 04:20–05:35) и S6 (серверная с Фрэнком, 04:30–05:58) ---
  ('n25', 'ИТАН', '', 'Четыре двадцать. Фрэнк внизу, в круге. А я здесь. До шести почти два часа.', "Four twenty. Frank's downstairs, in the circle. And I'm up here. Almost two hours till six.", T),
- ('n26', 'ГАС', 'radio', '— Итан… Спустись ко мне. Тут так хорошо слышно…', '— Ethan… Come down to me. You can hear so well up here…', 'calm, sweet, creepy'),
+ ('n26', 'ГАС', 'radio', '— Итан… Спустись ко мне. Тут так хорошо слышно…', '— Ethan… Come down to me. You can hear so well down here…', 'calm, sweet, creepy'),
  ('n27', 'ИТАН', '', 'Гаса больше нет. Я видел это на тринадцатой.', "Gus is gone. I saw it on thirteen.", 'quiet, shaken'),
  ('n28', 'ИТАН', '', 'Снизу постучали. Три раза. Как просил Фрэнк. Только просил он об этом меня.', "Someone knocked downstairs. Three times. The way Frank asked. Except he asked me to do it.", 'quiet, tense'),
  ('n29', 'ИТАН', '', 'У входа стояла Лили. Под дождём, без зонта. Лили спала в трёхстах километрах отсюда.', "Lily was standing at the entrance. In the rain, no umbrella. Lily was asleep two hundred miles away.", 'quiet, tense'),
@@ -420,7 +420,7 @@ L = [
  ('sv06', 'ФРЭНК', '', '— Голос — её. До последней интонации, как звала обедать. Только мама умерла в девяносто шестом, сынок. Это не она.',
   '— The voice is hers. Down to the last note, the way she called me to dinner. But my mother died in ninety-six, son. It\'s not her.', 'hoarse, tired, firm'),
  ('sv07', 'ИТАН', '', '— Гас сказал, его тоже зовут. Марта.', '— Gus said he gets called too. Martha.', T),
- ('sv08', 'ФРЭНК', '', '— Знаю. Он тридцать лет ходит на седьмой её слушать. Его оно не трогает — он не отвечает. Просто слушает. Так тоже можно.',
+ ('sv08', 'ФРЭНК', '', '— Знаю. Он три года ходит на седьмой её слушать. Его оно не трогает — он не отвечает. Просто слушает. Так тоже можно.',
   '— I know. Thirty years he\'s been going up to seven to listen to her. It doesn\'t touch him — he never answers. He just listens. That\'s a way to live, too.', 'hoarse, tired'),
  ('sv09', 'ИТАН', '', '— Почему соль?', '— Why salt?', T),
  ('sv10', 'ФРЭНК', '', '— Не знаю, почему. Знаю, что работает. Отец так делал, дед так делал. Пока круг цел — оно только говорит.',

@@ -84,7 +84,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { drone: 5, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 6, p11: 6, p12: 5, h08: 5, dg02: 5, dg04: 6, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 , r01: 6, h01: 6, h10: 6, n08: 6, fb00: 6, fb01: 6, n22: 7, s01: 7};   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { drone: 5, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 6, p11: 6, p12: 5, h08: 5, dg02: 5, dg04: 6, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 , r01: 6, h01: 6, h10: 6, n08: 6, fb00: 6, fb01: 6, n22: 7, s01: 7, ch_katya: 7};   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -2587,12 +2587,31 @@ requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>${tr('Ошибка: ')}${String(e.message || e).slice(0, 120)}</p></div>`; });
 // холодный старт: заставка студии 1.4 с (тап — пропустить) идёт, пока грузится мир; потом — карточка «наушники» с полосой загрузки, если ещё грузится
 let loaded = false, splashDone = false, cardT = 0;
+// 21 ноя: заставка студии — маскот Yompix (лохматый парень с короной). Вариант по игре: MASCOT = 'horror' здесь,
+// 'default' — обычный (для нестрашных игр). Хоррор: появляется под рябь плёнки, глаза проваливаются, улыбка расползается, рывок, надпись
+const MASCOT = 'horror';
+function mascotSVG() {
+  return `<svg class="msc" viewBox="0 0 200 210" aria-hidden="true">
+    <g class="crown"><path d="M78 28 L86 10 L96 24 L104 6 L112 24 L122 10 L128 28 Z" fill="#111" stroke="#eee" stroke-width="3" stroke-linejoin="round"/></g>
+    <path class="hair" d="M44 98 L36 70 L52 76 L50 48 L68 60 L74 34 L90 52 L102 30 L114 52 L130 36 L134 60 L152 50 L150 78 L166 72 L158 100 Z" fill="#0b0b0b" stroke="#eee" stroke-width="3.5" stroke-linejoin="round"/>
+    <path class="face" d="M56 92 Q54 150 100 160 Q146 150 144 92 Q124 104 100 98 Q78 104 56 92 Z" fill="#e9e9e6" stroke="#111" stroke-width="3"/>
+    <g class="eyes n"><ellipse cx="82" cy="120" rx="7" ry="9" fill="#111"/><ellipse cx="118" cy="120" rx="7" ry="9" fill="#111"/><circle cx="84" cy="117" r="2.2" fill="#fff"/><circle cx="120" cy="117" r="2.2" fill="#fff"/></g>
+    <g class="eyes h"><ellipse cx="82" cy="121" rx="10" ry="12" fill="#000"/><ellipse cx="118" cy="121" rx="10" ry="12" fill="#000"/><circle class="pup" cx="82" cy="123" r="2.6" fill="#ff2a35"/><circle class="pup" cx="118" cy="123" r="2.6" fill="#ff2a35"/></g>
+    <path class="mouth n" d="M90 140 Q100 147 110 140" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+    <g class="mouth h"><path d="M70 136 Q100 160 130 136 Q100 150 70 136 Z" fill="#000" stroke="#111" stroke-width="2"/><path d="M78 140 L80 146 M86 143 L87 150 M94 145 L94 152 M102 145 L102 152 M110 144 L109 150 M118 141 L116 147 M124 139 L122 144" stroke="#e9e9e6" stroke-width="2"/></g>
+    <path class="neck" d="M84 158 L82 178 L60 190 L140 190 L118 178 L116 158" fill="#0b0b0b" stroke="#eee" stroke-width="3" stroke-linejoin="round"/>
+    <g class="pad" transform="translate(150 150) rotate(-14)"><rect x="-22" y="-12" width="44" height="24" rx="12" fill="#0b0b0b" stroke="#eee" stroke-width="2.5"/><path d="M-12 -4 V4 M-16 0 H-8" stroke="#eee" stroke-width="2.5"/><circle cx="9" cy="-3" r="2.5" fill="#eee"/><circle cx="14" cy="3" r="2.5" fill="#eee"/></g>
+  </svg>`;
+}
 function studio() {
   if (RESUME) { splashDone = true; return afterSplash(); }   // сменили язык/графику — заставку не показываем
   mode = 'studio';
-  uiEl.innerHTML = `<div class="studio"><div class="stw"><div class="logo"><i></i><b>YOMPIX</b><span>GAMES</span></div></div></div>`;
+  uiEl.innerHTML = `<div class="studio m-${MASCOT}"><canvas class="stpx" width="96" height="54"></canvas><div class="stw">${mascotSVG()}<div class="logo"><b>YOMPIX</b><span>GAMES</span></div></div></div>`;
+  { const c = uiEl.querySelector('.stpx'), x = c.getContext('2d'), L = document.body.classList.contains('land'), CW = L ? 96 : 54, CH = L ? 54 : 96; c.width = CW; c.height = CH;   // фон: серые пиксельные блоки, как на баннере
+    for (let j = 0; j < CH; j += 3) for (let i = 0; i < CW; i += 3) { const v = Math.max(0, 40 + Math.sin(i * .13 + j * .07) * 22 + (Math.random() - .5) * 34) | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(i, j, 3, 3); } }
+  if (MASCOT === 'horror') setTimeout(() => { if (mode === 'studio') { play('static', { gain: .35, cut: .35 }); buzz(40); } }, 1550);
   const go = () => { if (splashDone) return; splashDone = true; uiEl.onclick = null; afterSplash(); };
-  uiEl.onclick = go; setTimeout(go, 1400);
+  uiEl.onclick = go; setTimeout(go, 4000);
 }
 function afterSplash() {
   if (loaded) return RESUME ? resumeAfterReload() : menu();

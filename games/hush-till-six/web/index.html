@@ -656,6 +656,25 @@ body.plock #shOff::after { content: ' [M]'; opacity: .7; }
 body.plock #shDoor::after, body.plock #shBr::after, body.plock #shLobby::after, body.plock #shWalk::after { content: ' [E]'; opacity: .7; }
 body.plock #shL7::after { content: ' [1]'; opacity: .7; } body.plock #shL10::after { content: ' [2]'; opacity: .7; } body.plock #shLm2::after { content: ' [3]'; opacity: .7; }
 body.nofp #shOff, body.nofp #shWalk { display: none !important; }
+/* 21 ноя: заставка с маскотом Yompix (MASCOT в engine.js): фон из пиксельных блоков, маскот, надпись. Хоррор — глаза проваливаются, улыбка, рывок */
+.studio .stpx { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0; filter: contrast(1.2); animation: stPx 4s ease forwards; }
+@keyframes stPx { 0% { opacity: 0; } 20% { opacity: .55; } 85% { opacity: .5; } 100% { opacity: 0; } }
+.studio .stw { position: relative; animation: stIn 4s ease forwards; }
+.studio .msc { width: calc(70 * var(--u)); height: auto; filter: drop-shadow(0 0 calc(3 * var(--u)) rgba(255,255,255,.12)); animation: mscIn 4s steps(1) forwards; }
+body.land .studio .msc { width: calc(62 * var(--u)); }
+.studio .msc .h { opacity: 0; } .studio .crown { transform-origin: 103px 20px; animation: crown 2.4s ease-in-out infinite; }
+@keyframes crown { 50% { transform: translateY(-3px) rotate(-3deg); } }
+@keyframes mscIn { 0% { opacity: 0; } 8% { opacity: 1; } 10% { opacity: .2; } 12% { opacity: 1; } 100% { opacity: 1; } }
+.studio .logo { margin-top: calc(3 * var(--u)); animation: stFlick 4s steps(1) forwards; }
+.studio.m-horror .msc .n { animation: hOff 4s steps(1) forwards; } .studio.m-horror .msc .h { animation: hOn 4s steps(1) forwards; }
+@keyframes hOff { 0%, 38% { opacity: 1; } 39%, 41% { opacity: 0; } 42%, 43% { opacity: 1; } 44%, 100% { opacity: 0; } }
+@keyframes hOn { 0%, 38% { opacity: 0; } 39%, 41% { opacity: 1; } 42%, 43% { opacity: 0; } 44%, 100% { opacity: 1; } }
+.studio.m-horror .msc .pup { filter: drop-shadow(0 0 3px #ff2a35); animation: pup 1.2s ease-in-out infinite; }
+@keyframes pup { 50% { opacity: .45; } }
+.studio.m-horror .msc { animation: mscIn 4s steps(1) forwards, hJerk 4s steps(1) forwards; }
+@keyframes hJerk { 0%, 38% { transform: none; } 39% { transform: translate(calc(-1.6 * var(--u)), calc(.6 * var(--u))) skewX(-6deg); } 40% { transform: translate(calc(1.2 * var(--u)), 0) scale(1.06); } 41% { transform: none; } 70% { transform: none; } 71% { transform: translateX(calc(.8 * var(--u))); } 72%, 100% { transform: none; } }
+.studio.m-horror::after { content: ''; position: absolute; inset: 0; background: #ff1d2c; opacity: 0; mix-blend-mode: multiply; pointer-events: none; animation: hRed 4s steps(1) forwards; }
+@keyframes hRed { 0%, 38% { opacity: 0; } 39% { opacity: .55; } 41% { opacity: 0; } 100% { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -696,16 +715,16 @@ body.nofp #shOff, body.nofp #shWalk { display: none !important; }
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=35"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=36"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=23"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=53"></script>
+<script src="chars2.js?v=54"></script>
 <script src="scenes.js?v=97"></script>
 <script src="story.js?v=40"></script>
-<script src="engine.js?v=105"></script>
+<script src="engine.js?v=106"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

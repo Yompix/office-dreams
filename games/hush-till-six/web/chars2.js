@@ -1285,10 +1285,11 @@ function bonesSnap(C) {
 const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], ethanThing: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
   mihalych: ['Rk_Watching_Loop', 'Rk_Conversation_Loop', 11.7], cleaner: ['Rk_LookAround_Loop', 'Rk_Conversation_Loop', 4.1],
   katya: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], katyaSmile: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], martha: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 2.6] };
+const WALK_RK = new Set(['katya', 'katyaSmile', 'martha']);   // мокап-ходьба только у женщин
 const WALK_K = .74;   // Rk_Walk_Loop: опорная стопа едет назад 1,25 м/с времени клипа (у Walk_Loop — 1,04): на тот же путь время клипа ×0,74 (подобрано по скольжению стопы)
 function natClip(C, nm) {   // → [клип, сдвиг фазы, масштаб времени]
   const n = !C.o.monster && G.anims2 && !window.__NOMOCAP && NAT[C.o.name]; if (!n) return [nm, 0];
-  if (nm === 'Walk_Loop' && CLIP.Rk_Walk_Loop) return ['Rk_Walk_Loop', 0, window.__WALK_K ?? WALK_K];   // шаг идёт от пройденного пути — фазу не сдвигаем
+  if (nm === 'Walk_Loop' && CLIP.Rk_Walk_Loop && WALK_RK.has(C.o.name)) return ['Rk_Walk_Loop', 0, window.__WALK_K ?? WALK_K];   // 21 ноя: мужчинам — свой Walk_Loop (в мокапе стопы на одной линии, «подиумная» походка тазом)   // шаг идёт от пройденного пути — фазу не сдвигаем
   if (nm === 'Idle_Loop' && CLIP[n[0]]) return [n[0], n[2]];
   if (nm === 'Idle_Talking_Loop' && CLIP[n[1]]) return [n[1], n[2]];
   if (nm === 'Sitting_Idle_Loop' && n[3] && CLIP[n[3]]) return [n[3], n[2]];
