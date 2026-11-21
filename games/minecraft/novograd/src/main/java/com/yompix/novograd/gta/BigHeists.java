@@ -343,7 +343,7 @@ public final class BigHeists {
         LifeData d = Life.get(p);
         ServerWorld w = p.getServerWorld();
         if (!atBoard(p)) {
-            p.sendMessage(Text.literal("Финал начинается у доски планирования — в твоём убежище или доме").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Финал — у доски планирования дома").formatted(Formatting.RED), true);
             return;
         }
         if (!ready(d, h)) {

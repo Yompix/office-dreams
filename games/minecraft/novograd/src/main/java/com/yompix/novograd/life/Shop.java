@@ -161,7 +161,7 @@ public final class Shop {
         var it = e.item().get();
         int act = com.yompix.novograd.gta.Economy.act(Life.get(p));
         if (it == com.yompix.novograd.gta.Arsenal.RIFLE && act < 1 || it == com.yompix.novograd.gta.Arsenal.SNIPER && act < 3) {
-            p.sendMessage(Text.literal("Оружейник Боб: «Такой ствол — только проверенным людям. Приходи, когда тебя узнают в городе.»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Боб: «Рано тебе такой ствол.»").formatted(Formatting.GOLD), false);
             return;
         }
         String no = com.yompix.novograd.gta.Armory.locked(it, act);
@@ -171,7 +171,7 @@ public final class Shop {
         }
         // редкие машины — когда тебя узнают в городе: лоурайдер и классика с акта II, суперкар с акта IV
         if ((it == ModContent.CARS[13] || it == ModContent.CARS[14]) && act < 1 || it == ModContent.CARS[12] && act < 3) {
-            p.sendMessage(Text.literal("Автодилер Фрэнк: «Такую машину держу для особых клиентов. Сделай себе имя в городе — и приходи.»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Фрэнк: «Пока не продам. Сделай себе имя.»").formatted(Formatting.GOLD), false);
             return;
         }
         int cost = price(e, delivery, CityLife.event(p.getServerWorld()));

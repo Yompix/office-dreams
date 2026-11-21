@@ -26,7 +26,7 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
  * поверх — объёмные причёски, бороды, моргание и губы из {@link HairFeature}, предмет в руке.
  */
 public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
-    private static final Identifier[] SKINS = new Identifier[CitizenEntity.SKINS.length];
+    public static final Identifier[] SKINS = new Identifier[CitizenEntity.SKINS.length];
     private static final Identifier WIDE = Novograd.id("geo/citizen.geo.json"), SLIM = Novograd.id("geo/citizen_slim.geo.json");
     private static final Identifier ANIM = Novograd.id("animations/citizen.animation.json");
 
@@ -140,6 +140,14 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         return super.getPackedOverlay(e, u, partialTick);
     }
 
+    /** 1.0: дальних жителей не рисуем вовсе (граница — от «Производительности»), актёров кат-сцены — всегда. */
+    @Override
+    public boolean shouldRender(CitizenEntity e, net.minecraft.client.render.Frustum frustum, double x, double y, double z) {
+        float lim = com.yompix.novograd.client.NovogradConfig.citizenDist();
+        if (e.squaredDistanceTo(x, y, z) > lim * lim && !com.yompix.novograd.client.story.CutsceneScreen.ACTORS.containsValue(e.getId())) return false;
+        return super.shouldRender(e, frustum, x, y, z);
+    }
+
     static class Model extends GeoModel<CitizenEntity> {
         @Override
         public Identifier getModelResource(CitizenEntity e) {
@@ -172,6 +180,13 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                 head.setRotX(data.headPitch() * MathHelper.RADIANS_PER_DEGREE);
                 head.setRotY(data.netHeadYaw() * MathHelper.RADIANS_PER_DEGREE);
                 head.setRotZ(0);
+                // 1.0: в кат-сцене — живой взгляд (на говорящего / на собеседника), мягко, с кивками на ударных слогах
+                float[] look = com.yompix.novograd.client.story.CutsceneScreen.look(e);
+                if (look != null) {
+                    head.setRotX(look[1] * MathHelper.RADIANS_PER_DEGREE);
+                    head.setRotY(look[0] * MathHelper.RADIANS_PER_DEGREE);
+                    head.setRotZ(look[2] * MathHelper.RADIANS_PER_DEGREE);
+                }
             }
         }
     }

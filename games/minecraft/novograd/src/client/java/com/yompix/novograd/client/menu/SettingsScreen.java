@@ -71,47 +71,57 @@ public class SettingsScreen extends Screen {
         var o = mc.options;
         switch (tab) {
             case 0 -> {
-                rows.add(new Row("Громкость радио", "Радио в машине, в наушниках (телефон → «Радио») и в главном меню.", () -> pct(cfg().radioVolume),
+                rows.add(new Row("Громкость радио", "Машина, наушники, меню.", () -> pct(cfg().radioVolume),
                         () -> cfg().radioVolume, v -> cfg().radioVolume = v, null, null));
-                rows.add(new Row("Голоса героев", "Озвучка разговоров и кат-сцен.", () -> pct(cfg().voiceVolume),
+                rows.add(new Row("Голоса героев", "Озвучка героев.", () -> pct(cfg().voiceVolume),
                         () -> cfg().voiceVolume, v -> cfg().voiceVolume = v, null, null));
-                rows.add(new Row("Общая громкость", "Громкость всей игры (настройка Minecraft).", () -> pct(o.getSoundVolumeOption(SoundCategory.MASTER).getValue()),
+                rows.add(new Row("Общая громкость", "Вся игра.", () -> pct(o.getSoundVolumeOption(SoundCategory.MASTER).getValue()),
                         () -> o.getSoundVolumeOption(SoundCategory.MASTER).getValue().floatValue(), v -> o.getSoundVolumeOption(SoundCategory.MASTER).setValue((double) v), null, null));
                 // музыки Minecraft в Новограде нет (вместо неё радио) — вместо её ползунка выбор станции
-                rows.add(new Row("Радиостанция", "Что играет в машине и в наушниках. Колесо мыши в машине тоже листает станции.", () -> {
+                rows.add(new Row("Радиостанция", "В машине — колесо мыши.", () -> {
                             int s = cfg().radioStation;
                             return s < 0 || s >= com.yompix.novograd.client.CarRadio.STATIONS.length ? "ВЫКЛ" : com.yompix.novograd.client.CarRadio.STATIONS[s][0];
                         }, null, null, d -> {
                             int n = com.yompix.novograd.client.CarRadio.STATIONS.length;
                             cfg().radioStation = Math.floorMod(cfg().radioStation + 1 + d, n + 1) - 1; // -1 = выкл
                         }, null));
-                rows.add(new Row("Все звуки Minecraft", "Погода, существа, блоки и остальное.", () -> "›", null, null, null,
+                rows.add(new Row("Все звуки Minecraft", "", () -> "›", null, null, null,
                         () -> mc.setScreen(new SoundOptionsScreen(this, o))));
             }
             case 1 -> {
                 String[] pf = {"НИЗКАЯ", "СРЕДНЯЯ", "ВЫСОКАЯ"};
-                rows.add(new Row("Производительность", "Детализация того, что далеко: машины вдали проще, дальние жители думают реже. «Низкая» — для слабых ноутбуков.",
-                        () -> pf[MathHelper.clamp(cfg().perf, 0, 2)], null, null, d -> cfg().perf = Math.floorMod(cfg().perf + d, 3), null));
+                rows.add(new Row("Производительность", "АВТО — по видеокарте и памяти.",
+                        () -> (cfg().perfAuto ? "АВТО · " : "") + pf[MathHelper.clamp(cfg().perf, 0, 2)], null, null, d -> {
+                            // АВТО → НИЗКАЯ → СРЕДНЯЯ → ВЫСОКАЯ → АВТО
+                            int cur = cfg().perfAuto ? -1 : cfg().perf, nx = Math.floorMod(cur + 1 + d, 4) - 1;
+                            cfg().perfAuto = nx < 0;
+                            cfg().perf = nx < 0 ? NovogradConfig.autoLevel() : nx;
+                            NovogradConfig.vanilla(MinecraftClient.getInstance(), cfg().perf);
+                        }, null));
                 String[] g = {"ВЫКЛ", "ЛЁГКИЙ", "КРАСИВЫЙ"};
-                rows.add(new Row("Фильтр города", "Цвет и свет кадра. «Лёгкий» — для слабых ноутбуков. Клавиша K в игре.", () -> g[MathHelper.clamp(cfg().graphics, 0, 2)],
+                rows.add(new Row("Фильтр города", "Цвет кадра. Клавиша K.", () -> g[MathHelper.clamp(cfg().graphics, 0, 2)],
                         null, null, d -> cfg().graphics = Math.floorMod(cfg().graphics + d, 3), null));
-                rows.add(new Row("Деревья на ветру", "Листва и трава колышутся.", () -> onOff(cfg().windyFoliage), null, null,
+                rows.add(new Row("Деревья на ветру", "", () -> onOff(cfg().windyFoliage), null, null,
                         d -> cfg().windyFoliage = !cfg().windyFoliage, null));
-                rows.add(new Row("Красивая вода", "Блики, волны и цвет воды.", () -> onOff(cfg().prettyWater), null, null,
+                rows.add(new Row("Красивая вода", "", () -> onOff(cfg().prettyWater), null, null,
                         d -> cfg().prettyWater = !cfg().prettyWater, null));
-                rows.add(new Row("Дальность прорисовки", "Сколько чанков видно. Меньше — быстрее.", () -> o.getViewDistance().getValue() + " чанков",
+                rows.add(new Row("Дальность прорисовки", "Меньше — быстрее.", () -> o.getViewDistance().getValue() + " чанков",
                         null, null, d -> o.getViewDistance().setValue(MathHelper.clamp(o.getViewDistance().getValue() + d * 2, 2, 32)), null));
-                rows.add(new Row("Графика Minecraft", "Все настройки видео: разрешение, сглаживание, частицы…", () -> "›", null, null, null,
+                rows.add(new Row("Графика Minecraft", "", () -> "›", null, null, null,
                         () -> mc.setScreen(new VideoOptionsScreen(this, mc, o))));
             }
             default -> {
-                rows.add(new Row("Субтитры", "Текст реплик в разговорах и кат-сценах.", () -> onOff(cfg().subtitles), null, null,
+                rows.add(new Row("Субтитры", "", () -> onOff(cfg().subtitles), null, null,
                         d -> cfg().subtitles = !cfg().subtitles, null));
-                rows.add(new Row("Размер HUD", "Деньги, звёзды розыска, цель задания на экране.", () -> pct(cfg().hudScale),
+                rows.add(new Row("Размер субтитров", "", () -> pct(cfg().subtitleScale),
+                        () -> (cfg().subtitleScale - 0.6f) / 0.8f, v -> cfg().subtitleScale = Math.round((0.6f + v * 0.8f) * 20) / 20f, null, null));
+                rows.add(new Row("Подсказки", "Каждая — один раз.", () -> onOff(cfg().hints), null, null,
+                        d -> cfg().hints = !cfg().hints, null));
+                rows.add(new Row("Размер HUD", "", () -> pct(cfg().hudScale),
                         () -> (cfg().hudScale - 0.75f) / 0.75f, v -> cfg().hudScale = Math.round((0.75f + v * 0.75f) * 20) / 20f, null, null));
-                rows.add(new Row("Управление", "Клавиши Minecraft и Новограда.", () -> "›", null, null, null,
+                rows.add(new Row("Управление", "", () -> "›", null, null, null,
                         () -> mc.setScreen(new ControlsOptionsScreen(this, o))));
-                rows.add(new Row("Все настройки Minecraft", "Язык, чат, доступность, пакеты ресурсов.", () -> "›", null, null, null,
+                rows.add(new Row("Все настройки Minecraft", "", () -> "›", null, null, null,
                         () -> mc.setScreen(new OptionsScreen(this, o))));
             }
         }

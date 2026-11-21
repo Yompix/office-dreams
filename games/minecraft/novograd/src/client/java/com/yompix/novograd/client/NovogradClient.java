@@ -64,6 +64,8 @@ public class NovogradClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
+    /** 1.0: показать цель ещё раз (цель видна несколько секунд и прячется, как в GTA). */
+    public static KeyBinding objectiveKey;
     private static KeyBinding phoneKey, hornKey, mapKey, radioKey, radioDownKey, radioUpKey, jobKey, cinemaKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey, nitroKey;
     public static int wantedStars;
     public static boolean wantedSeen;
@@ -104,6 +106,7 @@ public class NovogradClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STARTED.register(c -> NovogradConfig.applyPacks());
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.novograd"));
         lightsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.lights", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_L, "category.novograd"));
+        objectiveKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.objective", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "category.novograd"));
         leftKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.left", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.novograd"));
         rightKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.right", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "category.novograd"));
         nitroKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.nitro", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.novograd"));
@@ -168,6 +171,10 @@ public class NovogradClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((ctx, t) -> { if (!CinemaCam.active()) Minimap.render(ctx); });
         HudRenderCallback.EVENT.register((ctx, t) -> CinemaCam.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.story.StoryHud.render(ctx));
+        HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.ui.Quiet.render(ctx));
+        com.yompix.novograd.client.ui.ChatStyle.init(); // 1.0: читаемый чат, мод не спамит
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STARTED.register(com.yompix.novograd.client.ui.ChatStyle::applyOnce);
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STARTED.register(NovogradConfig::startup); // 1.0: «АВТО» по железу // 1.0: подсказки и уведомления — коротко
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.novograd.client.story.StoryHud::renderWorld);
         ArsenalClient.init(); // колесо оружия (TAB), перезарядка (R пешком), прицел, гранаты
         GunFx.init(); // оружие от первого лица: отдача, перезарядка, вспышка; поза «целится»
@@ -184,6 +191,8 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.client.story.CallClient.init(); // звонки героев: карточка, Y/N, субтитры разговора
         PerfAutotest.init(); // -Dnovograd.autotest=perf: замер MSPT/кадров в людном центре
         CineAutotest.init(); // -Dnovograd.autotest=cine:гл:мис:шаг (запись кат-сцены), camaudit (пути камеры всех сцен)
+        FpsHunt.init(); // 1.0: -Dnovograd.autotest=fpshunt — где падает FPS (сценарии, рывки, GC)
+        UiAudit.init(); // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
         UiInvAutotest.init(); // -Dnovograd.autotest=uiinv: инвентарь «как в GTA», сундук, экран смерти
         DevAutotest.init();
         LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
@@ -220,6 +229,8 @@ public class NovogradClient implements ClientModInitializer {
             case "news_feed" -> com.yompix.novograd.client.screen.NewsScreen.feed = n;
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
+            case "cut_gest" -> com.yompix.novograd.client.story.CutsceneScreen.gesture(client, n); // 1.0: слой-жест актёра
+            case "cut_prep" -> com.yompix.novograd.client.story.CutsceneScreen.prep(client, n); // 1.0: прогрев озвучки и скинов до сцены
             case "cut_music" -> com.yompix.novograd.client.story.CutsceneMusic.handle(n); // музыка кат-сцены (story/DirectorCues)
             case "cutscene" -> show(client, new com.yompix.novograd.client.story.CutsceneScreen(n));
             case "credits" -> show(client, new com.yompix.novograd.client.story.CreditsScreen());

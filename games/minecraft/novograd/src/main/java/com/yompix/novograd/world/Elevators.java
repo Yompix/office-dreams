@@ -220,7 +220,7 @@ public final class Elevators {
             double above = p.getY() - (pad + 1);
             if (now - HINT.getOrDefault(id, -999L) > 2) { // подсказка — когда зашёл в кабину
                 HINT.put(id, now);
-                p.sendMessage(Text.literal("Лифт: прыжок — вверх · Shift — вниз · ПКМ по панели — выбор этажа").formatted(Formatting.YELLOW), true);
+                p.sendMessage(Text.literal("Лифт: прыжок ↑ · Shift ↓ · ПКМ — этаж").formatted(Formatting.YELLOW), true);
             }
             int dir = 0;
             if (above > 0.45) dir = 1;

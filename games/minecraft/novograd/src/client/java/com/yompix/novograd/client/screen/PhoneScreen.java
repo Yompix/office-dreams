@@ -384,6 +384,8 @@ public class PhoneScreen extends LifeScreen {
             String from = parts[0], text = parts.length > 1 ? parts[1] : "", day = parts.length > 2 ? "день " + parts[2] : "";
             int th = textRenderer.wrapLines(Text.literal(text), sw - 22).size() * 10;
             roundRect(ctx, sx + 6, yy, sw - 12, th + 16, 0xFF1A1A19);
+            int fromW = sw - 26 - textRenderer.getWidth(day); // длинное имя отправителя не наезжает на «день N»
+            if (textRenderer.getWidth(from) > fromW) from = textRenderer.trimToWidth(from, fromW - textRenderer.getWidth("…")) + "…";
             ctx.drawText(textRenderer, from, sx + 10, yy + 3, 0xFF62E57E, false);
             ctx.drawText(textRenderer, day, sx + sw - 10 - textRenderer.getWidth(day), yy + 3, 0xFF8A8985, false);
             wrap(ctx, text, sx + 10, yy + 13, sw - 22, 0xFFE7E5DE);
@@ -621,8 +623,7 @@ public class PhoneScreen extends LifeScreen {
 
     private void homes(DrawContext ctx, int y) {
         LifeData d = NovogradClient.data;
-        wrap(ctx, "Купи свой дом — после сна будешь просыпаться там.", sx + 8, y, sw - 16, 0xFFB9B7B1);
-        int yy = y + 24;
+        int yy = y + Math.max(24, wrap(ctx, "Купи свой дом — после сна будешь просыпаться там.", sx + 8, y, sw - 16, 0xFFB9B7B1) + 4);
         if (d.flags.contains("own_home")) {
             roundRect(ctx, sx + 6, yy, sw - 12, 18, 0xFF143A20);
             ctx.drawText(textRenderer, "Свой дом — твой", sx + 10, yy + 5, 0xFF62E57E, false);

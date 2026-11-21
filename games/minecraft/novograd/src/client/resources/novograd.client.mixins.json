@@ -29,7 +29,10 @@
     "DriveFogMixin",
     "SeasonColorsMixin",
     "SeasonSnowMixin",
-    "SeasonFoliageMixin"
+    "SeasonFoliageMixin",
+    "OverlayMessageMixin",
+    "ParticleBudgetMixin",
+    "AutoGuiScaleMixin"
   ],
   "injectors": {
     "defaultRequire": 0

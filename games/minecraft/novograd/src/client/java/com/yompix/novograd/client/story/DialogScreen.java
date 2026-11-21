@@ -74,9 +74,26 @@ public class DialogScreen extends LifeScreen {
         return (int) MathHelper.clamp((System.currentTimeMillis() - lineAt) / 32, 0, l.text().length());
     }
 
+    private static final boolean V10 = com.yompix.novograd.story.Stage.ON;
+    private java.util.List<java.util.List<String>> chunks = java.util.List.of();
+    private int chunksFor = -1, chunkI;
+
+    private double lineTime() {
+        return lineAt <= 0 ? 1e9 : (System.currentTimeMillis() - lineAt) / 1000.0;
+    }
+
     private void next() {
         if (finished) return;
         if (choosing) return;
+        if (V10 && chunksFor == index && chunkI < chunks.size() - 1) { // длинная реплика: следующий кусок
+            Line l0 = index < lines.size() ? lines.get(index) : null;
+            double len = l0 == null || l0.voice() == null || l0.voice().isEmpty() ? 0 : Voice.length(l0.voice());
+            int shownNow = len > 0 ? Math.max(chunkI, com.yompix.novograd.client.ui.Quiet.chunkAt(chunks, lineTime() / len)) : chunkI;
+            if (shownNow < chunks.size() - 1) {
+                chunkI = shownNow + 1;
+                return;
+            }
+        }
         if (index < lines.size()) {
             Line l = lines.get(index);
             if (shownChars(l) < l.text().length()) {
@@ -196,11 +213,28 @@ public class DialogScreen extends LifeScreen {
         boolean call = ent == null && !l.who().equals("narrator");
         String name = ((call ? "☎ " : "") + l.name()).toUpperCase();
         boolean subs = com.yompix.novograd.client.NovogradConfig.get().subtitles || l.voice() == null || l.voice().isEmpty();
+        boolean narrator = l.who().equals("narrator");
+        if (V10) {
+            // 1.0: как в GTA — имя цветом в начале, не больше двух строк, длинная реплика — по кускам (клик листает)
+            String prefix = narrator ? "" : name + ": ";
+            if (chunksFor != index) {
+                chunks = com.yompix.novograd.client.ui.Quiet.chunks(textRenderer, prefix, subs ? l.text() : "…", Math.min(width - 120, 340));
+                chunksFor = index;
+                chunkI = 0;
+            }
+            double len = l.voice() == null || l.voice().isEmpty() ? 0 : Voice.length(l.voice());
+            int ci = len > 0 ? Math.max(chunkI, com.yompix.novograd.client.ui.Quiet.chunkAt(chunks, lineTime() / len)) : chunkI;
+            ci = Math.min(ci, chunks.size() - 1);
+            com.yompix.novograd.client.ui.Quiet.subtitle(ctx, textRenderer, chunks.get(ci), ci == 0 ? prefix : "", col, narrator ? 0xFFFFE9A8 : 0xFFF6F4EC,
+                    width / 2, height - bar - 8, 1);
+            if (ci == chunks.size() - 1 && shownChars(l) >= l.text().length() && (System.currentTimeMillis() / 400) % 2 == 0)
+                ctx.drawText(textRenderer, "▼", width / 2 - 3, height - bar + 3, Ui.PINK, false);
+            return;
+        }
         String shown = subs ? l.text().substring(0, shownChars(l)) : "";
         var wrapped = textRenderer.wrapLines(Text.literal(subs ? l.text() : ""), maxW);
         int n = Math.min(4, wrapped.size());
         int ty = height - bar - 10 - n * 11;
-        boolean narrator = l.who().equals("narrator");
         if (!narrator) {
             int nw = textRenderer.getWidth(name);
             Ui.big(ctx, textRenderer, name, width / 2f, ty - 13, 1f, col, 1);

@@ -49,7 +49,7 @@ public final class DevAutotest {
         if (mode.startsWith("calls")) return; // звонки героев — CallsAutotest (CallClient.init)
         if (mode.startsWith("cops")) return; // погоня, маски, колония, «Полицейские и воры» — client/cops/CopsAutotest
         if (mode.startsWith("heist")) return; // тёмные дела — HeistAutotest
-        if (mode.startsWith("perf") || mode.startsWith("cine") || mode.equals("camaudit") || mode.equals("uiinv")) return; // замер и запись — PerfAutotest / CineAutotest
+        if (mode.startsWith("perf") || mode.startsWith("cine") || mode.equals("camaudit") || mode.startsWith("loadaudit") || mode.startsWith("shotexport") || mode.startsWith("fpshunt") || mode.startsWith("uishots") || mode.equals("uiinv") || mode.equals("uiaudit")) return; // замер и запись — PerfAutotest / CineAutotest
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
             YompixSplash.markShown();

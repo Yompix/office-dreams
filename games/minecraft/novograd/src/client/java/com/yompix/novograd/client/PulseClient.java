@@ -190,6 +190,10 @@ public final class PulseClient {
             hint = "Фото-точка «" + e.getString("name") + "»: G → «Камера» · " + arrow;
         }
         if (hint == null) return;
+        if (com.yompix.novograd.story.Stage.ON) { // 1.0: подсказка — в рамке слева сверху
+            com.yompix.novograd.client.ui.Quiet.context(hint);
+            return;
+        }
         var tr = mc.textRenderer;
         int W = ctx.getScaledWindowWidth(), H = ctx.getScaledWindowHeight();
         int w = tr.getWidth(hint) + 12, y = H - 78;

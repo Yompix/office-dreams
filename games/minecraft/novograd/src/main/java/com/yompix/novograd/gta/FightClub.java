@@ -120,7 +120,7 @@ public final class FightClub {
                 GATE.put(p.getUuid(), now + 60);
                 LifeData d = Life.get(p);
                 if (Economy.act(d) < 1) {
-                    p.sendMessage(Text.literal("Охранник: «Тебя здесь не знают. Приходи, когда о тебе заговорит улица» (с II акта)").formatted(Formatting.GRAY), true);
+                    p.sendMessage(Text.literal("Охранник: «Тебя здесь не знают» (с II акта)").formatted(Formatting.GRAY), true);
                     return;
                 }
                 if (Wanted.stars(p) > 0) {
@@ -433,7 +433,7 @@ public final class FightClub {
         Bout b = bout;
         if (!inside(p)) return;
         if (b.phase != Phase.BETS || b.player != null) {
-            p.sendMessage(Text.literal("Ставки сейчас не принимаются — дождись объявления следующего боя").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Ставки закрыты — жди следующего боя").formatted(Formatting.YELLOW), true);
             return;
         }
         if (side != 1 && side != 2 || amount < 50 || amount > 20000) return;

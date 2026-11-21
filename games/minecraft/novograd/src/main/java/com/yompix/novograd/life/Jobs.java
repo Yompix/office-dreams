@@ -113,7 +113,7 @@ public final class Jobs {
     public static void pizzaOrder(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
         if (job(p) != Job.PIZZA) {
-            p.sendMessage(Text.literal("Дядя Марко: «Хочешь развозить пиццу? Выбери работу «Курьер пиццы» в телефоне»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Марко: «Пицца — телефон → «Работа»»").formatted(Formatting.GOLD), false);
             return;
         }
         if (d.taskKind.equals("pizza") && d.taskPos != null) {
@@ -282,7 +282,7 @@ public final class Jobs {
 
     public static void computer(ServerPlayerEntity p) {
         if (job(p) != Job.PROGRAMMER) {
-            p.sendMessage(Text.literal("Компьютер. Работать здесь могут только программисты — устройся в приложении «Работа».").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("Только для программистов (телефон → «Работа»)").formatted(Formatting.GRAY), true);
             return;
         }
         if (!cooldownOk(p)) return;

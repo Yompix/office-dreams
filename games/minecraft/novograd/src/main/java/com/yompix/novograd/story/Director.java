@@ -37,6 +37,8 @@ import java.util.*;
  *   shoot  id цель выстрелов [урон]     — очередь по цели (герой/массовка/место)
  *   die    id                           — упасть замертво;  fight a b тиков — драка;  despawn id
  *   boom   place                        — взрыв (без разрушений);  smoke place — дым
+ *   gest   id g_жест [сек] [на кого]     — 1.0: слой-жест поверх тела (g_handshake, g_phone, g_point, g_push, g_punch,
+ *                                          g_laugh, g_wave, g_fidget, g_walktalk);  look id кто — взгляд (none — снять)
  * Место: имя точки, «@x,z», можно со сдвигом «gang_yard+3,-2».
  * Всё остальное уходит в обычные действия шага (time, wanted, msg, …).
  */
@@ -76,6 +78,8 @@ public final class Director {
     private static final Map<UUID, Scene> SCENES = new HashMap<>();
     /** Старт сцены по готовности клиента (0.6.5). -Dnovograd.cutsync=false — как в 0.6.4 (для сравнения в автотестах). */
     static final boolean SYNC = !"false".equals(System.getProperty("novograd.cutsync"));
+    /** На сколько «зритель» может отстать от камеры, прежде чем его перенесут (1.0: реже — без лишней перезагрузки участков). */
+    static final double VIEWER_GAP = Stage.ON ? 48 : 24;
 
     /** Собрать кадры и таймлайн; вернуть кадры для клиента. */
     static void start(ServerPlayerEntity p, JsonObject step, net.minecraft.nbt.NbtList clientShots) {
@@ -87,6 +91,11 @@ public final class Director {
             Shot s = new Shot();
             s.from = j.has("from") ? camera(w, j.get("from").getAsString()) : null;
             s.to = j.has("to") ? camera(w, j.get("to").getAsString()) : s.from;
+            if (j.has("keys")) { // план из постановщика (tools/shot_planner.py): ключи камеры [t, x, y, z, yaw, pitch, fov, roll]
+                JsonArray ks = j.getAsJsonArray("keys");
+                s.from = key(ks.get(0).getAsJsonArray());
+                s.to = key(ks.get(ks.size() - 1).getAsJsonArray());
+            }
             s.ticks = Math.round(j.get("sec").getAsFloat() * 20);
             s.track = Story.str(j, "track", "");
             s.follow = Story.str(j, "follow", "");
@@ -124,6 +133,11 @@ public final class Director {
             }
         // нулевая секунда — до первого кадра
         run(p, sc, 0);
+        Stage.started(p); // заготовка сцены больше не нужна (лишнюю массовку — убрать)
+    }
+
+    static double[] key(JsonArray k) {
+        return new double[]{k.get(1).getAsDouble(), k.get(2).getAsDouble(), k.get(3).getAsDouble(), k.get(4).getAsDouble(), k.get(5).getAsDouble()};
     }
 
     /** Точка камеры: [x, y, z, yaw, pitch]. */
@@ -188,7 +202,7 @@ public final class Director {
     }
 
     /** Движение (идти, ехать, стрелять, драться, взрыв) не начинаем, пока клиент грузит сцену — иначе актёры «убегают». */
-    private static final Set<String> MOTION = Set.of("walk", "run", "drive", "shoot", "fight", "boom", "die", "ride", "exit");
+    private static final Set<String> MOTION = Set.of("walk", "run", "drive", "shoot", "fight", "boom", "die", "ride", "exit", "gest");
 
     /**
      * Реплика в кат-сцене: говорящий жестикулирует, остальные герои поворачиваются к нему и замолкают
@@ -272,7 +286,7 @@ public final class Director {
                 Entity e = u == null ? null : w.getEntity(u);
                 if (e != null && e.squaredDistanceTo(at) > 48 * 48) at = at.add(e.getPos()).multiply(0.5);
             }
-            if (at != null && w.getTime() % 10 == 0 && p.squaredDistanceTo(at) > 24 * 24) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
+            if (at != null && w.getTime() % 10 == 0 && p.squaredDistanceTo(at) > VIEWER_GAP * VIEWER_GAP) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
             return;
         }
         sc.t++;
@@ -300,7 +314,7 @@ public final class Director {
             // заранее (за 1.5 с) переносим «зрителя» к следующему кадру, чтобы местность успела загрузиться
             Vec3d at = camAt(w, sc, 30);
             if (at == null) at = camAt(w, sc, 0);
-            if (at != null && p.squaredDistanceTo(at) > 24 * 24) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
+            if (at != null && p.squaredDistanceTo(at) > VIEWER_GAP * VIEWER_GAP) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
         }
         int total = 0;
         for (Shot s : sc.shots) total += s.ticks;
@@ -393,11 +407,55 @@ public final class Director {
         }
     }
 
+    /** Пакет всем, кто смотрит эту сцену (постановщику и зрителям-напарникам). */
+    private static void toScene(ServerPlayerEntity p, String type, NbtCompound n) {
+        Scene mine = SCENES.get(p.getUuid());
+        LifeNet.send(p, type, n);
+        if (mine == null) return;
+        for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {
+            if (en.getKey().equals(p.getUuid()) || en.getValue().actors != mine.actors) continue;
+            ServerPlayerEntity q = p.getServer().getPlayerManager().getPlayer(en.getKey());
+            if (q != null) LifeNet.send(q, type, n.copy());
+        }
+    }
+
     private static void announceTo(ServerPlayerEntity p, String name, Entity e) {
         NbtCompound n = new NbtCompound();
         n.putString("name", name);
         n.putInt("id", e.getId());
         LifeNet.send(p, "cut_actor", n);
+    }
+
+    /** Массовка сцены по описанию (gang / police / citizen / имя скина). */
+    static CitizenEntity extra(ServerWorld w, String look, @Nullable String name) {
+        CitizenEntity.Role role = switch (look) {
+            case "gang" -> CitizenEntity.Role.GANG;
+            case "police" -> CitizenEntity.Role.POLICE;
+            default -> CitizenEntity.Role.CITIZEN;
+        };
+        int skin = switch (look) {
+            case "gang" -> CitizenEntity.RANDOM_FROM + 39 - w.getRandom().nextInt(4) * 2;
+            case "police" -> CitizenEntity.skinIndex("police");
+            case "citizen" -> CitizenEntity.randomSkin(w.getRandom());
+            default -> CitizenEntity.skinIndex(look);
+        };
+        CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
+        c.setup(skin, role, true, name != null ? name : role == CitizenEntity.Role.POLICE ? "Полицейский" : role == CitizenEntity.Role.GANG ? "Бандит" : "Прохожий");
+        c.setCustomNameVisible(false);
+        return c;
+    }
+
+    /** Для Stage: массовка нулевой секунды по реплике таймлайна [0, "spawn", id, place, look, name]. */
+    @Nullable
+    static CitizenEntity makeExtra(ServerWorld w, JsonArray cue, Vec3d at) {
+        String place = cue.get(3).getAsString();
+        CitizenEntity c = extra(w, cue.size() > 4 ? cue.get(4).getAsString() : "citizen", cue.size() > 5 ? cue.get(5).getAsString() : null);
+        c.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, Story.placeYaw(w, base(place)), 0);
+        return c;
+    }
+
+    static boolean isCharacterId(String id) {
+        return isCharacter(id);
     }
 
     private static boolean isCharacter(String id) {
@@ -420,24 +478,14 @@ public final class Director {
                     c.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, c.getYaw(), 0);
                     c.setStationary(true);
                 } else {
-                    String look = a.size() > 3 ? a.get(3).getAsString() : "citizen";
-                    CitizenEntity.Role role = switch (look) {
-                        case "gang" -> CitizenEntity.Role.GANG;
-                        case "police" -> CitizenEntity.Role.POLICE;
-                        default -> CitizenEntity.Role.CITIZEN;
-                    };
-                    int skin = switch (look) {
-                        case "gang" -> CitizenEntity.RANDOM_FROM + 39 - w.getRandom().nextInt(4) * 2;
-                        case "police" -> CitizenEntity.skinIndex("police");
-                        case "citizen" -> CitizenEntity.randomSkin(w.getRandom());
-                        default -> CitizenEntity.skinIndex(look);
-                    };
-                    c = new CitizenEntity(ModContent.CITIZEN, w);
-                    c.setup(skin, role, true, a.size() > 4 ? a.get(4).getAsString() : role == CitizenEntity.Role.POLICE ? "Полицейский" : role == CitizenEntity.Role.GANG ? "Бандит" : "Прохожий");
-                    c.setCustomNameVisible(false);
-                    c.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, Story.placeYaw(w, base(place)), 0);
-                    w.spawnEntity(c);
-                    c.setStationary(true);
+                    // 1.0: массовку могли поставить заранее (Stage, пока игрок подходил) — принимаем её, а не создаём
+                    c = Stage.take(p, sc.step, id);
+                    if (c == null) {
+                        c = extra(w, a.size() > 3 ? a.get(3).getAsString() : "citizen", a.size() > 4 ? a.get(4).getAsString() : null);
+                        c.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, Story.placeYaw(w, base(place)), 0);
+                        w.spawnEntity(c);
+                        c.setStationary(true);
+                    }
                     sc.extras.add(c.getUuid());
                 }
                 sc.actors.put(id, c.getUuid());
@@ -455,6 +503,33 @@ public final class Director {
                 c.lockActivity(act.equals("none") ? null : CitizenEntity.Activity.valueOf(act));
                 if (act.equals("AIM")) c.equipStack(EquipmentSlot.MAINHAND, new ItemStack(ModContent.PISTOL));
                 if (a.size() > 3) face(p, sc, c, a.get(3).getAsString());
+            }
+            case "gest" -> { // 1.0: слой-жест поверх тела: gest id g_handshake [сек] [на кого смотреть]
+                Entity e = actor(w, sc, a.get(1).getAsString());
+                if (e == null) return;
+                NbtCompound n = new NbtCompound();
+                n.putInt("id", e.getId());
+                n.putString("g", a.get(2).getAsString());
+                n.putInt("ticks", Math.round((a.size() > 3 ? a.get(3).getAsFloat() : 2f) * 20));
+                if (a.size() > 4) {
+                    String who = a.get(4).getAsString();
+                    Entity t = who.equals("player") ? p : who.equals("none") ? null : actor(w, sc, who);
+                    n.putInt("look", t == null ? -1 : t.getId());
+                    if (t != null && e instanceof CitizenEntity c && !who.equals("player")) c.face(t);
+                }
+                toScene(p, "cut_gest", n);
+            }
+            case "look" -> { // 1.0: look id кто — взгляд (шея/голова) на героя, «none» — снять
+                Entity e = actor(w, sc, a.get(1).getAsString());
+                if (e == null) return;
+                String who = a.get(2).getAsString();
+                Entity t = who.equals("player") ? p : who.equals("none") ? null : actor(w, sc, who);
+                NbtCompound n = new NbtCompound();
+                n.putInt("id", e.getId());
+                n.putString("g", "");
+                n.putInt("ticks", 0);
+                n.putInt("look", t == null ? -1 : t.getId());
+                toScene(p, "cut_gest", n);
             }
             case "face" -> {
                 CitizenEntity c = npc(w, sc, a.get(1).getAsString());

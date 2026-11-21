@@ -42,6 +42,8 @@ FPS = 20
 
 # имя → (клип, начало c, конец c, длина цикла в игре c | None (как в записи), петля, режим)
 # режим: 'cycle' — найти шаг/период в [начало, конец] и сшить; 'seg' — взять отрезок и сшить конец с началом
+ARMS = ['right_arm', 'right_forearm', 'left_arm', 'left_forearm']
+
 CLIPS = {
     # походка и бег: под них подогнан темп в CitizenEntity (walk 1.0 c на цикл, run 0.6 c)
     'walk': ('08_02', 0.5, 3.5, 1.0, True, 'cycle'),
@@ -62,6 +64,19 @@ CLIPS = {
     # ссора, курит (телефон у уха и смех в базе неудачные — для них остаются ручные анимации)
     'argue': ('80_48', 1.5, 6.0, None, True, 'seg'),
     'smoke': ('80_28', 1.0, 10.0, None, True, 'seg'),
+    # ---- 1.0 «Кино»: сидя, и слои-жесты (только свои кости — поверх ходьбы/стойки/сидения, см. CitizenEntity «gesture»)
+    'sit_idle': ('13_02', 5.0, 8.5, None, True, 'seg', {'raw': True}),
+    'sit_chin': ('13_04', 5.0, 8.6, None, True, 'seg', {'raw': True}),
+    'g_fidget': ('13_05', 4.5, 9.5, None, True, 'seg', {'bones': ARMS + ['head'], 'gain': {'head': 0.6}}),
+    'g_handshake': ('79_06', 1.2, 4.3, None, False, 'seg', {'bones': ARMS + ['chest']}),
+    'g_phone': ('79_36', 1.2, 3.2, None, 'hold', 'seg', {'bones': ARMS + ['head']}),
+    'g_point': ('13_27', 3.5, 5.5, None, False, 'seg', {'bones': ARMS + ['chest']}),
+    'g_wave': ('13_26', 3.8, 5.2, None, False, 'seg', {'bones': ARMS}),
+    'g_push': ('81_05', 1.2, 2.6, None, False, 'seg', {'bones': ARMS + ['chest']}),
+    'g_punch': ('02_05', 1.3, 2.6, None, False, 'seg', {'bones': ARMS + ['chest']}),
+    'g_punch2': ('02_05', 3.0, 4.2, None, False, 'seg', {'bones': ARMS + ['chest']}),
+    'g_laugh': ('14_17', 0.8, 2.2, None, True, 'seg', {'bones': ARMS + ['chest', 'head'], 'gain': {'chest': 0.7}}),
+    'g_walktalk': ('138_11', 0.3, 3.6, None, True, 'seg', {'bones': ARMS + ['head'], 'gain': {'head': 0.5}}),
 }
 
 # ---------------------------------------------------------------- ASF / AMC
@@ -371,13 +386,23 @@ def reduce_keys(vals, tol):
     return sorted(keep)
 
 
+def find(src, fname):
+    """--src может быть списком папок через «:» (клипы 0.6.4 и докачанные для 1.0 лежат раздельно)."""
+    for d in src.split(':'):
+        p = os.path.join(d, fname)
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError(fname + ' (скачать: http://mocap.cs.cmu.edu/subjects/NN/' + fname + ')')
+
+
 def build(name, src, cfg, cache_clips):
-    clip, t0, t1, length, loop, mode = cfg
+    clip, t0, t1, length, loop, mode = cfg[:6]
+    opt = cfg[6] if len(cfg) > 6 else {}
     subj = clip.split('_')[0]
     key = clip
     if key not in cache_clips:
-        bones = read_asf(os.path.join(src, subj + '.asf'))
-        frames = read_amc(os.path.join(src, clip + '.amc'))
+        bones = read_asf(find(src, subj + '.asf'))
+        frames = read_amc(find(src, clip + '.amc'))
         cache_clips[key] = (bones, frames)
     bones, frames = cache_clips[key]
     a = int(t0 * FPS_IN)
@@ -398,7 +423,7 @@ def build(name, src, cfg, cache_clips):
     if length is None:
         length = src_len
     arr, ry = resample(arr, ry, FPS_IN * src_len / length, FPS)
-    if loop:
+    if loop is True:
         arr, ry = loop_blend(arr, ry, 0.3 if mode == 'seg' else 0.15)
     n = arr.shape[0]
     dur = (n - 1) / FPS
@@ -407,7 +432,7 @@ def build(name, src, cfg, cache_clips):
     wi = BONES.index('waist')
     mean = np.mean(arr[:, wi, :], 0)
     arr[:, wi, :] -= mean * (np.array([1.0, 1.0, 1.0]) if mode == 'seg' else np.array([0.6, 1.0, 1.0]))
-    if mode == 'seg':
+    if mode == 'seg' and not opt.get('raw'):
         # в записи двое стоят под углом друг к другу: грудь и голову разворачиваем «к собеседнику» (вперёд),
         # а размах головы уменьшаем — поворот головы к собеседнику добавит игра (neck)
         ci, hi = BONES.index('chest'), BONES.index('head')
@@ -417,13 +442,21 @@ def build(name, src, cfg, cache_clips):
         # корпус спокойнее: в кадре крупным планом сильные наклоны выглядят как поклоны
         arr[:, wi, :] *= 0.7
         arr[:, ci, :] = np.mean(arr[:, ci, :], 0) + (arr[:, ci, :] - np.mean(arr[:, ci, :], 0)) * 0.75
-    out = {'loop': bool(loop), 'animation_length': round(dur, 4), 'bones': {}}
+    out = {'loop': 'hold_on_last_frame' if loop == 'hold' else bool(loop), 'animation_length': round(dur, 4), 'bones': {}}
+    # слой-жест (1.0): только свои кости — остальное тело остаётся от основной анимации (идёт, стоит, сидит)
+    only = opt.get('bones')
+    if opt.get('gain'):
+        for bn, g in opt['gain'].items():
+            i = BONES.index(bn)
+            arr[:, i, :] = np.mean(arr[:, i, :], 0) + (arr[:, i, :] - np.mean(arr[:, i, :], 0)) * g
     for bi, bname in enumerate(BONES):
+        if only and bname not in only:
+            continue
         v = arr[:, bi, :]
         keys = reduce_keys(v, 1.2 if 'arm' in bname or 'leg' in bname or 'shin' in bname else 0.8)
         out['bones'][bname] = {'rotation': {f'{k / FPS:.4g}': [round(float(x), 2) for x in v[k]] for k in keys}}
     keys = reduce_keys(ry[:, None], 0.08)
-    if np.max(np.abs(ry)) > 0.05:
+    if np.max(np.abs(ry)) > 0.05 and not only:
         out['bones']['root'] = {'position': {f'{k / FPS:.4g}': [0, round(float(ry[k]), 3), 0] for k in keys}}
     return out
 
@@ -516,8 +549,8 @@ def preview(anims, names, out, frames=8):
 
 def scan(src, clip):
     subj = clip.split('_')[0]
-    bones = read_asf(os.path.join(src, subj + '.asf'))
-    frames = read_amc(os.path.join(src, clip + '.amc'))
+    bones = read_asf(find(src, subj + '.asf'))
+    frames = read_amc(find(src, clip + '.amc'))
     print(clip, len(frames) / FPS_IN, 'c')
     data = [fk(bones, fr) for fr in frames[::12]]
     prev = None
@@ -535,7 +568,7 @@ def scan(src, clip):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--src', default='/tmp/claude-0/mocap/cmu')
+    ap.add_argument('--src', default='/tmp/claude-0/mocap/cmu:/tmp/claude-0/novograd-mocap')
     ap.add_argument('--only', default='')
     ap.add_argument('--preview', default='')
     ap.add_argument('--out', default='mocap_preview.png')
@@ -547,7 +580,7 @@ def main():
         scan(a.src, a.scan)
         return
     cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
-    if os.path.isdir(a.src) and not a.cached:
+    if os.path.isdir(a.src.split(':')[0]) and not a.cached:
         clips = {}
         for name, cfg in CLIPS.items():
             if a.only and name not in a.only.split(','):

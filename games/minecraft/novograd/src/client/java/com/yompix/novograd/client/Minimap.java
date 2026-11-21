@@ -33,9 +33,15 @@ public final class Minimap {
     public static double actX, actZ;
     public static int actTimer = -1;
 
-    private static void bake(int cx, int cz) {
-        int x0 = cx - SIZE / 2, z0 = cz - SIZE / 2;
-        NativeImage img = tex != null ? tex.getImage() : new NativeImage(SIZE, SIZE, false);
+    /**
+     * 1.0: карта радара (512×512, ~260 тыс. точек) раньше пересчитывалась прямо в кадре, когда игрок отъезжал на 140
+     * блоков, — рывок кадра на быстрой езде. Теперь — в фоне на рабочем потоке, заранее (с 100 блоков), а в кадре только
+     * загрузка готовой картинки в текстуру. Первый раз (текстуры ещё нет) — как раньше, сразу.
+     */
+    private static java.util.concurrent.CompletableFuture<Object[]> pending;
+
+    private static NativeImage draw(int x0, int z0, @org.jetbrains.annotations.Nullable NativeImage reuse) {
+        NativeImage img = reuse != null ? reuse : new NativeImage(SIZE, SIZE, false);
         for (int pz = 0; pz < SIZE; pz++)
             for (int px = 0; px < SIZE; px++) {
                 int x = x0 + px, z = z0 + pz;
@@ -47,12 +53,34 @@ public final class Minimap {
                 else { r = r * 45 / 100; g = g * 50 / 100; b = b * 55 / 100; }
                 img.setColor(px, pz, 0xFF000000 | b << 16 | g << 8 | r);
             }
+        return img;
+    }
+
+    private static void bake(int cx, int cz) {
+        int x0 = cx - SIZE / 2, z0 = cz - SIZE / 2;
         if (tex == null) {
-            tex = new NativeImageBackedTexture(img);
+            tex = new NativeImageBackedTexture(draw(x0, z0, null));
             MinecraftClient.getInstance().getTextureManager().registerTexture(TEX, tex);
-        } else tex.upload();
-        ox = x0;
-        oz = z0;
+            ox = x0;
+            oz = z0;
+            return;
+        }
+        if (pending != null) return;
+        pending = java.util.concurrent.CompletableFuture.supplyAsync(() -> new Object[]{draw(x0, z0, null), x0, z0}, net.minecraft.util.Util.getMainWorkerExecutor());
+    }
+
+    /** Готова новая карта — подменить картинку текстуры (старая освобождается). */
+    private static void swap() {
+        if (pending == null || !pending.isDone()) return;
+        try {
+            Object[] r = pending.join();
+            tex.setImage((NativeImage) r[0]);
+            tex.upload();
+            ox = (Integer) r[1];
+            oz = (Integer) r[2];
+        } catch (RuntimeException ignored) {
+        }
+        pending = null;
     }
 
     public static void render(DrawContext ctx) {
@@ -61,7 +89,8 @@ public final class Minimap {
         var pl = mc.player;
         float delta = mc.getRenderTickCounter().getTickDelta(true);
         double px = MathHelper.lerp(delta, pl.prevX, pl.getX()), pz = MathHelper.lerp(delta, pl.prevZ, pl.getZ());
-        if (tex == null || Math.abs(px - (ox + SIZE / 2)) > 140 || Math.abs(pz - (oz + SIZE / 2)) > 140) bake((int) px, (int) pz);
+        swap();
+        if (tex == null || Math.abs(px - (ox + SIZE / 2)) > 100 || Math.abs(pz - (oz + SIZE / 2)) > 100) bake((int) px, (int) pz);
 
         int W = 132, H = 96, x = 12, y = ctx.getScaledWindowHeight() - H - 22;
         // весь радар уменьшаем от левого нижнего угла (размер HUD в настройках + маленький экран)

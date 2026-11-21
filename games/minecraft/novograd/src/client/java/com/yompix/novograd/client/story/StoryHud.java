@@ -81,6 +81,50 @@ public final class StoryHud {
         }
     }
 
+    private static final boolean V10 = com.yompix.novograd.story.Stage.ON;
+    private static long objShownAt = -1;
+
+    /**
+     * 1.0 (владелец: «слишком много текста, полэкрана занимают»): цель — одна короткая строка внизу по центру на
+     * несколько секунд, потом прячется (O — показать снова); компас с расстоянием остаётся; «как сделать» — один раз
+     * подсказкой слева сверху; без косого баннера через весь экран.
+     */
+    private static void quietObjective(DrawContext ctx, TextRenderer tr, int w, int h, long now, String mission, String hint, String how,
+                                       Vec3d t, MinecraftClient mc, boolean changed) {
+        // новая цель (render уже запомнил её в lastHint и дал звук): раньше здесь сравнивали с lastHint ещё раз —
+        // всегда «не изменилась», и строка цели сама не появлялась никогда (только по O), подсказка «как» — тоже
+        if (changed) {
+            objShownAt = now;
+            if (!how.isEmpty()) com.yompix.novograd.client.ui.Quiet.hint("how:" + mission + ":" + hint, how);
+        }
+        if (com.yompix.novograd.client.NovogradClient.objectiveKey != null && com.yompix.novograd.client.NovogradClient.objectiveKey.isPressed()) objShownAt = now;
+        float sc = scale();
+        var m = ctx.getMatrices();
+        if (mc.player != null) {
+            m.push();
+            m.translate(w / 2f, 0, 0);
+            m.scale(sc, sc, 1);
+            m.translate(-w / 2f, 0, 0);
+            compass(ctx, tr, w, t, mc);
+            m.pop();
+        }
+        long age = now - objShownAt;
+        if (objShownAt < 0 || age > 6500) return;
+        float a = MathHelper.clamp(Math.min(age / 250f, (6500 - age) / 600f), 0, 1);
+        int[] ln = com.yompix.novograd.client.ui.Quiet.lane(mc, w); // рядом с видимым чатом — справа от него
+        int maxW = (int) (Math.min(ln[1] - ln[0] - 12, 300) / Math.max(1f, sc));
+        String line = hint;
+        if (tr.getWidth(line) > maxW) line = tr.trimToWidth(line, maxW - 6) + "…";
+        int lw = tr.getWidth(line);
+        m.push();
+        m.translate((ln[0] + ln[1]) / 2f, h - com.yompix.novograd.client.ui.Quiet.STATUS_Y - 16, 0); // над строкой статуса, не поверх
+        m.scale(sc, sc, 1);
+        ctx.fill(-lw / 2 - 6, -3, lw / 2 + 6, 10, Ui.alpha(0x80000000, a));
+        ctx.fill(-lw / 2 - 6, -3, -lw / 2 - 4, 10, Ui.alpha(Ui.GOLD, a));
+        ctx.drawText(tr, line, -lw / 2, 0, Ui.alpha(0xFFFFFFFF, a), true);
+        m.pop();
+    }
+
     public static void render(DrawContext ctx) {
         com.yompix.novograd.client.studio.CineCam.tickFx(net.minecraft.client.MinecraftClient.getInstance());
         MinecraftClient mc = MinecraftClient.getInstance();
@@ -112,12 +156,17 @@ public final class StoryHud {
             String mission = o.getString("mission"), hint = o.getString("hint"), extra = o.getString("extra");
             String where = o.getString("where"), how = o.getString("how");
             // новая цель — заметный баннер и звук
-            if (!hint.equals(lastHint)) {
+            boolean changed = !hint.equals(lastHint);
+            if (changed) {
                 lastHint = hint;
                 bannerAt = now;
                 if (mc.player != null) mc.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 0.7f, 1.2f);
             }
             Vec3d t = ClientStory.target();
+            if (V10) {
+                quietObjective(ctx, tr, w, h, now, mission, hint, how, t, mc, changed);
+                return;
+            }
             String dist = "";
             if (t != null && mc.player != null) dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos())) + " м";
             String whereLine = where.isEmpty() ? (dist.isEmpty() ? "" : dist) : where + (dist.isEmpty() ? "" : " · " + dist);

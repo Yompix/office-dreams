@@ -104,7 +104,7 @@ public final class CopsAndRobbers {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) if (!p.isSpectator() && !Prison.inside(p)) pl.add(p);
         if (pl.size() > 8) pl = pl.subList(0, 8);
         if (pl.size() < 2 && !SOLO) {
-            if (who != null) who.sendMessage(Text.literal("Для «Полицейских и воров» нужно минимум 2 игрока (пауза → «Открыть для друзей»)").formatted(Formatting.RED), false);
+            if (who != null) who.sendMessage(Text.literal("Нужно 2+ игрока (пауза → «Открыть для друзей»)").formatted(Formatting.RED), false);
             return;
         }
         running = true;

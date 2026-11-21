@@ -183,7 +183,7 @@ public final class Impound {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, LOT);
         if (at == null || p.squaredDistanceTo(at) > 14 * 14) {
-            p.sendMessage(Text.literal("Забрать машину можно только на штрафстоянке у полицейского участка").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Машина — на штрафстоянке у участка").formatted(Formatting.RED), true);
             return;
         }
         if (!Life.pay(p, FEE, "штрафстоянка")) return;

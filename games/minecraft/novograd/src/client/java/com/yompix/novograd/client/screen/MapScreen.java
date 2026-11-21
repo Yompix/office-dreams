@@ -115,7 +115,15 @@ public class MapScreen extends LifeScreen {
         mapH = height - 30;
         ctx.drawText(textRenderer, "КАРТА НОВОГРАДА", 10, 8, 0xFFFFC107, true);
         String help = "колесо — масштаб · тянуть — сдвиг · ПКМ — метка · M/Esc — закрыть";
-        ctx.drawText(textRenderer, help, mapX + mapW - textRenderer.getWidth(help), 8, 0x88FFFFFF, false);
+        // узкий экран: подсказка не наезжает на заголовок — короче или мельче
+        int room = mapX + mapW - (10 + textRenderer.getWidth("КАРТА НОВОГРАДА") + 10);
+        if (textRenderer.getWidth(help) > room) help = "ПКМ — метка · M/Esc — закрыть";
+        float hk = Math.min(1f, room / (float) Math.max(1, textRenderer.getWidth(help)));
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(mapX + mapW - textRenderer.getWidth(help) * hk, 8 + (1 - hk) * 4, 0);
+        ctx.getMatrices().scale(hk, hk, 1);
+        ctx.drawText(textRenderer, help, 0, 0, 0x88FFFFFF, false);
+        ctx.getMatrices().pop();
         ctx.fill(mapX - 1, mapY - 1, mapX + mapW + 1, mapY + mapH + 1, 0xFF3A3F55);
         ctx.enableScissor(mapX, mapY, mapX + mapW, mapY + mapH);
         // весь остров (вода, районы, трасса), сверху — подробная карта вокруг игрока

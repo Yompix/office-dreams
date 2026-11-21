@@ -3,6 +3,7 @@ package com.yompix.novograd.client.screen;
 import com.yompix.novograd.client.PulseClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import org.lwjgl.glfw.GLFW;
@@ -47,21 +48,22 @@ public class CollectionsScreen extends LifeScreen {
         }
         int cy = y + 30;
         switch (tab) {
-            case 0 -> sets(ctx, st, x, cy, w);
+            case 0 -> sets(ctx, st, x, cy, w, y + h - 16);
             case 1 -> photos(ctx, st, x, cy, w, y + h - 18);
             default -> chaos(ctx, x, cy, w);
         }
         center(ctx, "Esc — закрыть", x + w / 2, y + h - 12, 0xFF607D8B);
     }
 
-    private void sets(DrawContext ctx, NbtCompound st, int x, int y, int w) {
+    private void sets(DrawContext ctx, NbtCompound st, int x, int y, int w, int bottom) {
         NbtList cats = st.getList("cats", NbtElement.COMPOUND_TYPE);
         boolean stall = st.getBoolean("stall");
         if (cats.isEmpty()) {
             wrap(ctx, "Загрузка…", x + 14, y + 10, w - 28, 0xFFB0BEC5);
             return;
         }
-        int row = 56;
+        // высота строки — по месту (маленький экран: 4 набора и подсказка не уходят под «Esc — закрыть» и за рамку)
+        int row = MathHelper.clamp((bottom - y - 22) / Math.max(1, cats.size()), 40, 56);
         for (int i = 0; i < cats.size(); i++) {
             NbtCompound c = cats.getCompound(i);
             int ry = y + i * row;

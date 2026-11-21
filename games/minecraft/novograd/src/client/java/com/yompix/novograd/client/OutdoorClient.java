@@ -112,6 +112,11 @@ public final class OutdoorClient {
     }
 
     public static void toast(String title, String sub, int color, int pct) {
+        // 1.0: в общую очередь уведомлений (коротко, справа, не больше двух)
+        if (com.yompix.novograd.story.Stage.ON) {
+            com.yompix.novograd.client.ui.Quiet.notify(title, sub + (pct >= 0 && pct <= 100 ? "  " + pct + "%" : ""), color);
+            return;
+        }
         toastTitle = title;
         toastSub = sub;
         toastColor = color;

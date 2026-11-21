@@ -23,10 +23,12 @@ public class SkillsScreen extends LifeScreen {
         title(ctx, "Навыки", 12, top, Ui.CYAN);
         Ui.small(ctx, textRenderer, "растут от практики · зал «Железо» качает силу и выносливость", 14, top + 28, 0.8f, 0xFFD9D7D0, 0);
         Skill[] all = Skill.values();
-        int cols = width >= 520 ? 2 : 1;
-        int gx = 10, gy = top + 40, gw = (width - 20 - (cols - 1) * 8) / cols;
+        // низкий экран (480×270): в одну колонку 11 навыков не помещаются и уходили под нижнюю строку — тогда две колонки
+        int gx = 10, gy = top + 40, avail = height - gy - 22;
+        int cols = width >= 520 || avail / all.length < 26 ? 2 : 1;
+        int gw = (width - 20 - (cols - 1) * 8) / cols;
         int rows = (all.length + cols - 1) / cols;
-        int rh = Math.max(26, Math.min(36, (height - gy - 26) / rows));
+        int rh = Math.max(22, Math.min(36, avail / rows));
         for (int i = 0; i < all.length; i++) {
             Skill s = all[i];
             int col = i / rows, row = i % rows;

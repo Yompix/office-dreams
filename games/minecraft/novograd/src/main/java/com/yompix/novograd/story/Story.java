@@ -64,6 +64,7 @@ public final class Story {
         if (root == null) {
             try (var in = Story.class.getResourceAsStream("/novograd_story.json")) {
                 root = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+                Shots.apply(root);
             } catch (Exception e) {
                 Novograd.LOG.error("Не удалось прочитать сюжет", e);
                 root = new JsonObject();
@@ -213,6 +214,7 @@ public final class Story {
     public static void tick(ServerPlayerEntity p) {
         Director.tick(p);
         if (!active(p)) return;
+        Stage.tick(p); // 1.0: следующая сцена готовится, пока игрок подходит
         LifeData d = Life.get(p);
         Run r = run(p);
         r.ticks++;
@@ -228,7 +230,10 @@ public final class Story {
             // подошёл к метке миссии — начинаем (и у друзей на том же месте сюжета тоже)
             Vec3d at = missionStart(p, d);
             if (r.ticks % 100 == 0) sendIdle(p, d);
-            if (at != null && p.squaredDistanceTo(at) < 5 * 5) {
+            // по горизонтали 5 блоков, по высоте до 9: метка «bridge_n» (акт IV) стоит у воды под настилом моста, и с
+            // моста (на 6–7 блоков выше) миссия раньше не начиналась вовсе — только если нырнуть под мост
+            double dx = p.getX() - (at == null ? 0 : at.x), dz = p.getZ() - (at == null ? 0 : at.z);
+            if (at != null && dx * dx + dz * dz < 5 * 5 && Math.abs(p.getY() - at.y) < 9) {
                 String key = "started:" + d.chapter + ":" + d.mission;
                 for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
                     LifeData dq = Life.get(q);
@@ -293,6 +298,7 @@ public final class Story {
         if (idle(d) || d.chapter == 0 && d.mission == 0) return;
         GtaSteps.cleanup(p);
         Director.stop(p);
+        Stage.release(p);
         d.flags.remove("entered:" + stepKey(d));
         d.flags.remove("started:" + d.chapter + ":" + d.mission);
         d.step = 0;
@@ -689,8 +695,14 @@ public final class Story {
             double[] a = sh.has("from") ? Director.camera(w, str(sh, "from", "")) : null;
             double[] b = sh.has("to") ? Director.camera(w, str(sh, "to", "")) : a;
             String track = str(sh, "track", ""), follow = str(sh, "follow", "");
+            if (sh.has("keys")) {
+                a = Director.key(sh.getAsJsonArray("keys").get(0).getAsJsonArray());
+                JsonArray ks = sh.getAsJsonArray("keys");
+                b = Director.key(ks.get(ks.size() - 1).getAsJsonArray());
+            }
             if ((a == null || b == null) && track.isEmpty() && follow.isEmpty()) continue;
             NbtCompound sn = new NbtCompound();
+            if (sh.has("keys")) Shots.toNbt(sh, sn);
             if (a != null) sn.put("from", doubles(a));
             if (b != null) sn.put("to", doubles(b));
             sn.putFloat("sec", sh.get("sec").getAsFloat());
@@ -706,9 +718,16 @@ public final class Story {
             shots.add(sn);
             if (first == null && a != null) first = new Vec3d(a[0], a[1], a[2]);
         }
-        p.changeGameMode(GameMode.SPECTATOR);
-        if (first != null) p.teleport(w, first.x, first.y, first.z, p.getYaw(), p.getPitch());
         NbtCompound n = new NbtCompound();
+        // 1.0: куда вернуть камеру после сцены (клиент плавно «приземляет» камеру в глаза игрока)
+        n.put("ret", doubles(new double[]{p.getX(), p.getEyeY(), p.getZ(), p.getYaw(), p.getPitch()}));
+        p.changeGameMode(GameMode.SPECTATOR);
+        // 1.0: первый кадр рядом (в пределах прорисовки) — игрока не переносим: участки и актёры у клиента уже есть,
+        // кадр готов сразу, и камера может «вылететь» из глаз игрока в первый план. Далеко — как раньше.
+        int keep = Math.min((int) Director.VIEWER_GAP, Math.max(2, p.getServer().getPlayerManager().getViewDistance() - 3) * 16);
+        boolean near = Stage.ON && first != null && first.squaredDistanceTo(p.getPos()) < keep * keep;
+        if (first != null && !near) p.teleport(w, first.x, first.y, first.z, p.getYaw(), p.getPitch());
+        n.putBoolean("near", near);
         n.put("shots", shots);
         n.put("lines", lines(p, s.getAsJsonArray("lines")));
         NbtList cast = new NbtList(); // кто уже в кадре на старте — клиент дождётся их, прежде чем открыть сцену

@@ -33,6 +33,15 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
     private static final int FULL = LightmapTextureManager.MAX_LIGHT_COORDINATE;
     private static final int OV = OverlayTexture.DEFAULT_UV;
 
+    /** 1.0: дальние машины не рисуем (граница — «Производительность»); свою, с игроком внутри и в кат-сцене — всегда. */
+    @Override
+    public boolean shouldRender(CarEntity car, net.minecraft.client.render.Frustum frustum, double x, double y, double z) {
+        float lim = com.yompix.novograd.client.NovogradConfig.carDist();
+        if (car.squaredDistanceTo(x, y, z) > lim * lim && !car.hasPassenger(net.minecraft.client.MinecraftClient.getInstance().player) && !com.yompix.novograd.client.story.CutsceneScreen.ACTORS.containsValue(car.getId()))
+            return false;
+        return super.shouldRender(car, frustum, x, y, z);
+    }
+
     public CarRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
         this.shadowRadius = 1.4f;
