@@ -1272,8 +1272,12 @@ function offTick(dt) {
   offYaw = Math.max(OFF_MIN, Math.min(OFF_MAX, offYaw)); window.__offYaw = offYaw;
   const el = $('shLook'); if (el) el.classList.toggle('mon', offYaw > OFF_MON[0] && offYaw < OFF_MON[1]);
 }
+// 21 ноя (владелец: «пока временно убираем, но не полностью»): режим от первого лица выключен — кнопки «Кабинет»/«Обход» скрыты.
+// Включить обратно: FP = true (или ?fp=1 в адресе для проверки). Код кабинета и обхода не трогать — он готов и проверен
+const FP = /[?&]fp=1/.test(location.search);
 function offBind() {
   const b = $('shOff'), L = $('shLook'); if (!b || !L) return;
+  document.body.classList.toggle('nofp', !FP); if (!FP) { shf.office = shf.walk = false; document.body.classList.remove('office', 'walking'); }
   document.body.classList.toggle('nooff', /^(S6|A1)$/.test(shf.id)); document.body.classList.toggle('nowalk', !/^S[1-4]$/.test(shf.id));
   b.onclick = e => { e.stopPropagation(); offSet(!shf.office); };
   if (shf.office) offSet(true); else document.body.classList.remove('office');
