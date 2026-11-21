@@ -1172,7 +1172,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                 com.yompix.novograd.gta.Crime.hurt(p, this, isDead());
                 if (!isDead()) {
                     // полиция и бандиты дают отпор; крепкие парни — тоже, остальные бегут
-                    if (role == Role.POLICE || role == Role.GANG || (!isKid() && !isSlim(getSkin()) && getRandom().nextInt(3) == 0)) attack(p);
+                    if (role == Role.POLICE || role == Role.GANG || com.yompix.novograd.world.ResidentMind.fightsBack(this)) attack(p); // 0.9.5: по характеру
                     else panic(p.getPos());
                 }
             } else if (source.getAttacker() instanceof CitizenEntity o && !isDead() && (role == Role.GANG || role == Role.POLICE)) attack(o);
@@ -1520,6 +1520,16 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         tempCop = true;
     }
 
+    @org.jetbrains.annotations.Nullable
+    public net.minecraft.entity.LivingEntity getFoe() {
+        return foe;
+    }
+
+    /** Убегает в панике (0.9.5: свидетель звонит, когда отбежал). */
+    public boolean fleeing() {
+        return fleeTicks > 0;
+    }
+
     public boolean chasing(net.minecraft.entity.Entity e) {
         return foe == e;
     }
@@ -1609,7 +1619,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             }
             c.getLookControl().lookAt(t, 40, 40);
             double d = c.distanceTo(t);
-            boolean gunner = !c.brawl && c.role == Role.GANG || c.role == Role.POLICE && (!(t instanceof net.minecraft.server.network.ServerPlayerEntity p) || com.yompix.novograd.gta.Wanted.stars(p) >= 3);
+            // 0.9.5: полиция стреляет по игроку с 3★ и по вооружённым; безоружного жителя — задерживает (gta/Witness)
+            boolean gunner = !c.brawl && c.role == Role.GANG || c.role == Role.POLICE && (t instanceof net.minecraft.server.network.ServerPlayerEntity p
+                    ? com.yompix.novograd.gta.Wanted.stars(p) >= 3
+                    : t.getMainHandStack().getItem() instanceof com.yompix.novograd.item.GunItem || t instanceof CitizenEntity tc && tc.role == Role.GANG);
             if (gunner) {
                 if (!(c.getMainHandStack().getItem() instanceof com.yompix.novograd.item.GunItem))
                     c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PISTOL));

@@ -531,7 +531,7 @@ public final class Destruction {
                 }
             }
         Fires.ignite(w, c, 50, null);
-        if (by != null && !by.isCreative()) com.yompix.novograd.gta.Wanted.add(by, 1, "взрыв на заправке", 2);
+        if (by != null && !by.isCreative()) com.yompix.novograd.gta.Witness.crime(by, c, "взрыв на заправке", 1, 2, true, null);
         com.yompix.novograd.gta.News.post(w.getServer(), "Взрыв на заправке «Нефтяник»: огонь видно за километр", "ЭКСТРЕННО");
     }
 
@@ -626,7 +626,7 @@ public final class Destruction {
         if (by == null) return;
         int sum = (blast ? 300 : 150) + w.random.nextInt(blast ? 600 : 300);
         com.yompix.novograd.gta.Economy.dirty(by, sum, blast ? "(банкомат взорван)" : "(банкомат вскрыт)");
-        if (!by.isCreative()) com.yompix.novograd.gta.Wanted.add(by, 1, "ограбление банкомата", 2);
+        if (!by.isCreative()) com.yompix.novograd.gta.Witness.crime(by, by.getPos(), "ограбление банкомата", 1, 2, blast, null);
         com.yompix.novograd.gta.News.post(w.getServer(), "Неизвестный вскрыл банкомат: полиция ищет свидетелей", "КРИМИНАЛ");
     }
 

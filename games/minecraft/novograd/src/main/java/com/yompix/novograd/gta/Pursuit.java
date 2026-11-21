@@ -65,6 +65,13 @@ public final class Pursuit {
         return 40 + stars * 14;
     }
 
+    /** 0.9.5: сообщение свидетеля — полиция знает только место происшествия и ищет вокруг него. */
+    public static void reportedAt(ServerPlayerEntity p, Vec3d at) {
+        P s = st(p);
+        s.lastKnown = at;
+        s.lastSeenAt = p.getServerWorld().getTime() - 100;
+    }
+
     /** Полиция потеряла игрока из виду (больше 2 с). */
     public static boolean lost(ServerPlayerEntity p) {
         P s = ST.get(p.getUuid());
