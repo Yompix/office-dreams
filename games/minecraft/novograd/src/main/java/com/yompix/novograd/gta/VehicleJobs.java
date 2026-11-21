@@ -491,6 +491,8 @@ public final class VehicleJobs {
     // ------------------------------------------------------------------ служебные машины у больницы и пиццерии
     private static final String[][] DEPOTS = {{"hospital+9,4", "ambulance"}, {"hospital+-9,4", "fire"}, {"police_station+10,6", "fire"}, {"pizza_door+5,5", "pizza"}};
 
+    private static final java.util.Map<String, java.util.UUID> DEPOT_CAR = new java.util.HashMap<>();
+
     private static void depots(ServerPlayerEntity p) {
         ServerWorld w = p.getServerWorld();
         for (String[] dp : DEPOTS) {
@@ -499,6 +501,17 @@ public final class VehicleJobs {
             var box = new net.minecraft.util.math.Box(at, at).expand(14, 6, 14);
             Kind want = dp[1].equals("ambulance") ? Kind.AMBULANCE : dp[1].equals("fire") ? Kind.FIRE : Kind.PIZZA;
             if (!w.getEntitiesByClass(CarEntity.class, box, c -> kindOf(c) == want).isEmpty()) continue;
+            // 0.9.5: машина этой стоянки ещё в мире (откатилась, стоит не там) — не плодить новые: у больницы копились
+            // десятки пожарных машин и город тормозил. Лишние пустые (старые сохранения) — убрать.
+            java.util.UUID had = DEPOT_CAR.get(dp[0]);
+            if (had != null && w.getEntity(had) != null) continue;
+            var wide = w.getEntitiesByClass(CarEntity.class, new net.minecraft.util.math.Box(at, at).expand(64, 24, 64),
+                    c -> kindOf(c) == want && c.getCommandTags().contains(want == Kind.AMBULANCE ? "nv_ambulance" : "nv_firetruck") && !c.hasPassengers());
+            if (want != Kind.PIZZA && wide.size() >= 2) {
+                for (int i = 2; i < wide.size(); i++) wide.get(i).discard();
+                DEPOT_CAR.put(dp[0], wide.get(0).getUuid());
+                continue;
+            }
             int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
             if (!w.isAir(net.minecraft.util.math.BlockPos.ofFloored(at.x, y + 0.5, at.z))) continue;
             CarEntity car;
@@ -512,6 +525,7 @@ public final class VehicleJobs {
                 car.paint(want == Kind.AMBULANCE ? AMB_COLOR : FIRE_COLOR);
                 car.addCommandTag(want == Kind.AMBULANCE ? "nv_ambulance" : "nv_firetruck");
             }
+            DEPOT_CAR.put(dp[0], car.getUuid());
         }
     }
 

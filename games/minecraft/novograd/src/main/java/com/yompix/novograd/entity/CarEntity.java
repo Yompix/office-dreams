@@ -718,6 +718,9 @@ public class CarEntity extends Entity {
     private record Obstacle(double dist, double lat, boolean still, boolean living, boolean player, boolean queued) {}
 
     private int blocked, dodgeTicks, reverse;
+    /** 0.9.5: не застревать — нет продвижения 10 с: сдать назад и объехать; 30 с: перестроить путь на следующую точку. */
+    @Nullable private Vec3d progPos;
+    private int progTicks;
     private Vec3d legFrom;
     private float dodge;
 
@@ -771,6 +774,20 @@ public class CarEntity extends Entity {
                 Obstacle ob = scanAhead(fwdV, sideV);
                 if (Boolean.getBoolean("novograd.debugcar") && age % 20 == 0)
                     Novograd.LOG.info("car {} ob {} blocked {} dodge {} rev {} speed {}", getId(), ob, blocked, dodge, reverse, speed);
+                if (!getWorld().isClient) {
+                    if (progPos == null || progPos.squaredDistanceTo(getPos()) > 1.5 * 1.5 || lightWait > 0) {
+                        progPos = getPos();
+                        progTicks = 0;
+                    } else if (++progTicks == 200) {
+                        reverse = 30;
+                        dodge = (age / 200) % 2 == 0 ? 3.4f : -3.4f;
+                        dodgeTicks = 120;
+                    } else if (progTicks >= 600 && routeIndex < route.size() - 1) {
+                        legFrom = getPos();
+                        routeIndex++;
+                        progTicks = 150;
+                    }
+                }
                 if (ob != null && ob.still && Math.abs(speed) < 0.06f) blocked++;
                 else if (ob == null) blocked = Math.max(0, blocked - 2);
                 if (blocked > 35 && dodge == 0 && ob != null) {

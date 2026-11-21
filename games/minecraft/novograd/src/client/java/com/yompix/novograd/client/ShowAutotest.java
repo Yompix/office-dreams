@@ -41,7 +41,7 @@ public final class ShowAutotest {
 
     public static void init() {
         String mode = System.getProperty("novograd.autotest");
-        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow"))) return;
+        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -55,6 +55,7 @@ public final class ShowAutotest {
         cmd(5, "effect clear " + P);
         if (mode.equals("animshow")) animshow();
         else if (mode.equals("gridshow")) cityshow();
+        else if (mode.equals("ailife")) ailife();
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }
@@ -255,6 +256,101 @@ public final class ShowAutotest {
                     c -> c.hasCustomName() && c.getCustomName().getString().equals("Рейдер")).size());
         });
         cmd(1, "effect clear " + P);
+        finish();
+    }
+
+    // ===================================================================== 0.9.5: «Живой город» — день вокруг игрока
+    private static final java.util.Map<Integer, int[]> AI_SAMPLES = new java.util.HashMap<>(); // id → {всего, без дела}
+    private static final java.util.Map<Integer, java.util.Set<String>> AI_ACTS = new java.util.HashMap<>();
+    private static final java.util.Set<String> AI_ALL = new java.util.TreeSet<>();
+    private static final java.util.Map<java.util.UUID, Object[]> AI_CARS = new java.util.HashMap<>(); // машина → {позиция, с какого тика стоит}
+    private static int aiStuck;
+    private static double aiMspt;
+    private static int aiMsptN;
+
+    private static void aiSample(IntegratedServer s) {
+        ServerPlayerEntity p = pl(s);
+        var w = p.getServerWorld();
+        for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(48, 20, 48), CitizenEntity::isAlive)) {
+            String a = c.hasVehicle() ? "DRIVE" : c.getActivity().name();
+            boolean idle = c.getActivity() == CitizenEntity.Activity.IDLE && c.directTo == null && !c.hasVehicle() && c.getNavigation().isIdle();
+            int[] k = AI_SAMPLES.computeIfAbsent(c.getId(), x -> new int[2]);
+            k[0]++;
+            if (idle) k[1]++;
+            if (!idle) {
+                AI_ACTS.computeIfAbsent(c.getId(), x -> new java.util.HashSet<>()).add(a);
+                AI_ALL.add(a);
+            }
+        }
+        long now = w.getTime();
+        for (var car : w.getEntitiesByClass(com.yompix.novograd.entity.CarEntity.class, p.getBoundingBox().expand(64, 20, 64), x -> x.onRoute() && x.hasNpcDriver())) {
+            Object[] o = AI_CARS.get(car.getUuid());
+            if (o == null || ((Vec3d) o[0]).squaredDistanceTo(car.getPos()) > 1.5 * 1.5 || car.lightWait > 0) AI_CARS.put(car.getUuid(), new Object[]{car.getPos(), now});
+            else if (now - (long) o[1] > 20 * 30) {
+                aiStuck++;
+                Novograd.LOG.info("[ailife] машина стоит >30 с: {} у {}", car.getId(), car.getBlockPos());
+                AI_CARS.put(car.getUuid(), new Object[]{car.getPos(), now});
+            }
+        }
+        aiMspt += s.getAverageNanosPerTick() / 1e6;
+        aiMsptN++;
+    }
+
+    private static void ailife() {
+        server(10, s -> {
+            ServerPlayerEntity p = pl(s);
+            var d = com.yompix.novograd.life.Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+        });
+        cmd(5, "effect give " + P + " minecraft:invisibility 99999 0 true");
+        tp(System.getProperty("novograd.aiplace", "dt_2"), 0, 0, 0, 20);
+        boolean shortRun = Boolean.getBoolean("novograd.aishort"); // ролик: короче и с камерой сверху-сбоку
+        String[] times = shortRun ? new String[]{"6800", "12500"} : new String[]{"500", "2200", "4000", "6800", "9000", "11800", "13500", "16500"}; // 6:30, 8:12, 10:00, 12:48, 15:00, 17:48, 19:30, 22:30
+        if (shortRun) {
+            cmd(5, "gamemode spectator " + P);
+            server(5, s -> {
+                ServerPlayerEntity p = pl(s);
+                p.teleport(p.getServerWorld(), p.getX() - 6, p.getY() + 5, p.getZ() - 6, -45, 30);
+            });
+            run(40, c -> {
+                c.options.hudHidden = false;
+                rec(c);
+            });
+        }
+        // утро без скачков времени: 7:20 → 8:40 — выходят из дома, идут к своим машинам, едут
+        cmd(5, "time set 1350");
+        cmd(5, "gamerule doDaylightCycle true");
+        label(1, "утро подряд");
+        for (int i = 0; i < (shortRun ? 15 : 40); i++) server(40, ShowAutotest::aiSample);
+        cmd(5, "gamerule doDaylightCycle false");
+        for (String t : times) {
+            cmd(5, "time set " + t);
+            label(1, "время " + t);
+            for (int i = 0; i < (shortRun ? 8 : 15); i++) server(40, ShowAutotest::aiSample);
+        }
+        server(5, s -> {
+            int n = 0, worst = 0;
+            double sum = 0;
+            for (var e : AI_SAMPLES.entrySet()) {
+                int[] k = e.getValue();
+                if (k[0] < 6) continue; // мелькнул мимо
+                n++;
+                int pct = k[1] * 100 / k[0];
+                sum += pct;
+                worst = Math.max(worst, pct);
+            }
+            int active = (int) AI_ACTS.values().stream().filter(x -> x.size() >= 2).count();
+            Novograd.LOG.info("[ailife] горожан {} (долго в кадре), занятий всего {}: {}", n, AI_ALL.size(), AI_ALL);
+            Novograd.LOG.info("[ailife] без дела: в среднем {}%, худший {}%; с ≥2 занятиями {}", n == 0 ? 0 : (int) (sum / n), worst, active);
+            Novograd.LOG.info("[ailife] поездки на своей машине: начато {} доехало {}; машин стояло >30 с: {}", com.yompix.novograd.world.Residents.tripsStarted,
+                    com.yompix.novograd.world.Residents.tripsArrived, aiStuck);
+            Novograd.LOG.info("[ailife] полиция без вызова: штрафов {} разговоров {} кофе {} обходов {}; mspt в среднем {}", com.yompix.novograd.gta.PoliceLife.tickets,
+                    com.yompix.novograd.gta.PoliceLife.chats, com.yompix.novograd.gta.PoliceLife.coffees, com.yompix.novograd.gta.PoliceLife.walks,
+                    String.format("%.2f", aiMspt / Math.max(1, aiMsptN)));
+            boolean ok = AI_ALL.size() >= 8 && (n == 0 || sum / n < 50) && aiStuck == 0;
+            Novograd.LOG.info("[ailife] {}", ok ? "PASS" : "FAIL (занятий ≥8, без дела <50%, застрявших 0)");
+        });
         finish();
     }
 

@@ -210,7 +210,7 @@ public final class Emergency {
     }
 
     /** Путь по узлам дорог → точки по правой полосе; на поворотах — подход, угол и выход, чтобы не срезать на тротуар. */
-    private static List<Vec3d> lanes(List<int[]> nodes, double y) {
+    public static List<Vec3d> lanes(List<int[]> nodes, double y) {
         List<Vec3d> out = new ArrayList<>();
         int n = nodes.size();
         final double L = 2.5;
@@ -336,7 +336,7 @@ public final class Emergency {
             m.stopRiding();
             m.setStationary(false);
             Vec3d to = spot.add(i == 0 ? 1.2 : -1.2, 0, i == 0 ? 0.6 : -0.6);
-            if (u.kind == Kind.POLICE && u.suspect != null && w.getEntity(u.suspect) instanceof LivingEntity s && s.isAlive() && s.distanceTo(m) < 48) {
+            if (u.kind == Kind.POLICE && u.suspect != null && w.getEntity(u.suspect) instanceof LivingEntity s && s.isAlive() && s.distanceTo(m) < 40 && m.canSee(s)) { // 0.9.5: только если видят
                 m.attack(s);
                 m.say(i == 0 ? "Стоять! Полиция!" : "Лицом к стене!", 60);
             } else m.walkRoute(List.of(to), 1.0, null, m.getMainHandStack().copy(), null);

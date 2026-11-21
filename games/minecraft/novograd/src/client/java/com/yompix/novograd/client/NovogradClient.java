@@ -135,6 +135,17 @@ public class NovogradClient implements ClientModInitializer {
         };
 
         ClientPlayNetworking.registerGlobalReceiver(LifeNet.S2C.ID, (payload, ctx) -> receive(ctx.client(), payload.type(), payload.data()));
+        // 0.9.5 «Наблюдение»: подписи над горожанами, команда /наблюдение (скрытая настройка)
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(com.yompix.novograd.client.city.ObserveOverlay::render);
+        net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback.EVENT.register((d, reg) -> {
+            for (String name : new String[]{"наблюдение", "observe"})
+                d.register(net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal(name).executes(ctx -> {
+                    com.yompix.novograd.client.city.ObserveOverlay.toggle(!com.yompix.novograd.client.city.ObserveOverlay.on);
+                    ctx.getSource().sendFeedback(net.minecraft.text.Text.literal("Наблюдение: " + (com.yompix.novograd.client.city.ObserveOverlay.on ? "вкл" : "выкл")));
+                    return 1;
+                }));
+        });
+        ClientPlayConnectionEvents.JOIN.register((h, s, c) -> com.yompix.novograd.client.city.ObserveOverlay.join());
         ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
             readySent = false;
             data = new LifeData();
@@ -243,6 +254,7 @@ public class NovogradClient implements ClientModInitializer {
             case "map_acts" -> com.yompix.novograd.client.screen.MapScreen.acts = n;
             case "blackout" -> com.yompix.novograd.client.city.CityFx.blackout(client, n);
             case "city_event" -> com.yompix.novograd.client.city.CityFx.event = n;
+            case "observe" -> com.yompix.novograd.client.city.ObserveOverlay.receive(n); // 0.9.5
             case "cut_gest" -> com.yompix.novograd.client.story.CutsceneScreen.gesture(client, n); // 1.0: слой-жест актёра
             case "cut_prep" -> com.yompix.novograd.client.story.CutsceneScreen.prep(client, n); // 1.0: прогрев озвучки и скинов до сцены
             case "cut_music" -> com.yompix.novograd.client.story.CutsceneMusic.handle(n); // музыка кат-сцены (story/DirectorCues)

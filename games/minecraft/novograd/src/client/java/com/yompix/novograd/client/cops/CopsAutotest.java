@@ -58,6 +58,7 @@ public final class CopsAutotest {
         cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
         cmd(5, "effect give " + P + " minecraft:saturation 99999 4 true");
         int G = Island.G;
+        if (only.isEmpty() || only.contains("witness")) witness();
         if (only.isEmpty() || only.contains("chase")) chase(G);
         if (only.isEmpty() || only.contains("pit")) pit(G);
         if (only.isEmpty() || only.contains("army")) army(G);
@@ -68,6 +69,109 @@ public final class CopsAutotest {
         run(20, c -> Novograd.LOG.info("[cops] done"));
         run(20, MinecraftClient::scheduleStop);
         ClientTickEvents.END_CLIENT_TICK.register(CopsAutotest::tick);
+    }
+
+    // ------------------------------------------------------------------ 0.9.5: свидетели
+    private static java.util.UUID wVictim, wOther, wCop;
+    private static int calls0, reports0, arrests0;
+
+    private static CitizenEntity spawnAt(ServerPlayerEntity p, double dx, double dz, CitizenEntity.Role role, String name, float yawToPlayerOffset) {
+        var w = p.getServerWorld();
+        Vec3d at = Vec3d.ofBottomCenter(com.yompix.novograd.story.Story.ground(w, p.getPos().add(dx, 0, dz)));
+        CitizenEntity c = com.yompix.novograd.gta.FunUtil.citizen(w, at, role, name);
+        c.setStationary(true);
+        c.holdFacing(com.yompix.novograd.gta.FunUtil.yawTo(at, p.getPos()) + yawToPlayerOffset, 20 * 40);
+        return c;
+    }
+
+    private static void clearArea(ServerPlayerEntity p) {
+        for (CitizenEntity c : p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(70, 30, 70), c -> c.getStoryId().isEmpty())) c.discard();
+        com.yompix.novograd.gta.Wanted.clear(p);
+        if (com.yompix.novograd.gta.Prison.inside(p)) com.yompix.novograd.gta.Prison.release(p, "автотест", ""); // полиция могла найти и задержать
+    }
+
+    private static void punch(IntegratedServer s, java.util.UUID id) {
+        var p = pl(s);
+        // кроме участников сцены — никого (город успел привести прохожих)
+        for (CitizenEntity c : p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(70, 30, 70),
+                c -> c.getStoryId().isEmpty() && !c.getUuid().equals(wVictim) && !c.getUuid().equals(wOther) && !c.getUuid().equals(wCop))) c.discard();
+        if (p.getServerWorld().getEntity(id) instanceof CitizenEntity v) v.damage(p.getServerWorld().getDamageSources().playerAttack(p), 1f);
+    }
+
+    private static int copsNear(ServerPlayerEntity p, Vec3d at, double r) {
+        return p.getServerWorld().getEntitiesByClass(CitizenEntity.class, new net.minecraft.util.math.Box(at, at).expand(r, 40, r), c -> c.getRole() == CitizenEntity.Role.POLICE).size();
+    }
+
+    private static void witness() {
+        // А) удар без свидетелей: жертва стоит спиной, вокруг никого
+        server(10, s -> {
+            var p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "downtown_plaza");
+            if (at != null) p.teleport(p.getServerWorld(), at.x, com.yompix.novograd.story.Story.ground(p.getServerWorld(), at).getY(), at.z, 0, 0);
+        });
+        server(60, s -> {
+            var p = pl(s);
+            clearArea(p);
+            calls0 = com.yompix.novograd.gta.Witness.calls;
+            wVictim = spawnAt(p, 0, 1.5, CitizenEntity.Role.CITIZEN, "Жертва", 180).getUuid();
+            wOther = wCop = null;
+        });
+        server(20, s -> punch(s, wVictim));
+        server(60, s -> Novograd.LOG.info("[cops] witness А без свидетелей: звёзд {} звонков {} полиции рядом {}", com.yompix.novograd.gta.Wanted.stars(pl(s)),
+                com.yompix.novograd.gta.Witness.calls - calls0, copsNear(pl(s), pl(s).getPos(), 64)));
+        // Б) видел прохожий: звонок, задержка, полиция к месту
+        server(5, s -> {
+            var p = pl(s);
+            clearArea(p);
+            calls0 = com.yompix.novograd.gta.Witness.calls;
+            reports0 = com.yompix.novograd.gta.Witness.reports;
+            wVictim = spawnAt(p, 0, 1.5, CitizenEntity.Role.CITIZEN, "Жертва", 180).getUuid();
+            wOther = spawnAt(p, 3, 4, CitizenEntity.Role.CITIZEN, "Свидетель", 0).getUuid();
+        });
+        server(20, s -> punch(s, wVictim));
+        server(40, s -> Novograd.LOG.info("[cops] witness Б звонок: звонков {} звёзд сразу {}", com.yompix.novograd.gta.Witness.calls - calls0, com.yompix.novograd.gta.Wanted.stars(pl(s))));
+        server(20, s -> { // игрок уходит от места — полиция должна ехать к месту, а не к нему
+            var p = pl(s);
+            p.teleport(p.getServerWorld(), p.getX() + 60, p.getY() + 1, p.getZ(), 0, 0);
+        });
+        server(20 * 26, s -> Novograd.LOG.info("[cops] witness Б сообщение: принято {} звёзд {} отменено {}", com.yompix.novograd.gta.Witness.reports - reports0,
+                com.yompix.novograd.gta.Wanted.stars(pl(s)), com.yompix.novograd.gta.Witness.cancelled));
+        server(20 * 20, s -> {
+            var p = pl(s);
+            var spot = p.getPos().add(-60, 0, 0);
+            Novograd.LOG.info("[cops] witness Б полиция у места {} у игрока {} (в колонии {})", copsNear(p, spot, 40), copsNear(p, p.getPos(), 20),
+                    com.yompix.novograd.gta.Prison.inside(p));
+            clearArea(p);
+        });
+        // В) видел полицейский: звезда сразу
+        server(5, s -> {
+            var p = pl(s);
+            p.teleport(p.getServerWorld(), p.getX() - 60, p.getY(), p.getZ(), 0, 0);
+            clearArea(p);
+            wVictim = spawnAt(p, 0, 1.5, CitizenEntity.Role.CITIZEN, "Жертва", 180).getUuid();
+            CitizenEntity cop = spawnAt(p, -3, 4, CitizenEntity.Role.POLICE, "Полицейский", 0);
+            wCop = cop.getUuid();
+        });
+        server(20, s -> punch(s, wVictim));
+        server(10, s -> Novograd.LOG.info("[cops] witness В полицейский видел: звёзд {}", com.yompix.novograd.gta.Wanted.stars(pl(s))));
+        // Г) житель напал на игрока при полицейском: его задерживают, у игрока 0 звёзд, сдача — самооборона
+        server(10, s -> {
+            var p = pl(s);
+            clearArea(p);
+            arrests0 = com.yompix.novograd.gta.Witness.arrests;
+            CitizenEntity a = spawnAt(p, 0, 2, CitizenEntity.Role.CITIZEN, "Драчун", 0);
+            a.setStationary(false);
+            a.holdFacing(0, 0);
+            a.attack(p);
+            wOther = a.getUuid();
+            CitizenEntity cop2 = spawnAt(p, -3, 4, CitizenEntity.Role.POLICE, "Полицейский", 0);
+            cop2.holdFacing(0, 0);
+            wCop = cop2.getUuid();
+        });
+        server(20 * 8, s -> punch(s, wOther)); // ответный удар — после того как он ударил
+        server(20 * 12, s -> Novograd.LOG.info("[cops] witness Г задержаний {} звёзд у игрока {}", com.yompix.novograd.gta.Witness.arrests - arrests0,
+                com.yompix.novograd.gta.Wanted.stars(pl(s))));
+        server(5, s -> clearArea(pl(s)));
     }
 
     // ------------------------------------------------------------------ сцены
