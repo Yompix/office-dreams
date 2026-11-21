@@ -4,7 +4,7 @@
 import os, sys, random
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 fonts, out = sys.argv[1], sys.argv[2]
-BONE, GOLD, RED = (236, 232, 220), (242, 194, 27), (224, 48, 58)
+BONE, GOLD, RED = (236, 232, 220), (255, 59, 71), (224, 48, 58)
 font = lambda f, s: ImageFont.truetype(os.path.join(fonts, f), s)
 
 def night(W, H, seed):   # ночь за стеклом: тёмный градиент, красноватый низ, дождь, зерно

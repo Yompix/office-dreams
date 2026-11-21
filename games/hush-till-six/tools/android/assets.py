@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 GAME = os.path.join(ROOT, 'web'); RES = os.path.join(HERE, 'res'); PLAY = os.path.join(ROOT, 'dist/play')
 FONT = os.path.join(ROOT, '../../tools/fonts/Oswald-Bold.ttf')
-CREAM, GOLD, RED, BG = (236, 232, 220), (242, 194, 27), (230, 50, 50), (5, 6, 7)
+CREAM, GOLD, RED, BG = (236, 232, 220), (255, 59, 71), (230, 50, 50), (5, 6, 7)
 master = Image.open(os.path.join(HERE, 'icon_master.jpg')).convert('RGB')
 sz = lambda n: master.resize((n, n), Image.LANCZOS)
 

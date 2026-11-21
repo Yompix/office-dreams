@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GAME = os.path.join(ROOT, 'web')
 frame, font = sys.argv[1], sys.argv[2]
-CREAM, GOLD, RED = (236, 232, 220), (242, 194, 27), (230, 50, 50)
+CREAM, GOLD, RED = (236, 232, 220), (255, 59, 71), (230, 50, 50)
 
 def compose(W, H, big, lines, ax=.5):   # ax — какую часть кадра брать по ширине (0 — левую: героиня уходит вправо, от названия)
     im = Image.open(frame).convert('RGB')
