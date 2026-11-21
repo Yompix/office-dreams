@@ -2606,12 +2606,46 @@ function mascotSVG() {
 function studio() {
   if (RESUME) { splashDone = true; return afterSplash(); }   // сменили язык/графику — заставку не показываем
   mode = 'studio';
-  uiEl.innerHTML = `<div class="studio m-${MASCOT}"><canvas class="stpx" width="96" height="54"></canvas><div class="stw">${mascotSVG()}<div class="logo"><b>YOMPIX</b><span>GAMES</span></div></div></div>`;
-  { const c = uiEl.querySelector('.stpx'), x = c.getContext('2d'), L = document.body.classList.contains('land'), CW = L ? 96 : 54, CH = L ? 54 : 96; c.width = CW; c.height = CH;   // фон: серые пиксельные блоки, как на баннере
-    for (let j = 0; j < CH; j += 3) for (let i = 0; i < CW; i += 3) { const v = Math.max(0, 40 + Math.sin(i * .13 + j * .07) * 22 + (Math.random() - .5) * 34) | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(i, j, 3, 3); } }
-  if (MASCOT === 'horror') setTimeout(() => { if (mode === 'studio') { play('static', { gain: .35, cut: .35 }); buzz(40); } }, 1550);
+  // на сайте звук разрешён только после нажатия — сначала «Нажми, чтобы начать» (это нажатие и открывает звук); в ПК-версии и приложении — сразу
+  const needTap = !DESK && !APP && !navigator.webdriver;
+  if (!needTap) return studioRun();
+  uiEl.innerHTML = `<div class="studio tapgo"><div class="tpi"><i></i><span>${tr('Нажми, чтобы начать')}</span></div></div>`;
+  uiEl.onclick = () => { uiEl.onclick = null; unlockAudio(); initAudio(); gateDone = true; gateT = now(); studioRun(); };
+}
+// звук заставки — синтез (свои генераторы, без файлов): гул, шипение плёнки, сердце, скример (удар + визг + шум), хруст шеи, удар надписи, обрыв
+function studioSound() {
+  if (!AC || !master) return; const t0 = AC.currentTime + .05, out = AC.createGain(); out.gain.value = .9; out.connect(master);
+  const env = (g, pts) => { g.gain.setValueAtTime(0, t0); for (const [t, v, lin] of pts) lin ? g.gain.linearRampToValueAtTime(v, t0 + t) : g.gain.setTargetAtTime(v, t0 + t, .06); };
+  const nb = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const noise = (start, dur, f, q, peak, dec) => { const s = AC.createBufferSource(); s.buffer = nb; s.loop = true; const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q; const g = AC.createGain();
+    g.gain.setValueAtTime(0, t0 + start); g.gain.linearRampToValueAtTime(peak, t0 + start + .01); g.gain.setTargetAtTime(0, t0 + start + .02, dec); s.connect(bp); bp.connect(g); g.connect(out); s.start(t0 + start); s.stop(t0 + start + dur); };
+  const tone = (type, f0, f1, start, dur, peak, dec, lp) => { const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t0 + start); o.frequency.exponentialRampToValueAtTime(f1, t0 + start + dur); const g = AC.createGain();
+    g.gain.setValueAtTime(0, t0 + start); g.gain.linearRampToValueAtTime(peak, t0 + start + .015); g.gain.setTargetAtTime(0, t0 + start + .03, dec); let n = o; if (lp) { const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; o.connect(f); n = f; } n.connect(g); g.connect(out); o.start(t0 + start); o.stop(t0 + start + dur + 1); };
+  // гул: два расстроенных пилообразных в 46 Гц, фильтр открывается
+  const dg = AC.createGain(), lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(150, t0); lp.frequency.linearRampToValueAtTime(520, t0 + 1.4); dg.connect(out); lp.connect(dg);
+  for (const f of [46, 46.8, 92.3]) { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(t0); o.stop(t0 + 4.2); }
+  env(dg, [[.0, 0, 1], [1.35, .3, 1], [1.44, 0, 1], [1.6, .22, 1], [3.6, .26, 1], [3.75, 0, 1]]);
+  // шипение плёнки весь ролик
+  { const s = AC.createBufferSource(); s.buffer = nb; s.loop = true; const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500; const g = AC.createGain(); s.connect(hp); hp.connect(g); g.connect(out);
+    env(g, [[0, .05, 1], [3.7, .05, 1], [3.75, 0, 1]]); s.start(t0); s.stop(t0 + 4); }
+  for (const t of [.5, .78, 1.08, 1.3]) tone('sine', 62, 38, t, .25, .9, .07);   // сердце, всё чаще
+  // скример 1,45 с: удар, шум, визг вниз
+  tone('sine', 70, 28, 1.45, 1.4, 1.2, .45); noise(1.45, .9, 1800, .6, 1.0, .18); tone('sawtooth', 1900, 240, 1.45, .7, .32, .22, 4200); tone('square', 1310, 300, 1.47, .6, .12, .2, 3000);
+  for (const t of [2.18, 2.24, 2.33]) noise(t, .06, 2600, 3, .5, .012);   // хруст шеи
+  tone('sine', 1320, 1180, 1.7, 1.6, .05, .9);   // тонкий писк в ушах после удара
+  tone('sine', 58, 30, 2.85, 1.2, 1.0, .35); noise(2.85, .4, 900, .8, .5, .12);   // удар на надписи
+}
+function studioRun() {   // анимация — CSS (идёт на видеокарте и не тормозит, пока грузится мир); JS — только звук и переход
+  mode = 'studio';
+  const svg = mascotSVG(), H = MASCOT === 'horror';
+  uiEl.innerHTML = `<div class="studio m-${MASCOT}"><canvas class="stpx"></canvas><div class="st-tear"></div>
+    <div class="st-m st-n">${svg}</div>${H ? `<div class="st-m st-h"><div class="st-hj">${svg}</div></div><div class="st-big"><div class="st-bj">${svg}</div></div>` : ''}
+    <div class="logo"><b data-t="YOMPIX">YOMPIX</b><span>GAMES</span></div><div class="st-red"></div><div class="st-eyes"><i></i><i></i></div></div>`;
+  const cv = uiEl.querySelector('.stpx'), cx = cv.getContext('2d'), L = document.body.classList.contains('land'), CW = L ? 96 : 54, CH = L ? 54 : 96; cv.width = CW; cv.height = CH;
+  for (let j = 0; j < CH; j += 3) for (let i = 0; i < CW; i += 3) { const v = Math.max(0, 40 + Math.sin(i * .13 + j * .07) * 22 + (Math.random() - .5) * 34) | 0; cx.fillStyle = `rgb(${v},${v},${v})`; cx.fillRect(i, j, 3, 3); }
+  if (H) studioSound();
   const go = () => { if (splashDone) return; splashDone = true; uiEl.onclick = null; afterSplash(); };
-  uiEl.onclick = go; setTimeout(go, 4000);
+  uiEl.onclick = go; setTimeout(go, H ? 4700 : 3300);
 }
 function afterSplash() {
   if (loaded) return RESUME ? resumeAfterReload() : menu();

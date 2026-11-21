@@ -660,21 +660,69 @@ body.nofp #shOff, body.nofp #shWalk { display: none !important; }
 .studio .stpx { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0; filter: contrast(1.2); animation: stPx 4s ease forwards; }
 @keyframes stPx { 0% { opacity: 0; } 20% { opacity: .55; } 85% { opacity: .5; } 100% { opacity: 0; } }
 .studio .stw { position: relative; animation: stIn 4s ease forwards; }
-.studio .msc { width: calc(70 * var(--u)); height: auto; filter: drop-shadow(0 0 calc(3 * var(--u)) rgba(255,255,255,.12)); animation: mscIn 4s steps(1) forwards; }
-body.land .studio .msc { width: calc(62 * var(--u)); }
-.studio .msc .h { opacity: 0; } .studio .crown { transform-origin: 103px 20px; animation: crown 2.4s ease-in-out infinite; }
 @keyframes crown { 50% { transform: translateY(-3px) rotate(-3deg); } }
 @keyframes mscIn { 0% { opacity: 0; } 8% { opacity: 1; } 10% { opacity: .2; } 12% { opacity: 1; } 100% { opacity: 1; } }
 .studio .logo { margin-top: calc(3 * var(--u)); animation: stFlick 4s steps(1) forwards; }
-.studio.m-horror .msc .n { animation: hOff 4s steps(1) forwards; } .studio.m-horror .msc .h { animation: hOn 4s steps(1) forwards; }
 @keyframes hOff { 0%, 38% { opacity: 1; } 39%, 41% { opacity: 0; } 42%, 43% { opacity: 1; } 44%, 100% { opacity: 0; } }
 @keyframes hOn { 0%, 38% { opacity: 0; } 39%, 41% { opacity: 1; } 42%, 43% { opacity: 0; } 44%, 100% { opacity: 1; } }
 .studio.m-horror .msc .pup { filter: drop-shadow(0 0 3px #ff2a35); animation: pup 1.2s ease-in-out infinite; }
 @keyframes pup { 50% { opacity: .45; } }
-.studio.m-horror .msc { animation: mscIn 4s steps(1) forwards, hJerk 4s steps(1) forwards; }
 @keyframes hJerk { 0%, 38% { transform: none; } 39% { transform: translate(calc(-1.6 * var(--u)), calc(.6 * var(--u))) skewX(-6deg); } 40% { transform: translate(calc(1.2 * var(--u)), 0) scale(1.06); } 41% { transform: none; } 70% { transform: none; } 71% { transform: translateX(calc(.8 * var(--u))); } 72%, 100% { transform: none; } }
 .studio.m-horror::after { content: ''; position: absolute; inset: 0; background: #ff1d2c; opacity: 0; mix-blend-mode: multiply; pointer-events: none; animation: hRed 4s steps(1) forwards; }
 @keyframes hRed { 0%, 38% { opacity: 0; } 39% { opacity: .55; } 41% { opacity: 0; } 100% { opacity: 0; } }
+/* 21 ноя (3): заставка — CSS-таймлайн 4,6 с (studioRun). n — обычный маскот, h — хоррор-лицо, big — скример во весь экран */
+.studio .stw { display: none; }
+.studio .stpx { animation: pxF 4.6s steps(1) forwards; opacity: 0; filter: contrast(1.3); }
+@keyframes pxF { 0% { opacity: 0; } 4% { opacity: .35; } 7% { opacity: .15; } 10% { opacity: .4; } 31% { opacity: .5; } 32% { opacity: 0; } 33% { opacity: .6; } 62% { opacity: .55; } 63% { opacity: 0; } 64% { opacity: .5; } 82% { opacity: .45; } 90% { opacity: .15; } 100% { opacity: 0; } }
+.studio .st-m, .studio .st-big { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); pointer-events: none; will-change: transform, opacity; }
+.studio .st-m .msc, .studio .st-big .msc { width: calc(70 * var(--u)); animation: none; }
+body.land .studio .st-m .msc { width: calc(58 * var(--u)); }
+.studio .msc .h { opacity: 0; } .studio .st-h .msc .n, .studio .st-big .msc .n { opacity: 0; } .studio .st-h .msc .h, .studio .st-big .msc .h { opacity: 1; }
+.studio .st-h .msc, .studio .st-big .msc { filter: drop-shadow(calc(.6 * var(--u)) 0 0 rgba(255,30,50,.8)) drop-shadow(calc(-.6 * var(--u)) 0 0 rgba(40,220,255,.55)); }
+.studio.m-default .st-n { animation: nIn 3.2s ease forwards; }
+@keyframes nIn { 0% { opacity: 0; } 20% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+/* обычное лицо подползает из темноты с мерцанием и исчезает на чёрном кадре */
+.studio.m-horror .st-n { opacity: 0; animation: crawl 4.6s linear forwards; }
+@keyframes crawl { 0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.82); } 10% { opacity: .8; } 12% { opacity: .1; } 14% { opacity: 1; } 22% { opacity: 1; transform: translate(-50%, -50%) scale(.9); }
+  23% { opacity: .2; transform: translate(-47%, -50%) scale(.9); } 24% { opacity: 1; transform: translate(-50%, -50%) scale(.91); } 31% { opacity: 1; transform: translate(-50%, -50%) scale(.96); } 31.5%, 100% { opacity: 0; } }
+/* скример: лицо во весь экран, тряска, хруст — голова набок */
+.studio .st-big { opacity: 0; animation: bigOn 4.6s steps(1) forwards; } .studio .st-big .msc { width: calc(150 * var(--u)); }
+body.land .studio .st-big .msc { width: calc(130 * var(--u)); }
+@keyframes bigOn { 0%, 32.5% { opacity: 0; } 32.6%, 61.9% { opacity: 1; } 62%, 100% { opacity: 0; } }
+.studio .st-bj { animation: bigJ 4.6s linear forwards; transform-origin: 50% 70%; }
+@keyframes bigJ { 0%, 32.5% { transform: scale(1.25); } 33.5% { transform: translate(-4%, 2%) scale(1.18) rotate(-2deg); } 34.5% { transform: translate(5%, -3%) scale(1.15) rotate(2deg); } 35.5% { transform: translate(-3%, 1%) scale(1.12); }
+  37% { transform: translate(2%, -1%) scale(1.1); } 39% { transform: scale(1.1); } 47% { transform: scale(1.12) rotate(0); } 48% { transform: scale(1.12) rotate(6deg); } 50% { transform: scale(1.13) rotate(11deg); } 52%, 61% { transform: scale(1.16) rotate(16deg); } 100% { transform: scale(1.16) rotate(16deg); } }
+.studio .st-big .crown { animation: crownF 4.6s ease-in forwards; transform-box: fill-box; transform-origin: center; }
+@keyframes crownF { 0%, 43% { transform: none; } 61% { transform: translate(40px, 160px) rotate(80deg); opacity: 1; } 62%, 100% { opacity: 0; } }
+/* после скримера: хоррор-лицо на своём месте + надпись, лицо дёргается; в конце остаются глаза */
+.studio .st-h { opacity: 0; animation: hOn2 4.6s steps(1) forwards; }
+@keyframes hOn2 { 0%, 63.4% { opacity: 0; } 63.5%, 80% { opacity: 1; } 81% { opacity: .2; } 82%, 86% { opacity: 1; } 87%, 100% { opacity: 0; } }
+.studio .st-hj { animation: hJ 4.6s steps(1) forwards; }
+@keyframes hJ { 0%, 70% { transform: rotate(16deg); } 71% { transform: translateX(-3%) rotate(9deg); } 72% { transform: rotate(4deg); } 73%, 100% { transform: none; } }
+.studio .logo { position: absolute; left: 50%; top: 77%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; opacity: 0; animation: logoOn 4.6s steps(1) forwards; }
+body.land .studio .logo { top: 80%; }
+@keyframes logoOn { 0%, 63.4% { opacity: 0; } 63.5% { opacity: 1; } 65% { opacity: .2; } 66%, 86% { opacity: 1; } 87%, 100% { opacity: 0; } }
+.studio.m-default .logo { animation: nIn 3.2s ease forwards; }
+.studio .logo b { position: relative; font-size: calc(11 * var(--u)); animation: stGlitch 1.2s steps(1) infinite; }
+.studio.m-horror .logo b::after { content: ''; position: absolute; left: 8%; right: 8%; top: 92%; height: calc(7 * var(--u)); pointer-events: none; transform-origin: top; transform: scaleY(0);
+  background: radial-gradient(circle at 10% 0, #b0101c 0 18%, transparent 20%) 0 0 / 16% 100%, linear-gradient(#b0101c, rgba(176,16,28,0)) 6% 0 / 2% 100% no-repeat, linear-gradient(#b0101c, rgba(176,16,28,0)) 38% 0 / 2.5% 70% no-repeat, linear-gradient(#b0101c, rgba(176,16,28,0)) 71% 0 / 2% 100% no-repeat, linear-gradient(#b0101c, rgba(176,16,28,0)) 90% 0 / 1.6% 55% no-repeat;
+  animation: drip2 4.6s ease-in forwards; }
+@keyframes drip2 { 0%, 66% { transform: scaleY(0); } 86% { transform: scaleY(1); } 100% { transform: scaleY(1); } }
+.studio .st-red { position: absolute; inset: 0; background: #c0081a; mix-blend-mode: multiply; opacity: 0; pointer-events: none; }
+.studio.m-horror .st-red { animation: redF 4.6s linear forwards; }
+@keyframes redF { 0%, 32.5% { opacity: 0; } 32.6% { opacity: .75; } 41% { opacity: 0; } 63.4% { opacity: 0; } 63.5% { opacity: .45; } 66%, 100% { opacity: 0; } }
+.studio .st-tear { position: absolute; left: 0; right: 0; height: 3%; top: 30%; background: rgba(255,255,255,.12); opacity: 0; pointer-events: none; }
+.studio.m-horror .st-tear { animation: tear 4.6s steps(1) forwards; }
+@keyframes tear { 0%, 22% { opacity: 0; } 23% { opacity: 1; top: 40%; } 24%, 32% { opacity: 0; } 33% { opacity: 1; top: 18%; } 34% { opacity: 1; top: 66%; } 35%, 63% { opacity: 0; } 64% { opacity: 1; top: 52%; } 65%, 100% { opacity: 0; } }
+.studio .st-eyes { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); display: flex; gap: calc(7 * var(--u)); opacity: 0; pointer-events: none; }
+.studio.m-horror .st-eyes { animation: eyesF 4.6s steps(1) forwards; }
+@keyframes eyesF { 0%, 87% { opacity: 0; } 88%, 95% { opacity: 1; } 96% { opacity: .3; } 97% { opacity: 1; } 99%, 100% { opacity: 0; } }
+.studio .st-eyes i { width: calc(1.6 * var(--u)); height: calc(1.6 * var(--u)); border-radius: 50%; background: #ff2a35; box-shadow: 0 0 calc(3 * var(--u)) #ff2a35; }
+.studio.m-horror::after { display: none; }
+.studio .st-m .msc .crown { animation: crown 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.studio.tapgo { cursor: pointer; } .studio .tpi { display: flex; flex-direction: column; align-items: center; gap: calc(3 * var(--u)); color: #bbb; font: 600 calc(3.4 * var(--u)) NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.6 * var(--u)); text-transform: uppercase; animation: tpi 1.8s ease-in-out infinite; }
+.studio .tpi i { width: 0; height: 0; border-left: calc(6 * var(--u)) solid #ddd; border-top: calc(3.6 * var(--u)) solid transparent; border-bottom: calc(3.6 * var(--u)) solid transparent; }
+@keyframes tpi { 50% { opacity: .35; } }
 </style>
 </head>
 <body>
@@ -715,7 +763,7 @@ body.land .studio .msc { width: calc(62 * var(--u)); }
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=36"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=37"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
@@ -724,7 +772,7 @@ body.land .studio .msc { width: calc(62 * var(--u)); }
 <script src="chars2.js?v=54"></script>
 <script src="scenes.js?v=97"></script>
 <script src="story.js?v=40"></script>
-<script src="engine.js?v=106"></script>
+<script src="engine.js?v=107"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

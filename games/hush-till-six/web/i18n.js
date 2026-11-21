@@ -83,7 +83,7 @@ const EN = {
   'ТИХО…': 'QUIET…', 'Шаги ушли. Можно дышать.': 'The footsteps are gone. You can breathe.', 'ДВЕРЬ': 'DOOR', 'Влево': 'Left', 'Вправо': 'Right', '← ВЛЕВО': '← LEFT', 'ВПРАВО →': 'RIGHT →', 'СЛЕВА': 'LEFT', 'СПРАВА': 'RIGHT',
   '▶ ЗАПИСЬ': '▶ PLAY', '◀◀ ЗАПИСЬ': '◀◀ REWIND', 'НОЧЬ 1 · ': 'NIGHT 1 · ', 'ТЕЛЕФОН': 'PHONE', 'КАМЕРА': 'CAMERA',
   'Экран': 'Screen', 'ГОРИЗОНТАЛЬНО': 'LANDSCAPE', 'ВЕРТИКАЛЬНО': 'PORTRAIT', 'Графика': 'Graphics', 'КИНО': 'CINEMA', 'РЕТРО': 'RETRO', 'Звук': 'Sound', 'Озвучка': 'Voice-over',
-  'ВКЛ': 'ON', 'Кабинет': 'Office', 'Чиню щиток…': 'Fixing the breaker…', 'Отошёл — щиток не починен.': 'You stepped away — the breaker isn’t fixed.', 'Ты бегом вернулся в кабинет.': 'You ran back to the office.', 'Гас кивает и продолжает мыть.': 'Gus nods and keeps mopping.', 'Включить свет': 'Turn the lights on', 'Свет включён.': 'Lights are on.', 'Щиток: не включается.': 'Breaker: it won’t switch on.', 'Лифт: 7': 'Lift: 7', 'Лифт: 10': 'Lift: 10', 'Лифт: −2': 'Lift: −2', 'В холл': 'To the lobby', 'Лифт на СТОПе — сними на пульте.': 'The lift is on STOP — release it on the panel.', 'Обход': 'Patrol', 'В кабинет': 'Back to office', 'Запереть вход': 'Lock the entrance', 'Камеры никто не смотрит.': 'Nobody is watching the cameras.', 'Мониторы': 'Monitors', 'ВЫКЛ': 'OFF', 'СЛАБО': 'LOW', 'ОБЫЧНО': 'NORMAL', 'Плёнка VHS': 'VHS film', 'Меньше вспышек': 'Fewer flashes', 'Хардкор': 'Hardcore', 'Начать ночь заново': 'Restart the night', 'Хардкор: одна попытка на всю ночь.': 'Hardcore: one attempt for the whole night.', 'Реплики сами': 'Auto-advance',
+  'ВКЛ': 'ON', 'Кабинет': 'Office', 'Нажми, чтобы начать': 'Tap to start', 'Чиню щиток…': 'Fixing the breaker…', 'Отошёл — щиток не починен.': 'You stepped away — the breaker isn’t fixed.', 'Ты бегом вернулся в кабинет.': 'You ran back to the office.', 'Гас кивает и продолжает мыть.': 'Gus nods and keeps mopping.', 'Включить свет': 'Turn the lights on', 'Свет включён.': 'Lights are on.', 'Щиток: не включается.': 'Breaker: it won’t switch on.', 'Лифт: 7': 'Lift: 7', 'Лифт: 10': 'Lift: 10', 'Лифт: −2': 'Lift: −2', 'В холл': 'To the lobby', 'Лифт на СТОПе — сними на пульте.': 'The lift is on STOP — release it on the panel.', 'Обход': 'Patrol', 'В кабинет': 'Back to office', 'Запереть вход': 'Lock the entrance', 'Камеры никто не смотрит.': 'Nobody is watching the cameras.', 'Мониторы': 'Monitors', 'ВЫКЛ': 'OFF', 'СЛАБО': 'LOW', 'ОБЫЧНО': 'NORMAL', 'Плёнка VHS': 'VHS film', 'Меньше вспышек': 'Fewer flashes', 'Хардкор': 'Hardcore', 'Начать ночь заново': 'Restart the night', 'Хардкор: одна попытка на всю ночь.': 'Hardcore: one attempt for the whole night.', 'Реплики сами': 'Auto-advance',
   'Оглядываться мышью': 'Look around with mouse', 'Оглядываться наклоном': 'Look around by tilting', 'Язык': 'Language', 'РУССКИЙ': 'РУССКИЙ', 'ENGLISH': 'ENGLISH',
   '«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.':
     '"Cinema" — shadows, reflections, volumetric light (for PC). "Retro" — film grain and pixels, lighter for phones. With voice-over off, subtitles stay on.',
@@ -970,6 +970,7 @@ es: {
   "Гас кивает и продолжает мыть.": "Gus asiente y sigue fregando.",
   "Чиню щиток…": "Arreglando el cuadro…",
   "Отошёл — щиток не починен.": "Te alejaste: el cuadro no está arreglado.",
+  "Нажми, чтобы начать": "Toca para empezar",
 },
 pt: {
   "CAM 04  ХОЛЛ": "CAM 04  SAGUÃO",
@@ -1629,6 +1630,7 @@ pt: {
   "Гас кивает и продолжает мыть.": "Gus acena e continua limpando.",
   "Чиню щиток…": "Consertando o quadro…",
   "Отошёл — щиток не починен.": "Você se afastou — o quadro não foi consertado.",
+  "Нажми, чтобы начать": "Toque para começar",
 },
 de: {
   "CAM 04  ХОЛЛ": "CAM 04  FOYER",
@@ -2288,6 +2290,7 @@ de: {
   "Гас кивает и продолжает мыть.": "Gus nickt und wischt weiter.",
   "Чиню щиток…": "Repariere den Sicherungskasten…",
   "Отошёл — щиток не починен.": "Weggegangen — der Kasten ist nicht repariert.",
+  "Нажми, чтобы начать": "Tippe, um zu starten",
 },
 fr: {
   "CAM 04  ХОЛЛ": "CAM 04  HALL",
@@ -2947,6 +2950,7 @@ fr: {
   "Гас кивает и продолжает мыть.": "Gus hoche la tête et continue de nettoyer.",
   "Чиню щиток…": "Je répare le tableau…",
   "Отошёл — щиток не починен.": "Tu t’es éloigné — le tableau n’est pas réparé.",
+  "Нажми, чтобы начать": "Touche pour commencer",
 },
 it: {
   "CAM 04  ХОЛЛ": "CAM 04  ATRIO",
@@ -3606,6 +3610,7 @@ it: {
   "Гас кивает и продолжает мыть.": "Gus annuisce e continua a lavare.",
   "Чиню щиток…": "Riparo il quadro…",
   "Отошёл — щиток не починен.": "Ti sei allontanato: il quadro non è riparato.",
+  "Нажми, чтобы начать": "Tocca per iniziare",
 },
 pl: {
   "CAM 04  ХОЛЛ": "CAM 04  HOL",
@@ -4265,6 +4270,7 @@ pl: {
   "Гас кивает и продолжает мыть.": "Gus kiwa głową i myje dalej.",
   "Чиню щиток…": "Naprawiam rozdzielnicę…",
   "Отошёл — щиток не починен.": "Odszedłeś — rozdzielnica nienaprawiona.",
+  "Нажми, чтобы начать": "Dotknij, aby zacząć",
 },
 tr: {
   "CAM 04  ХОЛЛ": "CAM 04  LOBİ",
@@ -4924,6 +4930,7 @@ tr: {
   "Гас кивает и продолжает мыть.": "Gus başını sallayıp silmeye devam ediyor.",
   "Чиню щиток…": "Sigorta kutusunu tamir ediyorum…",
   "Отошёл — щиток не починен.": "Uzaklaştın — kutu tamir edilmedi.",
+  "Нажми, чтобы начать": "Başlamak için dokun",
 },
 uk: {
   "CAM 04  ХОЛЛ": "CAM 04  ХОЛ",
@@ -5583,6 +5590,7 @@ uk: {
   "Гас кивает и продолжает мыть.": "Гас киває й далі миє.",
   "Чиню щиток…": "Лагоджу щиток…",
   "Отошёл — щиток не починен.": "Відійшов — щиток не полагоджено.",
+  "Нажми, чтобы начать": "Натисни, щоб почати",
 },
 zh: {
   "CAM 04  ХОЛЛ": "CAM 04  大厅",
@@ -6242,6 +6250,7 @@ zh: {
   "Гас кивает и продолжает мыть.": "格斯点点头，继续拖地。",
   "Чиню щиток…": "正在修配电箱…",
   "Отошёл — щиток не починен.": "你走开了——配电箱没修好。",
+  "Нажми, чтобы начать": "点击开始",
 },
 ja: {
   "CAM 04  ХОЛЛ": "CAM 04  ロビー",
@@ -6901,6 +6910,7 @@ ja: {
   "Гас кивает и продолжает мыть.": "ガスはうなずいて、モップがけを続ける。",
   "Чиню щиток…": "分電盤を直している…",
   "Отошёл — щиток не починен.": "離れた――分電盤は直っていない。",
+  "Нажми, чтобы начать": "タップして始める",
 },
 ko: {
   "CAM 04  ХОЛЛ": "CAM 04  로비",
@@ -7560,6 +7570,7 @@ ko: {
   "Гас кивает и продолжает мыть.": "거스는 고개를 끄덕이고 계속 걸레질한다.",
   "Чиню щиток…": "분전반을 고치는 중…",
   "Отошёл — щиток не починен.": "자리를 떴다 — 분전반은 고쳐지지 않았다.",
+  "Нажми, чтобы начать": "눌러서 시작",
 },
 };
 // ==== /DICT ====

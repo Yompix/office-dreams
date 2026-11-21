@@ -26,7 +26,8 @@
   "Ты бегом вернулся в кабинет.": "Volviste corriendo a la oficina.",
   "Гас кивает и продолжает мыть.": "Gus asiente y sigue fregando.",
   "Чиню щиток…": "Arreglando el cuadro…",
-  "Отошёл — щиток не починен.": "Te alejaste: el cuadro no está arreglado."
+  "Отошёл — щиток не починен.": "Te alejaste: el cuadro no está arreglado.",
+  "Нажми, чтобы начать": "Toca para empezar"
  },
  "pt": {
   "ПЛАН ЭВАКУАЦИИ": "PLANO DE EVACUAÇÃO",
@@ -55,7 +56,8 @@
   "Ты бегом вернулся в кабинет.": "Você voltou correndo pra sala.",
   "Гас кивает и продолжает мыть.": "Gus acena e continua limpando.",
   "Чиню щиток…": "Consertando o quadro…",
-  "Отошёл — щиток не починен.": "Você se afastou — o quadro não foi consertado."
+  "Отошёл — щиток не починен.": "Você se afastou — o quadro não foi consertado.",
+  "Нажми, чтобы начать": "Toque para começar"
  },
  "de": {
   "ПЛАН ЭВАКУАЦИИ": "FLUCHTPLAN",
@@ -84,7 +86,8 @@
   "Ты бегом вернулся в кабинет.": "Du bist ins Büro zurückgerannt.",
   "Гас кивает и продолжает мыть.": "Gus nickt und wischt weiter.",
   "Чиню щиток…": "Repariere den Sicherungskasten…",
-  "Отошёл — щиток не починен.": "Weggegangen — der Kasten ist nicht repariert."
+  "Отошёл — щиток не починен.": "Weggegangen — der Kasten ist nicht repariert.",
+  "Нажми, чтобы начать": "Tippe, um zu starten"
  },
  "fr": {
   "ПЛАН ЭВАКУАЦИИ": "PLAN D'ÉVACUATION",
@@ -113,7 +116,8 @@
   "Ты бегом вернулся в кабинет.": "Tu es revenu en courant au bureau.",
   "Гас кивает и продолжает мыть.": "Gus hoche la tête et continue de nettoyer.",
   "Чиню щиток…": "Je répare le tableau…",
-  "Отошёл — щиток не починен.": "Tu t’es éloigné — le tableau n’est pas réparé."
+  "Отошёл — щиток не починен.": "Tu t’es éloigné — le tableau n’est pas réparé.",
+  "Нажми, чтобы начать": "Touche pour commencer"
  },
  "it": {
   "ПЛАН ЭВАКУАЦИИ": "PIANO DI EVACUAZIONE",
@@ -142,7 +146,8 @@
   "Ты бегом вернулся в кабинет.": "Sei tornato di corsa in ufficio.",
   "Гас кивает и продолжает мыть.": "Gus annuisce e continua a lavare.",
   "Чиню щиток…": "Riparo il quadro…",
-  "Отошёл — щиток не починен.": "Ti sei allontanato: il quadro non è riparato."
+  "Отошёл — щиток не починен.": "Ti sei allontanato: il quadro non è riparato.",
+  "Нажми, чтобы начать": "Tocca per iniziare"
  },
  "pl": {
   "ПЛАН ЭВАКУАЦИИ": "PLAN EWAKUACJI",
@@ -171,7 +176,8 @@
   "Ты бегом вернулся в кабинет.": "Wróciłeś biegiem do biura.",
   "Гас кивает и продолжает мыть.": "Gus kiwa głową i myje dalej.",
   "Чиню щиток…": "Naprawiam rozdzielnicę…",
-  "Отошёл — щиток не починен.": "Odszedłeś — rozdzielnica nienaprawiona."
+  "Отошёл — щиток не починен.": "Odszedłeś — rozdzielnica nienaprawiona.",
+  "Нажми, чтобы начать": "Dotknij, aby zacząć"
  },
  "tr": {
   "ПЛАН ЭВАКУАЦИИ": "TAHLİYE PLANI",
@@ -200,7 +206,8 @@
   "Ты бегом вернулся в кабинет.": "Koşarak odaya döndün.",
   "Гас кивает и продолжает мыть.": "Gus başını sallayıp silmeye devam ediyor.",
   "Чиню щиток…": "Sigorta kutusunu tamir ediyorum…",
-  "Отошёл — щиток не починен.": "Uzaklaştın — kutu tamir edilmedi."
+  "Отошёл — щиток не починен.": "Uzaklaştın — kutu tamir edilmedi.",
+  "Нажми, чтобы начать": "Başlamak için dokun"
  },
  "uk": {
   "ПЛАН ЭВАКУАЦИИ": "ПЛАН ЕВАКУАЦІЇ",
@@ -229,7 +236,8 @@
   "Ты бегом вернулся в кабинет.": "Ти бігцем повернувся до кабінету.",
   "Гас кивает и продолжает мыть.": "Гас киває й далі миє.",
   "Чиню щиток…": "Лагоджу щиток…",
-  "Отошёл — щиток не починен.": "Відійшов — щиток не полагоджено."
+  "Отошёл — щиток не починен.": "Відійшов — щиток не полагоджено.",
+  "Нажми, чтобы начать": "Натисни, щоб почати"
  },
  "zh": {
   "ПЛАН ЭВАКУАЦИИ": "疏散示意图",
@@ -258,7 +266,8 @@
   "Ты бегом вернулся в кабинет.": "你跑回了值班室。",
   "Гас кивает и продолжает мыть.": "格斯点点头，继续拖地。",
   "Чиню щиток…": "正在修配电箱…",
-  "Отошёл — щиток не починен.": "你走开了——配电箱没修好。"
+  "Отошёл — щиток не починен.": "你走开了——配电箱没修好。",
+  "Нажми, чтобы начать": "点击开始"
  },
  "ja": {
   "ПЛАН ЭВАКУАЦИИ": "避難経路図",
@@ -287,7 +296,8 @@
   "Ты бегом вернулся в кабинет.": "走って警備室に戻った。",
   "Гас кивает и продолжает мыть.": "ガスはうなずいて、モップがけを続ける。",
   "Чиню щиток…": "分電盤を直している…",
-  "Отошёл — щиток не починен.": "離れた――分電盤は直っていない。"
+  "Отошёл — щиток не починен.": "離れた――分電盤は直っていない。",
+  "Нажми, чтобы начать": "タップして始める"
  },
  "ko": {
   "ПЛАН ЭВАКУАЦИИ": "대피 안내도",
@@ -316,6 +326,7 @@
   "Ты бегом вернулся в кабинет.": "너는 경비실로 뛰어 돌아왔다.",
   "Гас кивает и продолжает мыть.": "거스는 고개를 끄덕이고 계속 걸레질한다.",
   "Чиню щиток…": "분전반을 고치는 중…",
-  "Отошёл — щиток не починен.": "자리를 떴다 — 분전반은 고쳐지지 않았다."
+  "Отошёл — щиток не починен.": "자리를 떴다 — 분전반은 고쳐지지 않았다.",
+  "Нажми, чтобы начать": "눌러서 시작"
  }
 }
