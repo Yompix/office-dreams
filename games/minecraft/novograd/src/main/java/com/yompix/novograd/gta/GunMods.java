@@ -159,7 +159,8 @@ public final class GunMods {
         boolean cop = Wanted.policeSees(w, p, 24 * (0.4 + 0.6 * sk));
         boolean witness = cop || !w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(10 * sk),
                 c -> c.isAlive() && c.getRole() != CitizenEntity.Role.GANG && !(c instanceof com.yompix.novograd.entity.BodyguardEntity) && c.canSee(p)).isEmpty();
-        if (witness) Wanted.add(p, 0, cop ? "стрельба на глазах у полиции" : "свидетели видели стрельбу", cop ? 2 : 1);
+        if (cop) Wanted.add(p, 0, "стрельба на глазах у полиции", 2);
+        else if (witness) Witness.crime(p, at, "свидетели видели стрельбу", 0, 1, false, null); // 0.9.5: прохожий звонит
         else Skills.add(p, Skills.Skill.STEALTH, 1.5f); // тихо и без свидетелей — растёт скрытность
     }
 }

@@ -742,6 +742,16 @@ public final class LifeAi {
         return out;
     }
 
+    /** 0.9.5 «Наблюдение»: характер, занятие и нужды прохожего (1 — всё хорошо). null — у него нет «мозга». */
+    @Nullable
+    public static String[] observe(CitizenEntity c) {
+        Brain b = BRAINS.get(c.getUuid());
+        if (b == null) return null;
+        String[] tr = {"лентяй", "спортсмен", "тусовщик", "трудоголик", "осторожный"};
+        return new String[]{tr[b.trait.ordinal()], b.doing.isEmpty() ? "гуляет" : b.doing,
+                (1 - b.hunger) + "," + b.energy + "," + (1 - b.social) + "," + b.mood + "," + b.money};
+    }
+
     public static String doing(CitizenEntity c) {
         Brain b = BRAINS.get(c.getUuid());
         return b == null ? "-" : b.trait + "/" + b.doing;
