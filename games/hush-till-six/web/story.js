@@ -22,7 +22,7 @@ window.STORY = {
         { img: 'pro_hall', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.47, .5, 1.3, 1.4]], say: ['p02'], pad: .4 },
         { img: 'pro_ext', fx: 'rain', cams: [[.5, .45, 1.0, 1.08]], say: ['p03', 'p04'], sfx: [['steps', 1.0, { gain: .4 }], ['door', 9.6, { gain: .5 }]], pad: .6 },
         { img: null, phone: { kind: 'lock', time: '21:03', notes: [{ from: 'Лили', text: 'Удачи на первой смене! Не засни там :)', at: 1.4 }] }, say: ['p05'], sfx: [['buzz', 1.4]], pad: .5 },
-        { img: 'pro_enter', cams: [[.5, .5, 1.0, 1.06]], say: ['p06'], pad: .3, music: 'part2' },
+        { img: 'pro_enter', cams: [[.5, .5, 1.0, 1.06]], say: ['p06'], pad: .3, music: 'part2', msync: 1.02 },   // 21 ноя (владелец): сначала mus_p2a, через 1,02 с голос
         { img: 'pro_two', cams: [[.5, .5, 1.0, 1.05], [.48, .45, 1.25, 1.3]], say: ['p07', 'p08', 'p09'], pad: .3 },
         { img: 'pro_offer', cams: [[.5, .5, 1.05, 1.12]], pad: 1.4 }
       ],
@@ -256,7 +256,7 @@ window.STORY = {
     run2: {
       music: 'drone', time: '03:44',
       beats: [
-        { img: 'x_out', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x03'], sfx: [['door', 0], ['rain_burst', .1]], pad: .4 },
+        { img: 'x_out', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x03'], sfx: [['door', .62], ['rain_burst', .1]], pad: .4 },
         { img: 'x_building', fx: 'rain', cams: [[.5, .45, 1.0, 1.12]], say: ['x04'], pad: .6 },
         { img: null, phone: { kind: 'call', name: 'Лили', take: 1.65 }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x06'], pad: .3 },
