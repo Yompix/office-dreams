@@ -83,7 +83,7 @@ const EN = {
   'ТИХО…': 'QUIET…', 'Шаги ушли. Можно дышать.': 'The footsteps are gone. You can breathe.', 'ДВЕРЬ': 'DOOR', 'Влево': 'Left', 'Вправо': 'Right', '← ВЛЕВО': '← LEFT', 'ВПРАВО →': 'RIGHT →', 'СЛЕВА': 'LEFT', 'СПРАВА': 'RIGHT',
   '▶ ЗАПИСЬ': '▶ PLAY', '◀◀ ЗАПИСЬ': '◀◀ REWIND', 'НОЧЬ 1 · ': 'NIGHT 1 · ', 'ТЕЛЕФОН': 'PHONE', 'КАМЕРА': 'CAMERA',
   'Экран': 'Screen', 'ГОРИЗОНТАЛЬНО': 'LANDSCAPE', 'ВЕРТИКАЛЬНО': 'PORTRAIT', 'Графика': 'Graphics', 'КИНО': 'CINEMA', 'РЕТРО': 'RETRO', 'Звук': 'Sound', 'Озвучка': 'Voice-over',
-  'ВКЛ': 'ON', 'ВЫКЛ': 'OFF', 'СЛАБО': 'LOW', 'ОБЫЧНО': 'NORMAL', 'Плёнка VHS': 'VHS film', 'Меньше вспышек': 'Fewer flashes', 'Реплики сами': 'Auto-advance',
+  'ВКЛ': 'ON', 'ВЫКЛ': 'OFF', 'СЛАБО': 'LOW', 'ОБЫЧНО': 'NORMAL', 'Плёнка VHS': 'VHS film', 'Меньше вспышек': 'Fewer flashes', 'Хардкор': 'Hardcore', 'Начать ночь заново': 'Restart the night', 'Хардкор: одна попытка на всю ночь.': 'Hardcore: one attempt for the whole night.', 'Реплики сами': 'Auto-advance',
   'Оглядываться мышью': 'Look around with mouse', 'Оглядываться наклоном': 'Look around by tilting', 'Язык': 'Language', 'РУССКИЙ': 'РУССКИЙ', 'ENGLISH': 'ENGLISH',
   '«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.':
     '"Cinema" — shadows, reflections, volumetric light (for PC). "Retro" — film grain and pixels, lighter for phones. With voice-over off, subtitles stay on.',
@@ -950,6 +950,9 @@ es: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "El idioma, los gráficos y la resolución se aplicarán al salir de los ajustes.",
   "Применить": "Aplicar",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Empezar la noche de nuevo",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore: un solo intento para toda la noche.",
 },
 pt: {
   "CAM 04  ХОЛЛ": "CAM 04  SAGUÃO",
@@ -1589,6 +1592,9 @@ pt: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Idioma, gráficos e resolução serão aplicados ao sair das configurações.",
   "Применить": "Aplicar",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Recomeçar a noite",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore: uma única tentativa para a noite toda.",
 },
 de: {
   "CAM 04  ХОЛЛ": "CAM 04  FOYER",
@@ -2228,6 +2234,9 @@ de: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Sprache, Grafik und Auflösung werden beim Verlassen der Einstellungen übernommen.",
   "Применить": "Übernehmen",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Die Nacht neu beginnen",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore: ein einziger Versuch für die ganze Nacht.",
 },
 fr: {
   "CAM 04  ХОЛЛ": "CAM 04  HALL",
@@ -2867,6 +2876,9 @@ fr: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "La langue, les graphismes et la résolution s’appliqueront en quittant les paramètres.",
   "Применить": "Appliquer",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Recommencer la nuit",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore : une seule tentative pour toute la nuit.",
 },
 it: {
   "CAM 04  ХОЛЛ": "CAM 04  ATRIO",
@@ -3506,6 +3518,9 @@ it: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Lingua, grafica e risoluzione verranno applicate all’uscita dalle impostazioni.",
   "Применить": "Applica",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Ricomincia la notte",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore: un solo tentativo per tutta la notte.",
 },
 pl: {
   "CAM 04  ХОЛЛ": "CAM 04  HOL",
@@ -4145,6 +4160,9 @@ pl: {
   "АВТО": "AUTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Język, grafika i rozdzielczość zmienią się po wyjściu z ustawień.",
   "Применить": "Zastosuj",
+  "Хардкор": "Hardcore",
+  "Начать ночь заново": "Zacznij noc od nowa",
+  "Хардкор: одна попытка на всю ночь.": "Hardcore: jedna próba na całą noc.",
 },
 tr: {
   "CAM 04  ХОЛЛ": "CAM 04  LOBİ",
@@ -4784,6 +4802,9 @@ tr: {
   "АВТО": "OTO",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Dil, grafik ve çözünürlük ayarlardan çıkınca uygulanır.",
   "Применить": "Uygula",
+  "Хардкор": "Zor mod",
+  "Начать ночь заново": "Geceye baştan başla",
+  "Хардкор: одна попытка на всю ночь.": "Zor mod: bütün gece için tek deneme.",
 },
 uk: {
   "CAM 04  ХОЛЛ": "CAM 04  ХОЛ",
@@ -5423,6 +5444,9 @@ uk: {
   "АВТО": "АВТО",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "Мова, графіка й роздільність застосуються, коли вийдеш із налаштувань.",
   "Применить": "Застосувати",
+  "Хардкор": "Хардкор",
+  "Начать ночь заново": "Почати ніч заново",
+  "Хардкор: одна попытка на всю ночь.": "Хардкор: одна спроба на всю ніч.",
 },
 zh: {
   "CAM 04  ХОЛЛ": "CAM 04  大厅",
@@ -6062,6 +6086,9 @@ zh: {
   "АВТО": "自动",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "语言、画质和分辨率将在退出设置后生效。",
   "Применить": "应用",
+  "Хардкор": "硬核",
+  "Начать ночь заново": "重新开始这一夜",
+  "Хардкор: одна попытка на всю ночь.": "硬核：整夜只有一次机会。",
 },
 ja: {
   "CAM 04  ХОЛЛ": "CAM 04  ロビー",
@@ -6701,6 +6728,9 @@ ja: {
   "АВТО": "自動",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "言語・グラフィック・解像度は、設定を閉じると反映されます。",
   "Применить": "適用",
+  "Хардкор": "ハードコア",
+  "Начать ночь заново": "夜を最初からやり直す",
+  "Хардкор: одна попытка на всю ночь.": "ハードコア：一晩に一度きり。",
 },
 ko: {
   "CAM 04  ХОЛЛ": "CAM 04  로비",
@@ -7340,6 +7370,9 @@ ko: {
   "АВТО": "자동",
   "Язык, графика и разрешение применятся, когда выйдешь из настроек.": "언어, 그래픽, 해상도는 설정을 나가면 적용됩니다.",
   "Применить": "적용",
+  "Хардкор": "하드코어",
+  "Начать ночь заново": "밤을 처음부터 다시",
+  "Хардкор: одна попытка на всю ночь.": "하드코어: 밤 전체에 단 한 번의 기회.",
 },
 };
 // ==== /DICT ====

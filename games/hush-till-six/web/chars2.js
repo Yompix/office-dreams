@@ -963,7 +963,23 @@ function orientHand(C, sd, fdir, pdir, k = 1) {   // k < 1 — кисть пов
       let a = Math.acos(clamp(n.dot(want), -1, 1)); if (n.clone().cross(want).dot(F) < 0) a = -a; wq.premultiply(new T.Quaternion().setFromAxisAngle(F, a)); }
   }
   if (k < 1) wq.copy(orig.clone().slerp(wq, Math.max(0, k)));
-  twistShare(C, sd, wq); setWorldQ(hb, wq);
+  twistShare(C, sd, wq); setWorldQ(hb, wq); wristLimit(C, sd);
+}
+// 21 ноя (владелец: «у персонажей руки выворачивает в разные стороны — люди так не делают»): пределы сустава, как у живой руки. Кисть ставилась точно
+// по fdir/pdir любой ценой, и запястье проворачивалось на 150–180°. Теперь: закрутка запястья относительно своей позы покоя — не больше ±26° (лишнее берёт
+// предплечье, кисть в мире остаётся там же); предплечье крутится не больше ±100° (пронация/супинация), дальше кисть просто не доворачивается;
+// сгиб кисти — не больше 80°. Ось кости — локальная Y (риг MakeHuman/Quaternius)
+const _wq1 = new T.Quaternion(), _wq2 = new T.Quaternion(), _wY = new T.Vector3(0, 1, 0);
+function twistY(q) { const a = 2 * Math.atan2(q.y, q.w); return Math.atan2(Math.sin(a), Math.cos(a)); }
+function wristLimit(C, sd) {
+  const lo = C.bone['lowerarm_' + sd], hb = C.bone['hand_' + sd], rl = C.rest['lowerarm_' + sd], rh = C.rest['hand_' + sd]; if (!lo || !hb || !rl || !rh || C.o.monster) return;
+  const keep = hb.getWorldQuaternion(new T.Quaternion());
+  const tw = twistY(_wq1.copy(rh).invert().multiply(hb.quaternion)), ex = tw - clamp(tw, -.45, .45);
+  if (Math.abs(ex) > 1e-3) { lo.quaternion.multiply(_wq2.setFromAxisAngle(_wY, ex)); lo.updateWorldMatrix(false, true); setWorldQ(hb, keep); }   // лишнюю закрутку — предплечью
+  const tf = twistY(_wq1.copy(rl).invert().multiply(lo.quaternion)), ef = tf - clamp(tf, -1.75, 1.75);
+  if (Math.abs(ef) > 1e-3) { lo.quaternion.multiply(_wq2.setFromAxisAngle(_wY, -ef)); lo.updateWorldMatrix(false, true); }   // предплечье дальше не крутится
+  const d = _wq1.copy(rh).invert().multiply(hb.quaternion), t = twistY(d), sw = d.clone().multiply(_wq2.setFromAxisAngle(_wY, -t)), sa = 2 * Math.acos(clamp(Math.abs(sw.w), 0, 1));
+  if (sa > 1.4) { const twq = new T.Quaternion().setFromAxisAngle(_wY, t); sw.slerp(new T.Quaternion(), 1 - 1.4 / sa); hb.quaternion.copy(rh).multiply(sw).multiply(twq); hb.updateWorldMatrix(false, true); }   // сгиб кисти — до 80°
 }
 // рука к точке мира так, чтобы туда пришлась именно точка кисти «by» (кисть повёрнута — точка касания сместилась: 3 прохода)
 // рука (или нога) — в новую точку мира: запястье (голеностоп) встаёт в точку, локоть (колено) остаётся в своей плоскости, кисть (стопа) сохраняет поворот,
