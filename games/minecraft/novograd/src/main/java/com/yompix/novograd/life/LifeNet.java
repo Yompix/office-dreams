@@ -86,7 +86,8 @@ public final class LifeNet {
             case "empire_hire" -> com.yompix.novograd.gta.Empire.hire(p, d.getInt("i"), d.getString("who"));
             case "grid_scan" -> com.yompix.novograd.gta.Grid.scan(p);
             case "grid_hack" -> com.yompix.novograd.gta.Grid.hack(p, d.getString("id"));
-            case "grid_fail" -> com.yompix.novograd.gta.Grid.fail(p); // 0.8: жест игрока (V) — видят игроки рядом
+            case "grid_fail" -> com.yompix.novograd.gta.Grid.fail(p);
+            case "observe" -> com.yompix.novograd.gta.Observe.set(p, d.getBoolean("on")); // 0.9.5: «Наблюдение» // 0.8: жест игрока (V) — видят игроки рядом
             case "ready" -> com.yompix.novograd.story.Story.onClientReady(p);
             case "perf_level" -> com.yompix.novograd.perf.PerfLevel.level = Math.max(0, Math.min(2, d.getInt("level"))); // настройка «Производительность»
             case "taxi_call" -> Taxi.call(p, d.getString("dest"));
