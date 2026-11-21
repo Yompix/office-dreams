@@ -1,4 +1,4 @@
-LANTERN 2.0.1 для Windows — by Yompix Games
+LANTERN 2.0.2 для Windows — by Yompix Games
 
 Играйте с друзьями: Minecraft (Java и Bedrock) по коду комнаты, а с 2.0 — ЛЮБЫЕ игры с игрой
 по локальной сети (Terraria, Stardew Valley, Factorio, Valheim, Warcraft III и др.) через «Любые игры».

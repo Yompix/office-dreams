@@ -20,8 +20,8 @@ const OTHER_PALETTES := [
 	["1c1240", "c05a9a", "7a3f96", "4a2670", "24123f", "ffd0e6"],     # сиреневые сумерки
 	["0a2230", "e0a060", "4f8a84", "2c5a5e", "123036", "fff0c0"],     # рассвет над водой
 ]
-const MODE_COLORS := {"survival": Color("3fd0a6"), "creative": Color("d77bff"), "pvp": Color("ff7a4a"),
-	"minigame": Color("ffd84a"), "roleplay": Color("7f9bff"), "other": Color("ffb648")}
+const MODE_COLORS := {"survival": Color("e6e6e6"), "creative": Color("cfcfcf"), "pvp": Color("f4f4f2"),     # 2.0.2: монохром
+	"minigame": Color("bdbdbd"), "roleplay": Color("a8a8a8"), "other": Color("d6d6d6")}
 
 static var _shader: Shader
 

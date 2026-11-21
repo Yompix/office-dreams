@@ -274,5 +274,22 @@
  "создатель": "twórca",
  "✓ Plus активна": "✓ Plus aktywny",
  "Меньше задержка. Участники вашей сети увидят ваш IP-адрес.": "Mniejsze opóźnienie. Uczestnicy twojej sieci zobaczą twój adres IP.",
- "Напрямую (P2P)": "Bezpośrednio (P2P)"
+ "Напрямую (P2P)": "Bezpośrednio (P2P)",
+ "Поддержать": "Wesprzyj",
+ "Поддержать LANTERN": "Wesprzyj LANTERN",
+ "Звёзды Telegram или SOL — просто спасибо автору": "Gwiazdki Telegram lub SOL — po prostu podziękowanie dla autora",
+ "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ.": "LANTERN jest darmowy i bez reklam na PC. Jeśli ci pomógł, możesz wesprzeć autora. To tylko podziękowanie: darowizna niczego nie odblokowuje i nie daje przewagi.",
+ "Звёзды Telegram": "Gwiazdki Telegram",
+ "Через бота Yompix": "Przez bota Yompix",
+ "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -.": "Otworzy się Telegram: wybierz kwotę w gwiazdkach. Twoje imię może trafić na listę sponsorów gier Yompix — albo ukryj je komendą /sponsor -.",
+ "Открыть в Telegram": "Otwórz w Telegramie",
+ "Скопировать ссылку": "Kopiuj link",
+ "Solana (SOL)": "Solana (SOL)",
+ "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana.": "Skieruj aparat portfela (Phantom, Solflare) na kod QR lub skopiuj adres. Tylko sieć Solana.",
+ "Адрес скопирован": "Adres skopiowany",
+ "Скопировать адрес": "Kopiuj adres",
+ "Открыть в кошельке": "Otwórz w portfelu",
+ "Кошелёк не найден — адрес скопирован": "Nie znaleziono portfela — adres skopiowany",
+ "Спасибо за LANTERN": "Dzięki za LANTERN",
+ "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают.": "Płatność trafia bezpośrednio do autora. LANTERN nie widzi twojego portfela i nie przechowuje danych płatności. Nikomu nie podawaj frazy seed ani kluczy — nikt o nie nie prosi."
 }

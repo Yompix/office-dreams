@@ -57,6 +57,8 @@ func run(a) -> void:
 		"vnet": code = await _vnet()
 		"brandvid": code = await _brandvid()
 		"transbench": code = await _transbench()
+		"sitepc": code = await _sitepc()
+		"sitejoin": code = await _sitejoin()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
@@ -1109,6 +1111,9 @@ func _fit_all() -> void:
 	if want.call("backups") and not Cfg.mobile():
 		app.go("backups", true)
 		await _fit_step("backups", 0.8)
+	if want.call("support") and not Cfg.mobile():
+		app.go("support", true)
+		await _fit_step("support", 0.8)
 	if want.call("settings"):
 		app.go("settings", true)
 		await _fit_step("settings", 0.6)
@@ -1461,6 +1466,10 @@ func _tour() -> int:
 	app.go("backups", true)
 	await get_tree().create_timer(1.0).timeout
 	await _shot("51_backups")
+	if not Cfg.mobile():
+		app.go("support", true)
+		await get_tree().create_timer(1.0).timeout
+		await _shot("51b_support")
 	app.go("settings", true)
 	await get_tree().create_timer(0.6).timeout
 	await _shot("52_settings")
@@ -2648,4 +2657,95 @@ func _transbench() -> int:
 		worst = maxf(worst, r.max_ms)
 		steps += int(r.steps)
 	_log("TB ИТОГ: худший кадр %.1f мс, шагов %d" % [worst, steps])
+	return 0
+
+
+# ------------------------------------------------------------------ 2.0.1: скриншоты для сайта (tests/site_shots.sh)
+## Демо-данные: боты social_seed (друзья, миры, сообщения) + участники сети — отдельные LANTERN (--autotest sitejoin).
+func _sitepc() -> int:
+	if not await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь с relay"):
+		return 1
+	if Social.conn == "need_register":
+		Social.register("Ночной_Лис")
+		await _wait(func(): return Social.online(), 10, "профиль")
+	var tag_file := data.path_join("autotest-tag.txt")
+	FileAccess.open(tag_file, FileAccess.WRITE).store_string(Social.me.tag)
+	await _wait(func(): return Social.incoming.size() >= 3, 30, "заявки в друзья")
+	for u in Social.incoming.duplicate():
+		Social.request("friend_accept", {"id": u.id})
+	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
+	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	Social.request("eco")
+	await get_tree().create_timer(1.5).timeout
+	# 1) «Игры»
+	app.go("home", true)
+	await get_tree().create_timer(1.5).timeout
+	await _shot("site1_home")
+	# 2) «Любые игры» в сети
+	var vn: VNet = app.vnet
+	vn.nick = "Ночной_Лис"
+	app.go("net", true)
+	vn.create({"name": "Terraria: ночной рейд", "game": "terraria", "public": true})
+	await _wait(func(): return str(vn.snapshot().get("state", "")) == "online", 10, "сеть")
+	var code_file := String(Cfg.autotest_args.get("vnet_code", ""))
+	FileAccess.open(code_file, FileAccess.WRITE).store_string(str(vn.snapshot().num))
+	await _wait(func(): return (vn.snapshot().members as Array).size() >= 3, 40, "участники")
+	await _wait(func(): return (vn.snapshot().members as Array).filter(func(m): return m.get("p2p", false)).size() >= 2, 25, "P2P")
+	vn.chat("Сервер поднят, заходите! Порт 7777")
+	await get_tree().create_timer(9.0).timeout     # пинги для графика, сообщения и реакции ботов
+	var ch: Array = vn.snapshot().get("chat", [])
+	if ch.size() > 0:
+		vn.react(int(ch[ch.size() - 1].id), "🔥")
+	await get_tree().create_timer(1.0).timeout
+	var sc: Control = app._screen_root
+	var mem: Variant = app._screen.get("_members")
+	if sc is ScrollContainer and mem is Control:
+		var scr := sc as ScrollContainer
+		scr.scroll_vertical = int(scr.scroll_vertical + (mem as Control).global_position.y - scr.global_position.y - 150)
+	await get_tree().create_timer(0.5).timeout
+	await _shot("site2_net")
+	# 4) карточка сети с QR
+	app._screen._qr(vn.snapshot())
+	await get_tree().create_timer(0.8).timeout
+	await _shot("site4_qr")
+	await _close_overlays()
+	# 3) друзья и чат
+	app.go("friends", true)
+	await get_tree().create_timer(2.0).timeout
+	await _shot("site3_friends")
+	FileAccess.open(data.path_join("vnet-done"), FileAccess.WRITE).store_string("1")
+	vn.leave()
+	await get_tree().create_timer(0.5).timeout
+	return 0
+
+
+func _sitejoin() -> int:
+	var vn: VNet = app.vnet
+	vn.nick = String(Cfg.autotest_args.get("nick", "Гость"))
+	await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь")
+	if Social.conn == "need_register":
+		Social.register(vn.nick)     # свой профиль — своё имя в списке участников
+		await _wait(func(): return Social.online(), 10, "профиль")
+	var code_file := String(Cfg.autotest_args.get("vnet_code", ""))
+	var t0 := Time.get_ticks_msec()
+	while not FileAccess.file_exists(code_file) and Time.get_ticks_msec() - t0 < 90000:
+		await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(float(Cfg.autotest_args.get("delay", "0"))).timeout
+	vn.join(FileAccess.get_file_as_string(code_file).strip_edges())
+	await _wait(func(): return str(vn.snapshot().get("state", "")) == "online", 20, "в сети")
+	await get_tree().create_timer(float(Cfg.autotest_args.get("say_at", "4"))).timeout
+	var say := String(Cfg.autotest_args.get("say", ""))
+	if say != "":
+		vn.chat(say)
+	await get_tree().create_timer(1.5).timeout
+	var re := String(Cfg.autotest_args.get("react", ""))
+	var ch: Array = vn.snapshot().get("chat", [])
+	if re != "" and ch.size() > 0:
+		vn.react(int(ch[0].id), re)
+	var done := String(Cfg.autotest_args.get("done", ""))
+	var t1 := Time.get_ticks_msec()
+	while not FileAccess.file_exists(done) and Time.get_ticks_msec() - t1 < 180000:
+		await get_tree().create_timer(0.3).timeout
+	vn.leave()
+	await get_tree().create_timer(0.3).timeout
 	return 0

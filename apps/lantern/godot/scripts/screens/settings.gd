@@ -55,9 +55,10 @@ func _ready() -> void:
 		b.focus_mode = Control.FOCUS_NONE
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		var on: bool = Cfg.get_value("app", "accent2", "mono") == key
-		b.add_theme_stylebox_override("normal", UI.box(c, 99, 0, Color.WHITE if on else Color(0, 0, 0, 0), 3 if on else 0))
-		b.add_theme_stylebox_override("hover", UI.box(c.lightened(0.15), 99, 0, Color(1, 1, 1, 0.6), 2))
-		b.add_theme_stylebox_override("pressed", UI.box(c, 99, 0, Color.WHITE, 3))
+		# 2.0.2: оттенки бренда — квадратные плашки с пиксельной рамкой и сдвинутой тенью у выбранной
+		b.add_theme_stylebox_override("normal", UI.pix(c, Color.WHITE if on else Color(0, 0, 0, 0.6), 4 if on else 0))
+		b.add_theme_stylebox_override("hover", UI.pix(c, Color(1, 1, 1, 0.9), 3))
+		b.add_theme_stylebox_override("pressed", UI.pix(c, Color.WHITE, 1))
 		if on:
 			var ck := UI.icon("check", 20, UI.ON_ACCENT)
 			ck.stroke = 3.0
@@ -164,6 +165,8 @@ func _ready() -> void:
 
 	# --- 2.0: связь с автором (предложения и проблемы)
 	var gc := _group(v, L.t("Предложения и проблемы"))
+	if preload("res://scripts/screens/support.gd").available():
+		gc.add_child(UI.list_row(UI.icon_tile("heart", UI.MUTED, 40, 20), L.t("Поддержать LANTERN"), L.t("Звёзды Telegram или SOL — просто спасибо автору"), UI.icon("chevron", 20, UI.DIM), func(): app.go("support"), Color(0, 0, 0, 0)))
 	gc.add_child(UI.list_row(UI.icon_tile("chat", UI.MUTED, 40, 20), L.t("Связь с автором"), L.t("Идея, ошибка, вопрос — напишите нам"), UI.icon("chevron", 20, UI.DIM), func(): Contacts.sheet(app), Color(0, 0, 0, 0)))
 	var rep := Report.button(app, "settings")
 	rep.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN

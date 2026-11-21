@@ -274,5 +274,22 @@
  "создатель": "creador",
  "✓ Plus активна": "✓ Plus activo",
  "Меньше задержка. Участники вашей сети увидят ваш IP-адрес.": "Menos retraso. Los miembros de tu red verán tu dirección IP.",
- "Напрямую (P2P)": "Directa (P2P)"
+ "Напрямую (P2P)": "Directa (P2P)",
+ "Поддержать": "Apoyar",
+ "Поддержать LANTERN": "Apoyar LANTERN",
+ "Звёзды Telegram или SOL — просто спасибо автору": "Estrellas de Telegram o SOL: simplemente un gracias al autor",
+ "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ.": "LANTERN es gratis y sin anuncios en PC. Si te ha ayudado, puedes apoyar al autor. Es solo un agradecimiento: la donación no desbloquea nada ni da ventajas.",
+ "Звёзды Telegram": "Estrellas de Telegram",
+ "Через бота Yompix": "Con el bot de Yompix",
+ "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -.": "Se abrirá Telegram: elige una cantidad en estrellas. Tu nombre puede aparecer en la lista de patrocinadores de juegos de Yompix, o escóndelo con /sponsor -.",
+ "Открыть в Telegram": "Abrir en Telegram",
+ "Скопировать ссылку": "Copiar enlace",
+ "Solana (SOL)": "Solana (SOL)",
+ "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana.": "Apunta la cámara de tu billetera (Phantom, Solflare) al QR o copia la dirección. Solo red Solana.",
+ "Адрес скопирован": "Dirección copiada",
+ "Скопировать адрес": "Copiar dirección",
+ "Открыть в кошельке": "Abrir en la billetera",
+ "Кошелёк не найден — адрес скопирован": "No se encontró billetera: dirección copiada",
+ "Спасибо за LANTERN": "Gracias por LANTERN",
+ "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают.": "El pago va directamente al autor. LANTERN no ve tu billetera ni guarda datos de pago. Nunca compartas tu frase semilla ni tus claves: nadie te las pedirá."
 }

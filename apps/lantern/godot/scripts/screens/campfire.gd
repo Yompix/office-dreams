@@ -13,6 +13,7 @@ var _hint: Label
 
 
 func _ready() -> void:
+	material = UI.mono_mat()     # 2.0.2: костёр в монохроме бренда (небо, поляна, огонь, искры)
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var rng := RandomNumberGenerator.new()
@@ -59,7 +60,7 @@ func _rebuild() -> void:
 		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		l.size.x = 184
 		add_child(l)
-		var st := UI.label("" if f.get("me", false) else _short(f), 12, Color("ffb648"))
+		var st := UI.label("" if f.get("me", false) else _short(f), 12, UI.MUTED)     # 2.0.2: монохром
 		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		st.set_meta("spot", true)
 		st.clip_text = true

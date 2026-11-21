@@ -156,7 +156,7 @@ func _ready() -> void:
 
 	# --- журнал сервера
 	var logp := PanelContainer.new()
-	logp.add_theme_stylebox_override("panel", UI.box(Color(0.02, 0.03, 0.07, 0.6), UI.R_L, 14, Color(1, 1, 1, 0.08), 1))
+	logp.add_theme_stylebox_override("panel", UI.box(Color(0.032, 0.032, 0.032, 0.6), UI.R_L, 14, Color(1, 1, 1, 0.08), 1))
 	logp.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var lgv := UI.vbox(10)
 	logp.add_child(lgv)
@@ -401,7 +401,7 @@ func _make_code_card(compact: bool) -> PanelContainer:
 		if i == 3:
 			_code_row.add_child(UI.label("–", 26, UI.DIM, UI.font_black))
 		var tile := PanelContainer.new()
-		var tst := UI.box(Color(0.02, 0.03, 0.08, 0.55), UI.R_BTN, 0, Color(UI.accent(), 0.45), 1)
+		var tst := UI.box(Color(0.033, 0.033, 0.033, 0.55), UI.R_BTN, 0, Color(UI.accent(), 0.45), 1)
 		tst.shadow_color = Color(UI.accent(), 0.18)
 		tst.shadow_size = 8
 		tile.add_theme_stylebox_override("panel", tst)

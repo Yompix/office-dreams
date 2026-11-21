@@ -246,6 +246,9 @@ msgstr "Java : installé Paper %s build %d — %s"
 msgid "LANTERN Plus — месяц"
 msgstr "LANTERN Plus — mois"
 
+msgid "LANTERN бесплатный и без рекламы на ПК. Если он вам помог — можно поддержать автора. Это просто спасибо: донат ничего не открывает и не даёт преимуществ."
+msgstr "LANTERN est gratuit et sans publicité sur PC. S’il vous a aidé, vous pouvez soutenir l’auteur. C’est simplement un merci : le don ne débloque rien et ne donne aucun avantage."
+
 msgid "LANTERN всё равно скачает свою, если миру нужна версия новее."
 msgstr "LANTERN téléchargera quand même la sienne si le monde demande une version plus récente."
 
@@ -1284,6 +1287,12 @@ msgstr "Ciel étoilé"
 msgid "Звёздный фонарь"
 msgstr "Lanterne étoile"
 
+msgid "Звёзды Telegram"
+msgstr "Étoiles Telegram"
+
+msgid "Звёзды Telegram или SOL — просто спасибо автору"
+msgstr "Étoiles Telegram ou SOL — un simple merci à l’auteur"
+
 msgid "Здесь будет реклама"
 msgstr "Une pub s'affichera ici"
 
@@ -1617,6 +1626,9 @@ msgstr "Sauvegarde enregistrée : %s — dans « Sauvegardes de mondes »"
 msgid "Костёр"
 msgstr "Le feu"
 
+msgid "Кошелёк не найден — адрес скопирован"
+msgstr "Aucun portefeuille trouvé — adresse copiée"
+
 msgid "Красиво"
 msgstr "Beau"
 
@@ -1874,6 +1886,9 @@ msgstr "Le mode léger est activé sur cet appareil : le fond est fixe pour que
 
 msgid "Наборы искр"
 msgstr "Packs d'étincelles"
+
+msgid "Наведите камеру кошелька (Phantom, Solflare) на QR или скопируйте адрес. Сеть — только Solana."
+msgstr "Pointez la caméra de votre portefeuille (Phantom, Solflare) vers le QR ou copiez l’adresse. Réseau Solana uniquement."
 
 msgid "Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."
 msgstr "Supprime définitivement du serveur ton pseudo, tes amis, messages et sauvegardes cloud. Les mondes sur l'appareil restent."
@@ -2355,6 +2370,9 @@ msgstr "Refuser"
 msgid "Отключить"
 msgstr "Déconnecter"
 
+msgid "Откроется Telegram: выберите сумму в звёздах. Ваше имя может попасть в список спонсоров игр Yompix — или скройте его командой /sponsor -."
+msgstr "Telegram va s’ouvrir : choisissez un montant en étoiles. Votre nom peut apparaître dans la liste des sponsors des jeux Yompix — ou masquez-le avec /sponsor -."
+
 msgid "Откройте Minecraft"
 msgstr "Ouvre Minecraft"
 
@@ -2405,6 +2423,12 @@ msgstr "Ouvrir « Mon monde »"
 
 msgid "Открыть в Minecraft"
 msgstr "Ouvrir dans Minecraft"
+
+msgid "Открыть в Telegram"
+msgstr "Ouvrir dans Telegram"
+
+msgid "Открыть в кошельке"
+msgstr "Ouvrir dans le portefeuille"
 
 msgid "Открыть для друзей"
 msgstr "Ouvrir aux amis"
@@ -2565,6 +2589,9 @@ msgstr "Flamme des premières lueurs"
 msgid "Пламя сезона (премиум)"
 msgstr "Flamme de saison (premium)"
 
+msgid "Платёж уходит напрямую автору. LANTERN не видит ваш кошелёк и не хранит данные оплаты. Сид-фразу и ключи никому не сообщайте — их никогда не спрашивают."
+msgstr "Le paiement va directement à l’auteur. LANTERN ne voit pas votre portefeuille et ne conserve aucune donnée de paiement. Ne partagez jamais votre phrase secrète ni vos clés — personne ne vous les demandera."
+
 msgid "Плоский"
 msgstr "Superplat"
 
@@ -2585,6 +2612,12 @@ msgstr "Réessayer"
 
 msgid "Погода"
 msgstr "Météo"
+
+msgid "Поддержать"
+msgstr "Soutenir"
+
+msgid "Поддержать LANTERN"
+msgstr "Soutenir LANTERN"
 
 msgid "Поддержка автора LANTERN — Yompix"
 msgstr "Soutenir l'auteur de LANTERN — Yompix"
@@ -3202,7 +3235,7 @@ msgid "Скопировано: "
 msgstr "Copié : "
 
 msgid "Скопировать адрес"
-msgstr "Copier l'adresse"
+msgstr "Copier l’adresse"
 
 msgid "Скопировать код"
 msgstr "Copier le code"
@@ -3341,6 +3374,9 @@ msgstr "Sauvegarde du monde et arrêt du serveur…"
 
 msgid "Сохраняем…"
 msgstr "Enregistrement…"
+
+msgid "Спасибо за LANTERN"
+msgstr "Merci pour LANTERN"
 
 msgid "Спасибо за лайк!"
 msgstr "Merci pour le like !"
@@ -3626,6 +3662,9 @@ msgstr "Chat du réseau"
 
 msgid "Чем сложнее, тем сильнее монстры. «Мирная» — совсем без них."
 msgstr "Plus c'est difficile, plus les monstres sont forts. En « Paisible », il n'y en a aucun."
+
+msgid "Через бота Yompix"
+msgstr "Via le bot Yompix"
 
 msgid "Через него друзья заходят по коду: он только передаёт данные игры между вами и ничего не хранит. Менять адрес нужно, только если у вас свой сервер."
 msgstr "C'est par lui que tes amis entrent par code : il ne fait que relayer les données du jeu entre vous et ne stocke rien. Ne change l'adresse que si tu as ton propre serveur."

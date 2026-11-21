@@ -23,7 +23,7 @@ var _friends_box: VBoxContainer
 var _friends_key := "?"
 
 const QUALITY := {"great": ["отлично", Color("5fd38a")], "good": ["хорошо", Color("ffc857")], "poor": ["так себе", Color("ff6b6b")]}
-const EDITION := {"java": ["Java", Color("5fd38a")], "bedrock": ["Телефоны", Color("6aaeff")], "both": ["Для всех", Color("c58bff")]}
+const EDITION := {"java": ["Java", Color("e6e6e6")], "bedrock": ["Телефоны", Color("a8a8a8")], "both": ["Для всех", Color("f4f4f2")]}     # 2.0.2: монохром
 
 
 func _ready() -> void:

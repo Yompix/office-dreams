@@ -91,7 +91,10 @@ func _ready() -> void:
 
 
 static func _panel_style(border: Color, bw := 1) -> StyleBoxFlat:
-	return UI.box(Color(0.075, 0.085, 0.13, 0.94), 18, 12, border, bw)
+	# 2.0.2: стиль бренда — почти чёрная плашка, пиксельная рамка 2 dp и сдвинутая тень
+	var s := UI.pix(Color(0.03, 0.03, 0.03, 0.96), border if border.a >= 0.3 else Color(1, 1, 1, 0.55), 3, 12)
+	s.set_border_width_all(maxi(2, bw))
+	return s
 
 
 func _on_head_input(e: InputEvent) -> void:

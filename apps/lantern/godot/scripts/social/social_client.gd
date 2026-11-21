@@ -77,12 +77,14 @@ var _pill_layer: CanvasLayer
 
 func _ready() -> void:
 	var c := ConfigFile.new()
-	c.load(TOKEN_FILE)
+	# автотест-«участник» (tests/site_shots.sh: несколько LANTERN на одной машине) — свой профиль в своей папке данных
+	var tf := Cfg.sub("device.cfg") if Cfg.autotest == "sitejoin" else TOKEN_FILE
+	c.load(tf)
 	token = c.get_value("device", "token", "")
 	if token == "":
 		token = Crypto.new().generate_random_bytes(32).hex_encode()
 		c.set_value("device", "token", token)
-		c.save(TOKEN_FILE)
+		c.save(tf)
 	demo = Cfg.paid() and Cfg.get_value("app", "demo", true)
 	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return   # e2e сервера не трогает социальную часть

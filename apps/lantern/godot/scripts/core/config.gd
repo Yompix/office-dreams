@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "2.0.1"
+const APP_VERSION := "2.0.2"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -18,15 +18,14 @@ const SITE := "https://office-dreams-production.up.railway.app/lantern"
 ## (apps/lantern/relay подключён в server/index.js, путь /lantern/ws). Свой отдельный сервис — см. relay/README.md.
 const DEFAULT_RELAY := "wss://office-dreams-production.up.railway.app/lantern/ws"
 
-## 2.0: по умолчанию — белый бренда Yompix Games (монохром). Цветные акценты — по желанию в Настройках.
+## 2.0.2: только монохром бренда Yompix Games — белый (по умолчанию) и оттенки: мел, серебро, бумага, графит.
+## Старые цветные ключи (amber, violet…) не найдутся — у игрока снова белый бренда.
 const ACCENTS := {
 	"mono": Color("f4f4f2"),
-	"amber": Color("ffb648"),
-	"green": Color("4cc96e"),
-	"sky": Color("4aa8ff"),
-	"violet": Color("9d7bff"),
-	"orange": Color("ff9a3d"),
-	"pink": Color("ff6fae"),
+	"chalk": Color("ffffff"),
+	"silver": Color("cfcfcf"),
+	"paper": Color("e6e1d3"),
+	"graphite": Color("a9a9a9"),
 }
 
 signal accent_changed(color: Color)

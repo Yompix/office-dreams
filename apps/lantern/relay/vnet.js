@@ -136,7 +136,7 @@ function createVnet(h) {
     if (!n) return h.send(ws, { t: 'error', error: 'full' });
     const plus = !!(user && h.social && h.social.pro && h.social.pro.isPro(user.id));
     const m = { ws, net, peer, ip: Buffer.from([NET_PREFIX[0], NET_PREFIX[1], net.octet, n]), uid: user ? user.id : 0,
-      name: user ? user.nick + '#' + user.tag : cleanName(msg.nick, 'Игрок'), plus,
+      name: user ? user.nick + (user.num != null ? '#' + String(user.num).padStart(4, '0') : '') : cleanName(msg.nick, 'Игрок'), plus,   // 2.0.2: в строке БД нет tag — был «#undefined»
       bytes: bucket(VCFG.memberBps), pkts: bucket(VCFG.memberPps), bc: bucket(VCFG.bcastPps),
       sig: [], chat: [], pings: bucket(VCFG.pingPerSec), dropped: 0 };
     if (!net.ownerPeer) net.ownerPeer = peer;

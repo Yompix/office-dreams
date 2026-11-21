@@ -290,7 +290,7 @@ static func register(app: Control) -> void:
 	later.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
 	top1.add_child(later)
 	a1.add_child(top1)
-	var li := LanternIcon.new().setup(7, {"flame": "flame_amber"}, 124)
+	var li := Chibi.new()     # 2.0.2: знак бренда вместо цветного фонаря
 	li.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	li.offset_left = -62
 	li.offset_right = 62
