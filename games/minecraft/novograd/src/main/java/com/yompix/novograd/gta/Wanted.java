@@ -34,6 +34,10 @@ public final class Wanted {
         int spawnTick;
         long lastBlock;
         boolean seen;
+        /** 0.9.5: с какого момента полиция видит игрока непрерывно (подкрепление — только в долгой погоне на виду). */
+        long seenSince;
+        /** Розыск только по звонку свидетеля (полиция тебя ещё не видела). */
+        boolean byReport;
     }
 
     private static final Map<UUID, W> ALL = new HashMap<>();
@@ -75,6 +79,7 @@ public final class Wanted {
     public static void add(ServerPlayerEntity p, int add, String why, int min) {
         if (Pursuit.immune(p)) return; // «Полицейские и воры», тюрьма
         W x = w(p);
+        x.byReport = false;
         int before = x.stars;
         x.stars = Math.min(5, Math.max(min, x.stars + add));
         x.lastSeen = p.getServerWorld().getTime();
@@ -84,6 +89,29 @@ public final class Wanted {
             p.sendMessage(Text.literal("★ Розыск: " + "★".repeat(x.stars) + " — " + why).formatted(Formatting.RED), true);
             p.playSoundToPlayer(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.MASTER, 1f, 0.6f);
             Dispatch.wanted(p, why, x.stars); // сводка в полицейскую рацию
+        }
+        sync(p, x);
+    }
+
+    /**
+     * 0.9.5: розыск по звонку свидетеля — полиция знает место, а не где ты сейчас: звёзды есть, но «не видят»,
+     * патруль едет к месту и прочёсывает район (Pursuit), пока не наткнётся на тебя или звёзды не погаснут.
+     */
+    public static void reported(ServerPlayerEntity p, String why, int add, int min, Vec3d at) {
+        if (Pursuit.immune(p)) return;
+        W x = w(p);
+        int before = x.stars;
+        x.stars = Math.min(5, Math.max(min, x.stars + add));
+        x.lastSeen = p.getServerWorld().getTime();
+        if (before == 0) {
+            x.seen = false;
+            x.byReport = true;
+        }
+        Pursuit.reportedAt(p, at);
+        if (x.stars > before) {
+            p.sendMessage(Text.literal("★ Розыск по звонку: " + "★".repeat(x.stars) + " — " + why).formatted(Formatting.RED), true);
+            p.playSoundToPlayer(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.MASTER, 1f, 0.6f);
+            Dispatch.wanted(p, why, x.stars);
         }
         sync(p, x);
     }
@@ -188,13 +216,17 @@ public final class Wanted {
             boolean seen = false;
             for (CitizenEntity c : cops) {
                 double d = c.distanceTo(p);
-                if (d < 30 && c.canSee(p)) seen = true;
-                if (!c.chasing(p) && d < 48) c.attack(p);
+                boolean sees = d < 30 && c.canSee(p);
+                if (sees) seen = true;
+                // 0.9.5: в погоню включается только тот, кто видит (или погоня идёт на виду) — без «чутья сквозь стены»
+                if (!c.chasing(p) && (sees || !x.byReport && d < 48 || x.seen && d < 48)) c.attack(p);
             }
             if (!seen) seen = Pursuit.extraSeen(p, x.stars); // вертолёт с прожектором видит открытое место
             boolean was = x.seen;
             x.seen = seen;
             if (seen) x.lastSeen = now;
+            if (seen && !was) x.seenSince = now;
+            if (seen && x.byReport && now - x.seenSince > 200) x.byReport = false; // нашли — дальше обычная погоня
             // скрылся: звёзды гаснут по одной
             long hide = Pursuit.hideTicks(p, x.stars, (8 + x.stars * 4) * 20L); // вне зоны поиска — быстрее
             if (!seen && now - x.lastSeen > hide) {
@@ -207,11 +239,12 @@ public final class Wanted {
                 }
             }
             if (was != seen || now % 40 == 0) sync(p, x);
-            reinforce(p, x, cops.size());
+            boolean chase = !x.byReport; // 0.9.5: по звонку — сначала патруль на место, подкрепление — когда нашли
+            if (chase) reinforce(p, x, cops.size());
             // вертолёт полиции с 4★: кружит, светит прожектором, стрелок бьёт очередями
-            if (x.stars >= 4 && now % 100 == 0 && com.yompix.novograd.vehicle.HeliEntity.countPolice(w, p.getPos(), 200) < (x.stars >= 5 ? 2 : 1))
+            if (chase && x.stars >= 4 && now % 100 == 0 && com.yompix.novograd.vehicle.HeliEntity.countPolice(w, p.getPos(), 200) < (x.stars >= 5 ? 2 : 1))
                 com.yompix.novograd.vehicle.HeliEntity.spawnPolice(w, p.getPos(), p);
-            if (x.stars >= 3 && p.getVehicle() instanceof CarEntity cv && (!(cv instanceof com.yompix.novograd.vehicle.MotorVehicle)) && now - x.lastBlock > 20 * 25) {
+            if (chase && x.stars >= 3 && p.getVehicle() instanceof CarEntity cv && (!(cv instanceof com.yompix.novograd.vehicle.MotorVehicle)) && now - x.lastBlock > 20 * 25) {
                 if (roadblock(p)) x.lastBlock = now;
             }
             // задержание: полицейский вплотную, а ты стоишь (или машина стоит)
@@ -231,7 +264,7 @@ public final class Wanted {
         var r = w.getRandom();
         boolean car = x.stars >= 2 && r.nextInt(3) == 0;
         for (int tries = 0; tries < 12; tries++) {
-            double a = r.nextDouble() * Math.PI * 2, dist = 26 + r.nextInt(14);
+            double a = r.nextDouble() * Math.PI * 2, dist = 40 + r.nextInt(16); // 0.9.5: дальше — подъезжают, а не появляются рядом
             int bx = (int) (p.getX() + Math.cos(a) * dist), bz = (int) (p.getZ() + Math.sin(a) * dist);
             int y = Story.topY(w, bx, bz);
             BlockPos at = new BlockPos(bx, y, bz);

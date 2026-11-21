@@ -60,6 +60,9 @@ public final class FpsHunt {
         }));
         add("быстро_новые_районы", 300, c -> { closeScreens(c); drive(c, "outer_east", 3.0, 0); });
         add("сохранение", 120, c -> { closeScreens(c); place(c, "dt_2", 0, 0); cmd(c, "save-all flush"); });
+        // 0.9.5: тяжёлые места города — стоим по 30 с, сервер: MSPT и сколько сущностей вокруг (не копятся ли)
+        for (String lm : new String[]{"hospital", "dt_2", "riv_strip", "port_warehouse", "police_station", "shop_clothes", "hospital"})
+            add("место_" + lm, 600, c -> { closeScreens(c); cmd(c, "time set 6000"); cmd(c, "weather clear"); place(c, lm, 0, 0); });
         active = true;
         ClientTickEvents.END_CLIENT_TICK.register(FpsHunt::tick);
         HudRenderCallback.EVENT.register((ctx, t) -> frame());
@@ -235,6 +238,21 @@ public final class FpsHunt {
     }
 
     private static void report(String name) {
+        var srv = MinecraftClient.getInstance().getServer();
+        if (srv != null) srv.execute(() -> { // 0.9.5: сервер в этом месте — тик и сущности по видам
+            var p = srv.getPlayerManager().getPlayer(P);
+            if (p == null) return;
+            java.util.Map<String, Integer> kinds = new java.util.TreeMap<>();
+            for (var e : p.getServerWorld().getOtherEntities(p, p.getBoundingBox().expand(64)))
+                kinds.merge(e.getType().getUntranslatedName(), 1, Integer::sum);
+            Novograd.LOG.info("[fps] сервер {}: mspt {} сущностей {}", name, String.format("%.2f", srv.getAverageNanosPerTick() / 1e6),
+                    kinds);
+            java.util.Map<String, Integer> cars = new java.util.TreeMap<>();
+            for (var car : p.getServerWorld().getEntitiesByClass(com.yompix.novograd.entity.CarEntity.class, p.getBoundingBox().expand(64), x -> true))
+                cars.merge(com.yompix.novograd.entity.CarEntity.VARIANTS[car.getVariant()] + (car.hasPassengers() ? "+люди" : "") + (car.onRoute() ? "+маршрут" : "")
+                        + (car.getCommandTags().isEmpty() ? "" : car.getCommandTags().toString()), 1, Integer::sum);
+            Novograd.LOG.info("[fps] машины {}: {}", name, cars);
+        });
         if (fn == 0) return;
         long[] a = java.util.Arrays.copyOf(FR, fn);
         java.util.Arrays.sort(a);
