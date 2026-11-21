@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "1.8.2"
+const APP_VERSION := "2.0.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -18,7 +18,9 @@ const SITE := "https://office-dreams-production.up.railway.app/lantern"
 ## (apps/lantern/relay подключён в server/index.js, путь /lantern/ws). Свой отдельный сервис — см. relay/README.md.
 const DEFAULT_RELAY := "wss://office-dreams-production.up.railway.app/lantern/ws"
 
+## 2.0: по умолчанию — белый бренда Yompix Games (монохром). Цветные акценты — по желанию в Настройках.
 const ACCENTS := {
+	"mono": Color("f4f4f2"),
 	"amber": Color("ffb648"),
 	"green": Color("4cc96e"),
 	"sky": Color("4aa8ff"),
@@ -142,11 +144,11 @@ func relay_url() -> String:
 
 
 func accent() -> Color:
-	return ACCENTS.get(get_value("app", "accent", "amber"), ACCENTS["amber"])
+	return ACCENTS.get(get_value("app", "accent2", "mono"), ACCENTS["mono"])   # 2.0: новый ключ — у всех сначала бренд
 
 
 func set_accent(key: String) -> void:
-	set_value("app", "accent", key)
+	set_value("app", "accent2", key)
 	accent_changed.emit(accent())
 
 
@@ -199,7 +201,8 @@ static func mode_name(m: String) -> String:
 
 ## Показывать ли платные функции (см. PAID)
 func paid() -> bool:
-	return PAID or autotest_args.has("paid")
+	# 2.0: платное видно, когда Google Play подключился (сборка из Play) — в APK со стороны и на ПК его нет совсем
+	return PAID or autotest_args.has("paid") or Store.ready
 
 
 func mobile() -> bool:

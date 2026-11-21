@@ -448,6 +448,12 @@ func _on_msg(m: Dictionary) -> void:
 				notice.emit({"kind": "purchased", "product": m.product})
 			elif t == "ad_reward":
 				notice.emit({"kind": "ad_reward"})
+		"purchase":
+			# 2.0: ответ сервера на покупку Google Play (проверена у Google) — Store доводит покупку до конца
+			if m.get("profile") is Dictionary:
+				eco = m.profile
+				changed.emit("eco")
+			Store.on_server(m)
 		"shop":
 			shop = m
 			eco["sparks"] = m.get("sparks", eco.get("sparks", 0))

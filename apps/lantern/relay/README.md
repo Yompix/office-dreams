@@ -68,3 +68,12 @@ Railway → сервис relay → **Volumes → New Volume**, Mount Path `/data
 
 `GET /j/<код или номер комнаты>` (снаружи — `/lantern/j/<код>`) — маленькая мобильная страница для приглашений: название игры, хозяин,
 игроков x/y, «Открыть в LANTERN» и «Скачать LANTERN». Код — `join_page.js`, проверка — `node test_join_page.js` (входит в `npm test`).
+
+## 2.0: «Любые игры» и покупки Google Play
+- `vnet.js` — виртуальная локальная сеть (протокол и безопасность — `../godot/docs/VLAN.md`): пересылает только IPv4
+  между участниками одной сети (+ широковещательные/групповые), лимиты `VNET_*` (см. VCFG в vnet.js).
+  Открытые сети: `GET /vnets?game=terraria`. Тест: `node test_vnet.js`.
+- `billing.js` — проверка покупок у Google (Google Play Developer API). Переменные: `GOOGLE_SERVICE_ACCOUNT_JSON`
+  (содержимое JSON-ключа сервисного аккаунта — секрет), `LANTERN_PACKAGE` (по умолчанию `com.yompix.lantern`).
+  Без ключа покупки не начисляются (`billing_not_configured`). Шаги — `../godot/docs/PLAY_BILLING.md`.
+  Тест против поддельного Google: `node test_billing.js`.

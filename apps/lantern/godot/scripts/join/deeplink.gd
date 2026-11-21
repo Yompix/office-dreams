@@ -29,6 +29,12 @@ static func from_launch() -> String:
 ## → {kind:"join", code, edition, name, relay} | {kind:"friend", tag} | {kind:""}
 static func parse(url: String) -> Dictionary:
 	var u := url.strip_edges()
+	# 2.0: lantern://net?code=<код или номер> — сеть «Любые игры»
+	if u.begins_with("lantern://net"):
+		var c := String(Invite._query(u).get("code", "")).to_upper().replace("-", "").strip_edges()
+		if RegEx.create_from_string("^([2-9A-Z]{6}|\\d{8})$").search(c):
+			return {"kind": "net", "code": c}
+		return {"kind": ""}
 	# 1.7: https://…/lantern/j/<код> — та же ссылка, открытая приложением напрямую
 	var wc := Invite.web_code(u)
 	if wc != "":

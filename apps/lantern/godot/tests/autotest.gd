@@ -16,6 +16,9 @@ extends Node
 ##   fit      — 1.8.2: каждый экран, лист и состояние (пусто, нет сети, загрузка, ошибка, с данными) на каждом языке:
 ##              ничего не вылезает за край, не обрезано, всё переведено (tests/fit.sh — все размеры телефонов и ПК)
 ##   bridge   — только мосты: хозяин → relay → друг поверх эхо-сервера (tests/latency.sh меряет задержку и скорость)
+##   vnet     — 2.0 «Любые игры»: --vnet_role=create|join, код сети в <data>/../vnet-code.txt; после входа ставит адаптер
+##              (lantern-net, --vnet_helper=…, --vnet_netns=1) и пишет <data>/vnet-ready.json {ip, ns}; ждёт <data>/vnet-done
+##              (tests/vnet_e2e.sh гоняет UDP-широковещание и личные пакеты между двумя такими приложениями)
 ##   reconnect — журнал связи с relay (tests/reconnect.gd); tests/reconnect.js перезапускает/«вешает» relay и меряет возврат
 ## Код выхода 0 — успех.
 
@@ -51,6 +54,8 @@ func run(a) -> void:
 		"fit": code = await _fit_mode()
 		"ownworld": code = await _ownworld()
 		"ownreal": code = await _ownreal()
+		"vnet": code = await _vnet()
+		"brandvid": code = await _brandvid()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
@@ -1026,6 +1031,30 @@ func _fit_all() -> void:
 		app._screen._qr_sheet(String(Social.me.get("tag", "Тест#1234")))
 		await _fit_step("friends_qr")
 		await _close_overlays()
+	if want.call("net"):
+		# 2.0 «Любые игры»: без сети, листы создания/входа, в сети (настоящая сеть на тестовом relay), «Связь с автором»
+		app.vnet.leave()
+		await get_tree().create_timer(0.3).timeout
+		app.go("net", true)
+		await _fit_step("net", 1.0)
+		app._screen._create_sheet()
+		await _fit_step("net_create")
+		await _close_overlays()
+		app._screen._join_sheet()
+		await _fit_step("net_join")
+		await _close_overlays()
+		app.vnet.create({"name": "Terraria & Stardew Valley night", "game": "terraria", "public": true})
+		await _wait(func(): return str(app.vnet.snapshot().get("state", "")) == "online", 10, "сеть создана")
+		app.vnet.chat("Привет! Заходите в Terraria 🔥")
+		await get_tree().create_timer(0.6).timeout
+		await _fit_step("net_online", 0.6)
+		app.vnet.set_adapter_state("error", "uac")
+		await _fit_step("net_adapter_error", 0.4)
+		app.vnet.leave()
+		await get_tree().create_timer(0.4).timeout
+		Contacts.sheet(app)
+		await _fit_step("settings_contact")
+		await _close_overlays()
 	if want.call("campfire"):
 		app.go("campfire", true)
 		await _fit_step("campfire", 0.8)
@@ -1454,6 +1483,21 @@ func _tour() -> int:
 		RoomControl.vendor_sheet(app, true, "Xiaomi")
 		await _shot("57_vendor_xiaomi")
 		await _close_overlays()
+	# 2.0: «Любые игры» и «Связь с автором»
+	app.go("net", true)
+	await _shot("60_net")
+	app._screen._create_sheet()
+	await _shot("61_net_create")
+	await _close_overlays()
+	app.vnet.create({"name": "Terraria night", "game": "terraria", "public": true})
+	await _wait(func(): return str(app.vnet.snapshot().get("state", "")) == "online", 10, "сеть")
+	app.vnet.chat("Заходите! 🔥")
+	await get_tree().create_timer(0.8).timeout
+	await _shot("62_net_online")
+	app.vnet.leave()
+	Contacts.sheet(app)
+	await _shot("63_contact")
+	await _close_overlays()
 	_log("FAILS=%d" % fails)
 	return 1 if fails else 0
 
@@ -2267,3 +2311,108 @@ func _deadbuttons() -> int:
 	for d in disabled:
 		_log("выключена: " + d)
 	return 0 if dead.is_empty() else 1
+
+
+# ------------------------------------------------------------------ 2.0: виртуальная сеть
+func _vnet() -> int:
+	var role := String(Cfg.autotest_args.get("vnet_role", "create"))
+	var code_file := String(Cfg.autotest_args.get("vnet_code", data.path_join("vnet-code.txt")))
+	var vn: VNet = app.vnet
+	vn.nick = "Тест-" + role
+	app.go("net")
+	await get_tree().process_frame
+	if role == "create":
+		vn.create({"name": "Тестовая сеть", "game": "terraria", "public": true})
+	else:
+		var t0 := Time.get_ticks_msec()
+		while not FileAccess.file_exists(code_file) and Time.get_ticks_msec() - t0 < 30000:
+			await get_tree().create_timer(0.2).timeout
+		vn.join(FileAccess.get_file_as_string(code_file).strip_edges())
+	var t1 := Time.get_ticks_msec()
+	while str(vn.snapshot().get("state", "")) != "online":
+		if Time.get_ticks_msec() - t1 > 20000:
+			_log("FAIL: не вошли в сеть: " + str(vn.snapshot()))
+			return 1
+		await get_tree().create_timer(0.1).timeout
+	var s := vn.snapshot()
+	_log("в сети: %s номер %s" % [s.ip, s.num])
+	if role == "create":
+		var f := FileAccess.open(code_file, FileAccess.WRITE)
+		f.store_string(str(s.num))
+		f.close()
+	VAdapter.start(vn)
+	while str(vn.snapshot().get("adapter", "")) != "ok":
+		if Time.get_ticks_msec() - t1 > 30000 or str(vn.snapshot().get("adapter", "")) == "error":
+			_log("FAIL: адаптер: " + str(vn.snapshot().get("adapter_err", "")))
+			return 1
+		await get_tree().create_timer(0.1).timeout
+	s = vn.snapshot()
+	var rf := FileAccess.open(data.path_join("vnet-ready.json"), FileAccess.WRITE)
+	rf.store_string(JSON.stringify({"ip": s.ip, "ns": s.get("adapter_ns", ""), "num": s.num}))
+	rf.close()
+	_log("адаптер готов: %s %s" % [s.get("adapter_if", ""), s.get("adapter_ns", "")])
+	await get_tree().create_timer(0.5).timeout
+	await _shot("vnet_online_" + role)
+	var t2 := Time.get_ticks_msec()
+	while not FileAccess.file_exists(data.path_join("vnet-done")) and Time.get_ticks_msec() - t2 < 120000:
+		await get_tree().create_timer(0.2).timeout
+	s = vn.snapshot()
+	_log("итог: участники %d, статистика %s" % [(s.members as Array).size(), str(s.stats)])
+	for m in s.members:
+		_log("участник %s %s p2p=%s rtt=%d" % [m.name, m.ip, str(m.p2p), m.rtt])
+	await _shot("vnet_done_" + role)
+	vn.leave()
+	await get_tree().create_timer(0.3).timeout
+	return 0
+
+
+# ------------------------------------------------------------------ 2.0: ролик переходов (tests/brand_video.sh)
+## Пишет каждый кадр в --frames=<папка> (запускать с --fixed-fps 30): заставка, разделы с пиксельным растворением,
+## «Любые игры» в сети, листы. Скорость интерфейса меряется отдельно (FPS в журнале).
+var _frames := ""
+var _fi := 0
+var _brec := false
+
+
+func _process(_d: float) -> void:
+	if _brec and _frames != "":
+		var img := get_viewport().get_texture().get_image()
+		img.save_jpg(_frames.path_join("f%05d.jpg" % _fi), 0.9)
+		_fi += 1
+
+
+func _hold(sec: float) -> void:
+	await get_tree().create_timer(sec).timeout
+
+
+func _brandvid() -> int:
+	_frames = String(Cfg.autotest_args.get("frames", ""))
+	DirAccess.make_dir_recursive_absolute(_frames)
+	if Social.conn == "need_register":
+		Social.register("Ночной_Лис")
+		await _wait(func(): return Social.online(), 10, "профиль")
+	app.go("home", true)
+	await _hold(0.5)
+	_brec = true
+	app._splash(true)
+	await _hold(2.0)
+	await _hold(0.8)
+	app.go("net")
+	await _hold(1.3)
+	app.vnet.create({"name": "Terraria night", "game": "terraria", "public": true})
+	await _wait(func(): return str(app.vnet.snapshot().get("state", "")) == "online", 10, "сеть")
+	await _hold(1.4)
+	app.go("friends")
+	await _hold(1.0)
+	app.go("profile")
+	await _hold(1.0)
+	app.go("home")
+	await _hold(1.0)
+	app._more_menu()
+	await _hold(1.2)
+	await _close_overlays()
+	await _hold(0.6)
+	_brec = false
+	app.vnet.leave()
+	_log("кадров: %d" % _fi)
+	return 0

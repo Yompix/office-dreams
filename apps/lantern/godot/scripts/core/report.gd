@@ -96,6 +96,10 @@ static func dialog(app: Control, kind := "manual", why := "") -> void:
 	var btn := UI.button(L.t("Отправить отчёт"), "primary")
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_child(btn)
+	# 2.0: и прямая связь с автором (e-mail / Discord), если контакты заданы в core/contacts.gd
+	var cb := Contacts.block(app, why)
+	if cb:
+		v.add_child(cb)
 	btn.pressed.connect(func():
 		btn.disabled = true
 		btn.text = L.t("Отправляем…")

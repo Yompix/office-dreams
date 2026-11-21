@@ -42,6 +42,8 @@ let social = null;            // создаётся в attach(): путь к б�
 let wss = null;
 
 const { Pro, PRO_CMDS } = require('./pro');
+const { createVnet, VNET_CMDS } = require('./vnet');
+let vnet = null;           // 2.0 «Любые игры»: виртуальная локальная сеть (vnet.js)
 const { Downloads } = require('./download');
 const { Reports } = require('./reports');
 const fs = require('fs');
@@ -77,7 +79,7 @@ function makeCode() {
     const b = crypto.randomBytes(6);
     let s = '';
     for (let i = 0; i < 6; i++) s += ALPHABET[b[i] % ALPHABET.length];
-    if (!rooms.has(s) && !social.pro.reserved(s)) return s;
+    if (!rooms.has(s) && !social.pro.reserved(s) && !(vnet && vnet.has(s))) return s;
   }
   return null;
 }
@@ -189,7 +191,7 @@ function applySettings(room, s) {
 function makeNum() {
   for (let i = 0; i < 50; i++) {
     const n = String(10000000 + crypto.randomInt(90000000));
-    if (!roomNums.has(n)) return n;
+    if (!roomNums.has(n) && !(vnet && vnet.hasNum(n))) return n;
   }
   return '';
 }
@@ -384,6 +386,7 @@ function onText(ws, text) {
   try { msg = JSON.parse(text); } catch { return ws.close(4002, 'bad json'); }
   if (!msg || typeof msg.t !== 'string') return;
   if (msg.t === 'ping') return send(ws, { t: 'pong', ts: msg.ts });
+  if (VNET_CMDS.has(msg.t)) { if (!ws._role || ws._role === 'vnet' || msg.t === 'vnet_list') vnet.onText(ws, msg); return; }
   if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t) || PRO_CMDS.has(msg.t)) return social.handle(ws, msg);
   if (msg.t === 'like' && ws._role === 'joiner') return likeRoom(ws);
   if (msg.t === 'room_meta' && ws._role === 'host') {
@@ -421,6 +424,7 @@ function onText(ws, text) {
 }
 
 function onBinary(ws, data) {
+  if (ws._role === 'vnet') return vnet.onBinary(ws, data);
   if (data.length < 4) return;
   const sid = data.readUInt32BE(0);
   if (ws._role === 'joiner') {
@@ -443,7 +447,7 @@ function onHttp(req, res, url) {
   if (downloads.http(req, res, url, publicBase)) return;
   if (reports.http(req, res, url, String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || (req.socket && req.socket.remoteAddress))) return;
   if (legal.http(req, res, url, publicBase)) return;
-  if (joinPage.http(req, res, url, publicBase, (c) => (/^\d{8}$/.test(c) ? roomNums.get(c) : rooms.get(c)), social)) return;
+  if (joinPage.http(req, res, url, publicBase, (c) => (/^\d{8}$/.test(c) ? roomNums.get(c) : rooms.get(c)) || vnet.find(c), social)) return;
   if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
     if (draining) {
@@ -457,6 +461,11 @@ function onHttp(req, res, url) {
     return res.end(JSON.stringify({ ok: true, app: 'lantern-relay', v: PROTO, rooms: rooms.size, joiners,
       uptime: Math.round((Date.now() - stats.started) / 1000),
       region: String(process.env.RAILWAY_REPLICA_REGION || process.env.RAILWAY_REGION || '').slice(0, 40), ts: Date.now() }));
+  }
+  if (url.startsWith('/vnets')) {
+    const u = new URL(url, 'http://x');
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({ nets: vnet.list(u.searchParams.get('game')) }));
   }
   if (url.startsWith('/rooms')) {
     const u = new URL(url, 'http://x');
@@ -486,7 +495,7 @@ function onConnection(ws, req) {
     ws._seen = Date.now();
     if (ws._pingAt) {
       const ms = ws._seen - ws._pingAt; ws._rtt = ws._rtt ? Math.round(ws._rtt * 0.6 + ms * 0.4) : ms; ws._pingAt = 0;
-      if (ws._role === 'host') send(ws, { t: 'net', ping: ws._rtt, quality: quality(ws._rtt) });
+      if (ws._role === 'host' || ws._role === 'vnet') send(ws, { t: 'net', ping: ws._rtt, quality: quality(ws._rtt) });
     }
   });
   ws.on('close', () => {
@@ -494,6 +503,7 @@ function onConnection(ws, req) {
     if (c <= 0) ipConns.delete(ws._ip); else ipConns.set(ws._ip, c);
     if (ws._role === 'host' && ws._room && ws._room.host === ws && !ws._room.closed) hostGone(ws._room);
     if (ws._role === 'joiner') dropJoiner(ws._joiner, true);
+    if (ws._role === 'vnet') vnet.onClose(ws);
     social.detach(ws);
   });
   ws.on('error', () => {});
@@ -523,6 +533,8 @@ function attach(httpServer, opts = {}) {
   downloads = new Downloads(opts.downloadDir || '');
   reports = new Reports(opts.reportDir || '');
   roomSecret = loadSecret(opts);
+  vnet = createVnet({ send, log, social, secret: () => roomSecret, codeTaken: (c) => rooms.has(c) || social.pro.reserved(c), numTaken: (n) => roomNums.has(n),
+    makeCode, makeNum, joinRate: (ip) => { const now = Date.now(); const l = (ipJoins.get(ip) || []).filter((t) => now - t < 60_000); l.push(now); ipJoins.set(ip, l); return l.length <= CFG.joinPerMin; } });
   publicBase = opts.publicBase || '';
   wss = new WebSocketServer({ noServer: true, maxPayload: CFG.maxFrame, perMessageDeflate: false });
   wss.on('connection', onConnection);
@@ -539,6 +551,7 @@ function attach(httpServer, opts = {}) {
       if (ws.readyState === 1) { ws._pingAt = Date.now(); ws.ping(); }
     }
     for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
+    vnet.tick();
     for (const [ip, l] of ipJoins) if (!l.length || now - l[l.length - 1] > 60_000) ipJoins.delete(ip);
   }, 15_000);
   t1.unref();
@@ -582,4 +595,4 @@ if (require.main === module) {
   process.on('SIGINT', shutdown);
 }
 
-module.exports = { attach, standalone, rooms, roomNums, quality, MODES, CFG, normCode, ALPHABET, CLOSE_RESTART, get social() { return social; } };
+module.exports = { get vnet() { return vnet; }, attach, standalone, rooms, roomNums, quality, MODES, CFG, normCode, ALPHABET, CLOSE_RESTART, get social() { return social; } };

@@ -1,15 +1,27 @@
-LANTERN 1.5.0 для Windows — by Yompix
+LANTERN 2.0.0 для Windows — by Yompix Games
 
-Играйте с друзьями по коду комнаты — в Minecraft: Java Edition и Bedrock Edition.
+Играйте с друзьями: Minecraft (Java и Bedrock) по коду комнаты, а с 2.0 — ЛЮБЫЕ игры с игрой
+по локальной сети (Terraria, Stardew Valley, Factorio, Valheim, Warcraft III и др.) через «Любые игры».
 
-Как запустить: распакуйте архив в любую папку и откройте LANTERN.exe.
+Как запустить: распакуйте архив ЦЕЛИКОМ в любую папку и откройте LANTERN.exe.
 Если Windows пишет «Windows защитила компьютер» — «Подробнее» → «Выполнить в любом случае»
 (программа пока без платной цифровой подписи).
 
-Для игры нужна своя копия Minecraft. LANTERN не содержит файлов игры.
+«Любые игры» (виртуальная локальная сеть):
+- Создайте сеть, отправьте другу код или QR; оба нажмите «Подключить».
+- Первый раз Windows спросит разрешение (UAC) — LANTERN ставит сетевой адаптер «LANTERN».
+  Дальше подключение идёт без вопросов (задача планировщика «LANTERN Net»).
+- В игре выберите игру по локальной сети или введите IP друга (10.88.x.y — виден в LANTERN).
+- Файлы рядом с LANTERN.exe: lantern-net.exe (помощник сети) и wintun.dll (драйвер Wintun от WireGuard,
+  лицензия — wintun-LICENSE.txt). Не удаляйте их.
+- Убрать всё: lantern-net.exe --uninstall (от имени администратора) — удалит задачу и правило брандмауэра.
+- Игры с античитом (Vanguard, EAC, BattlEye) и игры только с онлайн-серверами так не работают.
+
+Для Minecraft нужна своя копия игры. LANTERN не содержит файлов игры.
 Серверы (Paper, Geyser, Bedrock Dedicated Server) и Java скачиваются по вашему запросу
 с официальных сайтов; запуск сервера — только после согласия с Minecraft EULA.
 
+Версия для Android и всё о студии: https://yompix.github.io/studio
 Конфиденциальность: https://office-dreams-production.up.railway.app/lantern/privacy
 Удалить профиль:    https://office-dreams-production.up.railway.app/lantern/delete
 

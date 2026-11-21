@@ -56,6 +56,8 @@ func _ready() -> void:
 		var cc := _continue_card()
 		if cc:
 			add_child(cc)
+	# 2.0: «Любые игры» — виртуальная локальная сеть для любых игр (экран net)
+	add_child(Promo.net_card(app))
 	_search = UI.line_edit("", L.t("Название, номер комнаты или режим"))
 	_search.right_icon = UI.icon_tex("search", 20, UI.DIM)
 	_search.visible = false
@@ -88,6 +90,9 @@ func _ready() -> void:
 	add_child(_friends_box)
 	_list = UI.vbox(10)
 	add_child(_list)
+	var promo := Promo.other_card()     # 2.0: «Есть версия для ПК / Android» — внизу, можно закрыть
+	if promo:
+		add_child(promo)
 	for i in 3:
 		_list.add_child(FX.skeleton(88, UI.R_XL))
 	Social.changed.connect(_on_social)

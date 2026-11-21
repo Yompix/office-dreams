@@ -46,7 +46,7 @@ func _ready() -> void:
 	# --- облако
 	var ch := UI.hbox(8)
 	ch.add_child(UI.section(L.t("Облако LANTERN")))
-	var pp := UI.pill("Pro", UI.AMBER)
+	var pp := UI.pill("Plus", UI.TEXT)
 	ch.add_child(pp)
 	v.add_child(ch)
 	_cloud = UI.vbox(8)

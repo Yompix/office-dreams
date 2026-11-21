@@ -6,7 +6,7 @@ const { DISCLAIMER_RU, DISCLAIMER_EN } = require('./legal');
 
 const PKG = 'com.yompix.lantern';
 const MODE_RU = { survival: 'Выживание', creative: 'Творчество', minigame: 'Мини-игра', pvp: 'PvP', roleplay: 'Ролевая', other: '' };
-const EDITION_RU = { java: 'Java (ПК)', bedrock: 'Телефоны, Windows, консоли', both: 'Для всех устройств' };
+const EDITION_RU = { java: 'Java (ПК)', bedrock: 'Телефоны, Windows, консоли', both: 'Для всех устройств', any: 'Любые игры · виртуальная сеть' };
 // палитры обложки по режиму (как в приложении: scripts/ui/cover.gd)
 const PALETTE = { survival: ['#0b2a33', '#1f7a6b', '#7ee0b0'], creative: ['#1d1440', '#7a4bd6', '#ff9ad1'], pvp: ['#2a0f14', '#c8452c', '#ffb36b'],
   minigame: ['#0d2440', '#1fa6c9', '#ffe066'], roleplay: ['#0d1440', '#3d56c9', '#9db4ff'], other: ['#161a3a', '#4a4f9c', '#ffb648'] };
@@ -29,7 +29,7 @@ function info(room, social) {
   try { owner = room.ownerId && social ? social.pub(social.user(room.ownerId)) : null; } catch { owner = null; }
   const cap = room.cap || (room.meta && room.meta.slots) || 10;
   return { code: room.code, num: room.num || '', title: (room.meta && room.meta.title) || room.name || 'Мир', host: owner ? owner.nick : '',
-    players: room.joiners.size + 1, cap, mode: room.mode || 'other', edition: room.edition, locked: !!room.passHash, online: !!room.host };
+    players: room.joiners.size + 1, cap, mode: room.mode || 'other', edition: room.edition, locked: !!room.passHash, online: !!room.host, vnet: room.kind === 'vnet' };
 }
 
 function cover(mode, seed) {
@@ -50,8 +50,9 @@ function cover(mode, seed) {
 function page(code, inf, base) {
   const dl = base + '/download';
   const pretty = /^\d{8}$/.test(code) ? code : (code.length === 6 ? code.slice(0, 3) + '-' + code.slice(3) : code);
-  const app = `lantern://join?code=${encodeURIComponent(code)}`;
-  const intent = `intent://join?code=${encodeURIComponent(code)}#Intent;scheme=lantern;package=${PKG};S.browser_fallback_url=`;
+  const verb = inf && inf.vnet ? 'net' : 'join';   // 2.0: сеть «Любые игры» открывается своим экраном
+  const app = `lantern://${verb}?code=${encodeURIComponent(code)}`;
+  const intent = `intent://${verb}?code=${encodeURIComponent(code)}#Intent;scheme=lantern;package=${PKG};S.browser_fallback_url=`;
   const title = inf ? inf.title : 'Игра в LANTERN';
   const ogt = inf ? `Заходи в игру «${inf.title}»` : 'Заходи играть через LANTERN';
   const mode = inf ? MODE_RU[inf.mode] || '' : '';
@@ -61,7 +62,7 @@ function page(code, inf, base) {
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d1c"><meta name="robots" content="noindex">
 <title>${esc(ogt)} — LANTERN</title>
-<meta property="og:title" content="${esc(ogt)}"><meta property="og:description" content="Нажми — LANTERN откроет Minecraft и заведёт в мир. Код ${esc(pretty)}."><meta property="og:site_name" content="LANTERN">
+<meta property="og:title" content="${esc(ogt)}"><meta property="og:description" content="${inf && inf.vnet ? 'Нажми — LANTERN подключит тебя к общей сети для игры.' : 'Нажми — LANTERN откроет Minecraft и заведёт в мир.'} Код ${esc(pretty)}."><meta property="og:site_name" content="LANTERN">
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;color:#f4f2ee;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;
 background:radial-gradient(90% 60% at 10% 0%,rgba(255,182,72,.22),transparent 60%),radial-gradient(80% 50% at 100% 30%,rgba(110,90,255,.18),transparent 70%),linear-gradient(#141737,#07080f 70%)}

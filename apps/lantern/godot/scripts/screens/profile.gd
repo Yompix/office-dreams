@@ -64,7 +64,7 @@ func _render() -> void:
 	if String(e.get("title", "")) != "":
 		pills.add_child(UI.pill("«%s»" % L.t(String(e.title)), UI.AMBER))
 	if e.get("pro", false) and Cfg.paid():
-		pills.add_child(UI.pill("LANTERN Pro" + (L.t(" · ДЕМО") if Social.demo else ""), UI.JAVA))
+		pills.add_child(UI.pill("LANTERN Plus" + (L.t(" · ДЕМО") if Social.demo else ""), UI.JAVA))
 	if pills.get_child_count() > 0:
 		lv.add_child(pills)
 	lv.add_child(UI.gap(6))

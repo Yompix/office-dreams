@@ -26,14 +26,19 @@ class LanternAndroidExport extends EditorExportPlugin:
 
 	## Java-код службы кладём в Gradle-проект перед сборкой (сам проект res://android не хранится в git).
 	func _export_begin(_features: PackedStringArray, _is_debug: bool, _path: String, _flags: int) -> void:
-		var src := "res://addons/lantern_android/android/LanternRelayService.java"
 		var dst_dir := "res://android/build/src/main/java/com/godot/game"
 		if not DirAccess.dir_exists_absolute(dst_dir):
 			return
-		var f := FileAccess.open(dst_dir.path_join("LanternRelayService.java"), FileAccess.WRITE)
-		if f:
-			f.store_string(FileAccess.get_file_as_string(src))
-			f.close()
+		# 2.0: + служба VPN «Любые игры» и покупки Google Play
+		for n in ["LanternRelayService.java", "LanternVpnService.java", "LanternBilling.java"]:
+			var f := FileAccess.open(dst_dir.path_join(n), FileAccess.WRITE)
+			if f:
+				f.store_string(FileAccess.get_file_as_string("res://addons/lantern_android/android/" + n))
+				f.close()
+
+	## 2.0: Google Play Billing Library 7 (из репозитория Google Maven, его Gradle-шаблон Godot уже подключает)
+	func _get_android_dependencies(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
+		return PackedStringArray(["com.android.billingclient:billing:7.1.1"])
 
 	func _get_android_manifest_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:
 		return """
@@ -42,6 +47,7 @@ class LanternAndroidExport extends EditorExportPlugin:
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="com.android.vending.BILLING" />
 """
 
 	func _get_android_manifest_application_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:
@@ -54,6 +60,20 @@ class LanternAndroidExport extends EditorExportPlugin:
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Relays the user's own Minecraft LAN world to invited friends over the internet while the user plays in Minecraft" />
         </service>
+        <service
+            android:name="com.godot.game.LanternVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.content.VPN_SERVICE_ALWAYS_ON"
+                android:value="false" />
+        </service>
+        <meta-data
+            android:name="org.godotengine.plugin.v2.LanternBilling"
+            android:value="com.godot.game.LanternBilling" />
         <activity-alias
             android:name=".LanternDeepLink"
             android:targetActivity=".GodotApp"
@@ -64,6 +84,7 @@ class LanternAndroidExport extends EditorExportPlugin:
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="lantern" android:host="join" />
                 <data android:scheme="lantern" android:host="friend" />
+                <data android:scheme="lantern" android:host="net" />
             </intent-filter>
         </activity-alias>
 """

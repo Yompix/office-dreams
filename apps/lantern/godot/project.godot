@@ -4,8 +4,8 @@ config_version=5
 [application]
 
 config/name="LANTERN"
-config/description="LANTERN — игра с друзьями по коду комнаты (для Minecraft: Java и Bedrock). Неофициальное приложение. by Yompix"
-config/version="1.8.2"
+config/description="LANTERN — игра с друзьями: Minecraft по коду комнаты и любые игры по виртуальной локальной сети. Неофициальное приложение. by Yompix Games"
+config/version="2.0.0"
 run/main_scene="res://main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="LANTERN"
