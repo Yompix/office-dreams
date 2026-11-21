@@ -461,6 +461,33 @@ function buildLobby() {
       bake(og);
       const sl = box(.86, .006, .09, mat(0x8a8e92, null, { metal: .7, rough: .4 }), 7.06, .003, .45, S); sl.userData.solid = false; sl.userData.noShadow = true; }   // накладка порога
     o.boothLock = [7.43, 1.0, .385];   // скважина изнутри (куда вставляют ключ)
+    // 21 ноя: кабинет охраны обжит (владелец: «не проработан до конца, что внутри»): шкаф с папками, столик с чайником и кружками
+    // (Гас спрашивает про чайник), ключница со связками, часы, календарь, огнетушитель, урна. Всё — в правой части за спиной Итана, вне хода двери
+    { const K = new T.Group(); S.add(K); const grey = mat(0x6d7275, null, { metal: .4, rough: .5 }), dk = mat(0x2c2f33, null, { rough: .7 }), wood = mat(0x5a3f2a, null, { rough: .8 }),
+        red = mat(0x9c1c1c, null, { rough: .45 }), wht = mat(0xd8d6cf, null, { rough: .6 }), stl = mat(0xa8adb2, null, { metal: .8, rough: .3 });
+      // шкаф с документами: 3 ящика, ручки, на нём коробка и папки
+      box(.46, 1.32, .5, grey, 7.68, .66, -1.24, K); for (const y of [.25, .68, 1.1]) { box(.4, .005, .01, dk, 7.68, y + .19, -.985, K); box(.12, .02, .02, stl, 7.68, y, -.98, K); }
+      box(.34, .24, .3, mat(0x8c7a5e, null, { rough: .9 }), 7.66, 1.44, -1.26, K);
+      [0x23466e, 0x7a2222, 0x2f5d3a, 0x3a3a3a].forEach((c, i) => box(.05, .3, .24, mat(c, null, { rough: .7 }), 7.5 + i * .055, 1.47, -1.0, K));
+      // столик: чайник, две кружки, коробка соли (как у Фрэнка), сахар
+      box(.6, .04, .42, wood, 6.95, .74, -1.3, K); for (const [dx, dz] of [[-.27, -.18], [.27, -.18], [-.27, .18], [.27, .18]]) box(.035, .72, .035, dk, 6.95 + dx, .36, -1.3 + dz, K);
+      const ket = new T.Group(); ket.position.set(6.82, .76, -1.32); K.add(ket); cyl(.075, .085, .2, 16, wht, ket).position.y = .1; cyl(.03, .075, .04, 16, wht, ket).position.y = .22;
+      box(.02, .1, .1, dk, -.1, .14, 0, ket); box(.06, .018, .018, wht, .1, .13, 0, ket).rotation.z = .6; cyl(.09, .09, .015, 16, dk, ket).position.y = .005;
+      for (const [x, z, c] of [[7.05, -1.2, 0xc0392b], [7.14, -1.38, 0x2e4057]]) { const m = cyl(.035, .03, .09, 12, mat(c, null, { rough: .5 }), K); m.position.set(x, .805, z); }
+      box(.06, .1, .04, wht, 7.18, .81, -1.18, K);
+      // ключница на правой стене: ящик со стеклом, связки на крючках
+      box(.05, .42, .34, wood, 7.975, 1.55, -.55, K); for (let i = 0; i < 6; i++) { const kk = cyl(.012, .012, .05, 8, stl, K); kk.rotation.z = PI / 2; kk.position.set(7.94, 1.45 + (i % 2) * .16, -.67 + Math.floor(i / 2) * .12); }
+      // часы над ключницей, календарь рядом
+      const ck = cyl(.14, .14, .03, 24, wht, K); ck.rotation.z = PI / 2; ck.position.set(7.98, 2.05, -.55); const rim = cyl(.15, .15, .025, 24, dk, K); rim.rotation.z = PI / 2; rim.position.set(7.985, 2.05, -.55);
+      box(.006, .1, .012, dk, 7.96, 2.08, -.55, K).rotation.x = .5; box(.006, .07, .012, dk, 7.96, 2.03, -.53, K).rotation.x = -1.2;
+      const cal = plane(.3, .42, mat(0xffffff, ctex(96, 134, (x, w, h) => { x.fillStyle = '#efece4'; x.fillRect(0, 0, w, h); x.fillStyle = '#b02020'; x.fillRect(0, 0, w, 26);
+        x.fillStyle = '#fff'; x.font = 'bold 18px sans-serif'; x.textAlign = 'center'; x.fillText('10', w / 2, 19); x.fillStyle = '#333';
+        for (let i = 0; i < 31; i++) { const cx = 10 + (i % 7) * 12.5, cy = 42 + Math.floor(i / 7) * 18; x.font = '9px sans-serif'; x.fillText(String(i + 1), cx, cy); if (i >= 20 && i <= 27) { x.strokeStyle = '#a00'; x.beginPath(); x.moveTo(cx - 5, cy - 7); x.lineTo(cx + 5, cy + 2); x.stroke(); } } }), { rough: .9 }), K);
+      cal.rotation.y = -PI / 2; cal.position.set(7.97, 1.55, -1.0);   // октябрь: дни Фрэнка зачёркнуты до 28-го
+      // огнетушитель в углу у двери (вне хода створки) и урна под столом
+      const fx = new T.Group(); fx.position.set(7.85, 0, -.35); K.add(fx); cyl(.075, .075, .48, 14, red, fx).position.y = .26; cyl(.04, .06, .06, 12, dk, fx).position.y = .53; box(.12, .02, .03, dk, .03, .57, 0, fx);
+      const bin = cyl(.13, .11, .32, 14, dk, K); bin.position.set(4.1, .16, -1.25);
+      bake(K); }
   }
   // стекло перегородки будки (видно только в кадре с отражением): рама, грязь, блик
   o.boothPane = new T.Group(); o.boothPane.position.set(5.2, 1.62, .25); S.add(o.boothPane);
@@ -1945,6 +1972,22 @@ SH.jr_back = { loc: 'lobby', pos: [6.55, 1.55, -.05], look: [5.25, .95, -.55], f
 function boothFb(o) { o.note.visible = o.noteCv.visible = false; o.book.visible = true;
   if (!o.fbRest) { const keep = [o.book, o.saltPack, o.fphone].map(m => [m, m.position.clone(), m.quaternion.clone()]);   // как лежали при постройке
     o.fbRest = () => { for (const [m, p, q] of keep) { m.position.copy(p); m.quaternion.copy(q); } o.fphone.children.forEach(c => { c.visible = true; }); }; } }
+// 21 ноя: кабинет охраны от первого лица (смена, кнопка «Кабинет»): глаза Итана над его стулом, голову крутит игрок — window.__offYaw
+// (0 — через стекло в холл, к лифтам; +0,6 — мониторы; +1,6 — стол с лампой; +2,6 — дверь и куртка Фрэнка). Холл живой: всё, что выпало на CAM 01/02, видно своими глазами
+SH.office = { loc: 'lobby', pos: [SEAT[0], 1.2, SEAT[1]], look: [SEAT[0] - 1, 1.1, SEAT[1]], fov: 72, set: (o, t, sh) => {
+  boothGlassK(o, 1); const a = window.__offYaw || 0, b = Math.sin(t * 1.55) * .006;   // дыхание — голова чуть ходит
+  sh.pos = [SEAT[0], 1.2 + b, SEAT[1]]; sh.look = [SEAT[0] - Math.cos(a), 1.1 + (window.__offPitch || 0) + b, SEAT[1] + Math.sin(a)];
+  const A = []; for (const k of ['cam02', 'cam01']) for (const x of SH[k].set(o, t, sh) || []) if (x[0] !== 'temych') A.push(x);   // себя не видим
+  return A; } };
+// стекло кабинета: изнутри — как было; снаружи (обход пешком) под углом слой грязи + аддитивный блик давали белый лист — приглушаем
+function boothGlassK(o, k) { for (const pg of o.boothGlass || []) pg.traverse(m => { const M = m.material; if (!M || M.depthWrite !== false || !M.transparent) return;
+  if (M.userData.op0 == null) M.userData.op0 = M.opacity; M.opacity = M.userData.op0 * k; }); }
+// 21 ноя: обход холла пешком от первого лица — window.__walk = { x, z, yaw, pitch, bob }
+SH.walk = { loc: 'lobby', pos: [3.2, 1.62, 1.2], look: [2.2, 1.55, 1.2], fov: 74, set: (o, t, sh) => {
+  boothGlassK(o, .3); const w = window.__walk || { x: 3.2, z: 1.2, yaw: 0, pitch: 0, bob: 0 }, y = 1.62 + Math.sin(w.bob) * .025;
+  sh.pos = [w.x, y, w.z]; sh.look = [w.x - Math.cos(w.yaw), y - .06 + w.pitch, w.z + Math.sin(w.yaw)];
+  const A = []; for (const k of ['cam02', 'cam01']) for (const x of SH[k].set(o, t, sh) || []) if (x[0] !== 'temych') A.push(x);
+  return A; } };
 SH.fb_view = { loc: 'lobby', pos: [4.0, 1.5, -1.02], look: [5.3, .82, -.44], fov: 48, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; o.saltPack.visible = o.saltGr.visible = true; return []; } };
 // этап 1 (19 ноя): пропуск Фрэнка на шнурке у края пульта (o.badge) — крупно, глазами Итана («лицо с пропуска над моим столом», s06)
 SH.fb_badge = { loc: 'lobby', pos: [4.32, 1.37, -.6], look: [4.05, 1.32, -.21], fov: 30, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; return []; } };

@@ -536,7 +536,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
   uiEl.innerHTML = ''; $('hud').classList.remove('hide'); overBg = null;
-  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting'); secBase = scene.sec ?? 7; sublScene = '';
+  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting', 'office', 'walking'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) setFlags('opened');   // через setFlags — запоминается и после перезагрузки
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) setFlags('mih');
   if (AC) for (const b of scene.beats || []) for (const k of MSEQ[b.music] || []) if (!BUF[k] && rawSnd[k] && !decQ[k]) decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; });   // музыка кадров раскодируется заранее: после «нажми» вступает сразу
@@ -1251,19 +1251,90 @@ function shiftToast(s) { if (!s) return; const el = $('shToast'); if (!el) retur
 function shiftTask() { const el = $('shTask'); if (!el) return; const tk = shf && shf.task;
   if (!tk || (tk.need || []).every(n => shk[n])) { if (tk && !tk.ok) { tk.ok = true; if (tk.say) tk.sayAt = Math.max(shf.M, toMin(tk.by) - 3); } el.classList.add('hide'); return; }
   el.classList.remove('hide'); el.innerHTML = `<b>${tr('ЗАДАЧА')}</b> ${tr(tk.text)}`; }
+// 21 ноя: кабинет от первого лица. Кнопка «Кабинет» — оторваться от мониторов и осмотреться (мышь у края экрана / тянуть пальцем / ← →);
+// нажать на мониторы (или кнопку «Мониторы») — снова камеры. Смена идёт дальше: странности на камерах никто не ждёт
+const OFF_MIN = -1.9, OFF_MAX = 3.0, OFF_MON = [.15, 1.05];
+let offYaw = .6, offVel = 0, offEdge = 0, offDrag = null, offKeys = 0;
+function offSet(on) {
+  if (!shf || tut) return; if (shf.walk && !on) { shf.walk = false; document.body.classList.remove('walking'); const wb = $('shWalk'); if (wb) wb.querySelector('span').textContent = tr('Обход'); } shf.office = !!on; document.body.classList.toggle('office', !!on);
+  const b = $('shOff'); if (b) b.querySelector('span').textContent = tr(on ? 'Мониторы' : 'Кабинет');
+  if (on) { offYaw = .6; offVel = 0; offEdge = 0; play('click', { gain: .2, rate: .7 }); } else { play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9; monFlip(); }
+  window.__offYaw = offYaw;
+}
+function offTick(dt) {
+  offYaw += (offEdge * 1.7 + offKeys * 1.5) * dt + offVel; offVel = 0;
+  offYaw = Math.max(OFF_MIN, Math.min(OFF_MAX, offYaw)); window.__offYaw = offYaw;
+  const el = $('shLook'); if (el) el.classList.toggle('mon', offYaw > OFF_MON[0] && offYaw < OFF_MON[1]);
+}
+function offBind() {
+  const b = $('shOff'), L = $('shLook'); if (!b || !L) return;
+  b.onclick = e => { e.stopPropagation(); offSet(!shf.office); };
+  if (shf.office) offSet(true); else document.body.classList.remove('office');
+  L.onpointermove = e => { const r = L.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+    if (offDrag) { offVel += -(e.clientX - offDrag.x) / r.width * 2.6; if (Math.abs(e.clientX - offDrag.x0) > 8) offDrag.moved = true; offDrag.x = e.clientX; return; }
+    if (e.pointerType === 'mouse') offEdge = x < .18 ? -(.18 - x) / .18 : x > .82 ? (x - .82) / .18 : 0; };
+  L.onpointerdown = e => { offDrag = { x: e.clientX, x0: e.clientX, moved: false }; try { L.setPointerCapture(e.pointerId); } catch {} };
+  L.onpointerup = e => { const d = offDrag; offDrag = null; if (d && !d.moved && shf && shf.office && offYaw > OFF_MON[0] && offYaw < OFF_MON[1]) offSet(false); };
+  L.onpointerleave = () => { offEdge = 0; };
+}
+addEventListener('keydown', e => { if (!shf || !shf.office || mode !== 'shift') return; if (e.key === 'ArrowLeft' || e.key === 'a') offKeys = -1; else if (e.key === 'ArrowRight' || e.key === 'd') offKeys = 1; else return; e.stopImmediatePropagation(); e.preventDefault(); }, true);
+addEventListener('keyup', e => { if (/^(ArrowLeft|ArrowRight|a|d)$/.test(e.key)) offKeys = 0; }, true);
+// 21 ноя: обход пешком. Из кабинета — «Обход»: идёшь по холлу (W/S или ↑/↓ — шаг, A/D или ←/→ — поворот, мышь/палец — тянуть: поворот и шаг).
+// Стены и мебель — твёрдые (World.solids). У входа — «Запереть вход», если замок отщёлкнулся. Пока ходишь, камеры никто не смотрит:
+// с 20 с — помехи и сердце, с 45 с — оно приходит (over_come). «Кабинет» — назад на стул (счётчик остывает)
+const WK = { x: 3.2, z: 1.2, yaw: 0, pitch: 0, bob: 0, t: 0, mv: 0, tn: 0, hb: 0, boxes: null, warn: 0 }, WK_DOOR = [0, 5.7], WK_R = .3;
+function walkBoxes() { try { return (World.solids() || []).filter(b => !b.small && b.c[1] - b.size[1] / 2 < 1.5 && b.c[1] + b.size[1] / 2 > .25).map(b => [b.c[0] - b.size[0] / 2, b.c[0] + b.size[0] / 2, b.c[2] - b.size[2] / 2, b.c[2] + b.size[2] / 2]); } catch { return []; } }
+function walkHit(x, z) { for (const b of WK.boxes || []) { const cx = Math.max(b[0], Math.min(x, b[1])), cz = Math.max(b[2], Math.min(z, b[3])); if ((x - cx) ** 2 + (z - cz) ** 2 < WK_R * WK_R) return true; } return false; }
+function walkSet(on) {
+  if (!shf || tut) return; shf.walk = !!on; document.body.classList.toggle('walking', !!on);
+  if (on) { shf.office = false; document.body.classList.add('office'); Object.assign(WK, { x: 3.2, z: 1.2, yaw: 0, pitch: 0, mv: 0, tn: 0, boxes: null, warn: 0 }); play('steps', { gain: .3, cut: .6 }); }
+  else { if (document.pointerLockElement) try { document.exitPointerLock(); } catch {} WK.t = Math.max(0, WK.t - 10); offSet(true); const wb = $('shWalk'); if (wb) wb.classList.remove('hide'); }
+  const b = $('shWalk'); if (b) b.querySelector('span').textContent = tr(on ? 'В кабинет' : 'Обход');
+  window.__walk = WK;
+}
+function walkTick(dt) {
+  if (!WK.boxes) { WK.boxes = walkBoxes(); if (walkHit(WK.x, WK.z)) for (const p of [[3.4, 2.2], [2.6, 1.0], [2.0, 2.0], [1.5, 3.0]]) if (!walkHit(p[0], p[1])) { WK.x = p[0]; WK.z = p[1]; break; } }
+  WK.yaw += WK.tn * 1.9 * dt; const sp = WK.mv * 1.6 * dt;
+  if (sp) { const nx = WK.x - Math.cos(WK.yaw) * sp, nz = WK.z + Math.sin(WK.yaw) * sp;
+    if (!walkHit(nx, WK.z)) WK.x = nx; if (!walkHit(WK.x, nz)) WK.z = nz; WK.bob += Math.abs(sp) * 7; if ((WK.st = (WK.st || 0) + Math.abs(sp)) > .75) { WK.st = 0; play('steps', { gain: .22, cut: .3 }); } }
+  WK.t += dt; window.__walk = WK;
+  const near = Math.hypot(WK.x - WK_DOOR[0], WK.z - WK_DOOR[1]) < 1.8, db = $('shDoor'); if (db) db.classList.toggle('hide', !(near && !shk.door));
+  const home = Math.hypot(WK.x - 3.2, WK.z - 1.2) < 1.6, wb = $('shWalk'); if (wb) wb.classList.toggle('hide', !home);   // в кабинет — только дойдя до него
+  if (WK.t > 20 && !WK.warn) { WK.warn = 1; shiftToast(tr('Камеры никто не смотрит.')); }
+  if (WK.t > 30 && now() > WK.hb) { play('heart', { gain: .6 }); WK.hb = now() + Math.max(.45, 1.1 - (WK.t - 30) * .04); }
+  if (WK.t > 45) { walkSet(false); return shiftDie('over_come'); }
+}
+function walkBind() {
+  const b = $('shWalk'), d = $('shDoor'), L = $('shLook'); if (!b) return;
+  b.onclick = e => { e.stopPropagation(); walkSet(!shf.walk); };
+  if (d) d.onclick = e => { e.stopPropagation(); if (shk.door) return; shk.door = 1; play('bolt', { gain: .6 }); shiftCheck(); d.classList.add('hide'); };
+  if (shf.walk) walkSet(true); else document.body.classList.remove('walking');
+  let dr = null; const mv0 = () => { if (dr && dr.t) { WK.mv = 0; WK.tn = 0; } };
+  L.addEventListener('click', () => { if (shf && shf.walk && matchMedia('(pointer: fine)').matches && document.pointerLockElement !== L) try { L.requestPointerLock(); } catch {} });
+  L.addEventListener('mousemove', e => { if (document.pointerLockElement === L && shf && shf.walk) { WK.yaw += e.movementX * .0032; WK.pitch = Math.max(-.6, Math.min(.5, WK.pitch - e.movementY * .0025)); } });
+  L.addEventListener('pointerdown', e => { if (!shf || !shf.walk || document.pointerLockElement === L) return; dr = { x: e.clientX, y: e.clientY, t: 1 }; });
+  L.addEventListener('pointermove', e => { if (!shf || !shf.walk || !dr) return; const r = L.getBoundingClientRect();
+    WK.tn = Math.max(-1, Math.min(1, -(e.clientX - dr.x) / (r.width * .15))) * -1; WK.mv = Math.max(-1, Math.min(1, -(e.clientY - dr.y) / (r.height * .15))); });
+  L.addEventListener('pointerup', () => { mv0(); dr = null; }); L.addEventListener('pointercancel', () => { mv0(); dr = null; });
+}
+addEventListener('keydown', e => { if (!shf || !shf.walk || mode !== 'shift') return; const k = e.key.toLowerCase();
+  if (k === 'w' || k === 'arrowup' || k === 'ц') WK.mv = 1; else if (k === 's' || k === 'arrowdown' || k === 'ы') WK.mv = -1; else if (k === 'a' || k === 'arrowleft' || k === 'ф') WK.tn = -1; else if (k === 'd' || k === 'arrowright' || k === 'в') WK.tn = 1;
+  else if (k === 'e' || k === 'у') { const d = $('shDoor'); if (d && !d.classList.contains('hide')) d.click(); return; } else return; e.stopImmediatePropagation(); e.preventDefault(); }, true);
+addEventListener('keyup', e => { if (!shf || !shf.walk) return; const k = e.key.toLowerCase();
+  if (/^(w|s|arrowup|arrowdown|ц|ы)$/.test(k)) WK.mv = 0; if (/^(a|d|arrowleft|arrowright|ф|в)$/.test(k)) WK.tn = 0; }, true);
 function shiftUI() {
   const cams = shf.seg.cams.concat(shk.c13 ? ['13'] : []);
   mgEl.innerHTML = `<div class="sh">
     <div class="sh-task hide" id="shTask"></div><div class="sh-toast" id="shToast"></div>
     <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${camShort(c)}</small></button>`).join('')}</div>
-    <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button><button id="shHelp" class="sh-q" title="${tr('Как играть')}">?</button></div>
+    <div class="sh-look" id="shLook"></div><div class="sh-act"><button id="shOff"><span>${tr('Кабинет')}</span></button><button id="shWalk"><span>${tr('Обход')}</span></button><button id="shDoor" class="hide"><span>${tr('Запереть вход')}</span></button><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button><button id="shHelp" class="sh-q" title="${tr('Как играть')}">?</button></div>
     <div class="tut-card hide" id="tutCard"><div class="tut-hd"><i class="tut-wave"><b></b><b></b><b></b><b></b><b></b></i>${tr('ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА')}</div><div class="tut-do" id="tutDo"></div><button id="tutGo" class="tut-go hide">${tr('Продолжить')}</button><button id="tutSkip">${tr('Пропустить обучение')}</button></div>
     <div class="tut-ring hide" id="tutRing"><i>▼</i></div>
     <div class="sh-pop hide" id="shPop"></div></div>`;
   mgEl.classList.remove('hide');
   mgEl.querySelectorAll('.sh-cams button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftCam(b.dataset.c); });
   $('shLog').onclick = e => { e.stopPropagation(); shiftLog(); }; $('shPanel').onclick = e => { e.stopPropagation(); shiftPanel(); }; $('shBook').onclick = e => { e.stopPropagation(); shiftBook(); };
-  $('shHelp').onclick = e => { e.stopPropagation(); shiftHelp(); }; $('tutSkip').onclick = e => { e.stopPropagation(); tutEnd(true); };
+  $('shHelp').onclick = e => { e.stopPropagation(); shiftHelp(); }; offBind(); walkBind(); $('tutSkip').onclick = e => { e.stopPropagation(); tutEnd(true); };
   if (tut) $('tutCard').classList.remove('hide');
   shiftTask();
 }
@@ -1552,7 +1623,7 @@ function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4 && a
   ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
   if (watching) { LS.set('save', watching.save); LS.set('saveT', watching.saveT); watching = null; }
-  gen++; mode = 'menu'; overBg = null; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
+  gen++; mode = 'menu'; overBg = null; document.body.classList.remove('shifting', 'office', 'walking'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
@@ -2318,15 +2389,17 @@ function frame(tp) {
     const c = shf.cam, st = T - shf.camT, img = c === '13' ? null : 'cam' + (c === 'm2' ? '_m2' : c);
     if (!shf.seg.music && curMusicName === 'drone' && (BUF.shift || rawSnd.shift)) music('shift');   // подложка смены докачалась позже старта (декодируется в music())
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
-    for (const a of shf.act) if (a.def.cam === c && (a.def.box || a.def.at)) { const k = a.look || 0;   // настоящие камеры показывают его помехами
+    if (shf.walk) { walkTick(dt); shot('walk', { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0 }); vignette(); if (WK.t > 20) grain(Math.min(.9, (WK.t - 20) / 30)); }
+    else if (shf.office) { offTick(dt); shot('office', { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0 }); vignette(); }
+    else if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
+    if (!shf.office && !shf.walk) for (const a of shf.act) if (a.def.cam === c && (a.def.box || a.def.at)) { const k = a.look || 0;   // настоящие камеры показывают его помехами
       if (!a.def.at) { staticBox(a.def.box, T, k); continue; }
       const n = stareN(k), fb = figBox(stareSpot(a.def, k)), jump = n > 0 && k - STARE_T[n] < .18;   // фигура в 3D: чем ближе подошёл, тем реже рябь и виднее он сам
       if (fb) figGlitch(fb, T, n, jump);
       if (jump) { grain(.95); if (a.jumpN !== n) { a.jumpN = n; tear(1); play('static', { gain: .55 + .12 * n }); } } }   // рывок — вспышка ряби на весь кадр и треск
     for (const mk of S.shift.marks || []) if (mk.cam === c && mk.noise && shk.st[mk.st]) noisePatch(mk.noise, T);   // помехи, которые не уходят (у двери 707 после трёх)
     if (st < .22) grain(.95);   // переключение камеры
-    vignette(); cctvHud(camLabel(c), T);
+    if (!shf.office && !shf.walk) { vignette(); cctvHud(camLabel(c), T); }
     const v = shf.vq.find(v => T >= v.t0 && (v.hold || T < v.t0 + (v.show || v.d) + .35));   // hold — Вера ждёт «Продолжить» (обучение)
     if (v) { const tm = TIM[v.k];
       if (tm) { const w = tm.w || [], on = w.filter(x => T - v.t0 >= x[0] - .02).length; sayWords(whoOf(v.k), chunks(v.k, w), on); voiceNow = T < v.t0 + v.d; }
