@@ -60,7 +60,7 @@ func _refresh() -> void:
 		FX.stagger(_body, 0.04)
 	if m == "online":
 		_update_online(s)
-	if app.has_method("set_title"):
+	if app.has_method("set_title") and app.get("current") == "net" and not has_meta("leaving") and not (get_parent() and get_parent().has_meta("leaving")):     # 2.0.3: уходящий экран заголовок не трогает
 		app.set_title(L.t("Любые игры"), str(s.get("name", "")) if m == "online" else L.t("Виртуальная локальная сеть"))
 
 
@@ -145,11 +145,13 @@ func _show_browse(r: Dictionary) -> void:
 		var lock := UI.icon("lock", 18, UI.DIM) if n.get("locked", false) else UI.icon("chevron", 20, UI.DIM)
 		var num := str(n.get("num", ""))
 		var locked: bool = n.get("locked", false)
-		_browse.add_child(UI.list_row(Avatar.make(str(n.get("owner", "?")), 40), str(n.get("name", "")), sub, lock, func():
+		var br := UI.list_row(Avatar.make(str(n.get("owner", "?")), 40), str(n.get("name", "")), sub, lock, func():
 			if locked:
 				_join_sheet(num)
 			else:
-				_vn.join(num)))
+				_vn.join(num))
+		FlameFX.aura(br, str(n.get("flame", "")))     # 2.0.3: «Глитч-пламя» хозяина — аура у всех
+		_browse.add_child(br)
 
 
 func _create_sheet() -> void:
@@ -294,7 +296,7 @@ func _update_online(s: Dictionary) -> void:
 	# --- участники
 	for c in _members.get_children():
 		c.queue_free()
-	var me_row := _member_row({"name": str(Social.me.get("nick", L.t("Вы"))), "ip": str(s.get("ip", "")), "me": true, "rtt": int(s.get("my_relay_ms", 0)), "p2p": false, "graph": []}, s)
+	var me_row := _member_row({"name": str(Social.me.get("nick", L.t("Вы"))), "ip": str(s.get("ip", "")), "me": true, "flame": FlameFX.mine(), "rtt": int(s.get("my_relay_ms", 0)), "p2p": false, "graph": []}, s)
 	_members.add_child(me_row)
 	var ms: Array = s.get("members", [])
 	if ms.is_empty():
@@ -379,6 +381,7 @@ func _member_row(mb: Dictionary, s: Dictionary) -> Control:
 	var nl := UI.label(nm, 15, UI.TEXT, UI.font_bold)
 	nl.clip_text = true
 	nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	FlameFX.style_nick(nl, str(mb.get("flame", "")))     # 2.0.3: «Неоновое пламя» — ник светится у всех
 	tv.add_child(nl)
 	var ipb := UI.button(str(mb.get("ip", "")), "link", func():
 		UI.copy(str(mb.get("ip", "")))
@@ -416,10 +419,26 @@ func _member_menu(mb: Dictionary) -> void:
 
 func _chat_row(c: Dictionary) -> Control:
 	var v := UI.vbox(2)
-	var t := UI.para("%s: %s" % [c.name, c.text], 14, UI.TEXT)
-	v.add_child(t)
+	var fl := str(c.get("flame", ""))
+	if FlameFX.has(fl, "neon_nick"):
+		var hr := UI.hbox(0)
+		var nl := UI.label(str(c.name) + ": ", 14, UI.TEXT, UI.font_bold)
+		FlameFX.style_nick(nl, fl)
+		hr.add_child(nl)
+		var tl := UI.para(str(c.text), 14, UI.TEXT)
+		tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hr.add_child(tl)
+		v.add_child(hr)
+	else:
+		var t := UI.para("%s: %s" % [c.name, c.text], 14, UI.TEXT)
+		v.add_child(t)
 	var rr := UI.flow(4)
-	for e in REACT:
+	# 2.0.3: «Пиксельное пламя» — ещё 4 реакции (сервер проверяет пламя); чужие пиксельные реакции видны всем
+	var set_ := REACT.duplicate()
+	for e in FlameFX.PIXEL_REACTIONS:
+		if FlameFX.has(FlameFX.mine(), "pixel_react") or int((c.re as Dictionary).get(e, 0)) > 0:
+			set_.append(e)
+	for e in set_:
 		var n := int((c.re as Dictionary).get(e, 0))
 		var b := Button.new()
 		b.text = e + (" %d" % n if n > 0 else "")
@@ -462,6 +481,7 @@ func _qr(s: Dictionary) -> void:
 	tr.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(tr)
 	QR.encode(_link(s)).show_in(tr, 220)
+	FlameFX.qr_skin(tr)     # 2.0.3: «Призрачное пламя» — призрачная карточка
 
 
 # ============================================================ общее

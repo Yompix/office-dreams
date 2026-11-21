@@ -36,7 +36,28 @@ func setup(lvl: int, equip: Variant = null, size_px := 48) -> LanternIcon:
 	shape = e.get("shape", "shape_cube")
 	custom_minimum_size = Vector2(size_px, size_px)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 2.0.3: само пламя — живой шейдер (единственный цвет в монохромном интерфейсе); корпус — монохром бренда
+	_fx = FlameFX.make(flame if flame != "" else "flame_amber", size_px >= 40)
+	_fx.set_intensity(0.8 + level * 0.025)
+	_fx.show_behind_parent = true
+	add_child(_fx)
+	resized.connect(_place_fx)
 	return self
+
+
+var _fx: FlameFX
+
+
+func _place_fx() -> void:
+	if not is_instance_valid(_fx):
+		return
+	var s := minf(size.x, size.y)
+	var c := Vector2(size.x / 2, size.y * 0.56)
+	# пламя за корпусом: внутри стекла, кончик и ореол выглядывают; рамка фонаря — поверх
+	var w := s * 0.95
+	var h := s * 0.9
+	_fx.size = Vector2(w, h)
+	_fx.position = Vector2(c.x - w / 2, c.y + s * 0.2 - h)
 
 
 func _process(d: float) -> void:
@@ -81,7 +102,8 @@ func _draw() -> void:
 	# свечение
 	# свечение — одна мягкая текстура (без «колец»)
 	var gr := s * (0.52 + level * 0.014)
-	draw_texture_rect(UI.ui_tex("dot"), Rect2(c - Vector2(gr, gr), Vector2(gr, gr) * 2.0), false, Color(fc, minf(1.0, bright * 0.62)))
+	if gr < 0.0:
+		draw_texture_rect(UI.ui_tex("dot"), Rect2(c - Vector2(gr, gr), Vector2(gr, gr) * 2.0), false, Color(fc, minf(1.0, bright * 0.62)))
 	var w := s * 0.40
 	var h := s * 0.44
 	match shape:
@@ -95,18 +117,18 @@ func _draw() -> void:
 	var frame := Color("3a3330")
 	var metal := Color("2e2826")
 	# стекло с пламенем: скруглённое стекло и капля-огонёк (свой силуэт, как на иконке LANTERN)
+	frame = Color("d8d8d8")     # 2.0.3: корпус — белая пиксельная рамка бренда, стекло тёмное; пламя рисует FlameFX
+	metal = Color("8e8e8e")
 	if shape in ["shape_round", "shape_s1"]:
 		draw_circle(c, w * 0.55, frame)
-		draw_circle(c, w * 0.45, fc.lerp(Color.WHITE, 0.1))
+		draw_circle(c, w * 0.45, Color(0.04, 0.04, 0.04, 0.25))
 	else:
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = fc
+		sb.bg_color = Color(0.04, 0.04, 0.04, 0.25)
 		sb.border_color = frame
 		sb.set_border_width_all(int(maxf(1.0, s * 0.04)))
-		sb.set_corner_radius_all(int(w * 0.22))
-		sb.anti_aliasing = true
+		sb.anti_aliasing = false
 		draw_style_box(sb, body)
-	_flame(c + Vector2(0, h * 0.08), minf(w, h) * 0.62, fl)
 	if shape == "shape_star":
 		for k in 4:
 			var a := k * PI / 2 + _t * 0.5
@@ -116,7 +138,7 @@ func _draw() -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(c.x - w * 0.22, top - s * 0.09), Vector2(c.x + w * 0.22, top - s * 0.09),
 		Vector2(c.x + w * 0.6, top + s * 0.01), Vector2(c.x - w * 0.6, top + s * 0.01)]), metal)
 	draw_rect(Rect2(c.x - w * 0.58, body.end.y - s * 0.01, w * 1.16, s * 0.06), metal)
-	draw_arc(Vector2(c.x, top - s * 0.09), s * 0.08, PI, TAU, 16, Color("5c524a"), maxf(1.5, s * 0.035), true)
+	draw_arc(Vector2(c.x, top - s * 0.09), s * 0.08, PI, TAU, 16, Color("bdbdbd"), maxf(1.5, s * 0.035), true)
 
 
 ## Огонёк-капля высотой fh с центром низа в p

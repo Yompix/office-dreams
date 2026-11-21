@@ -58,6 +58,7 @@ func run(a) -> void:
 		"brandvid": code = await _brandvid()
 		"transbench": code = await _transbench()
 		"sitepc": code = await _sitepc()
+		"flameshow": code = await _flameshow()
 		"sitejoin": code = await _sitejoin()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
@@ -2675,13 +2676,12 @@ func _sitepc() -> int:
 		Social.request("friend_accept", {"id": u.id})
 	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
 	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	await get_tree().create_timer(2.5).timeout     # демо-пламя (tests/demo_flames.js) успевает лечь в БД
 	Social.request("eco")
-	await get_tree().create_timer(1.5).timeout
-	# 1) «Игры»
-	app.go("home", true)
-	await get_tree().create_timer(1.5).timeout
-	await _shot("site1_home")
-	# 2) «Любые игры» в сети
+	Social.request("shop")
+	Social.request("state")
+	await get_tree().create_timer(1.0).timeout
+	# 1) «Любые игры» в сети: ники с неоном, пиксельные реакции, пламя у участников
 	var vn: VNet = app.vnet
 	vn.nick = "Ночной_Лис"
 	app.go("net", true)
@@ -2692,27 +2692,33 @@ func _sitepc() -> int:
 	await _wait(func(): return (vn.snapshot().members as Array).size() >= 3, 40, "участники")
 	await _wait(func(): return (vn.snapshot().members as Array).filter(func(m): return m.get("p2p", false)).size() >= 2, 25, "P2P")
 	vn.chat("Сервер поднят, заходите! Порт 7777")
-	await get_tree().create_timer(9.0).timeout     # пинги для графика, сообщения и реакции ботов
+	await get_tree().create_timer(9.0).timeout     # пинги для графика, сообщения и реакции участников
 	var ch: Array = vn.snapshot().get("chat", [])
 	if ch.size() > 0:
-		vn.react(int(ch[ch.size() - 1].id), "🔥")
+		vn.react(int(ch[0].id), "🔥")
 	await get_tree().create_timer(1.0).timeout
 	var sc: Control = app._screen_root
 	var mem: Variant = app._screen.get("_members")
 	if sc is ScrollContainer and mem is Control:
 		var scr := sc as ScrollContainer
-		scr.scroll_vertical = int(scr.scroll_vertical + (mem as Control).global_position.y - scr.global_position.y - 150)
-	await get_tree().create_timer(0.5).timeout
-	await _shot("site2_net")
-	# 4) карточка сети с QR
-	app._screen._qr(vn.snapshot())
-	await get_tree().create_timer(0.8).timeout
-	await _shot("site4_qr")
-	await _close_overlays()
-	# 3) друзья и чат
-	app.go("friends", true)
+		scr.scroll_vertical = int(scr.scroll_vertical + (mem as Control).global_position.y - scr.global_position.y - 30)
+	await get_tree().create_timer(0.6).timeout
+	await _shot("site1_net")
+	# 2) магазин: пламя
+	Social.request("shop")
+	app.go("shop", true, {"kind": "flame"})
 	await get_tree().create_timer(2.0).timeout
-	await _shot("site3_friends")
+	await _shot("site2_shop")
+	# 3) профиль с радужным фоном
+	app.go("profile", true)
+	await get_tree().create_timer(2.0).timeout
+	await _shot("site3_profile")
+	# 4) «Костёр»: у Кирилла «Золотая корона» — корона горит для всех
+	Social.request("state")
+	await get_tree().create_timer(0.8).timeout
+	app.go("campfire", true)
+	await get_tree().create_timer(2.0).timeout
+	await _shot("site4_campfire")
 	FileAccess.open(data.path_join("vnet-done"), FileAccess.WRITE).store_string("1")
 	vn.leave()
 	await get_tree().create_timer(0.5).timeout
@@ -2748,4 +2754,47 @@ func _sitejoin() -> int:
 		await get_tree().create_timer(0.3).timeout
 	vn.leave()
 	await get_tree().create_timer(0.3).timeout
+	return 0
+
+
+# ------------------------------------------------------------------ 2.0.3: витрина пламени (tests/flame_video.sh)
+## Сетка из 10 фонарей с пламенем (до и после — тот же режим в обеих версиях: только LanternIcon).
+func _flameshow() -> int:
+	_frames = String(Cfg.autotest_args.get("frames", ""))
+	if _frames != "":
+		DirAccess.make_dir_recursive_absolute(_frames)
+	var ids := ["flame_amber", "flame_orange", "flame_rose", "flame_violet", "flame_ice", "flame_emerald", "flame_rainbow", "flame_s1", "flame_s1p", "flame_s1legend"]
+	var bg := ColorRect.new()
+	bg.color = Color("050505")
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.z_index = 80
+	app.add_child(bg)
+	var g := GridContainer.new()
+	g.columns = 5
+	g.set_anchors_preset(Control.PRESET_FULL_RECT)
+	g.add_theme_constant_override("h_separation", 8)
+	g.add_theme_constant_override("v_separation", 8)
+	bg.add_child(g)
+	for id in ids:
+		var v := VBoxContainer.new()
+		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		v.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		v.alignment = BoxContainer.ALIGNMENT_CENTER
+		var li := LanternIcon.new().setup(9, {"flame": id}, 170)
+		li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		v.add_child(li)
+		var nm: String = id
+		var fx_script: Variant = load("res://scripts/ui/flame_fx.gd") if ResourceLoader.exists("res://scripts/ui/flame_fx.gd") else null
+		if fx_script != null:
+			nm = String(fx_script.INFO.get(id, {}).get("name", id))
+		var l := UI.label(nm, 15, UI.TEXT, UI.font_bold)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(l)
+		g.add_child(v)
+	await get_tree().create_timer(0.4).timeout
+	_brec = true
+	await _hold(float(Cfg.autotest_args.get("sec", "4")))
+	_brec = false
+	await _shot("flames")
+	_log("кадров: %d" % _fi)
 	return 0

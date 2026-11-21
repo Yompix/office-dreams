@@ -443,6 +443,7 @@ func _row(r: Dictionary) -> Control:
 		if String(r.get("version", "")) != "":
 			Cfg.set_value("own", "last_version", "%s %s" % [ed, r.version])
 		app.go("join", true, {"input": num if num != "" else String(r.code), "edition": "both", "public": true, "mode": mode}), st)
+	FlameFX.aura(p, String(host.get("flame", "")) if FlameFX.has(String(host.get("flame", "")), "card_aura") else "")     # 2.0.3: «Глитч-пламя» хозяина
 	return p
 
 

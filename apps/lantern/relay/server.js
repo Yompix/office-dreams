@@ -278,7 +278,8 @@ function setBans(room, list) {
 
 function peerMsg(j, on) {
   const u = on && j.userId ? social.pub(social.user(j.userId)) : null;
-  return { t: 'peer', peer: j.id, on, user: u ? { id: u.id, nick: u.nick, tag: u.tag } : null };
+  // 2.0.3: пламя и «коллекционер» (3+ пламени) — с сервера: хозяин показывает вспышку входа
+  return { t: 'peer', peer: j.id, on, user: u ? { id: u.id, nick: u.nick, tag: u.tag, flame: social.eco.flameOf(u.id), collector: social.eco.collector(u.id) } : null };
 }
 
 function kickPeer(room, msg) {

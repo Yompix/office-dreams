@@ -102,6 +102,9 @@ msgstr "%d KB"
 msgid "%d в мире"
 msgstr "%d in world"
 
+msgid "%d пламени — "
+msgstr "%d flames — "
+
 msgid "%d ч %02d мин"
 msgstr "%d h %02d min"
 
@@ -167,6 +170,9 @@ msgstr "%s; permission=%s"
 
 msgid "+%d искр"
 msgstr "+%d sparks"
+
+msgid "+10% искр за задания и золотые искры короны у «Костра» — для всех у огня."
+msgstr "+10% more sparks from tasks and golden crown sparks at the Campfire — for everyone at the fire."
 
 msgid "+20 искр за просмотр"
 msgstr "+20 sparks for watching"
@@ -432,6 +438,9 @@ msgstr "Address copied — paste it into Minecraft"
 msgid "Активна до "
 msgstr "Active until "
 
+msgid "Аура вокруг вашей игры и сети в «Играх» и «Найти игроков»."
+msgstr "An aura around your game and network in Games and Find players."
+
 msgid "БУМ! ✦"
 msgstr "BOOM! ✦"
 
@@ -468,8 +477,14 @@ msgstr "No ads, your own room code, cloud world backups, 32 slots in “Any game
 msgid "Без сдвигов и вспышек — для слабых телефонов и тех, кого укачивает."
 msgstr "No slides or flashes — for slow phones and motion-sensitive people."
 
+msgid "Без случайных наград. Пламя даёт фишки, но не влияет на связь, скорость и честность игры."
+msgstr "No random rewards. Flames give fun perks but never affect connection, speed or fair play."
+
 msgid "Без телеметрии. Не требует прав администратора. Пароли не спрашивает."
 msgstr "No telemetry. No admin rights needed. Never asks for passwords."
+
+msgid "Белое пламя"
+msgstr "White Flame"
 
 msgid "Белый ник"
 msgstr "White name"
@@ -582,6 +597,9 @@ msgstr "Your Minecraft world or a separate server — friends join by code"
 msgid "Ваш ник в Minecraft"
 msgstr "Your Minecraft nickname"
 
+msgid "Ваш ник светится неоном в чатах и списках — у всех."
+msgstr "Your nickname glows neon in chats and lists — for everyone."
+
 msgid "Ваш тег"
 msgstr "Your tag"
 
@@ -596,6 +614,9 @@ msgstr "Your game"
 
 msgid "Ваша игра — открыть снова"
 msgstr "Your game — open again"
+
+msgid "Ваше пламя"
+msgstr "Your flame"
 
 msgid "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft."
 msgstr "Enter the 6-character code your friend sent — the world will show up right in Minecraft."
@@ -732,6 +753,9 @@ msgstr "All slots are taken."
 msgid "Все режимы"
 msgstr "All modes"
 
+msgid "Вспышка входа: друзья видят огненную вспышку, когда вы заходите к ним в игру"
+msgstr "Entry flare: friends see a burst of fire when you join their game"
+
 msgid "Вставить"
 msgstr "Paste"
 
@@ -839,6 +863,9 @@ msgstr "Where to keep worlds and servers"
 
 msgid "Главное меню и список миров не считаются — зайдите в мир."
 msgstr "The main menu and world list don't count — enter the world."
+
+msgid "Глитч-пламя"
+msgstr "Glitch Flame"
 
 msgid "Го!"
 msgstr "Go!"
@@ -1083,6 +1110,9 @@ msgstr "There's a PC version"
 msgid "Ещё"
 msgstr "More"
 
+msgid "Ещё 4 реакции в чате «Любых игр»: 👾 🕹️ 💾 ⭐ — видят все."
+msgstr "4 extra reactions in the Any Games chat: 👾 🕹️ 💾 ⭐ — everyone sees them."
+
 msgid "Ещё админы"
 msgstr "More admins"
 
@@ -1097,6 +1127,9 @@ msgstr "Report sent. Thank you!"
 
 msgid "Ждём ваш мир в Minecraft"
 msgstr "Waiting for your Minecraft world"
+
+msgid "Живой фон профиля и радужная аура в списке друзей у всех."
+msgstr "A living profile background and a rainbow aura in everyone’s friend list."
 
 msgid "Журнал сервера и команды"
 msgstr "Server log and commands"
@@ -1305,6 +1338,9 @@ msgstr "Seed"
 msgid "Зимняя поляна"
 msgstr "Winter glade"
 
+msgid "Золотая корона"
+msgstr "Golden Crown"
+
 msgid "Золотая рамка"
 msgstr "Gold frame"
 
@@ -1410,9 +1446,6 @@ msgstr "Change code"
 msgid "Изменить…"
 msgstr "Change…"
 
-msgid "Изумрудное пламя"
-msgstr "Emerald flame"
-
 msgid "Или зайдите к другу"
 msgstr "Or join a friend"
 
@@ -1481,6 +1514,9 @@ msgstr "Pocket world"
 
 msgid "Кирка и блоки"
 msgstr "Pickaxe and blocks"
+
+msgid "Классика: чистый белый жар. Пламя по умолчанию."
+msgstr "The classic: pure white heat. The default flame."
 
 msgid "Кнопка не видна в игре?"
 msgstr "Can't see the button in the game?"
@@ -1553,6 +1589,15 @@ msgstr "Code, e.g. 7KQ-M2X"
 
 msgid "Код, ссылка или адрес сервера"
 msgstr "Code, link or server address"
+
+msgid "Коллекционер"
+msgstr "Collector"
+
+msgid "Коллекция огня"
+msgstr "Fire collection"
+
+msgid "Коллекция: %d из %d"
+msgstr "Collection: %d of %d"
 
 msgid "Команда серверу, например: op ВашНик"
 msgstr "Server command, e.g.: op YourName"
@@ -1653,11 +1698,11 @@ msgstr "Cube lantern"
 msgid "Купить"
 msgstr "Buy"
 
+msgid "Легенда сезона: неоновый ник и радужная аура."
+msgstr "Season legend: neon nickname and a rainbow aura."
+
 msgid "Легендарное пламя"
 msgstr "Legendary flame"
-
-msgid "Ледяное пламя"
-msgstr "Ice flame"
 
 msgid "Личные сообщения"
 msgstr "Direct messages"
@@ -2091,6 +2136,9 @@ msgstr "Can't be equipped"
 msgid "Нельзя написать этому игроку"
 msgstr "You can't message this player"
 
+msgid "Неоновое пламя"
+msgstr "Neon Flame"
+
 msgid "Нет доступа к папке LANTERN."
 msgstr "No access to the LANTERN folder."
 
@@ -2327,9 +2375,6 @@ msgstr "Memory: %.1f GB, %.1f GB free. A Java server needs 1.5–4 GB, Bedrock a
 
 msgid "Оплата ожидает подтверждения — начислим, как только Google её примет."
 msgstr "Payment is pending — we'll add it as soon as Google confirms."
-
-msgid "Оранжевое пламя"
-msgstr "Orange flame"
 
 msgid "Освободите место или выберите другой диск в «Настройках»."
 msgstr "Free up space or pick another drive in Settings."
@@ -2573,6 +2618,9 @@ msgstr "Restart now"
 
 msgid "Переподключаемся к LANTERN…"
 msgstr "Reconnecting to LANTERN…"
+
+msgid "Пиксельное пламя"
+msgstr "Pixel Flame"
 
 msgid "Писать можно только друзьям"
 msgstr "You can only message friends"
@@ -2838,6 +2886,12 @@ msgstr "Pick a nickname"
 msgid "Придумать ник"
 msgstr "Pick a nickname"
 
+msgid "Призрачная QR-карточка, когда вы делитесь кодом игры или сети."
+msgstr "A ghostly QR card when you share a game or network code."
+
+msgid "Призрачное пламя"
+msgstr "Ghost Flame"
+
 msgid "Приключение"
 msgstr "Adventure"
 
@@ -3027,9 +3081,6 @@ msgstr "Ads only show after you leave a world. None with Pro."
 msgid "Рекорд: %d · пропуск раз в неделю не сжигает серию"
 msgstr "Record: %d · one skip a week doesn't break the streak"
 
-msgid "Розовое пламя"
-msgstr "Pink flame"
-
 msgid "Ролевая"
 msgstr "Roleplay"
 
@@ -3119,6 +3170,12 @@ msgstr "Season 1 · First Lights"
 
 msgid "Сезон «Первые огни»"
 msgstr "“First Lights” season"
+
+msgid "Сезонное: алый жар и искры."
+msgstr "Seasonal: scarlet heat and sparks."
+
+msgid "Сезонное: искры поднимаются над фонарём."
+msgstr "Seasonal: sparks rise above the lantern."
 
 msgid "Сейчас буду"
 msgstr "Be right there"
@@ -3507,6 +3564,9 @@ msgstr "World type and seed"
 msgid "Титул «%s» · +%d искр"
 msgstr "Title “%s” · +%d sparks"
 
+msgid "Титул «Хранитель пламени» и +80 искр"
+msgstr "The “Flame Keeper” title and +80 sparks"
+
 msgid "Титул обновлён"
 msgstr "Title updated"
 
@@ -3518,9 +3578,6 @@ msgstr "Bedrock only"
 
 msgid "Только буквы, цифры и «_»"
 msgstr "Only letters, digits and “_”"
-
-msgid "Только внешний вид — никаких преимуществ в игре и случайных наград."
-msgstr "Looks only — no in-game advantages and no random rewards."
 
 msgid "Только вы."
 msgstr "Just you."
@@ -3606,9 +3663,6 @@ msgstr "Terms of use"
 msgid "Файлы мира на этом компьютере."
 msgstr "The world's files on this computer."
 
-msgid "Фиолетовое пламя"
-msgstr "Violet flame"
-
 msgid "Фонарь"
 msgstr "Lantern"
 
@@ -3641,6 +3695,9 @@ msgstr "Host: "
 
 msgid "Хранитель огня"
 msgstr "Keeper of the flame"
+
+msgid "Хранитель пламени"
+msgstr "Flame Keeper"
 
 msgid "Цвет акцента"
 msgstr "Accent color"
@@ -3749,9 +3806,6 @@ msgstr "I accept the Minecraft End User License Agreement and the Privacy Policy
 
 msgid "Язык"
 msgstr "Language"
-
-msgid "Янтарное пламя"
-msgstr "Amber flame"
 
 msgid "Яркий фонарь"
 msgstr "Bright lantern"
@@ -4274,6 +4328,9 @@ msgstr "✓ yes"
 
 msgid "✗ Не отвечает: "
 msgstr "✗ Not responding: "
+
+msgid "✦ %s входит с пламенем «%s»"
+msgstr "✦ %s joins with the %s"
 
 msgid "❦ осень"
 msgstr "❦ autumn"

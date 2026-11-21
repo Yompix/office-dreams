@@ -29,6 +29,7 @@ const VCFG = {
 };
 const NET_PREFIX = [10, 88];
 const REACTIONS = new Set(['👍', '❤️', '😂', '🔥', '🎮', '👋', '😮', '🎉']);
+const { PIXEL_REACTIONS } = require('./economy');
 const GAMES = /^[a-z0-9_]{1,32}$/;
 
 function ipStr(b, o = 0) { return b[o] + '.' + b[o + 1] + '.' + b[o + 2] + '.' + b[o + 3]; }
@@ -83,7 +84,10 @@ function createVnet(h) {
     return crypto.createHmac('sha256', h.secret()).update(['vnet', net.code, net.num, net.octet, net.ownerUid, net.ownerPeer].join('|')).digest('hex').slice(0, 32);
   }
 
-  function pubMember(m) { return { peer: m.peer, ip: ipStr(m.ip), name: m.name, uid: m.uid || 0, owner: m.peer === m.net.ownerPeer, ms: m.ws._rtt || 0, plus: !!m.plus }; }
+  // 2.0.3: пламя участника (неоновый ник и т. п. у всех) — только из проверенной экипировки на сервере
+  const eco = () => (h.social && h.social.eco) || null;
+  const flameOf = (uid) => (uid && eco() ? eco().flameOf(uid) : '');
+  function pubMember(m) { return { peer: m.peer, ip: ipStr(m.ip), name: m.name, uid: m.uid || 0, owner: m.peer === m.net.ownerPeer, ms: m.ws._rtt || 0, plus: !!m.plus, flame: flameOf(m.uid) }; }
 
   function bcast(net, obj, except) {
     for (const m of net.members.values()) if (m !== except) h.send(m.ws, obj);
@@ -243,10 +247,12 @@ function createVnet(h) {
         const text = String(msg.text || '').replace(/[\u0000-\u0008\u000b-\u001f]/g, '').trim().slice(0, 300);
         if (!text || !slide(m.chat, 60_000, VCFG.chatPerMin)) return;
         const id = ++net.chatSeq;
-        return bcast(net, { t: 'vnet_chat', id, from: m.peer, name: m.name, text, ts: Date.now() });
+        return bcast(net, { t: 'vnet_chat', id, from: m.peer, name: m.name, flame: flameOf(m.uid), text, ts: Date.now() });
       }
       case 'vnet_react': {
-        if (!REACTIONS.has(String(msg.e)) || !slide(m.chat, 60_000, VCFG.chatPerMin * 2)) return;
+        // 2.0.3: «Пиксельное пламя» — ещё 4 реакции (проверка по экипировке на сервере)
+        const pixel = eco() && eco().flamePerk(m.uid, 'pixel_react') && PIXEL_REACTIONS.includes(String(msg.e));
+        if ((!REACTIONS.has(String(msg.e)) && !pixel) || !slide(m.chat, 60_000, VCFG.chatPerMin * 2)) return;
         return bcast(net, { t: 'vnet_react', id: msg.id >>> 0, from: m.peer, e: String(msg.e) });
       }
       case 'vnet_leave': leave(m, false); ws._role = ''; return;
@@ -301,7 +307,7 @@ function createVnet(h) {
     for (const n of nets.values()) {
       if (!n.public || n.closed || !n.members.size || (g && g !== 'any' && n.game !== g)) continue;
       const owner = n.members.get(n.ownerPeer);
-      out.push({ num: n.num, name: n.name, game: n.game, n: n.members.size, cap: capFor(n), locked: !!n.passHash, owner: owner ? owner.name : '' });
+      out.push({ num: n.num, name: n.name, game: n.game, n: n.members.size, cap: capFor(n), locked: !!n.passHash, owner: owner ? owner.name : '', flame: owner ? flameOf(owner.uid) : '' });
       if (out.length >= 50) break;
     }
     return out.sort((a, b) => b.n - a.n);

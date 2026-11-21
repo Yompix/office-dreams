@@ -399,7 +399,7 @@ func _on_msg(m: Dictionary) -> void:
 			if _members.has(pe) and not _members[pe].p2p:
 				_sample(pe, Time.get_ticks_msec() - int(m.get("ts", 0)))
 		"vnet_chat":
-			var c := {"id": int(m.get("id", 0)), "from": str(m.get("from", "")), "name": str(m.get("name", "")), "text": str(m.get("text", "")), "re": {}}
+			var c := {"id": int(m.get("id", 0)), "from": str(m.get("from", "")), "name": str(m.get("name", "")), "flame": str(m.get("flame", "")), "text": str(m.get("text", "")), "re": {}}
 			_chat.append(c)
 			if _chat.size() > 80:
 				_chat.pop_front()
@@ -438,7 +438,7 @@ func _add_member(p: Dictionary) -> void:
 		return
 	var old: Dictionary = _members.get(pe, {})
 	_members[pe] = {"peer": pe, "ip": str(p.get("ip", "")), "name": str(p.get("name", "")), "owner": bool(p.get("owner", false)),
-		"plus": bool(p.get("plus", false)), "relay_ms": int(p.get("ms", 0)), "rtt": int(old.get("rtt", 0)), "p2p": false, "addr": [],
+		"plus": bool(p.get("plus", false)), "flame": str(p.get("flame", "")), "relay_ms": int(p.get("ms", 0)), "rtt": int(old.get("rtt", 0)), "p2p": false, "addr": [],
 		"last_rx": 0, "graph": old.get("graph", []), "cands": [], "punch_until": 0, "punch_at": 0}
 	_by_ip[_members[pe].ip] = pe
 
@@ -740,7 +740,7 @@ func _publish() -> void:
 	var ms := []
 	for pe in _members:
 		var mb: Dictionary = _members[pe]
-		ms.append({"peer": pe, "ip": mb.ip, "name": mb.name, "owner": mb.owner, "plus": mb.plus, "rtt": mb.rtt,
+		ms.append({"peer": pe, "ip": mb.ip, "name": mb.name, "owner": mb.owner, "plus": mb.plus, "flame": mb.get("flame", ""), "rtt": mb.rtt,
 			"relay_ms": mb.relay_ms, "p2p": mb.p2p, "graph": mb.graph.duplicate()})
 	ms.sort_custom(func(a, b): return a.ip.naturalnocasecmp_to(b.ip) < 0)
 	var s := {"state": _st, "error": _err, "members": ms, "adapter": _adapter_state, "adapter_err": _adapter_err,
