@@ -126,6 +126,11 @@ function buildLobby() {
       const ar = new T.Mesh(PGEO.arr || (PGEO.arr = new T.ShapeGeometry(new T.Shape([[-.008, -.004], [.008, -.004], [0, .008]].map(([a, b]) => new T.Vector2(a, b))))), mat(0x3a2408, null, { basic: true })); ar.position.set(0, .021, .0235); bp.add(ar); }
     o.lifts.push({ x, dl, dr, ind, open: 0, shown: '' });
   }
+  // 21 ноя: электрощиток у лифтов (обход пешком: «Включить свет»), лампочка горит зелёным, когда свет в порядке
+  { const B = new T.Group(); B.position.set(2.75, 1.45, -5.97); S.add(B); const gr = mat(0x7a7f82, null, { metal: .5, rough: .5 });
+    box(.42, .56, .12, gr, 0, 0, .06, B); box(.4, .54, .01, mat(0x8a8f92, null, { metal: .5, rough: .45 }), 0, 0, .125, B); box(.03, .08, .02, mat(0x222222), .16, 0, .135, B);
+    box(.4, .06, .011, mat(0xc9a400, null, { rough: .6 }), 0, .2, .131, B);   // жёлтая полоса «осторожно»
+    o.brLed = cyl(.012, .012, .01, 10, mat(0x3dff6a, null, { basic: true, glow: 2 }), B); o.brLed.rotation.x = PI / 2; o.brLed.position.set(-.15, -.2, .135); }
   // кабина первого лифта (видна, когда двери открыты)
   const cab = new T.Group(); cab.position.set(-2.2, 0, -6.85); S.add(cab);
   // внутри — светлые панели под дерево, тёмный резиновый пол, поручень и зеркало: видно, что это кабина, а не стена холла
@@ -1982,12 +1987,16 @@ SH.office = { loc: 'lobby', pos: [SEAT[0], 1.2, SEAT[1]], look: [SEAT[0] - 1, 1.
 // стекло кабинета: изнутри — как было; снаружи (обход пешком) под углом слой грязи + аддитивный блик давали белый лист — приглушаем
 function boothGlassK(o, k) { for (const pg of o.boothGlass || []) pg.traverse(m => { const M = m.material; if (!M || M.depthWrite !== false || !M.transparent) return;
   if (M.userData.op0 == null) M.userData.op0 = M.opacity; M.opacity = M.userData.op0 * k; }); }
-// 21 ноя: обход холла пешком от первого лица — window.__walk = { x, z, yaw, pitch, bob }
-SH.walk = { loc: 'lobby', pos: [3.2, 1.62, 1.2], look: [2.2, 1.55, 1.2], fov: 74, set: (o, t, sh) => {
-  boothGlassK(o, .3); const w = window.__walk || { x: 3.2, z: 1.2, yaw: 0, pitch: 0, bob: 0 }, y = 1.62 + Math.sin(w.bob) * .025;
+// 21 ноя: обход пешком от первого лица — window.__walk = { x, z, yaw, pitch, bob, floor }: холл, коридор 7/10 этажа, подвал (−2)
+const walkShot = (loc, cams) => ({ loc, pos: [0, 1.62, -3], look: [0, 1.55, -4], fov: 74, set: (o, t, sh) => {
+  if (loc === 'lobby') { boothGlassK(o, .3); if (o.brLed) o.brLed.material.color.setHex(SHS().hallDark ? 0xff3020 : 0x3dff6a); }
+  const w = window.__walk || { x: 0, z: -3, yaw: -PI / 2, pitch: 0, bob: 0 }, y = 1.62 + Math.sin(w.bob) * .025;
   sh.pos = [w.x, y, w.z]; sh.look = [w.x - Math.cos(w.yaw), y - .06 + w.pitch, w.z + Math.sin(w.yaw)];
-  const A = []; for (const k of ['cam02', 'cam01']) for (const x of SH[k].set(o, t, sh) || []) if (x[0] !== 'temych') A.push(x);
-  return A; } };
+  const A = []; for (const k of (typeof cams === 'function' ? cams() : cams)) for (const x of SH[k].set(o, t, sh) || []) if (x[0] !== 'temych') A.push(x);
+  return A; } });
+SH.walk = walkShot('lobby', ['cam02', 'cam01']);
+SH.walk_c = walkShot('corridor', () => [(window.__walk || {}).floor === 10 ? 'cam10' : 'cam07']);
+SH.walk_b = walkShot('basement', ['cam_m2']);
 SH.fb_view = { loc: 'lobby', pos: [4.0, 1.5, -1.02], look: [5.3, .82, -.44], fov: 48, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; o.saltPack.visible = o.saltGr.visible = true; return []; } };
 // этап 1 (19 ноя): пропуск Фрэнка на шнурке у края пульта (o.badge) — крупно, глазами Итана («лицо с пропуска над моим столом», s06)
 SH.fb_badge = { loc: 'lobby', pos: [4.32, 1.37, -.6], look: [4.05, 1.32, -.21], fov: 30, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; return []; } };
