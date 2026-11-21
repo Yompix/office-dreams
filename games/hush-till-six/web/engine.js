@@ -81,7 +81,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 5, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 5, click: 5, cleaner_hum: 5, breath_close: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { drone: 5, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 5, p11: 5, p12: 5, h08: 5, dg02: 5, dg04: 5, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 };   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -229,7 +229,7 @@ function goFull() {   // полный экран по нажатию «Игра�
 }
 const playing = new Set();
 // сколько низа каждого звука отправить в «телефонный» слой обертонов
-const SEND = { heart: 2.2, heart_held: 1, sub_presence: 3, drone_dread: 1.6, boom: 1.6, metal_groan: .7 };
+const SEND = { heart_held: 1,   /* heart — без эха и подмеса низа: файл владельца звучит как есть (21 ноя) */ sub_presence: 3, drone_dread: 1.6, boom: 1.6, metal_groan: .7 };
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, rate = 1, to = null, cut = 0, pan = 0, lp = 0, rev = 0 } = {}) {
   if (name === 'jumpscare' && !to && directG) to = [[directG, 1]];
   if (bus === 'voice' && isVoice(name) && !BUF[name] && AC) voiceMiss++;
@@ -256,7 +256,7 @@ let curMusic = null, curMusicName = '';
 // музыка владельца для пролога (13 ноя): вступление играет один раз, за ним без шва — вторая часть по кругу
 const MSEQ = { part1: ['mus_p1a', 'mus_p1b'], part2: ['mus_p2a', 'mus_p2b'] };
 // fade — как медленно уходит прежняя музыка (постоянная времени, с): .6 — обычная смена, 1.5–2 — «медленно затухает»
-function music(name, fade) {
+function music(name, fade, when = 0) {   // when — через сколько секунд вступить (кадр с msync: музыка с первым кадром, голос позже)
   if (!AC || name === curMusicName) return; curMusicName = name;
   const tc = fade || .6, old = curMusic;
   if (old) { for (const o of [old, old.next]) if (o) o.gn.gain.setTargetAtTime(0, AC.currentTime, tc);
@@ -265,7 +265,7 @@ function music(name, fade) {
     const miss = [a, b].filter(k => !BUF[k]);
     if (miss.length) { if (miss.every(k => rawSnd[k])) Promise.all(miss.map(k => decQ[k] || (decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; })))).then(() => { if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); else curMusicName = null;   // ещё не скачана — попробуем позже
       return; }
-    const oa = play(a, { bus: 'music', gain: 1 }), ob = oa && play(b, { bus: 'music', loop: true, gain: 1, when: BUF[a].duration });
+    const oa = play(a, { bus: 'music', gain: 1, when }), ob = oa && play(b, { bus: 'music', loop: true, gain: 1, when: when + BUF[a].duration });
     if (!oa) { curMusicName = null; return; }
     oa.music = true; if (ob) { ob.music = true; oa.next = ob; } curMusic = oa;
     return; }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
@@ -564,7 +564,7 @@ function nextBeat() {
   if (beat.hush && AC) for (const o of [...playing]) if (o.name === 'ch_katya') { try { o.gn.gain.setTargetAtTime(0, AC.currentTime, .03); o.s.stop(AC.currentTime + .15); } catch {} playing.delete(o); }   // «перестала плакать. Сразу» — плач обрывается вместе с тишиной   // 'soft' — тишина перед ударом без щелчка холодильника и с тихим звоном
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
-  let t = beat.sayAt ?? .15;   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)
+  let t = beat.msync ?? beat.sayAt ?? .15;   // msync — голос вступает через столько секунд после музыки кадра (p06: 1,02 с, просьба владельца 21 ноя)   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)
   for (const k of beat.say || []) {
     const ln = !TIM[k] && (S.shift.lines || {})[k];   // реплика ещё без озвучки — печатается текстом
     if (ln) { const tx = tr(ln), d = Math.max(2.2, tx.length / (CPS[LNG] || 14) + 1.3); typed = { t0: t, d, s: tx, who: (S.shift.who || {})[k] }; t += d + .3; continue; }
@@ -609,7 +609,7 @@ function nextBeat() {
   subl = null;
   if (beat.subl != null && !calm() && sublScene !== sceneId) { const o = typeof beat.subl === 'object' ? beat.subl : { at: +beat.subl || 1 }; subl = { at: o.at ?? 1, img: o.img || 'monster_close', n: 0 }; }
   carry.forEach(e => e.fn());
-  if (beat.music !== undefined && !beat.wait) music(beat.music || null, beat.mfade);   // музыка с этого кадра (у кадра с «нажми» — после нажатия, beginBeat)
+  if (beat.music !== undefined && !beat.wait && beat.msync == null) music(beat.music || null, beat.mfade);   // музыка с этого кадра (у кадра с «нажми» — после нажатия, beginBeat)
   if (beat.wait) { waiting = true; tapEl.innerHTML = ICON.play + escH(beat.wait); tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
   audioQ = 1;   // звук — после первого нарисованного кадра (frame)
 }
@@ -627,7 +627,8 @@ function lateFlush(T) {
 }
 const burstOf = op => !!(op && (op.once || op.cut));   // ['static', t, { cut }] — короткий удар помех в секунду t, а не шипение на весь кадр
 function beatAudio() {
-  const P = pre;   // все звуки кадра сдвигаются на длину пред-кадра
+  const P = pre;
+  if (beat.msync != null && beat.music !== undefined) music(beat.music || null, beat.mfade, P);   // музыка — ровно в начале звука кадра, голос — через msync после неё   // все звуки кадра сдвигаются на длину пред-кадра
   for (const [n, at, op] of beat.sfx || []) {   // [звук, секунда, {gain, cut, off, lp, pan, rate}]
     if (n === 'static' && !burstOf(op)) amb('static', true, .25);   // помехи фоном на весь кадр; с once или cut — один удар помех в свою секунду (обрыв сигнала ровно с картинкой)
     // стук по стеклу: если Катя стучит в кадре, звук даёт её рука (синхронно), а не таблица
