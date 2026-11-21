@@ -1169,7 +1169,8 @@ function radioTalk() {
   return out;
 }
 function shiftEvent(e) {
-  const S2 = S.shift; if (!flagOk(e.if)) return;   // событие часа может зависеть от того, что нашёл раньше
+  const S2 = S.shift; if (!flagOk(e.if)) return;
+  if (shf.walk && (e.call || e.hold)) { walkSet(false); shiftToast(tr('Ты бегом вернулся в кабинет.')); }   // звонок/рация/«не дыши» — только из кабинета   // событие часа может зависеть от того, что нашёл раньше
   setFlags(e.set);
   if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return;
     const busy = shf.act.some(a => a.def.cam === def.cam) || (def.need === 'locked' && !shk.door) || (def.need === 'nogus' && shk.st.gus) || (def.need === 'gus' && !shk.st.gus);
@@ -1255,28 +1256,33 @@ function shiftTask() { const el = $('shTask'); if (!el) return; const tk = shf &
 // нажать на мониторы (или кнопку «Мониторы») — снова камеры. Смена идёт дальше: странности на камерах никто не ждёт
 const OFF_MIN = -1.9, OFF_MAX = 3.0, OFF_MON = [.15, 1.05];
 let offYaw = .6, offVel = 0, offEdge = 0, offDrag = null, offKeys = 0;
+const plockOK = () => matchMedia('(pointer: fine)').matches;
+function plock(on) { const L = $('shLook'); if (!L || !plockOK()) return; try { if (on && document.pointerLockElement !== L) L.requestPointerLock(); else if (!on && document.pointerLockElement) document.exitPointerLock(); } catch {} }
+document.addEventListener('pointerlockchange', () => document.body.classList.toggle('plock', !!document.pointerLockElement));
 function offSet(on) {
   if (!shf || tut) return; if (shf.walk && !on) { shf.walk = false; document.body.classList.remove('walking'); const wb = $('shWalk'); if (wb) wb.querySelector('span').textContent = tr('Обход'); } shf.office = !!on; document.body.classList.toggle('office', !!on);
   const b = $('shOff'); if (b) b.querySelector('span').textContent = tr(on ? 'Мониторы' : 'Кабинет');
   if (on) { offYaw = .6; offVel = 0; offEdge = 0; play('click', { gain: .2, rate: .7 }); } else { play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9; monFlip(); }
-  window.__offYaw = offYaw;
+  window.__offYaw = offYaw; plock(!!on);
 }
 function offTick(dt) {
   const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null, gx = gp ? (Math.abs(gp.axes[0] || 0) > .2 ? gp.axes[0] : 0) : 0, gA = !!(gp && gp.buttons[0] && gp.buttons[0].pressed);
   if (gA && !offTick.a && offYaw > OFF_MON[0] && offYaw < OFF_MON[1]) { offTick.a = gA; return offSet(false); } offTick.a = gA;
-  offYaw += (offEdge * 1.7 + offKeys * 1.5 + gx * 1.6) * dt + offVel; offVel = 0;
+  offYaw -= (offEdge * 1.7 + offKeys * 1.5 + gx * 1.6) * dt; offYaw += offVel; offVel = 0;
   offYaw = Math.max(OFF_MIN, Math.min(OFF_MAX, offYaw)); window.__offYaw = offYaw;
   const el = $('shLook'); if (el) el.classList.toggle('mon', offYaw > OFF_MON[0] && offYaw < OFF_MON[1]);
 }
 function offBind() {
   const b = $('shOff'), L = $('shLook'); if (!b || !L) return;
+  document.body.classList.toggle('nooff', /^(S6|A1)$/.test(shf.id)); document.body.classList.toggle('nowalk', !/^S[1-4]$/.test(shf.id));
   b.onclick = e => { e.stopPropagation(); offSet(!shf.office); };
   if (shf.office) offSet(true); else document.body.classList.remove('office');
   L.onpointermove = e => { const r = L.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
     if (offDrag) { offVel += -(e.clientX - offDrag.x) / r.width * 2.6; if (Math.abs(e.clientX - offDrag.x0) > 8) offDrag.moved = true; offDrag.x = e.clientX; return; }
     if (e.pointerType === 'mouse') offEdge = x < .18 ? -(.18 - x) / .18 : x > .82 ? (x - .82) / .18 : 0; };
-  L.onpointerdown = e => { offDrag = { x: e.clientX, x0: e.clientX, moved: false }; try { L.setPointerCapture(e.pointerId); } catch {} };
-  L.onpointerup = e => { const d = offDrag; offDrag = null; if (d && !d.moved && shf && shf.office && offYaw > OFF_MON[0] && offYaw < OFF_MON[1]) offSet(false); };
+  L.addEventListener('mousemove', e => { if (document.pointerLockElement === L && shf && shf.office && !shf.walk) offYaw -= e.movementX * .0032; });
+  L.onpointerdown = e => { if (document.pointerLockElement === L) return; offDrag = { x: e.clientX, x0: e.clientX, moved: false }; try { L.setPointerCapture(e.pointerId); } catch {} };
+  L.onpointerup = e => { const d = document.pointerLockElement === L ? { moved: false } : offDrag; offDrag = null; if (d && !d.moved && shf && shf.office && offYaw > OFF_MON[0] && offYaw < OFF_MON[1]) offSet(false); };
   L.onpointerleave = () => { offEdge = 0; };
 }
 addEventListener('keydown', e => { if (!shf || !shf.office || mode !== 'shift') return; if (e.key === 'ArrowLeft' || e.key === 'a') offKeys = -1; else if (e.key === 'ArrowRight' || e.key === 'd') offKeys = 1; else return; e.stopImmediatePropagation(); e.preventDefault(); }, true);
@@ -1288,13 +1294,14 @@ const WK = { x: 3.2, z: 1.2, yaw: 0, pitch: 0, bob: 0, t: 0, mv: 0, tn: 0, hb: 0
 // места: где появляешься (у лифта / у двери кабинета), куда смотришь; запасные точки — если там оказалось что-то твёрдое
 const WK_AT = { lobby: [3.2, 1.2, 0], lift: [-.8, -4.6, Math.PI / 2], corridor: [0, -3, -Math.PI / 2], basement: [.6, -2, -Math.PI / 2] }, WK_LIFT = [-.8, -5.2], WK_BR = [2.75, -5.4];
 function walkBoxes() { try { return (World.solids() || []).filter(b => !b.small && b.c[1] - b.size[1] / 2 < 1.5 && b.c[1] + b.size[1] / 2 > .25).map(b => [b.c[0] - b.size[0] / 2, b.c[0] + b.size[0] / 2, b.c[2] - b.size[2] / 2, b.c[2] + b.size[2] / 2]); } catch { return []; } }
-function walkHit(x, z) { for (const b of WK.boxes || []) { const cx = Math.max(b[0], Math.min(x, b[1])), cz = Math.max(b[2], Math.min(z, b[3])); if ((x - cx) ** 2 + (z - cz) ** 2 < WK_R * WK_R) return true; } return false; }
+function walkHit(x, z) { for (const a of window.__walkActors || []) if ((x - a[1]) ** 2 + (z - a[2]) ** 2 < .55 * .55) return true;
+  for (const b of WK.boxes || []) { const cx = Math.max(b[0], Math.min(x, b[1])), cz = Math.max(b[2], Math.min(z, b[3])); if ((x - cx) ** 2 + (z - cz) ** 2 < WK_R * WK_R) return true; } return false; }
 function walkSolid() { if (WK.boxes) return; WK.boxes = walkBoxes(); if (!walkHit(WK.x, WK.z)) return;
   for (let r = .3; r < 3; r += .3) for (let k = 0; k < 12; k++) { const x = WK.x + Math.cos(k * Math.PI / 6) * r, z = WK.z + Math.sin(k * Math.PI / 6) * r; if (!walkHit(x, z)) { WK.x = x; WK.z = z; return; } } }
 function walkGo(loc, floor, at) { const p = WK_AT[at || loc]; Object.assign(WK, { loc, floor: floor || 0, x: p[0], z: p[1], yaw: p[2], pitch: 0, boxes: null }); window.__walk = WK; }
 function walkSet(on) {
   if (!shf || tut) return; shf.walk = !!on; document.body.classList.toggle('walking', !!on);
-  if (on) { shf.office = false; document.body.classList.add('office'); walkGo('lobby'); Object.assign(WK, { mv: 0, tn: 0, warn: 0 }); play('steps', { gain: .3, cut: .6 }); }
+  if (on) { shf.office = false; document.body.classList.add('office'); walkGo('lobby'); Object.assign(WK, { mv: 0, tn: 0, warn: 0, gus: 0, fix: null }); plock(true); play('steps', { gain: .3, cut: .6 }); }
   else { if (document.pointerLockElement) try { document.exitPointerLock(); } catch {} WK.t = Math.max(0, WK.t - 10); offSet(true); for (const id of ['shWalk']) { const b = $(id); if (b) b.classList.remove('hide'); } }
   const b = $('shWalk'); if (b) b.querySelector('span').textContent = tr(on ? 'В кабинет' : 'Обход');
   window.__walk = WK;
@@ -1302,6 +1309,10 @@ function walkSet(on) {
 function walkLift(loc, floor) {   // лифт: если на пульте СТОП — не едет (правило Фрэнка: «22:00 — лифт в СТОП»)
   if (shk.lift) { shiftToast(tr('Лифт на СТОПе — сними на пульте.')); play('click', { gain: .3 }); return; }
   play('ding', { gain: .5 }); grain(1); heldT = -9; walkGo(loc, floor, loc === 'lobby' ? 'lift' : null);
+}
+function walkFix() {   // «Включить свет»: чинишь 3 секунды, стоя у щитка; отошёл — сорвалось
+  if (WK.fix) return; if (shk.st.blackout) { shiftToast(tr('Щиток: не включается.')); play('click', { gain: .4 }); return; }
+  WK.fix = { t: 0, sp: 0 }; shiftToast(tr('Чиню щиток…'));
 }
 function walkBreaker() {
   if (shk.st.blackout) { shiftToast(tr('Щиток: не включается.')); play('click', { gain: .4 }); return; }
@@ -1312,7 +1323,7 @@ function walkBreaker() {
 function walkPad(dt) {   // геймпад: левый стик — шаг/поворот, правый — взгляд, A — действие, B — назад в кабинет
   const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null; if (!gp) { WK.gmv = WK.gtn = 0; return; }
   const dz = v => Math.abs(v) < .2 ? 0 : v, ax = gp.axes;
-  WK.gmv = -dz(ax[1] || 0); WK.gtn = dz(ax[0] || 0); WK.yaw += dz(ax[2] || 0) * 2.2 * dt; WK.pitch = Math.max(-.6, Math.min(.5, WK.pitch - dz(ax[3] || 0) * 1.6 * dt));
+  WK.gmv = -dz(ax[1] || 0); WK.gtn = dz(ax[0] || 0); WK.yaw -= dz(ax[2] || 0) * 2.2 * dt; WK.pitch = Math.max(-.6, Math.min(.5, WK.pitch - dz(ax[3] || 0) * 1.6 * dt));
   const A = gp.buttons[0] && gp.buttons[0].pressed, B = gp.buttons[1] && gp.buttons[1].pressed;
   if (A && !WK.gA) { const b = ['shDoor', 'shBr', 'shLobby', 'shL7', 'shL10', 'shLm2', 'shWalk'].map(id => $(id)).find(b => b && !b.classList.contains('hide')); if (b) b.click(); }
   if (B && !WK.gB) { const b = $('shWalk'); if (b && !b.classList.contains('hide')) b.click(); }
@@ -1320,40 +1331,50 @@ function walkPad(dt) {   // геймпад: левый стик — шаг/по�
 }
 function walkTick(dt) {
   walkPad(dt); const mv = WK.mv || WK.gmv, tn = WK.tn || WK.gtn;
-  WK.yaw += tn * 1.9 * dt; const sp = mv * 1.6 * dt;
+  WK.yaw -= tn * 1.9 * dt; const sp = mv * 1.6 * dt;
   if (sp && WK.boxes) { const nx = WK.x - Math.cos(WK.yaw) * sp, nz = WK.z + Math.sin(WK.yaw) * sp;
     if (!walkHit(nx, WK.z)) WK.x = nx; if (!walkHit(WK.x, nz)) WK.z = nz; WK.bob += Math.abs(sp) * 7;
     if ((WK.st = (WK.st || 0) + Math.abs(sp)) > .75) { WK.st = 0; play('steps', { gain: .22, cut: .3 });
       if (WK.t > 12 && Math.random() < Math.min(.6, (WK.t - 12) / 40)) setTimeout(() => { if (shf && shf.walk) play('steps', { gain: .11, cut: .3, lp: 900 }); }, 330); }   // кто-то идёт следом — в ногу
     WK.stopT = now(); WK.echo = 0; }
   else if (WK.t > 15 && !WK.echo && now() - WK.stopT > .55 && now() - WK.stopT < 1) { WK.echo = 1; play('steps', { gain: .16, cut: .25, lp: 800 }); }   // ты встал — а шаг за спиной ещё один
+  if (WK.fix) { const f = WK.fix; f.t += dt; const b = $('shBr');
+    if (Math.hypot(WK.x - WK_BR[0], WK.z - WK_BR[1]) > 1.7) { WK.fix = null; shiftToast(tr('Отошёл — щиток не починен.')); if (b) b.style.background = ''; }
+    else { if (f.t > f.sp) { f.sp = f.t + .35 + Math.random() * .3; play(Math.random() < .5 ? 'click' : 'buzz', { gain: .25 + Math.random() * .2, cut: .15 }); }
+      if (b) b.style.background = `linear-gradient(90deg, rgba(var(--accRGB),.75) ${Math.min(100, f.t / 3 * 100)}%, transparent 0)`;
+      if (f.t >= 3) { WK.fix = null; if (b) b.style.background = ''; walkBreaker(); } } }
   WK.t += dt; window.__walk = WK;
   const near = (p, r) => Math.hypot(WK.x - p[0], WK.z - p[1]) < r, show = (id, v) => { const b = $(id); if (b) b.classList.toggle('hide', !v); };
   const L = WK.loc === 'lobby';
   show('shDoor', L && near(WK_DOOR, 1.8) && !shk.door); show('shBr', L && near(WK_BR, 1.5)); show('shWalk', L && near(WK_AT.lobby, 1.6));
   const atLift = L && near(WK_LIFT, 2.0); for (const id of ['shL7', 'shL10', 'shLm2']) show(id, atLift);
   show('shLobby', !L && near(WK_AT[WK.loc], 1.8));
+  if (!WK.gus && (window.__walkActors || []).some(a => a[0] === 'cleaner' && Math.hypot(WK.x - a[1], WK.z - a[2]) < 1.8)) { WK.gus = 1; shiftToast(tr('Гас кивает и продолжает мыть.')); }
   if (WK.t > 20 && !WK.warn) { WK.warn = 1; shiftToast(tr('Камеры никто не смотрит.')); }
   if (WK.t > 30 && now() > WK.hb) { play('heart', { gain: .6 }); WK.hb = now() + Math.max(.45, 1.1 - (WK.t - 30) * .04); }
-  if (WK.t > (L ? 45 : 60)) { walkSet(false); return shiftDie('over_come'); }   // на этажах дольше: дорога назад длиннее
+  if (WK.t > (L ? 45 : 60)) { walkSet(false); return shiftDie(L ? 'over_come' : 'over_k6'); }   // в холле — пришло к кабинету; на этаже/в подвале — темнота догнала в коридоре   // на этажах дольше: дорога назад длиннее
 }
 function walkBind() {
   const b = $('shWalk'), d = $('shDoor'), L = $('shLook'); if (!b) return;
   b.onclick = e => { e.stopPropagation(); walkSet(!shf.walk); };
   if (d) d.onclick = e => { e.stopPropagation(); if (shk.door) return; shk.door = 1; play('bolt', { gain: .6 }); shiftCheck(); d.classList.add('hide'); };
   const on = (id, f) => { const x = $(id); if (x) x.onclick = e => { e.stopPropagation(); f(); }; };
-  on('shBr', walkBreaker); on('shL7', () => walkLift('corridor', 7)); on('shL10', () => walkLift('corridor', 10)); on('shLm2', () => walkLift('basement', -2)); on('shLobby', () => walkLift('lobby', 0));
+  on('shBr', walkFix); on('shL7', () => walkLift('corridor', 7)); on('shL10', () => walkLift('corridor', 10)); on('shLm2', () => walkLift('basement', -2)); on('shLobby', () => walkLift('lobby', 0));
   if (shf.walk) walkSet(true); else document.body.classList.remove('walking');
   let dr = null; const mv0 = () => { if (dr && dr.t) { WK.mv = 0; WK.tn = 0; } };
   L.addEventListener('click', () => { if (shf && shf.walk && matchMedia('(pointer: fine)').matches && document.pointerLockElement !== L) try { L.requestPointerLock(); } catch {} });
-  L.addEventListener('mousemove', e => { if (document.pointerLockElement === L && shf && shf.walk) { WK.yaw += e.movementX * .0032; WK.pitch = Math.max(-.6, Math.min(.5, WK.pitch - e.movementY * .0025)); } });
+  L.addEventListener('mousemove', e => { if (document.pointerLockElement === L && shf && shf.walk) { WK.yaw -= e.movementX * .0032; WK.pitch = Math.max(-.6, Math.min(.5, WK.pitch - e.movementY * .0025)); } });
   L.addEventListener('pointerdown', e => { if (!shf || !shf.walk || document.pointerLockElement === L) return; dr = { x: e.clientX, y: e.clientY, t: 1 }; });
   L.addEventListener('pointermove', e => { if (!shf || !shf.walk || !dr) return; const r = L.getBoundingClientRect();
     WK.tn = Math.max(-1, Math.min(1, -(e.clientX - dr.x) / (r.width * .15))) * -1; WK.mv = Math.max(-1, Math.min(1, -(e.clientY - dr.y) / (r.height * .15))); });
   L.addEventListener('pointerup', () => { mv0(); dr = null; }); L.addEventListener('pointercancel', () => { mv0(); dr = null; });
 }
+addEventListener('keydown', e => { if (!shf || !shf.office || shf.walk || mode !== 'shift') return; const k = e.key.toLowerCase();   // кабинет: E — обход (если можно по сюжету), M — мониторы
+  if ((k === 'e' || k === 'у') && !document.body.classList.contains('nowalk')) { e.stopImmediatePropagation(); e.preventDefault(); walkSet(true); }
+  else if (k === 'm' || k === 'ь') { e.stopImmediatePropagation(); e.preventDefault(); offSet(false); } }, true);
 addEventListener('keydown', e => { if (!shf || !shf.walk || mode !== 'shift') return; const k = e.key.toLowerCase();
   if (k === 'w' || k === 'arrowup' || k === 'ц') WK.mv = 1; else if (k === 's' || k === 'arrowdown' || k === 'ы') WK.mv = -1; else if (k === 'a' || k === 'arrowleft' || k === 'ф') WK.tn = -1; else if (k === 'd' || k === 'arrowright' || k === 'в') WK.tn = 1;
+  else if (k === '1' || k === '2' || k === '3') { const b = $(['shL7', 'shL10', 'shLm2'][+k - 1]); if (b && !b.classList.contains('hide')) b.click(); return; }
   else if (k === 'e' || k === 'у') { const b = ['shDoor', 'shBr', 'shLobby', 'shWalk'].map(id => $(id)).find(b => b && !b.classList.contains('hide')); if (b) b.click(); return; } else return; e.stopImmediatePropagation(); e.preventDefault(); }, true);
 addEventListener('keyup', e => { if (!shf || !shf.walk) return; const k = e.key.toLowerCase();
   if (/^(w|s|arrowup|arrowdown|ц|ы)$/.test(k)) WK.mv = 0; if (/^(a|d|arrowleft|arrowright|ф|в)$/.test(k)) WK.tn = 0; }, true);

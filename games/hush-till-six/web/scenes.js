@@ -520,6 +520,21 @@ function buildLobby() {
   box(40, .15, .3, mat(0xffffff, TX.curb), 0, .075, 11, S);
   const road = plane(60, 20, mat(0xffffff, TX.asphalt), S); road.rotation.x = -PI / 2; road.position.set(0, -.05, 21);
   for (let x = -24; x < 24; x += 6) { const ln = plane(2.4, .15, mat(0xb8b8a8, null, { decal: 1 }), S); ln.rotation.x = -PI / 2; ln.position.set(x, -.04, 17); }
+  // 21 ноя: та сторона улицы (из холла и с обхода видно сквозь стекло; была пустая темнота): тротуар, дома с окнами — ночь, горит редкое окно, фонари
+  { const far = new T.Group(); far.userData.solid = false; S.add(far); let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const curb2 = box(60, .15, .3, mat(0xffffff, TX.curb), 0, .075, 25, far); curb2.userData.noShadow = true;
+    const walk2 = plane(60, 4, mat(0x3a3c3e, null, { rough: .9 }), far); walk2.rotation.x = -PI / 2; walk2.position.set(0, .02, 27.2);
+    const winTex = ctex(256, 128, (x, w, h) => { x.fillStyle = '#16181b'; x.fillRect(0, 0, w, h);
+      for (let fy = 0; fy < 6; fy++) for (let fx = 0; fx < 16; fx++) { const r = rnd(), lit = r < .13, warm = rnd() < .75;
+        x.fillStyle = lit ? (warm ? '#d9a35a' : '#9fb8d0') : (r < .5 ? '#22262b' : '#1b1e22'); x.fillRect(4 + fx * 16, 6 + fy * 21, 9, 13); } }, 1, 1, 'raw');
+    for (const [x0, w, h] of [[-26, 14, 16], [-11, 10, 22], [0, 12, 13], [13, 9, 19], [24, 12, 15]]) {
+      const tx = winTex.clone(); tx.needsUpdate = true; tx.repeat.set(w / 14, h / 14); tx.wrapS = tx.wrapT = T.RepeatWrapping; tx.offset.set(rnd(), rnd());
+      const f = plane(w, h, new T.MeshBasicMaterial({ map: tx, fog: true }), far); f.rotation.y = PI; f.position.set(x0, h / 2, 29.3);
+      box(w, h, .4, mat(0x15171a, null, { rough: 1 }), x0, h / 2, 29.55, far); }
+    for (const x of [-14, -2, 10]) { const pole = cyl(.06, .08, 5.2, 8, mat(0x2a2c2e, null, { metal: .5, rough: .5 }), far); pole.position.set(x, 2.6, 25.5);
+      const arm = box(1.1, .06, .06, mat(0x2a2c2e), x, 5.15, 25.0, far); arm.rotation.y = PI / 2;
+      const bulb = box(.35, .08, .2, new T.MeshBasicMaterial({ color: 0xffb35a, fog: true }), x, 5.08, 24.5, far); bulb.userData.noShadow = true; }
+    bake(far); }
   // навес над входом. Его задняя грань — за рамами (z = 6.1), а не в плоскости стекла (z = 6): там стекло и навес «спорили» по глубине,
   // и полоса стекла под верхней рамой мигала при любом движении камеры (владелец 29 окт: «мигает текстура» над EXIT)
   box(5, .2, 2.3, mat(0x1a1c1f), 0, 3.4, 7.25, S); o.canopyLamp = box(.6, .04, .3, mat(0xfff0d0, null, { basic: true, glow: 3 }), 0, 3.29, 7.2, S);
@@ -1993,6 +2008,7 @@ const walkShot = (loc, cams) => ({ loc, pos: [0, 1.62, -3], look: [0, 1.55, -4],
   const w = window.__walk || { x: 0, z: -3, yaw: -PI / 2, pitch: 0, bob: 0 }, y = 1.62 + Math.sin(w.bob) * .025;
   sh.pos = [w.x, y, w.z]; sh.look = [w.x - Math.cos(w.yaw), y - .06 + w.pitch, w.z + Math.sin(w.yaw)];
   const A = []; for (const k of (typeof cams === 'function' ? cams() : cams)) for (const x of SH[k].set(o, t, sh) || []) if (x[0] !== 'temych') A.push(x);
+  window.__walkActors = A.map(x => [x[0], x[1], x[3]]);   // люди и «она» твёрдые: обход не проходит сквозь них
   return A; } });
 SH.walk = walkShot('lobby', ['cam02', 'cam01']);
 SH.walk_c = walkShot('corridor', () => [(window.__walk || {}).floor === 10 ? 'cam10' : 'cam07']);
