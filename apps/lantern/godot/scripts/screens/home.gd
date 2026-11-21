@@ -201,14 +201,20 @@ func _on_social(what: String) -> void:
 	if not is_inside_tree():
 		return
 	if what == "rooms":
-		_render()
-		if _first:
-			_render_filters()
+		FX.calm(_on_rooms)     # 2.0.1: не посреди перехода
 	elif what == "friends":
-		_render_friends()
+		FX.calm(_render_friends)
 	elif what == "conn" and Social.online():
 		_load()
 		_render_friends()
+
+
+func _on_rooms() -> void:
+	if not is_inside_tree():
+		return
+	_render()
+	if _first:
+		_render_filters()
 
 
 # ------------------------------------------------------------------ «Продолжить»

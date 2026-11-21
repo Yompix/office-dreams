@@ -79,6 +79,11 @@ func _ready() -> void:
 	if FX.lite:
 		g.add_child(UI.para(L.t("На этом устройстве включён лёгкий режим: фон неподвижный, чтобы приложение не тормозило."), 12, UI.DIM))
 
+	# 2.0.1: остальное — ниже края экрана; строим, когда переход доехал (кадры анимации — только анимация)
+	await FX.settled(self)
+	if not is_instance_valid(v) or not is_inside_tree():
+		return
+
 	# --- покупки (в версии для Google Play скрыто: покупки и реклама не подключены)
 	if Cfg.paid():
 		var gm := _group(v, L.t("Покупки и реклама"))
@@ -138,6 +143,9 @@ func _ready() -> void:
 		gu.add_child(_upd)
 
 	# --- профиль и данные
+	await get_tree().process_frame      # 2.0.1: и ещё раз — по паре групп за кадр
+	if not is_instance_valid(v) or not is_inside_tree():
+		return
 	var gp := _group(v, L.t("Профиль и данные"))
 	gp.add_child(UI.list_row(UI.icon_tile("lock", UI.MUTED, 40, 20), L.t("Конфиденциальность"), L.t("Что хранится и сколько"), UI.icon("chevron", 20, UI.DIM), func(): UI.open(Cfg.SITE + "/privacy"), Color(0, 0, 0, 0)))
 	gp.add_child(UI.list_row(UI.icon_tile("info", UI.MUTED, 40, 20), L.t("Условия использования"), "", UI.icon("chevron", 20, UI.DIM), func(): UI.open(Cfg.SITE + "/terms"), Color(0, 0, 0, 0)))

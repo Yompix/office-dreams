@@ -80,7 +80,7 @@ func _ready() -> void:
 		_open_chat(_peer)
 	elif _peer != 0:
 		_open_chat(_peer)
-	if not Social.online():
+	if not Social.online() and not has_meta("warm"):
 		Social.reconnect()
 	# ссылка lantern://friend?tag=… (QR друга или ссылка из мессенджера)
 	if arg is Dictionary and String(arg.get("add", "")) != "":
@@ -115,7 +115,7 @@ func _add() -> void:
 
 func _on_changed(what: String) -> void:
 	if what in ["friends", "conn", "dm"]:
-		_render()
+		FX.calm(_render)
 		if _compact and _peer != 0 and what == "friends" and _right.visible:
 			_update_chat_bar()
 
