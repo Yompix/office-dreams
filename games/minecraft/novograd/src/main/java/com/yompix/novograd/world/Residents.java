@@ -3,6 +3,7 @@ package com.yompix.novograd.world;
 import com.yompix.novograd.ModContent;
 import com.yompix.novograd.Novograd;
 import com.yompix.novograd.entity.CitizenEntity;
+import com.yompix.novograd.entity.CarEntity;
 import com.yompix.novograd.life.Names;
 import com.yompix.novograd.story.Story;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -104,6 +105,17 @@ public final class Residents {
             }
             return ActionResult.PASS;
         });
+    }
+
+    /** 0.9.5: индекс жильца (−1 — не жилец). */
+    public static int idx(CitizenEntity c) {
+        return idxOf(c);
+    }
+
+    /** 0.9.5: характер жильца. */
+    public static ResidentMind.Trait traitOf(CitizenEntity c) {
+        int i = idxOf(c);
+        return i >= 0 && i < POOL_LIST.size() ? ResidentMind.trait(POOL_LIST.get(i).seed) : ResidentMind.Trait.SOCIABLE;
     }
 
     private static int idxOf(CitizenEntity c) {
@@ -432,7 +444,18 @@ public final class Residents {
         long until;
         boolean lying, leaving;
         @Nullable Vec3d goal;
+        // 0.9.5: своя машина (1 — идёт к ней, 2 — едет, 3 — приехал), память, событие города
+        @Nullable UUID car;
+        int carStage;
+        long carAt, lastMemory;
+        @Nullable List<Vec3d> route;
+        String dest = "";
     }
+
+    /** 0.9.5: припаркованные машины жильцов — убрать, когда рядом нет игроков. */
+    private static final List<UUID> PARKED = new ArrayList<>();
+    /** Для автотеста ailife: поездок на своей машине начато / доехало. */
+    public static int tripsStarted, tripsArrived;
 
     private static final Map<Integer, Active> ACTIVE = new HashMap<>();
     private static final Map<String, Long> GREETED = new HashMap<>();
@@ -457,8 +480,9 @@ public final class Residents {
                 continue;
             }
             double near = nearest(players, c.getPos(), r.homeUp || r.workUp);
-            if (near > DESPAWN_R) {
+            if (near > DESPAWN_R && a.carStage != 2) {
                 c.discard();
+                if (a.car != null && a.carStage == 1 && w.getEntity(a.car) != null) w.getEntity(a.car).discard();
                 ACTIVE.remove(e.getKey());
                 continue;
             }
@@ -506,6 +530,17 @@ public final class Residents {
             }
         // 4) соседи здороваются
         for (ServerPlayerEntity p : players) greet(w, p, day);
+        // 5) 0.9.5: припаркованные машины жильцов — убрать вдали от игроков
+        if (t % 100 == 11) PARKED.removeIf(id -> {
+            var e = w.getEntity(id);
+            if (e == null) return true;
+            if (e.hasPassengers()) return true; // кто-то сел — уже не наша
+            if (nearest(players, e.getPos(), false) > 90) {
+                e.discard();
+                return true;
+            }
+            return false;
+        });
     }
 
     /** Расстояние до ближайшего игрока; для этажей высоток учитываем высоту (на другом этаже — «далеко»). */
@@ -588,8 +623,11 @@ public final class Residents {
         Mode m = mode(h);
         Vec3d[] at = where(r, m, h);
         long now = w.getTime();
+        if (a.car != null && ownCar(w, r, a, c, now, players)) return; // 0.9.5: идёт к своей машине / едет
+        if (now % 40 == 11) memory(w, r, a, c, players, now);
         if (at == null) { // пора в дорогу между районами: дошёл до тротуара — «сел в машину»
             if (a.lying) wake(c, a);
+            if (startTrip(w, r, a, c, h, now)) return; // 0.9.5: своя машина — едет сам
             Vec3d exit = c.getY() - (r.homeUp ? r.homeGround.y : c.getY()) > 3 && r.homeUp ? r.homeDoor : null;
             Vec3d to = exit != null ? exit : a.goal != null ? a.goal : c.getPos();
             if (c.squaredDistanceTo(to) < 4 || c.directTo == null && now > a.until) gone(c, exit == null);
@@ -640,6 +678,7 @@ public final class Residents {
                 }
                 if (c.directTo != null || now < a.until && !changed) return;
                 a.until = now + 300 + w.getRandom().nextInt(300);
+                if (eventReact(w, r, m, c)) return; // 0.9.5: блэкаут, шторм, «Ночь музыки»
                 doThing(w, r, m, c, target);
             }
         }
@@ -678,8 +717,15 @@ public final class Residents {
     private static void doThing(ServerWorld w, Res r, Mode m, CitizenEntity c, Vec3d at) {
         var rnd = w.getRandom();
         int ticks = 600;
+        ResidentMind.Trait trait = ResidentMind.trait(r.seed);
+        float[] need = ResidentMind.needs(r.seed, hour(w, r), r.night);
         switch (m) {
             case WORK -> {
+                if (rnd.nextInt(trait == ResidentMind.Trait.LAZY ? 4 : 9) == 0 && w.isSkyVisible(c.getBlockPos().up())) { // перекур / звонок
+                    if (rnd.nextBoolean()) c.busy(CitizenEntity.Activity.SMOKE, 240, at.add(rnd.nextInt(5) - 2, 0, rnd.nextInt(5) - 2), ItemStack.EMPTY);
+                    else c.busy(CitizenEntity.Activity.PHONE, 240, at, new ItemStack(ModContent.PHONE));
+                    return;
+                }
                 if (r.work.equals("office")) { // за столом печатает; иногда — звонок, кофе, часы, потянуться
                     BlockPos chair = chair(w, BlockPos.ofFloored(at), 5);
                     int k = rnd.nextInt(10);
@@ -720,6 +766,22 @@ public final class Residents {
                 else c.busy(CitizenEntity.Activity.DRINK, ticks, at, new ItemStack(ModContent.COLA));
             }
             case LEISURE -> {
+                // 0.9.5: досуг по нуждам и характеру — голоден: поесть; общительный/соскучился: поболтать; энергичный: пробежка
+                if (need[0] < 0.4) {
+                    BlockPos seat = chair(w, BlockPos.ofFloored(at), 6);
+                    if (seat != null) c.busy(CitizenEntity.Activity.SIT_EAT, ticks, Vec3d.ofBottomCenter(seat), new ItemStack(ModContent.BURGER));
+                    else c.busy(CitizenEntity.Activity.EAT, ticks, at, new ItemStack(ModContent.BURGER));
+                    return;
+                }
+                if ((trait == ResidentMind.Trait.SOCIABLE || need[2] < 0.5 && trait != ResidentMind.Trait.SHY) && talkWith(w, c)) return;
+                if (trait == ResidentMind.Trait.ENERGETIC && rnd.nextInt(3) == 0 && !w.isRaining()) {
+                    c.busy(CitizenEntity.Activity.JOG, 400, at.add(rnd.nextInt(25) - 12, 0, rnd.nextInt(25) - 12), ItemStack.EMPTY);
+                    return;
+                }
+                if ((trait == ResidentMind.Trait.LAZY || need[1] < 0.35) && chair(w, BlockPos.ofFloored(at), 8) instanceof BlockPos b) {
+                    c.busy(CitizenEntity.Activity.SITCROSS, ticks, Vec3d.ofBottomCenter(b), ItemStack.EMPTY);
+                    return;
+                }
                 CitizenEntity.Activity[] dances = {CitizenEntity.Activity.DANCE, CitizenEntity.Activity.DANCE2, CitizenEntity.Activity.DANCE3};
                 CitizenEntity.Activity act = switch (r.leisure) {
                     case "club" -> dances[rnd.nextInt(3)];
@@ -749,6 +811,10 @@ public final class Residents {
                         act == CitizenEntity.Activity.PHONE ? new ItemStack(ModContent.PHONE) : act == CitizenEntity.Activity.DRINK ? new ItemStack(ModContent.COLA) : ItemStack.EMPTY);
             }
             default -> { // дома: телефон, диван, кухня
+                if (need[0] < 0.45) { // завтрак / ужин
+                    c.busy(CitizenEntity.Activity.EAT, ticks, at, new ItemStack(ModContent.BURGER));
+                    return;
+                }
                 BlockPos sofa = chair(w, BlockPos.ofFloored(at), 5);
                 int k = rnd.nextInt(6);
                 if (sofa != null && k < 3) c.busy(k == 0 ? CitizenEntity.Activity.SITCROSS : k == 1 ? CitizenEntity.Activity.SIT_EAT : CitizenEntity.Activity.SIT, ticks,
@@ -758,6 +824,182 @@ public final class Residents {
                 else c.busy(CitizenEntity.Activity.PHONE, ticks, at, new ItemStack(ModContent.PHONE));
             }
         }
+    }
+
+    // ------------------------------------------------------------------ 0.9.5: болтовня, память, события, своя машина
+    /** Поболтать с соседом-жильцом рядом: оба поворачиваются друг к другу, жесты, смех. */
+    private static boolean talkWith(ServerWorld w, CitizenEntity c) {
+        for (CitizenEntity o : w.getEntitiesByClass(CitizenEntity.class, c.getBoundingBox().expand(10, 2, 10),
+                o -> o != c && is(o) && o.calm() && !o.isBusy() && !o.hasVehicle() && o.directTo == null && !o.asleep())) {
+            var rnd = w.getRandom();
+            CitizenEntity.Activity[] a = {CitizenEntity.Activity.TALK, CitizenEntity.Activity.LAUGH, CitizenEntity.Activity.HANDSHAKE, CitizenEntity.Activity.TALK};
+            c.sceneWith(o, a[rnd.nextInt(a.length)], 260 + rnd.nextInt(200));
+            o.sceneWith(c, a[rnd.nextInt(a.length)], 260 + rnd.nextInt(200));
+            return true;
+        }
+        return false;
+    }
+
+    /** Помнит игрока: обидел — боится, злится или показывает пальцем; помог — машет. */
+    private static void memory(ServerWorld w, Res r, Active a, CitizenEntity c, List<ServerPlayerEntity> players, long now) {
+        if (c.asleep() || c.hasVehicle() || now - a.lastMemory < 600) return;
+        ServerPlayerEntity p = closest(players, c.getPos());
+        if (p == null || p.squaredDistanceTo(c) > 10 * 10 || !c.canSee(p)) return;
+        int op = ResidentMind.opinion(w.getServer(), r.idx);
+        ResidentMind.Trait t = ResidentMind.trait(r.seed);
+        if (op <= -2) {
+            a.lastMemory = now;
+            if (t == ResidentMind.Trait.AGGRESSIVE && op <= -3) {
+                c.say("Опять ты?!", 40);
+                c.attack(p);
+            } else if (t == ResidentMind.Trait.CAUTIOUS || t == ResidentMind.Trait.SHY || op <= -4) c.panic(p.getPos());
+            else {
+                c.face(p);
+                c.busy(CitizenEntity.Activity.POINT, 60, null, ItemStack.EMPTY);
+                c.say("Это он…", 40);
+            }
+        } else if (op >= 2 && now - a.lastMemory > 2400) {
+            a.lastMemory = now;
+            c.face(p);
+            c.busy(CitizenEntity.Activity.WAVE, 50, null, ItemStack.EMPTY);
+        }
+    }
+
+    /** События города (0.9): на «Ночи музыки» танцуют, в блэкаут светят телефоном, в шторм бегут домой. */
+    private static boolean eventReact(ServerWorld w, Res r, Mode m, CitizenEntity c) {
+        String ev = CityEvents.active();
+        if (ev == null) return false;
+        double[] cc = CityEvents.center();
+        boolean in = Math.hypot(c.getX() - cc[0], c.getZ() - cc[1]) < cc[2];
+        var rnd = w.getRandom();
+        switch (ev) {
+            case "festival" -> {
+                if (!in || m == Mode.WORK || m == Mode.SLEEP) return false;
+                CitizenEntity.Activity[] d = {CitizenEntity.Activity.DANCE, CitizenEntity.Activity.DANCE2, CitizenEntity.Activity.DANCE3, CitizenEntity.Activity.CHEER};
+                c.busy(d[rnd.nextInt(d.length)], 400, new Vec3d(cc[0] + rnd.nextInt(17) - 8, c.getY(), cc[1] + rnd.nextInt(17) - 8), ItemStack.EMPTY);
+                return true;
+            }
+            case "blackout" -> {
+                if (!in) return false;
+                c.busy(rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.SHRUG, 300, null, new ItemStack(ModContent.PHONE));
+                return true;
+            }
+            case "storm" -> {
+                if (m != Mode.LEISURE || !w.isSkyVisible(c.getBlockPos().up()) || r.homeStreet == null) return false;
+                go(c, r.homeStreet, 0.95); // бегом под зонтом
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
+    /** Пора ехать между районами: у кого есть машина — идёт к ней (она стоит у бордюра), садится и едет сам. */
+    private static boolean startTrip(ServerWorld w, Res r, Active a, CitizenEntity c, double h, long now) {
+        if (!ResidentMind.hasCar(r.seed) || c.hasVehicle() || !c.isOnGround()) return false;
+        if (Math.abs(c.getY() - Story.topY(w, c.getBlockX(), c.getBlockZ())) > 3) return false; // ещё в здании
+        Mode next = mode((h + 0.6) % 24);
+        Vec3d dest = next == Mode.ARRIVE_WORK ? r.workStreet : next == Mode.LEISURE ? r.leisurePos : r.homeStreet;
+        if (dest == null || dest.squaredDistanceTo(c.getPos()) < 110 * 110) return false;
+        List<int[]> nodes = IslandRoads.route(c.getX(), c.getZ(), dest.x, dest.z);
+        if (nodes == null || nodes.size() < 2) return false;
+        List<Vec3d> route = com.yompix.novograd.gta.Emergency.lanes(nodes, c.getY());
+        if (route.size() < 2) return false;
+        Vec3d start = route.get(0);
+        BlockPos sb = BlockPos.ofFloored(start.x, Story.topY(w, (int) Math.floor(start.x), (int) Math.floor(start.z)), start.z);
+        if (!w.isChunkLoaded(sb) || !w.isAir(sb) || start.squaredDistanceTo(c.getX(), start.y, c.getZ()) > 30 * 30) return false;
+        CarEntity car = new CarEntity(ModContent.CAR, w);
+        car.refreshPositionAndAngles(sb.getX() + 0.5, sb.getY(), sb.getZ() + 0.5, com.yompix.novograd.gta.FunUtil.yawTo(start, route.get(1)), 0);
+        car.setVariant(ResidentMind.carVariant(r.seed));
+        if (!w.spawnEntity(car)) return false;
+        a.car = car.getUuid();
+        a.carStage = 1;
+        a.carAt = now;
+        a.route = route;
+        a.dest = next == Mode.ARRIVE_WORK ? "на работу" : next == Mode.LEISURE ? "отдыхать" : "домой";
+        c.direct(car.getPos(), 0.75);
+        tripsStarted++;
+        return true;
+    }
+
+    /** Ведёт поездку: подошёл — сел (звук двери), едет по полосе; приехал — паркуется и выходит. false — поездки больше нет. */
+    private static boolean ownCar(ServerWorld w, Res r, Active a, CitizenEntity c, long now, List<ServerPlayerEntity> players) {
+        if (!(w.getEntity(a.car) instanceof CarEntity car) || car.wrecked()) {
+            if (c.hasVehicle()) c.stopRiding();
+            a.car = null;
+            a.carStage = 0;
+            return false;
+        }
+        switch (a.carStage) {
+            case 1 -> {
+                if (c.squaredDistanceTo(car) < 2.8 * 2.8 || now - a.carAt > 300) {
+                    c.getNavigation().stop();
+                    c.directTo = null;
+                    w.playSound(null, car.getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_IRON_DOOR_OPEN, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1.2f);
+                    c.startRiding(car, true);
+                    a.carStage = 2;
+                    a.carAt = now;
+                    car.setRoute(a.route, 0.42f, () -> a.carStage = 3);
+                } else if (c.directTo == null) c.direct(car.getPos(), 0.75);
+                return true;
+            }
+            case 2 -> {
+                if (c.getVehicle() != car) { // выкинули из машины (угон) — дальше пешком
+                    a.car = null;
+                    a.carStage = 0;
+                    return false;
+                }
+                if (nearest(players, car.getPos(), false) > 80) { // уехал из виду — дальше «за кадром»
+                    c.discard();
+                    car.discard();
+                    a.car = null;
+                    return true;
+                }
+                if (now - a.carAt > 20 * 180) a.carStage = 3; // слишком долго — паркуется где есть
+                return true;
+            }
+            default -> { // приехал: остановился, вышел, машина стоит
+                car.setRoute(java.util.List.of(), 0, null);
+                c.stopRiding();
+                c.refreshPositionAndAngles(car.getX() + 1.6, car.getY(), car.getZ(), c.getYaw(), 0);
+                w.playSound(null, car.getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_IRON_DOOR_CLOSE, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1.1f);
+                PARKED.add(car.getUuid());
+                tripsArrived++;
+                a.car = null;
+                a.carStage = 0;
+                a.mode = null;
+                return false;
+            }
+        }
+    }
+
+    /** 0.9.5 «Наблюдение»: что жилец делает по распорядку (для подписи над головой). */
+    @Nullable
+    public static String[] observe(ServerWorld w, CitizenEntity c) {
+        int i = idxOf(c);
+        if (i < 0 || i >= POOL_LIST.size()) return null;
+        Res r = POOL_LIST.get(i);
+        Active a = ACTIVE.get(i);
+        double h = hour(w, r);
+        Mode m = mode(h);
+        String what = a != null && a.carStage == 1 ? "идёт к своей машине" : a != null && a.carStage == 2 ? "за рулём, едет " + a.dest
+                : switch (m) {
+            case SLEEP -> "спит";
+            case HOME -> "дома";
+            case LEAVE_HOME -> "выходит из дома";
+            case TRANSIT -> "в дороге";
+            case ARRIVE_WORK -> "идёт на работу";
+            case WORK -> "работа: " + r.workLabel;
+            case LUNCH -> "обед";
+            case LEAVE_WORK -> "уходит с работы";
+            case LEISURE -> "досуг: " + r.leisure;
+            case ARRIVE_HOME -> "возвращается домой";
+        };
+        float[] n = ResidentMind.needs(r.seed, h, r.night);
+        int op = ResidentMind.opinion(w.getServer(), i);
+        return new String[]{r.name, ResidentMind.trait(r.seed).title + (op <= -2 ? " · обижен на тебя" : op >= 2 ? " · рад тебе" : ""), what,
+                n[0] + "," + n[1] + "," + n[2] + "," + n[3] + "," + n[4]};
     }
 
     /** Стул, кресло, диван, скамейка: нижняя половина ступенек, над ними пусто, не лестничный марш. */

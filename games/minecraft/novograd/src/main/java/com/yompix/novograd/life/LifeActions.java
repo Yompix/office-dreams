@@ -155,6 +155,7 @@ public final class LifeActions {
                 LifeNet.send(p, "ambient", vn);
                 c.getLookControl().lookAt(p, 30, 30);
                 c.lockActivity(null);
+                com.yompix.novograd.world.ResidentMind.talked(p, c); // 0.9.5: добрый разговор запоминается
                 String name = c.hasCustomName() ? c.getCustomName().getString() : "Житель";
                 p.sendMessage(Text.literal(name + ": ").formatted(Formatting.YELLOW).append(Text.literal(ph.text()).formatted(Formatting.WHITE)), false);
             }

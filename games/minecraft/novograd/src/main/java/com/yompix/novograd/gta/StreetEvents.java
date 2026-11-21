@@ -316,7 +316,7 @@ public final class StreetEvents {
     private static void keepBag(ServerPlayerEntity p, Ev e) {
         Economy.dirty(p, e.pay, "чужая сумка");
         FunUtil.title(p, "СУМКА ТВОЯ", "+$" + e.pay + " наличными. Хозяйка запомнила твоё лицо…");
-        if (Wanted.policeNear(p, 48)) Wanted.add(p, 0, "кража", 1);
+        Witness.crime(p, p.getPos(), "кража", 0, 1, false, null); // 0.9.5: свидетели
         end(p, e, 120);
     }
 
@@ -394,7 +394,7 @@ public final class StreetEvents {
                 if (e.count >= 80) {
                     Economy.dirty(p, e.pay, "добыча из разбитой машины");
                     FunUtil.title(p, "САЛОН ОБЧИЩЕН", "+$" + e.pay + " наличными · пострадавший стонет…");
-                    if (witnesses(p, 18) || Wanted.policeNear(p, 40)) Wanted.add(p, 0, "мародёрство", 2);
+                    Witness.crime(p, p.getPos(), "мародёрство", 0, 2, false, null);
                     end(p, e, 120);
                 }
             } else e.count = Math.max(0, e.count - 5);
