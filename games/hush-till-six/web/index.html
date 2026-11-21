@@ -636,6 +636,20 @@ body.shifting #mon { display: block; }
 #mon.flip.boo .bk, #mon.flip.boo .rf { animation-duration: .7s; }
 @keyframes monbk { 0% { opacity: 1; } 55% { opacity: .96; } 100% { opacity: 0; } }
 @keyframes monrf { 0% { opacity: 1; } 55% { opacity: .9; } 100% { opacity: 0; } }
+/* 21 ноя: кабинет от первого лица — слой для взгляда под кнопками; в кабинете нет корпуса монитора и кнопок камер */
+.sh-look { position: absolute; inset: 0; pointer-events: none; }
+body.office .sh-look { pointer-events: auto; cursor: grab; }
+body.office .sh-look.mon { cursor: pointer; }
+body.office .sh-look.mon::after { content: ''; position: absolute; left: 50%; top: 50%; width: calc(3 * var(--u)); height: calc(3 * var(--u)); margin: calc(-1.5 * var(--u)) 0 0 calc(-1.5 * var(--u)); border: 2px solid rgba(var(--accRGB),.85); border-radius: 50%; box-shadow: 0 0 calc(2 * var(--u)) rgba(var(--accRGB),.6); animation: recp 1.6s ease-in-out infinite; }
+body.office #mon, body.office .sh-cams, body.office #shLog { display: none; }
+.sh-act button#shOff { border-color: rgba(255,255,255,.35); }
+/* 21 ноя: обход пешком — кнопка «Обход» только в кабинете; в обходе — «В кабинет» и «Запереть вход» у дверей */
+.sh-act button#shWalk { display: none; }
+body.office .sh-act button#shWalk { display: flex; }
+body.walking .sh-act button#shOff, body.walking #shPanel, body.walking #shBook { display: none; }
+body.walking .sh-look { cursor: crosshair; }
+body.walking .sh-look.mon::after { display: none; }
+.sh-act button#shDoor { border-color: rgba(var(--accRGB),.9); }
 </style>
 </head>
 <body>
@@ -676,16 +690,16 @@ body.shifting #mon { display: block; }
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=30"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=33"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=23"></script>
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=53"></script>
-<script src="scenes.js?v=90"></script>
+<script src="scenes.js?v=95"></script>
 <script src="story.js?v=40"></script>
-<script src="engine.js?v=97"></script>
+<script src="engine.js?v=101"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
