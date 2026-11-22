@@ -108,7 +108,7 @@ async function load(onp) {
     LD.times.push(['мир готов', Math.round(performance.now() - LD.t0)]); worldTried = true; tick();
   });   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
-  const TIMV = { en: 13, uk: 9, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
+  const TIMV = { en: 13, uk: 10, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=19', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; LD.s++; tick(); }).catch(tick));
