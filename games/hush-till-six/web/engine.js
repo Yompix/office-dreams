@@ -108,7 +108,7 @@ async function load(onp) {
     LD.times.push(['мир готов', Math.round(performance.now() - LD.t0)]); worldTried = true; tick();
   });   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
-  const TIMV = { en: 13, uk: 11, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
+  const TIMV = { en: 13, uk: 11, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 4, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=20', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; LD.s++; tick(); }).catch(tick));
@@ -178,6 +178,7 @@ function initAudio() {   // контекст создаём заранее (он
   if (decoding) return decoding;
   const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
   AC = null; if (window.nsTV) try { AC = new Ctx({ latencyHint: 'playback', sampleRate: 24000 }); } catch (e) { try { AC = new Ctx({ latencyHint: 'playback' }); } catch (e2) {} }   // ТВ-приставка: звук 24 кГц и крупный буфер — вдвое меньше работы процессору и памяти (реплики занимают вдвое меньше)
+  if (!AC && window.__preAC && !window.nsTV) AC = window.__preAC;   // создан в первом нажатии на сайте (index.html) — уже со звуком
   if (!AC) AC = new Ctx();
   const muted = LS.get('mute', false);
   // сумма всех шин → компрессор → общая громкость игрока → выход. Ползунок «Громкость» стоит после компрессора:
@@ -2616,6 +2617,8 @@ function studio() {
   // на сайте звук разрешён только после нажатия — сначала «Нажми, чтобы начать» (это нажатие и открывает звук); в ПК-версии и приложении — сразу
   const needTap = !DESK && !APP && !navigator.webdriver;
   if (!needTap) return studioRun();
+  if (window.__preTap) { uiEl.onclick = null; initAudio(); unlockAudio(); gateDone = true; gateT = now(); return studioRun(); }   // нажали, пока игра грузилась
+  if (document.getElementById('preTap')) { uiEl.onclick = null; }
   uiEl.innerHTML = `<div class="studio tapgo"><div class="tpi"><i></i><span>${tr('Нажми, чтобы начать')}</span></div></div>`;
   uiEl.onclick = () => { uiEl.onclick = null; unlockAudio(); initAudio(); gateDone = true; gateT = now(); studioRun(); };
 }
@@ -2645,6 +2648,10 @@ function studioSound() {
 function studioRun() {   // анимация — CSS (идёт на видеокарте и не тормозит, пока грузится мир); JS — только звук и переход
   mode = 'studio';
   const svg = mascotSVG(), H = MASCOT === 'horror';
+  // 24 ноя: картинка и звук заставки — одновременно. Если звук ещё «спит» (ПК, приложение, слабый телефон), сначала будим его
+  // (не дольше 0,6 с), и только потом запускаем CSS-анимацию — иначе крик и хруст опаздывали за картинкой
+  if (H && !studioRun.ready) { if (!AC) try { initAudio(); } catch (e) {}
+    if (AC && AC.state !== 'running') { let ok = false; const go = () => { if (ok) return; ok = true; studioRun.ready = 1; studioRun(); }; try { AC.resume().then(go, go); } catch (e) { go(); } setTimeout(go, 600); return; } }
   uiEl.innerHTML = `<div class="studio m-${MASCOT}"><canvas class="stpx"></canvas><div class="st-tear"></div>
     <div class="st-m st-n">${svg}</div>${H ? `<div class="st-m st-h"><div class="st-hj">${svg}</div></div><div class="st-big"><div class="st-bj">${svg}</div></div>` : ''}
     <div class="logo"><b data-t="YOMPIX">YOMPIX</b><span>GAMES</span></div><div class="st-red"></div><div class="st-eyes"><i></i><i></i></div></div>`;

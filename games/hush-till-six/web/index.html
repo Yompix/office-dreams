@@ -770,7 +770,30 @@ body.land .studio .logo { top: 80%; }
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=42"></script>
+<script>
+/* 24 ноя (владелец: «заставка в начале с опозданием»): на сайте «Нажми, чтобы начать» видно сразу, пока качаются тяжёлые файлы игры.
+   Нажатие здесь же создаёт звук (так требует браузер) — engine.js берёт этот AudioContext и сразу запускает заставку со звуком. */
+(function () {
+  try {
+    if (window.nsDesktop || window.nsAppNative || window.nsTV || navigator.webdriver) return;
+    var r = sessionStorage.getItem('ns1_resume'); if (r && Date.now() - JSON.parse(r).at < 300000) return;
+    var T = {"ru":"Нажми, чтобы начать","en":"Tap to start","es":"Toca para empezar","pt":"Toque para começar","de":"Tippe, um zu starten","fr":"Touche pour commencer","it":"Tocca per iniziare","pl":"Dotknij, aby zacząć","tr":"Başlamak için dokun","uk":"Натисни, щоб почати","zh":"点击开始","ja":"タップして始める","ko":"눌러서 시작"};
+    var q = /[?&]lang=([a-z]{2})\b/.exec(location.search), l = q && q[1];
+    if (!l) { try { l = JSON.parse(localStorage.getItem('ns1_lang')); } catch (e) {} }
+    if (!l) { var n = (navigator.language || '').toLowerCase(); l = /^(ru|be|kk)/.test(n) ? 'ru' : n.slice(0, 2); }
+    var ua = false; try { ua = /^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || ''); } catch (e) {}
+    if (ua && l === 'ru' && !q) l = 'uk';
+    var ui = document.getElementById('ui'); if (!ui) return;
+    ui.innerHTML = '<div class="studio tapgo" id="preTap"><div class="tpi"><i></i><span>' + (T[l] || T.en) + '</span></div></div>';
+    ui.onclick = function () {
+      ui.onclick = null; window.__preTap = 1;
+      try { var C = window.AudioContext || window.webkitAudioContext; if (C) { var ac = new C(); ac.resume(); var b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0); window.__preAC = ac; } } catch (e) {}
+      var t = document.getElementById('preTap'); if (t) t.innerHTML = '';   // дальше — заставка, как только игра догрузится
+    };
+  } catch (e) {}
+})();
+</script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=43"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
@@ -779,7 +802,7 @@ body.land .studio .logo { top: 80%; }
 <script src="chars2.js?v=55"></script>
 <script src="scenes.js?v=98"></script>
 <script src="story.js?v=41"></script>
-<script src="engine.js?v=112"></script>
+<script src="engine.js?v=113"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
