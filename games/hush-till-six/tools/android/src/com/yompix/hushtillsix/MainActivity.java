@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
     super.onCreate(b);
     Window w = getWindow();
     w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    if (Build.VERSION.SDK_INT >= 28) { WindowManager.LayoutParams lp = w.getAttributes(); lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES; w.setAttributes(lp); }
+    if (Build.VERSION.SDK_INT >= 28) { WindowManager.LayoutParams lp = w.getAttributes(); lp.layoutInDisplayCutoutMode = Build.VERSION.SDK_INT >= 30 ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;   /* 24 ноя: Android 15 (от края до края) — ALWAYS, цвета панелей из темы убраны (панели скрыты) */ w.setAttributes(lp); }
     root = new FrameLayout(this);
     root.setBackgroundColor(Color.BLACK);
     // вырез камеры («чёлка»): игра рисуется рядом с ним, а не под ним — кнопки по углам не прячутся
