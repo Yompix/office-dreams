@@ -101,6 +101,14 @@ function tiktok(L) {
   return S;
 }
 
+// TikTok-промо (24 ноя): тот же ролик, в конце — «уже в Google Play · 10 бесплатных кодов в Telegram» (подольше, чтобы успели прочитать)
+function tiktokPromo(L) {
+  const S = tiktok(L), e = S[S.length - 1];
+  e.black = 7; e.card = { kind: 'end', at: 0, dur: 7, logo: 1, promo: 1 };
+  e.sfx = [['boom', 0, { gain: .9 }], ['knock', 5.1, { gain: .7 }], ['knock', 5.55, { gain: .7 }], ['knock', 6.0, { gain: .7 }]];
+  return S;
+}
+
 // YouTube Shorts 9:16, ~30 с: крючок с первого кадра (голос и надпись), «должна быть за двести миль», улыбка, на камере пусто,
 // «Вот ты где» и бросок, звонок «Итан?.. Это ты?» — «Да. Это я.» и двойник на камере; логотип коротко — и по кругу (конец переходит в начало).
 // Звук других языков к этому ролику — tools/trailer/dub.py (дорожки той же длины).
@@ -178,7 +186,7 @@ function story1(L) {
 
 // ------- сборка: время каждого сегмента, реплики, субтитры, надписи -------
 function build(fmt, L) {
-  const segs = (fmt === 'yt' ? youtube : fmt === 'sh' ? shorts : fmt === 'sh2' ? shorts2 : fmt === 'st1' ? story1 : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
+  const segs = (fmt === 'yt' ? youtube : fmt === 'sh' ? shorts : fmt === 'sh2' ? shorts2 : fmt === 'st1' ? story1 : fmt === 'tp' ? tiktokPromo : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
   let t = 0;
   for (const s of segs) {
     const o = Object.assign({}, s), src = s.from ? beat(s.from) : null;

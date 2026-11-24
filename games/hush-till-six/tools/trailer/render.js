@@ -69,7 +69,7 @@ const keyOf = (s, lang = TL.lang) => crypto.createHash('sha1').update(JSON.strin
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: W, height: H } });
   const errs = []; p.on('pageerror', e => errs.push(String(e))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 300)));
-  await p.route(/\/nightshift\/_tr\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
+  await p.route(/\/(nightshift|web)\/_tr\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
   await p.goto('http://127.0.0.1:8771/web/_tr.html?gfx=cine&lang=' + TL.lang);
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 120000 });
   await p.evaluate(async ([rs, land]) => { window.__W3core.V.rs = rs; window.__W3core.V.rsPin = true; await window.__W3chars.load(); World.init(); if (land) World.setLand(true); }, [RS, LAND]);

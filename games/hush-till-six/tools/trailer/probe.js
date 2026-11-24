@@ -15,7 +15,7 @@ const HTML = lang => `<!doctype html><html><head><meta charset="utf-8"></head><b
 <canvas id="c" width="${W}" height="${H}"></canvas></body></html>`;
 async function page(b, lang) {
   const p = await b.newPage({ viewport: { width: W, height: H } });
-  await p.route(/\/nightshift\/_pr\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML(lang) }));
+  await p.route(/\/(nightshift|web)\/_pr\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML(lang) }));
   await p.goto('http://127.0.0.1:8771/web/_pr.html?gfx=cine&lang=' + lang);
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 120000 });
   await p.evaluate(async land => { window.__W3core.V.rs = .45; window.__W3core.V.rsPin = true; window.__seed(777); await window.__W3chars.load(); World.init(); if (land) World.setLand(true); }, LAND);
