@@ -22,6 +22,8 @@ function load(e = process.env) {
     adminIds: (e.ADMIN_IDS || '').split(',').map((s) => Number(s.trim())).filter((n) => n > 0),
     adminKey: e.ADMIN_KEY || '',
     support: e.SUPPORT || '',
+    // Android app: the APK is sent by the bot as a Telegram file (file_id of an upload); version shown in the app
+    apk: { fileId: e.APK_FILE_ID || '', version: e.APK_VERSION || '', pkg: e.APK_PACKAGE || 'com.yompix.yurk' },
     // @CryptoBot -> Crypto Pay -> Create App -> API token. Empty = crypto hidden
     cryptoToken: e.CRYPTOBOT_TOKEN || '',
     cryptoTestnet: e.CRYPTOBOT_TESTNET === '1',

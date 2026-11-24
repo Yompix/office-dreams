@@ -21,6 +21,7 @@ function planName(p, lang) {
 
 const T = {
   ru: {
+    bAndroid: '📱 Приложение для Android', bAppLogin: '🔑 Войти в приложение', apkCaption: '📱 <b>YURK для Android</b>\n\n1. Скачайте файл выше и откройте его. Если телефон спросит — разрешите установку из Telegram.\n2. Нажмите «🔑 Войти в приложение» — вход без пароля.\n3. В приложении нажмите «Подключить» и разрешите VPN. Всё!', apkSoon: 'Приложение скоро появится. Пока подключайтесь через «🔑 Мой ключ».',
     gbMo: 'ГБ/мес', qLine: (u, q) => (q ? `📊 Трафик в этом месяце: ${u} из ${q} ГБ` : ''), qOver: '📊 Лимит трафика исчерпан. Продлите или купите тариф — счётчик начнётся заново.', q80: (u, q) => `📊 Вы использовали ${u} из ${q} ГБ трафика. Когда лимит кончится, VPN остановится до продления.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — быстрый VPN, который работает там, где другие блокируют.\n\n⚡ VLESS Reality и Hysteria2: трафик выглядит как обычный сайт, DPI его не видит.\n🌍 Серверы: ${nodes || 'скоро'}\n📱 Android, iPhone, Windows, Mac — одна подписка на все устройства.`,
     active: (d) => `✅ Подписка активна до <b>${d}</b>`, none: '❌ Подписки нет.',
@@ -40,6 +41,7 @@ const T = {
     warn: (d) => `⏰ Подписка заканчивается ${d}. Продлите, чтобы VPN не отключился.`,
   },
   uk: {
+    bAndroid: '📱 Застосунок для Android', bAppLogin: '🔑 Увійти в застосунок', apkCaption: '📱 <b>YURK для Android</b>\n\n1. Завантажте файл вище й відкрийте його. Якщо телефон спитає — дозвольте встановлення з Telegram.\n2. Натисніть «🔑 Увійти в застосунок» — вхід без пароля.\n3. У застосунку натисніть «Підключити» і дозвольте VPN.', apkSoon: 'Застосунок скоро зʼявиться. Поки що підключайтеся через «🔑 Мій ключ».',
     gbMo: 'ГБ/міс', qLine: (u, q) => (q ? `📊 Трафік цього місяця: ${u} з ${q} ГБ` : ''), qOver: '📊 Ліміт трафіку вичерпано. Продовжте або купіть тариф — лічильник почнеться знову.', q80: (u, q) => `📊 Ви використали ${u} з ${q} ГБ трафіку. Коли ліміт скінчиться, VPN зупиниться до продовження.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — швидкий VPN, який працює там, де інші блокують.\n\n⚡ VLESS Reality: трафік виглядає як звичайний сайт, DPI його не бачить.\n🌍 Сервери: ${nodes || 'скоро'}\n📱 Android, iPhone, Windows, Mac — одна підписка на всі пристрої.`,
     active: (d) => `✅ Підписка активна до <b>${d}</b>`, none: '❌ Підписки немає.',
@@ -59,6 +61,7 @@ const T = {
     warn: (d) => `⏰ Підписка закінчується ${d}. Продовжте, щоб VPN не вимкнувся.`,
   },
   en: {
+    bAndroid: '📱 Android app', bAppLogin: '🔑 Log in to the app', apkCaption: '📱 <b>YURK for Android</b>\n\n1. Download the file above and open it. If the phone asks, allow installing from Telegram.\n2. Tap "🔑 Log in to the app" — no password needed.\n3. In the app tap "Connect" and allow the VPN. Done!', apkSoon: 'The app is coming soon. For now connect with "🔑 My key".',
     gbMo: 'GB/mo', qLine: (u, q) => (q ? `📊 Traffic this month: ${u} of ${q} GB` : ''), qOver: '📊 Traffic limit reached. Renew or buy a plan — the counter starts over.', q80: (u, q) => `📊 You used ${u} of ${q} GB. When the limit runs out the VPN stops until you renew.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — a fast VPN that works where others get blocked.\n\n⚡ VLESS Reality: your traffic looks like a normal website, DPI can't see it.\n🌍 Servers: ${nodes || 'soon'}\n📱 Android, iPhone, Windows, Mac — one subscription for all devices.`,
     active: (d) => `✅ Subscription active until <b>${d}</b>`, none: '❌ No subscription.',
@@ -78,6 +81,7 @@ const T = {
     warn: (d) => `⏰ Your subscription ends ${d}. Renew so the VPN keeps working.`,
   },
   fa: {
+    bAndroid: '📱 اپ اندروید', bAppLogin: '🔑 ورود به اپ', apkCaption: '📱 <b>YURK برای اندروید</b>\n\n1. فایل بالا را دانلود و باز کنید. اگر گوشی پرسید، نصب از تلگرام را مجاز کنید.\n2. «🔑 ورود به اپ» را بزنید — بدون رمز.\n3. در اپ «اتصال» را بزنید و VPN را مجاز کنید.', apkSoon: 'اپ به‌زودی می‌آید. فعلاً با «🔑 کلید من» وصل شوید.',
     gbMo: 'گیگ/ماه', qLine: (u, q) => (q ? `📊 ترافیک این ماه: ${u} از ${q} گیگ` : ''), qOver: '📊 حجم ترافیک تمام شد. تمدید کنید یا طرح بخرید — شمارنده از نو شروع می‌شود.', q80: (u, q) => `📊 ${u} از ${q} گیگ را مصرف کرده‌اید. با تمام شدن حجم، VPN تا تمدید متوقف می‌شود.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — یک VPN سریع که جایی کار می‌کند که بقیه مسدود می‌شوند.\n\n⚡ VLESS Reality: ترافیک شما مثل یک سایت معمولی دیده می‌شود و DPI آن را تشخیص نمی‌دهد.\n🌍 سرورها: ${nodes || 'به‌زودی'}\n📱 اندروید، آیفون، ویندوز، مک — یک اشتراک برای همه دستگاه‌ها.`,
     active: (d) => `✅ اشتراک تا <b>${d}</b> فعال است`, none: '❌ اشتراکی ندارید.',
@@ -97,6 +101,7 @@ const T = {
     warn: (d) => `⏰ اشتراک شما ${d} تمام می‌شود. تمدید کنید تا VPN قطع نشود.`,
   },
   tr: {
+    bAndroid: '📱 Android uygulaması', bAppLogin: '🔑 Uygulamaya giriş', apkCaption: '📱 <b>Android için YURK</b>\n\n1. Yukarıdaki dosyayı indirip açın. Telefon sorarsa Telegram’dan yüklemeye izin verin.\n2. "🔑 Uygulamaya giriş"e dokunun — şifre yok.\n3. Uygulamada "Bağlan"a dokunun ve VPN’e izin verin.', apkSoon: 'Uygulama yakında. Şimdilik "🔑 Anahtarım" ile bağlanın.',
     gbMo: 'GB/ay', qLine: (u, q) => (q ? `📊 Bu ayki trafik: ${u} / ${q} GB` : ''), qOver: '📊 Trafik limiti doldu. Yenileyin veya paket alın — sayaç sıfırlanır.', q80: (u, q) => `📊 ${q} GB'ın ${u} GB'ını kullandınız. Limit bitince VPN yenilenene kadar durur.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — başkalarının engellendiği yerde çalışan hızlı VPN.\n\n⚡ VLESS Reality: trafiğiniz sıradan bir site gibi görünür, DPI fark etmez.\n🌍 Sunucular: ${nodes || 'yakında'}\n📱 Android, iPhone, Windows, Mac — tüm cihazlar için tek abonelik.`,
     active: (d) => `✅ Abonelik <b>${d}</b> tarihine kadar aktif`, none: '❌ Abonelik yok.',
@@ -116,6 +121,7 @@ const T = {
     warn: (d) => `⏰ Aboneliğiniz ${d} tarihinde bitiyor. VPN kesilmesin diye uzatın.`,
   },
   zh: {
+    bAndroid: '📱 安卓应用', bAppLogin: '🔑 登录应用', apkCaption: '📱 <b>YURK 安卓版</b>\n\n1. 下载上方文件并打开。如手机提示，请允许从 Telegram 安装。\n2. 点击“🔑 登录应用”——无需密码。\n3. 在应用中点击“连接”并允许 VPN。', apkSoon: '应用即将推出。目前请通过“🔑 我的密钥”连接。',
     gbMo: 'GB/月', qLine: (u, q) => (q ? `📊 本月流量：${u} / ${q} GB` : ''), qOver: '📊 流量已用完。续费或购买套餐后计数将重新开始。', q80: (u, q) => `📊 您已使用 ${u} / ${q} GB。流量用完后 VPN 将暂停，直到续费。`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — 在别人被封锁的地方依然可用的高速 VPN。\n\n⚡ VLESS Reality：流量看起来就像普通网站，DPI 无法识别。\n🌍 服务器：${nodes || '即将上线'}\n📱 Android、iPhone、Windows、Mac — 一个订阅，所有设备通用。`,
     active: (d) => `✅ 订阅有效期至 <b>${d}</b>`, none: '❌ 暂无订阅。',
@@ -135,6 +141,7 @@ const T = {
     warn: (d) => `⏰ 您的订阅将于 ${d} 到期。请续费以免 VPN 中断。`,
   },
   es: {
+    bAndroid: '📱 App para Android', bAppLogin: '🔑 Entrar en la app', apkCaption: '📱 <b>YURK para Android</b>\n\n1. Descarga el archivo de arriba y ábrelo. Si el teléfono pregunta, permite instalar desde Telegram.\n2. Toca "🔑 Entrar en la app" — sin contraseña.\n3. En la app toca "Conectar" y permite la VPN.', apkSoon: 'La app llegará pronto. Por ahora conéctate con "🔑 Mi clave".',
     gbMo: 'GB/mes', qLine: (u, q) => (q ? `📊 Tráfico este mes: ${u} de ${q} GB` : ''), qOver: '📊 Límite de tráfico agotado. Renueva o compra un plan — el contador empieza de nuevo.', q80: (u, q) => `📊 Usaste ${u} de ${q} GB. Cuando se acabe el límite, la VPN se detendrá hasta renovar.`,
     hello: (b, nodes) => `🛡 <b>${b}</b> — una VPN rápida que funciona donde otras se bloquean.\n\n⚡ VLESS Reality: tu tráfico parece un sitio web normal, el DPI no lo detecta.\n🌍 Servidores: ${nodes || 'pronto'}\n📱 Android, iPhone, Windows, Mac — una suscripción para todos los dispositivos.`,
     active: (d) => `✅ Suscripción activa hasta el <b>${d}</b>`, none: '❌ Sin suscripción.',

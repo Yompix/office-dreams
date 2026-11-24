@@ -368,8 +368,25 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   const b2 = `http://127.0.0.1:${srv2.address().port}`;
   const html = await (await fetch(b2 + '/app')).text();
   assert.ok(html.includes('telegram-web-app.js') && html.includes('YURK'));
-  const rr = await fetch(b2 + '/api/me', { method: 'POST', headers: { 'x-init-data': init }, body: '{}' });
+  const rr = await fetch(b2 + '/api/me', { method: 'POST', headers: { 'x-init-data': WebApp.signInitData(cfg.botToken, carol, Date.now()) }, body: '{}' });
   assert.strictEqual(rr.status, 200);
+  // Android app: token login, client config, login page
+  const tok = store.user(400).token;
+  const ra = await fetch(b2 + '/api/me', { method: 'POST', headers: { 'x-app-token': tok }, body: '{}' });
+  assert.strictEqual(ra.status, 200);
+  const meA = await ra.json();
+  assert.strictEqual(meA.token, tok); assert.ok(meA.nodeList.length >= 1);
+  assert.strictEqual((await fetch(b2 + '/api/me', { method: 'POST', headers: { 'x-app-token': 'x'.repeat(22) }, body: '{}' })).status, 401);
+  const nodeId = meA.nodeList[0].id;
+  const rcf = await fetch(b2 + `/app-config/${tok}?node=${nodeId}`);
+  const cj = await rcf.json();
+  if (rcf.status === 200) {
+    assert.strictEqual(cj.config.inbounds[0].protocol, 'tun');
+    assert.strictEqual(cj.config.outbounds[0].settings.vnext[0].users[0].id, store.user(400).uuid);
+  } else assert.ok(['expired', 'quota'].includes(cj.error));
+  assert.strictEqual((await fetch(b2 + '/app-config/' + 'y'.repeat(22))).status, 404);
+  const lp = await (await fetch(b2 + '/applogin/' + tok, { headers: { 'user-agent': 'Mozilla/5.0 (Linux; Android 14)' } })).text();
+  assert.ok(lp.includes(`intent://login/${tok}#Intent;scheme=yurk;package=com.yompix.yurk;end`));
   srv2.close();
   ok('mini app: page + api over http');
 

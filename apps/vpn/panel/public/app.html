@@ -15,6 +15,8 @@
 }
 @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
 [hidden]{display:none!important}
+body.login main > *:not(.top):not(.hero),body.login .bar,body.login .btns,body.login #use,body.login .pill{display:none!important}
+body.login .hero{padding-top:40px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 html,body{margin:0;color:var(--tx);font:15px/1.42 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -173,6 +175,8 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
 /* ---------- servers ---------- */
 .srv{display:grid;gap:8px}
 .sv{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.sv.sel{border-color:rgba(34,227,176,.7);box-shadow:0 8px 26px -12px rgba(34,227,176,.8)}
+.sv[data-node]{cursor:pointer}
 .sv .fl{font-size:24px;line-height:1}
 .sv .nm{flex:1;font-weight:650}
 .sv .nm small{display:block;font-weight:500;font-size:12px;color:var(--a2)}
@@ -299,14 +303,22 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
 
 <script>
 'use strict';
-const tg = window.Telegram && Telegram.WebApp;
+const NATIVE = window.YurkNative || null; // inside the YURK Android app
+const tg = !NATIVE && window.Telegram && Telegram.WebApp;
+let vpn = 'off', node = 0;
+try { node = Number(localStorage.getItem('yurk_node')) || 0; } catch (e) {}
+const cbs = {}; let cbn = 0;
+window.__yurkCb = (id, code, json) => { const f = cbs[id]; delete cbs[id]; if (f) f(code, json); };
+window.onYurkState = (st) => { vpn = String(st || 'off'); if (S) render(); if (vpn === 'on') { haptic('ok'); } if (vpn.startsWith('error')) toast(T.vpnErr + (vpn.length > 6 ? ': ' + vpn.slice(6) : '')); };
 const initData = tg ? tg.initData : '';
+const appToken = () => (NATIVE ? NATIVE.token() : '');
 const DEMO = !initData && /demo/.test(location.search);
 if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#07080d'); tg.setBackgroundColor('#07080d'); tg.setBottomBarColor && tg.setBottomBarColor('#07080d'); } catch (e) {} }
 const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred(k || 'light'); } catch (e) {} };
 
 const L = {
   ru: {
+    vpnConn: "Подключение…", vpnOff: "Отключить", srvSel: "выбран", vpnErr: "Ошибка VPN", loginH: "Войдите в YURK", loginP: "Нажмите кнопку — откроется наш бот в Telegram, там нажмите «🔑 Войти в приложение». Без паролей.", loginB: "Войти через Telegram",
     wdDone: "Деньги отправлены в @CryptoBot ✅",
     pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или моментально вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
     online: 'Онлайн · Reality + WebSocket',
@@ -327,6 +339,7 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    vpnConn: "Connecting…", vpnOff: "Disconnect", srvSel: "selected", vpnErr: "VPN error", loginH: "Log in to YURK", loginP: "Tap the button: our Telegram bot opens, then tap \"🔑 Log in to the app\". No passwords.", loginB: "Log in with Telegram",
     wdDone: "Sent to your @CryptoBot ✅",
     pH: 'Partner program', pDesc: (a, b, d) => `<em>${a}%</em> of every payment of your friend — forever, <em>${b}%</em> of your friends' friends and <em>+${d} days</em> for a friend's first payment.`, pFriends: 'Friends', pEarned: 'Earned', pBal: 'Balance', pOut: 'Withdraw', pNote: (m) => `Spend the balance on your subscription or withdraw USDT via @CryptoBot from $${m}`, mBal: 'YURK balance', mBalS: (b) => `Partner money · ${b}`, wdOk: 'Withdrawal requested ⏳', refBtn: 'Invite friends',
     online: 'Online · Reality + WebSocket',
@@ -347,6 +360,7 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    vpnConn: "Підключення…", vpnOff: "Відключити", srvSel: "обрано", vpnErr: "Помилка VPN", loginH: "Увійдіть у YURK", loginP: "Натисніть кнопку — відкриється наш бот у Telegram, там натисніть «🔑 Увійти в застосунок». Без паролів.", loginB: "Увійти через Telegram",
     wdDone: "Гроші надіслано в @CryptoBot ✅",
     pH: 'Партнерка', pDesc: (a, b, d) => `<em>${a}%</em> з кожної оплати друга — назавжди, <em>${b}%</em> з оплат друзів ваших друзів і <em>+${d} дні</em> підписки за першу оплату друга.`, pFriends: 'Друзів', pEarned: 'Зароблено', pBal: 'Баланс', pOut: 'Вивести', pNote: (m) => `Баланс можна витрачати на підписку або вивести в USDT через @CryptoBot від $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнерські гроші · ${b}`, wdOk: 'Заявку на виведення надіслано ⏳', refBtn: 'Покликати друзів',
     online: 'Онлайн · Reality + WebSocket',
@@ -367,6 +381,7 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    vpnConn: "در حال اتصال…", vpnOff: "قطع اتصال", srvSel: "انتخاب‌شده", vpnErr: "خطای VPN", loginH: "ورود به YURK", loginP: "دکمه را بزنید: ربات ما در تلگرام باز می‌شود، سپس «🔑 ورود به اپ» را بزنید. بدون رمز.", loginB: "ورود با تلگرام",
     wdDone: "به @CryptoBot ارسال شد ✅",
     pH: 'برنامه همکاری', pDesc: (a, b, d) => `<em>${a}٪</em> از هر پرداخت دوست — برای همیشه، <em>${b}٪</em> از دوستانِ دوستان و <em>${d}+ روز</em> برای اولین پرداخت دوست.`, pFriends: 'دوستان', pEarned: 'درآمد', pBal: 'موجودی', pOut: 'برداشت', pNote: (m) => `موجودی را برای اشتراک خرج کنید یا از $${m} به USDT در @CryptoBot برداشت کنید`, mBal: 'موجودی YURK', mBalS: (b) => `پول همکاری · ${b}`, wdOk: 'درخواست برداشت ثبت شد ⏳', refBtn: 'دعوت دوستان',
     online: 'آنلاین · Reality + WebSocket',
@@ -387,6 +402,7 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    vpnConn: "Bağlanıyor…", vpnOff: "Bağlantıyı kes", srvSel: "seçili", vpnErr: "VPN hatası", loginH: "YURK'a giriş", loginP: "Düğmeye dokunun: Telegram botumuz açılır, ardından \"🔑 Uygulamaya giriş\"e dokunun. Şifre yok.", loginB: "Telegram ile giriş",
     wdDone: "@CryptoBot'a gönderildi ✅",
     pH: 'Ortaklık', pDesc: (a, b, d) => `Arkadaşının her ödemesinin <em>%${a}</em>'i — süresiz, arkadaşlarının arkadaşlarından <em>%${b}</em> ve ilk ödemede <em>+${d} gün</em>.`, pFriends: 'Arkadaş', pEarned: 'Kazanç', pBal: 'Bakiye', pOut: 'Çek', pNote: (m) => `Bakiyeyi abonelikte kullanın veya $${m}'dan itibaren @CryptoBot ile USDT çekin`, mBal: 'YURK bakiyesi', mBalS: (b) => `Ortaklık parası · ${b}`, wdOk: 'Çekim talebi gönderildi ⏳', refBtn: 'Arkadaş davet et',
     online: 'Çevrimiçi · Reality + WebSocket',
@@ -407,6 +423,7 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    vpnConn: "连接中…", vpnOff: "断开", srvSel: "已选", vpnErr: "VPN 错误", loginH: "登录 YURK", loginP: "点击按钮：将打开我们的 Telegram 机器人，然后点击“🔑 登录应用”。无需密码。", loginB: "通过 Telegram 登录",
     wdDone: "已转入 @CryptoBot ✅",
     pH: '推广计划', pDesc: (a, b, d) => `好友每次付款得 <em>${a}%</em>（永久），二级好友付款得 <em>${b}%</em>，好友首次付款再送 <em>+${d} 天</em>。`, pFriends: '好友', pEarned: '已赚', pBal: '余额', pOut: '提现', pNote: (m) => `余额可用于支付订阅，满 $${m} 可通过 @CryptoBot 提现 USDT`, mBal: 'YURK 余额', mBalS: (b) => `推广收入 · ${b}`, wdOk: '提现申请已提交 ⏳', refBtn: '邀请好友',
     online: '在线 · Reality + WebSocket',
@@ -427,6 +444,7 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    vpnConn: "Conectando…", vpnOff: "Desconectar", srvSel: "elegido", vpnErr: "Error de VPN", loginH: "Entra en YURK", loginP: "Toca el botón: se abrirá nuestro bot de Telegram, luego toca \"🔑 Entrar en la app\". Sin contraseñas.", loginB: "Entrar con Telegram",
     wdDone: "Enviado a tu @CryptoBot ✅",
     pH: 'Programa de socios', pDesc: (a, b, d) => `<em>${a}%</em> de cada pago de tu amigo — para siempre, <em>${b}%</em> de los amigos de tus amigos y <em>+${d} días</em> por el primer pago.`, pFriends: 'Amigos', pEarned: 'Ganado', pBal: 'Saldo', pOut: 'Retirar', pNote: (m) => `Usa el saldo para tu suscripción o retíralo en USDT vía @CryptoBot desde $${m}`, mBal: 'Saldo YURK', mBalS: (b) => `Dinero de socios · ${b}`, wdOk: 'Retiro solicitado ⏳', refBtn: 'Invitar amigos',
     online: 'En línea · Reality + WebSocket',
@@ -456,6 +474,11 @@ const usd = (v) => '$' + (Math.round(v * 100) / 100).toString();
 
 async function api(action, body) {
   if (DEMO) return demo(action);
+  if (NATIVE) return new Promise((res, rej) => {
+    const id = ++cbn;
+    cbs[id] = (code, json) => { let j = {}; try { j = JSON.parse(json || '{}'); } catch (e) {} if (code >= 200 && code < 300) res(j); else rej(Object.assign(new Error(j.error || code), { data: j, code })); };
+    NATIVE.api(id, action, JSON.stringify(body || {}));
+  });
   const r = await fetch('api/' + action, { method: 'POST', headers: { 'content-type': 'application/json', 'x-init-data': initData }, body: JSON.stringify(body || {}) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.error || r.status), { data: j });
@@ -476,8 +499,9 @@ function render() {
   document.documentElement.dir = T.rtl ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach((e) => { const v = T[e.dataset.t]; if (typeof v === 'string') e.textContent = v; });
 
-  $('pill').classList.toggle('on', S.active);
-  $('pillTx').textContent = S.active ? T.on : T.off;
+  const live = NATIVE ? vpn === 'on' : S.active;
+  $('pill').classList.toggle('on', live);
+  $('pillTx').textContent = NATIVE ? (vpn === 'on' ? T.on : vpn === 'connecting' ? T.vpnConn : T.off) : (S.active ? T.on : T.off);
   $('stH').className = $('stP').className = '';
   $('stH').textContent = S.active ? T.actH : T.offH;
   $('stP').textContent = S.active ? T.actP(fmt(S.expires)) : T.offP;
@@ -492,6 +516,13 @@ function render() {
   requestAnimationFrame(() => { $('arc').style.strokeDashoffset = S.active ? 653.5 * (1 - Math.min(1, forever ? 1 : S.daysLeft / total)) : 653.5; });
   $('connect').disabled = $('copy').disabled = !S.sub;
   document.querySelector('.btns').hidden = !S.sub;
+  if (NATIVE) {
+    $('copy').hidden = true;
+    document.querySelector('.btns').style.gridTemplateColumns = '1fr';
+    $('connect').innerHTML = vpn === 'on' ? '⏻ ' + T.vpnOff : vpn === 'connecting' ? '⏳ ' + T.vpnConn : '⚡ ' + T.connect;
+    $('ring').classList.toggle('on', S.active && vpn === 'on');
+    document.body.classList.toggle('on', S.active && vpn === 'on');
+  }
 
   const U = S.usage || {};
   $('use').hidden = !(S.active || U.over) || !U.quota;
@@ -527,10 +558,13 @@ function render() {
     <span class="ic ${m.ic}">${m.e}</span><span class="tx"><b>${m.h}</b><span>${m.s}</span></span>
     <span class="am">${m.on ? price(P, m.id) : (m.id === 'balance' ? price(P, 'balance') : T.soon)}</span>${m.on ? '<span class="rd"></span>' : ''}</button>`).join('');
 
-  $('nodes').innerHTML = S.nodes.length ? S.nodes.map((n) => {
-    const m = /^(\S+)\s+(.*)$/.exec(n) || [n, '🌐', n];
-    const esc = (x) => x.replace(/</g, '&lt;');
-    return `<div class="sv"><span class="fl">${esc(m[1])}</span><span class="nm">${esc(m[2])}<small>${T.online}</small></span><span class="sig"><i></i><i></i><i></i><i></i></span></div>`;
+  const NL = S.nodeList || S.nodes.map((n, i) => ({ id: i, name: n }));
+  if (NATIVE && !NL.some((x) => x.id === node) && NL[0]) node = NL[0].id;
+  $('nodes').innerHTML = NL.length ? NL.map((x) => {
+    const m = /^(\S+)\s+(.*)$/.exec(x.name) || [x.name, '🌐', x.name];
+    const esc = (v) => v.replace(/</g, '&lt;');
+    const sel = NATIVE && x.id === node;
+    return `<div class="sv${sel ? ' sel' : ''}" ${NATIVE ? `data-node="${x.id}"` : ''}><span class="fl">${esc(m[1])}</span><span class="nm">${esc(m[2])}<small>${sel ? T.srvSel : T.online}</small></span><span class="sig"><i></i><i></i><i></i><i></i></span></div>`;
   }).join('') : `<div class="sv"><span class="nm">${T.none}</span></div>`;
   const PT = S.partner || { p1: 20, p2: 5, days: 3, l1: 0, l2: 0, earned: '0.00', bal: '0.00', balCents: 0, min: 5 };
   $('pBadge').textContent = `${PT.p1}% + ${PT.p2}%`;
@@ -551,17 +585,29 @@ function render() {
 document.addEventListener('click', async (e) => {
   const p = e.target.closest('[data-p]'), m = e.target.closest('[data-m]');
   if (p) { plan = p.dataset.p; haptic(); render(); }
+  const nd = e.target.closest('[data-node]');
+  if (nd && NATIVE) {
+    const id = Number(nd.dataset.node);
+    if (id !== node) { node = id; try { localStorage.setItem('yurk_node', id); } catch (er) {} haptic(); if (vpn === 'on') NATIVE.connect(node, 'ws'); render(); }
+  }
+  if (e.target.closest('#login')) open('https://t.me/' + ((S && S.bot) || 'yurkvpn_bot') + '?start=app');
   if (m && !m.disabled) { method = m.dataset.m; haptic(); render(); }
   if (e.target.closest('#sup')) { e.preventDefault(); const s = S.support; open(s.startsWith('http') ? s : 'https://t.me/' + s.replace('@', '')); }
 });
 
 function open(url) {
+  if (NATIVE) return NATIVE.open(url);
   if (tg && /^https:\/\/t\.me\//.test(url)) return tg.openTelegramLink(url);
   if (tg) return tg.openLink(url);
   window.open(url, '_blank');
 }
 
-$('connect').onclick = () => { haptic('medium'); open(S.sub); };
+$('connect').onclick = () => {
+  haptic('medium');
+  if (!NATIVE) return open(S.sub);
+  if (vpn === 'on' || vpn === 'connecting') NATIVE.disconnect();
+  else { const n = (S.nodeList || []).find((x) => x.id === node) || (S.nodeList || [])[0]; NATIVE.connect(n ? n.id : 0, 'ws'); vpn = 'connecting'; render(); }
+};
 $('copy').onclick = async () => {
   try { await navigator.clipboard.writeText(S.sub); } catch (e) { const t = document.createElement('textarea'); t.value = S.sub; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
   haptic('ok'); toast(T.copied);
@@ -667,14 +713,25 @@ function demo(action) {
 }
 
 (async () => {
-  if (!initData && !DEMO) {
+  if (NATIVE && !appToken()) {
+    $('stH').className = $('stP').className = '';
+    const lang = (navigator.language || 'ru').slice(0, 2);
+    T = L[lang] || (RU.includes(lang) ? L.ru : L.en);
+    document.body.classList.add('login');
+    $('coreV').innerHTML = '<svg class="pw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>';
+    $('stH').textContent = T.loginH;
+    $('stP').innerHTML = T.loginP + `<br><br><button class="btn main" id="login" style="width:100%">✈️ ${T.loginB}</button>`;
+    document.body.classList.add('ready');
+    return;
+  }
+  if (!initData && !DEMO && !NATIVE) {
     $('stH').className = $('stP').className = '';
     $('stH').textContent = 'YURK VPN';
     $('stP').innerHTML = 'Откройте приложение в Telegram';
     document.body.classList.add('ready');
     return;
   }
-  try { S = await api('me', { check: true }); render(); requestAnimationFrame(() => document.body.classList.add('ready')); } catch (e) { $('stH').className = $('stP').className = ''; $('stH').textContent = 'Ошибка'; $('stP').textContent = 'Закройте и откройте приложение ещё раз'; }
+  try { S = await api('me', { check: true }); if (NATIVE) { NATIVE.saveMe(JSON.stringify({ token: S.token, bot: S.bot })); vpn = NATIVE.state(); } render(); requestAnimationFrame(() => document.body.classList.add('ready')); } catch (e) { $('stH').className = $('stP').className = ''; $('stH').textContent = 'Ошибка'; $('stP').textContent = 'Закройте и откройте приложение ещё раз'; }
 })();
 </script>
 </body>

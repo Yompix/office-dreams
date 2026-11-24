@@ -26,10 +26,21 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     if (!u.trial && u.expires <= now && cfg.trialDays > 0) kb.push([{ text: t.bTrial(cfg.trialDays), callback_data: 'trial' }]);
     kb.push([{ text: t.bKey, callback_data: 'key' }, { text: t.bBuy, callback_data: 'buy' }]);
     kb.push([{ text: t.bHelp, callback_data: 'help' }, { text: t.bRef, callback_data: 'ref' }]);
+    if (cfg.apk.fileId) kb.push([{ text: t.bAndroid, callback_data: 'apk' }]);
     if (cfg.support) kb.push([{ text: t.bSupport, url: cfg.support.startsWith('http') ? cfg.support : `https://t.me/${cfg.support.replace(/^@/, '')}` }]);
     return { text: `${t.hello(cfg.brand, names)}\n\n${status}`, kb };
   }
   const back = (t) => [[{ text: t.bBack, callback_data: 'menu' }]];
+
+  // the Android app as a Telegram file + a one-tap login button (opens the app with this user's token)
+  async function sendApk(chat, u) {
+    const t = pick(u.lang);
+    if (!cfg.apk.fileId) return send(chat, t.apkSoon);
+    return tg.call('sendDocument', {
+      chat_id: chat, document: cfg.apk.fileId, caption: t.apkCaption, parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: [[{ text: t.bAppLogin, url: `${cfg.publicUrl}/applogin/${u.token}` }]] },
+    });
+  }
 
   async function showKey(chat, u, now) {
     const t = pick(u.lang);
@@ -83,6 +94,8 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     const t = pick(user.lang);
     if (isAdmin(m.from.id) && /^\/(stats|money|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
     if (text.startsWith('/key')) return showKey(chat, user, now);
+    if (text.startsWith('/android')) return sendApk(chat, user);
+    if (/^\/start app\b/.test(text)) return send(chat, '📱 YURK', [[{ text: t.bAppLogin, url: `${cfg.publicUrl}/applogin/${user.token}` }]]);
     if (text.startsWith('/buy')) return send(chat, t.plans, plansKb(user));
     if (text.startsWith('/help')) return send(chat, t.help, back(t));
     const mn = menu(user, now);
@@ -105,6 +118,7 @@ function create({ cfg, store, tg, cb = null, log = console }) {
       return showKey(chat, store.user(u.id), now);
     }
     if (d === 'key') return showKey(chat, u, now);
+    if (d === 'apk') return sendApk(chat, u);
     if (d === 'reset') { const nu = store.resetKey(u.id); await send(chat, t.reset); return showKey(chat, nu, now); }
     if (d === 'buy') return send(chat, t.plans, plansKb(u));
     if (d === 'help') return send(chat, t.help, back(t));

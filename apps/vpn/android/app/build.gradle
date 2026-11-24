@@ -1,0 +1,53 @@
+plugins { id 'com.android.application' }
+
+// Version: bump both for every release (Google Play / updates need a bigger versionCode).
+def vCode = 1
+def vName = '1.0.0'
+
+android {
+    namespace 'com.yompix.yurk'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.yompix.yurk'
+        minSdk 26
+        targetSdk 35
+        versionCode vCode
+        versionName vName
+        // the panel (bot + subscriptions); the app talks only to it
+        buildConfigField 'String', 'PANEL', '"https://yurk-vpn-production.up.railway.app"'
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
+    }
+    buildFeatures { buildConfig true }
+
+    // release key: build.sh passes it in the environment (never in git)
+    signingConfigs {
+        release {
+            def ks = System.getenv('YURK_KEYSTORE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('YURK_KS_PASS')
+                keyAlias 'yurk'
+                keyPassword System.getenv('YURK_KS_PASS')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    // the Xray library ships geo databases (~28 MB) that our config never uses
+    androidResources { ignoreAssetsPattern '!geoip.dat:!geosite.dat:!geoip-only-cn-private.dat' }
+    packaging { jniLibs { useLegacyPackaging true } }
+}
+
+dependencies {
+    // Xray core for Android (github.com/2dust/AndroidLibXrayLite, LGPL-3.0), downloaded by build.sh
+    implementation files('libs/libv2ray.aar')
+}

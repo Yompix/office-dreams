@@ -71,6 +71,9 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       tier, plans: bot.plansFor(tier).map((p) => ({ id: p.id, days: p.days, stars: p.stars, usd: p.usd, gb: cfg.quotas[p.id] || 0, card: cardOk(u) ? cardAmount(cfg, p) / 100 : null })),
       methods: { stars: true, crypto: !!cb, card: cardOk(u), balance: (store.user(u.id) || u).bal > 0 }, cardCurrency: cfg.cardCurrency,
       nodes: store.enabledNodes().map((n) => n.name),
+      nodeList: store.enabledNodes().map((n) => ({ id: n.id, name: n.name, reality: n.kind !== 'railway' || !!n.rport })),
+      token: u.token, // the app keeps it to fetch its VPN config
+      apk: cfg.apk.fileId ? { version: cfg.apk.version } : null,
       support: cfg.support || null,
     };
   }
@@ -133,11 +136,18 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
   }
 
   // POST /api/<action>, body JSON, header X-Init-Data
-  async function api(action, initData, body = {}, now = Date.now()) {
-    const auth = checkInitData(initData, cfg.botToken, now);
-    if (!auth) return [401, { error: 'auth' }];
-    const ref = /^r(\d+)$/.exec(auth.startParam);
-    const { user } = store.ensureUser(auth.user, ref ? Number(ref[1]) : 0, now);
+  async function api(action, initData, body = {}, now = Date.now(), appToken = '') {
+    let user;
+    if (appToken) {
+      // the Android app: logged in with the subscription token it got from the bot
+      user = /^[A-Za-z0-9_-]{16,64}$/.test(appToken) ? store.userByToken(appToken) : null;
+      if (!user || user.banned) return [401, { error: 'auth' }];
+    } else {
+      const auth = checkInitData(initData, cfg.botToken, now);
+      if (!auth) return [401, { error: 'auth' }];
+      const ref = /^r(\d+)$/.exec(auth.startParam);
+      user = store.ensureUser(auth.user, ref ? Number(ref[1]) : 0, now).user;
+    }
     if (action === 'me') {
       if (body.check) await pollCrypto(now).catch((e) => log.error(e.message));
       return [200, view(store.user(user.id), now)];
