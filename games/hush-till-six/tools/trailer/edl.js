@@ -105,6 +105,7 @@ function tiktok(L) {
 function tiktokPromo(L) {
   const keep = new Set(['lily', 'far', 'smile', 'gap', 'there', 'lunge', 'cut', 'end']);   // коротко (~20 с): крючок → улыбка → «вот ты где» → бросок → коды
   const S = tiktok(L).filter(s => keep.has(s.id)), e = S[S.length - 1];
+  for (const s of S) { if (s.id === 'lily') s.mark = 'build'; if (s.id === 'cut') s.mark = 'stinger'; }   // метки музыки — как в Shorts (audio.py score_sh)
   e.black = 7; e.card = { kind: 'end', at: 0, dur: 7, logo: 1, promo: 1 };
   e.sfx = [['boom', 0, { gain: .9 }], ['knock', 5.1, { gain: .7 }], ['knock', 5.55, { gain: .7 }], ['knock', 6.0, { gain: .7 }]];
   return S;
