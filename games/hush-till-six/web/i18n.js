@@ -7,9 +7,13 @@
 const LANGS = ['en', 'de', 'es', 'fr', 'it', 'pl', 'pt', 'tr', 'ru', 'uk', 'zh', 'ja', 'ko'];   // 24 ноя (владелец): в настройках English первым, дальше по алфавиту (латиница → кириллица → CJK)
 const VOICE = { ru: 'ru', en: 'en', es: 'es', pt: 'pt', de: 'de', fr: 'en', it: 'en', pl: 'en', tr: 'en', uk: 'en', zh: 'en', ja: 'en', ko: 'en' };   // чьими записями озвучен язык: свой голос (es) или английские записи с субтитрами на языке игры
 const q = /[?&]lang=(ru|en|es|pt|de|fr|it|pl|tr|uk|zh|ja|ko)\b/.exec(location.search);
-const LANG0 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
+// 24 ноя (владелец): игрокам из Украины русский язык не показываем (ни в списке, ни по умолчанию) — по часовому поясу Киева или украинскому в языках системы (без IP и сторонних сервисов); ?lang= для проверки — как есть
+const UA = (() => { try { if (/^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) return true; } catch {}
+  return (navigator.languages || [navigator.language]).some(l => /^uk\b/i.test(l || '')); })();
+const LANG00 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
   const n = (navigator.language || '').toLowerCase();
-  const m = /^(uk|es|pt|de|fr|it|pl|tr|zh|ja|ko)/.exec(n); return /^(ru|be|kk)/.test(n) ? 'ru' : m && LANGS.includes(m[1]) ? m[1] : 'en'; })();   // язык системы; пока у языка нет словаря, READY ниже даст английский
+  const m = /^(uk|es|pt|de|fr|it|pl|tr|zh|ja|ko)/.exec(n); return /^(ru|be|kk)/.test(n) ? 'ru' : m && LANGS.includes(m[1]) ? m[1] : 'en'; })();
+const LANG0 = UA && !q && LANG00 === 'ru' ? 'uk' : LANG00;   // язык системы; пока у языка нет словаря, READY ниже даст английский
 const EN = {
   'Применить': 'Apply',
   'Язык, графика и разрешение применятся, когда выйдешь из настроек.': 'Language, graphics and resolution will apply when you leave settings.',
@@ -7686,7 +7690,7 @@ ko: {
 // ==== /DICT ====
 // язык есть в игре, когда для него собран перевод (DICT и timing_<язык>.json — tools/i18n/build.js). Без него испанский/португальский/немецкий
 // (в том числе сами, по языку браузера) грузили timing_<язык>.json мимо — реплики шли русскими записями и без субтитров; пока — английский
-const READY = l => l === 'ru' || l === 'en' || !!DICT[l], ON = LANGS.filter(READY), LANG = READY(LANG0) ? LANG0 : 'en';
+const READY = l => l === 'ru' || l === 'en' || !!DICT[l], ON = LANGS.filter(l => READY(l) && !(UA && l === 'ru')), LANG = READY(LANG0) ? LANG0 : 'en';
 const D = LANG === 'en' ? EN : DICT[LANG] || {};
 const tr = s => LANG === 'ru' ? s : D[s] != null ? D[s] : EN[s] != null ? EN[s] : s;   // нет перевода — английский
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })
