@@ -98,7 +98,7 @@ const SNAP = { value: new T.Vector2(108, 192) };
 const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = Math.min(5120, Math.min(ULTRA && GPU.tier === 4 ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
+  if (CINE) { /* 24 ноя (владелец: «Кино» лагает даже на мощном ПК): потолок 2560 (1440p) вместо 4K — 4K×MSAA×HDR×10 ламп PBR съедал кадр; выше — только настройкой «Разрешение» */ const L = Math.min(5120, Math.min(ULTRA && GPU.tier === 4 ? 2560 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }

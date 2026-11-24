@@ -4397,7 +4397,7 @@ function cinePost() {
           c *= vec3(1. + .5 * uScare, 1. - .25 * uScare, 1. - .3 * uScare);
         }
         vec3 bl = fin(texture2D(tBl, uv).rgb);
-        c = mix(c, bl, smoothstep(.62, 1.25, r) * mix(.7, .35, uHQ) * (1. - uCctv));                          // глубина резкости: края кадра мягче
+        c = mix(c, bl, smoothstep(.62, 1.25, r) * mix(.55, .22, uHQ) * (1. - uCctv));                          // глубина резкости: края кадра мягче
         vec3 glw = max(bl - .6, 0.);   // светятся только лампы (они в HDR ярче белого — glow() в world.js), а не белая рубашка рядом
         c += glw * 1.15 + glw * vec3(.4, .14, .05) * (1. - uCctv) + bl * vec3(.04, .022, .014);  // свечение ламп; тёплая кайма вокруг ярких мест (халация плёнки)
         c = aces(c * uExp);
@@ -4411,7 +4411,7 @@ function cinePost() {
         c = mix(c, vec3(pow(max(l, 0.), .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
         c *= 1. - uCctv * mix(.09, .035, uHQ) * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
-        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.03 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * .015);   // зерно: сильнее в полутонах, слабее в чёрном и белом
+        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.018 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * (.004 + .011 * uCctv));   // 24 ноя: зерно «кино» вдвое тише (владелец: «моментами глаза режет») — камеры наблюдения как были   // зерно: сильнее в полутонах, слабее в чёрном и белом
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         gl_FragColor = vec4(c, 1.); }` });
 }
@@ -4427,11 +4427,13 @@ function cineRender(R, T0, cctv, scare, vhs) {
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
-let perfT = 0, perfN = 0, perfS = 0, perfCool = 0;
+let perfT = 0, perfN = 0, perfS = 0, perfCool = 0, perfGood = 0;
 function perfTick(d) {   // d — мс между кадрами движка
   if (!CINE || !scenesReady || d > 250 || V.rsPin) return;   // пауза/вкладка в фоне — не считаем; ?rs= — разрешение задано вручную
   perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; if (perfCool-- > 0) return;
-  const rs = V.rs || 1, nr = avg > 38 ? Math.max(.55, rs - .15) : avg < 21 && rs < 1 ? Math.min(1, rs + .1) : rs;
+  // 24 ноя: держим ~50–60 кадров: ниже ~42 кадров (24 мс) разрешение сразу на 10 % меньше (на совсем медленном — на 15 %); назад — только после 3 быстрых окон подряд (без «качелей»)
+  const rs = V.rs || 1; perfGood = avg < 18 ? perfGood + 1 : 0;
+  const nr = avg > 38 ? Math.max(.55, rs - .15) : avg > 24 ? Math.max(.55, rs - .1) : perfGood >= 3 && rs < 1 ? Math.min(1, rs + .1) : rs; if (nr > rs) perfGood = 0;
   if (nr !== rs) { V.rs = nr; perfCool = 2; setLand(V.land, true); perfSlow = 0; return; }
   // совсем слабое устройство: уже на 55 % кадр дольше 48 мс три окна подряд → «Ретро» (с продолжением с того же места); если игрок сам выбрал «Кино» — не спорим
   if (rs <= .551 && avg > 48) { if (++perfSlow >= 3 && localStorage.getItem('ns1_gfxAuto') !== '2' && window.nsGfxFallback) { perfSlow = -1e9; window.nsGfxFallback(4); } } else perfSlow = 0;
@@ -4443,7 +4445,7 @@ function setLand(land, force) {
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
+  window.__W3core.RT.setSize(V.RW, V.RH); const rd = FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   if (PB && PB.o1) { PB.o1.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); PB.o2.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
@@ -4517,7 +4519,7 @@ function init() {
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  { const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
+  { const rd = FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -4728,7 +4730,7 @@ function draw(g, W, H, id, o) {
   // на мониторах в будке: лицо вплотную к камере холла
   if (o.creep && !CO && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
   if (CO) ;
-  else if (sh.feeds && (crept || ++feedT % (window.nsTV ? 6 : 3) === 0)) renderFeeds(R, T0, sh, t);   // ТВ: картинка мониторов будки — реже
+  else if (sh.feeds && (crept || window.nsTV ? (crept || ++feedT % 6 === 0) : true)) renderFeeds(R, T0, sh, t, crept || window.nsTV ? null : feedT++ % 3);   // 24 ноя: по одной камере за кадр (каждая — раз в 3 кадра, как было), а не все три разом — без рывка каждый третий кадр   // ТВ: картинка мониторов будки — реже
   else if (!sh.feeds && loc === L.lobby && (newShot || ++feedT % 20 === 0)) renderFeeds(R, T0, null, t, newShot ? null : (feedT / 20 | 0) % 3);   // мониторы видны и в других кадрах будки: не чёрные, а камеры (по одной раз в ~2 с)
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0, (o.cctv ?? sh.cctv) || o.scare || sh.noDolly ? 0 : .5);   // камеры наблюдения и бросок — только объективом
   if (sh.roll) cam.rotateZ(typeof sh.roll === 'function' ? sh.roll(t) : sh.roll);   // завал горизонта: упал на пол, голова набок
