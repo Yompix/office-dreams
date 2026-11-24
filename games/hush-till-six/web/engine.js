@@ -1657,6 +1657,11 @@ function sponsorsHtml() {
 const supportBtn = (cls = 'btn ghost sup') => `<a class="${cls}" href="${escH(SP.donate)}" target="_blank" rel="noopener">${ICON.star}<span>${tr('Поддержать игру')}</span></a>`;
 // бесплатная часть (демо для itch.io): сборка кладёт window.NS_DEMO = { price, url }, сцены после выбора у стекла в ней вырезаны (tools/itch/demo.js)
 const DEMO = window.NS_DEMO || null;
+// 24 ноя (владелец): игра вышла в Google Play — на сайте Android-игроков ведём туда (ПК пока играет здесь). В самой Android-игре, ПК-версии и на ТВ плашки нет.
+const GP_URL = 'https://play.google.com/store/apps/details?id=com.yompix.hushtillsix';
+const gpBadge = () => DESK || APP || window.nsTV || DEMO ? '' : /Android/i.test(navigator.userAgent)
+  ? `<a class="gp gp-a" href="${GP_URL}" target="_blank" rel="noopener"><i>NEW</i><span>${tr('Теперь в Google Play')}<small>${tr('Скачать на Android')}</small></span><b>›</b></a>`
+  : `<a class="gp" href="${GP_URL}" target="_blank" rel="noopener"><i>NEW</i><span>${tr('Android-версия — в Google Play')}</span><b>›</b></a>`;
 function buyUrl() {
   if (DEMO && DEMO.url) return DEMO.url;
   const m = /^https:\/\/[a-z0-9-]+\.itch\.io/.exec(document.referrer || '');   // на itch игра в iframe: referrer — страница автора
@@ -1689,6 +1694,7 @@ function menu() {
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
     <div class="logo" id="logo"><b>HUSH</b><b>TILL SIX</b></div>
     <div class="tagl">${tr('Не отзывайся · Не открывай · Дождись шести')}</div>
+    ${gpBadge()}
     <div class="tts">${window.nsTV ? 'PRESS OK TO START' : FINE ? 'CLICK TO START' : 'TAP TO START'}</div>
     <nav class="mlist">
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
@@ -1706,6 +1712,7 @@ function menu() {
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); uiEl.querySelectorAll('[data-end]').forEach(b => { b.onclick = e => { e.stopPropagation(); uiSnd(); watchEnding(b.dataset.end); }; }); });
   btn('mAch', () => subScreen(achScreen()));
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
+  const gp = T0.querySelector('.gp'); if (gp) { gp.onpointerdown = e => e.stopPropagation(); gp.onclick = e => e.stopPropagation(); }
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
   else titleAudio();
   // мигание логотипа (больная лампа) — со звуком, если звук уже разрешён

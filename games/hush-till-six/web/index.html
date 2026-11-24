@@ -267,6 +267,13 @@ html.tv #dlg { background: rgba(6, 6, 8, .88); }
 .title.first .logo { animation-duration: 2.6s, 11s; }
 .title .tagl { margin-top: calc(5 * var(--u)); font: 600 calc(3.4 * var(--u))/1.4 NSUI, NSCJK, Inter, Arial, sans-serif; letter-spacing: calc(.9 * var(--u)); text-transform: uppercase; color: rgba(236,232,220,.7); animation: fadein 1.2s 1.6s both; }
 .title .tts { margin-top: auto; margin-bottom: 30%; font: 600 calc(4 * var(--u))/1 NSUI, NSCJK, Inter, Arial, sans-serif; letter-spacing: calc(1.6 * var(--u)); color: rgba(236,232,220,.85); animation: fadein 1s 2.4s both, blink 1.8s 3.4s infinite; }
+/* 24 ноя: плашка «Теперь в Google Play» под слоганом — заметно, но спокойно (одна вспышка рамки, дальше тихо) */
+.title .gp { display: inline-flex; align-items: center; gap: calc(2 * var(--u)); margin-top: calc(4 * var(--u)); padding: calc(1.6 * var(--u)) calc(3 * var(--u)); border: 1px solid rgba(255,59,71,.55); border-radius: calc(5 * var(--u)); background: rgba(10,4,6,.55); color: #ece8dc; text-decoration: none; font: 600 calc(3.1 * var(--u))/1.25 NSUI, NSCJK, Inter, Arial, sans-serif; letter-spacing: calc(.3 * var(--u)); animation: fadein 1s 2s both, gpGlow 2.4s 3s 2; position: relative; z-index: 2; }
+.title .gp i { font-style: normal; font-size: calc(2.4 * var(--u)); letter-spacing: calc(.4 * var(--u)); padding: calc(.4 * var(--u)) calc(1.2 * var(--u)); border-radius: calc(2 * var(--u)); background: var(--red); color: #fff; }
+.title .gp span { display: flex; flex-direction: column; text-align: left; } .title .gp small { font-size: calc(2.6 * var(--u)); color: rgba(236,232,220,.65); font-weight: 500; }
+.title .gp b { font-size: calc(4.6 * var(--u)); color: var(--red); font-weight: 400; }
+.title .gp-a { font-size: calc(3.6 * var(--u)); padding: calc(2.2 * var(--u)) calc(3.6 * var(--u)); }
+@keyframes gpGlow { 0%, 100% { box-shadow: 0 0 0 rgba(255,59,71,0); } 50% { box-shadow: 0 0 calc(4 * var(--u)) rgba(255,59,71,.55); } }
 .title .mlist { display: none; margin-top: auto; width: 76%; flex-direction: column; gap: calc(1.2 * var(--u)); }
 .title.open { cursor: default; }
 .title.open .tts { display: none; }
@@ -763,7 +770,7 @@ body.land .studio .logo { top: 80%; }
   <div id="pz" class="hide"></div>
 </div>
 <script src="compat.js?v=1"></script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=39"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=40"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
@@ -772,7 +779,7 @@ body.land .studio .logo { top: 80%; }
 <script src="chars2.js?v=55"></script>
 <script src="scenes.js?v=98"></script>
 <script src="story.js?v=41"></script>
-<script src="engine.js?v=110"></script>
+<script src="engine.js?v=111"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>

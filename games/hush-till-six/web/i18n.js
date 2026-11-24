@@ -70,7 +70,7 @@ const EN = {
   '18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки': '18+ · violence and blood · best with headphones · contains flashing lights and loud sounds',
   'Жестокость, кровь и сцены насилия': 'Violence, blood and gore', 'Лучше в наушниках · в игре есть вспышки света': 'Best with headphones · contains flashing lights',
   'Четыре правила · Одна ночь · Сестра за стеклом': 'Four rules · One night · A sister behind the glass',
-  'Загрузка звука…': 'Loading sound…', 'Начать смену': 'Start shift', 'Достижения': 'Achievements', 'Смотреть': 'Watch', 'ДОСТИЖЕНИЯ': 'ACHIEVEMENTS', 'ДОСТИЖЕНИЕ ПОЛУЧЕНО': 'ACHIEVEMENT UNLOCKED', 'Скрытое достижение': 'Hidden achievement', 'Получено {a} из {b}': 'Unlocked {a} of {b}', 'Начать заново': 'Start over', 'Продолжить': 'Continue', 'Концовки': 'Endings', 'КОНЦОВКИ': 'ENDINGS',
+  'Загрузка звука…': 'Loading sound…', 'Начать смену': 'Start shift', 'Теперь в Google Play': 'Now on Google Play', 'Скачать на Android': 'Get it on Android', 'Android-версия — в Google Play': 'Android version — on Google Play', 'Достижения': 'Achievements', 'Смотреть': 'Watch', 'ДОСТИЖЕНИЯ': 'ACHIEVEMENTS', 'ДОСТИЖЕНИЕ ПОЛУЧЕНО': 'ACHIEVEMENT UNLOCKED', 'Скрытое достижение': 'Hidden achievement', 'Получено {a} из {b}': 'Unlocked {a} of {b}', 'Начать заново': 'Start over', 'Продолжить': 'Continue', 'Концовки': 'Endings', 'КОНЦОВКИ': 'ENDINGS',
   'Настройки': 'Settings', 'УЛЬТРА': 'ULTRA', 'Разрешение': 'Resolution', 'АВТО': 'AUTO', 'ПЛАН ЭВАКУАЦИИ': 'EVACUATION PLAN', 'НАПИТКИ': 'DRINKS', 'НАСТРОЙКИ': 'SETTINGS', 'Выйти из игры': 'Quit game', 'Назад': 'Back', 'Меню': 'Menu', 'Во весь экран': 'Fullscreen', "ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА": "SHIELD DISPATCH · VERA", "Пропустить обучение": "Skip tutorial", "Как играть": "How to play", "Пройти обучение снова": "Replay the tutorial", "Смена началась. Удачи.": "Your shift has started. Good luck.", "пульт «Щит»": "Shield dispatch", "ВЕРА": "VERA", "ГОЛОС": "VOICE", "Нажми камеру 03 — лифты": "Tap camera 03, the elevators", "Смотри на табло лифта: «13»": "Look at the elevator display: 13", "Нажми «Записать» → «Лифт»": "Tap Log → Elevator", "MIC слева вверху: столбики прыгают — звук": "MIC, top left: jumping bars mean a sound", "Открой «Пульт»": "Open the Console", "Открой «Журнал»": "Open the Logbook", "Камеры — кнопки внизу. Переключай и запоминай, как там обычно.": "Cameras are the buttons at the bottom. Switch between them and remember what's normal.", "Заметил, что не так, — «Записать» и выбери, что это: свет, дверь, лифт, помехи, кто-то, звук, другое.": "Spot something wrong? Tap Log and pick what it is: light, door, elevator, static, someone, sound, other.", "MIC слева вверху: прыгают столбики — на этой камере звук.": "MIC, top left: if the bars jump, there's a sound on that camera.", "«Пульт»: свет на этажах, вход, лифт. Лишний свет — выключи. К 22:00 вход запри, лифт останови.": "Console: floor lights, entrance, elevator. Switch off stray lights. By 10 p.m., lock the entrance and stop the elevator.", "Три пропущенные странности за час — оно придёт к кабинету.": "Miss three anomalies in an hour and it comes to the booth.", "Помехи на камере — не засматривайся: записал и переключил.": "Static on a camera: don't stare. Log it and switch.", "Не отзывайся, если зовут по имени. Не открывай дверь.": "Don't answer if someone calls your name. Don't open the door.", 'В эфире': 'On the radio', 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.': 'Cinema graphics rendered too dark on this device, so Retro is on. To switch back: Settings → Graphics.', 'Поддержать игру': 'Support the game', 'Полная версия — {p}': 'Full game — {p}', 'ОТКРОЕШЬ ЕЙ?': 'WILL YOU OPEN THE DOOR?', 'Здесь кончается бесплатная часть — у стеклянной двери, в 03:30.': 'This is where the free part ends: at the glass door, at 3:30 a.m.', 'В полной версии ночь идёт до шести: что будет, если открыть — и если нет, подвал, ещё два часа смены, четыре концовки.': "In the full game the night goes on till six: what happens if you open, and if you don't. The basement, two more hours of the shift, four endings.", 'Полная версия скачивается на странице игры и работает без интернета.': 'The full game is a download on the game page and plays offline.', 'СПОНСОРЫ ИГРЫ': 'GAME SPONSORS',
   'Стань первым — твоё имя будет здесь': 'Be the first — your name will be here', 'Сыграть ещё раз': 'Play again', 'Попробовать снова': 'Try again', 'Ты не дожил до утра.': 'You didn\'t make it to morning.',
   'нажми, чтобы закрыть': 'tap to close', 'Правил пока нет.': 'No rules yet.', 'сейчас': 'now', 'СООБЩЕНИЯ': 'MESSAGES', 'Это не я.': 'It\'s not me.', 'Не открывай им.': 'Don\'t open the door to them.', 'Я тебя вижу': 'I see you',
@@ -978,6 +978,9 @@ es: {
   "Скрытое достижение": "Logro oculto",
   "Получено {a} из {b}": "Conseguidos {a} de {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "En este teléfono «Cine» resultó demasiado pesado: se activó «Retro». Para volver: Ajustes → Gráficos.",
+  "Теперь в Google Play": "Ya en Google Play",
+  "Скачать на Android": "Descárgalo en Android",
+  "Android-версия — в Google Play": "Versión para Android — en Google Play",
 },
 pt: {
   "CAM 04  ХОЛЛ": "CAM 04  SAGUÃO",
@@ -1645,6 +1648,9 @@ pt: {
   "Скрытое достижение": "Conquista oculta",
   "Получено {a} из {b}": "Obtidas {a} de {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Neste celular o modo «Cinema» ficou pesado demais — o «Retrô» foi ativado. Para voltar: Configurações → Gráficos.",
+  "Теперь в Google Play": "Agora no Google Play",
+  "Скачать на Android": "Baixe no Android",
+  "Android-версия — в Google Play": "Versão Android — no Google Play",
 },
 de: {
   "CAM 04  ХОЛЛ": "CAM 04  FOYER",
@@ -2312,6 +2318,9 @@ de: {
   "Скрытое достижение": "Verborgener Erfolg",
   "Получено {a} из {b}": "{a} von {b} erhalten",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Auf diesem Handy war „Kino“ zu schwer — „Retro“ ist aktiv. Zurück: Einstellungen → Grafik.",
+  "Теперь в Google Play": "Jetzt bei Google Play",
+  "Скачать на Android": "Für Android laden",
+  "Android-версия — в Google Play": "Android-Version — bei Google Play",
 },
 fr: {
   "CAM 04  ХОЛЛ": "CAM 04  HALL",
@@ -2979,6 +2988,9 @@ fr: {
   "Скрытое достижение": "Succès caché",
   "Получено {a} из {b}": "Obtenus : {a} sur {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Sur ce téléphone, « Cinéma » était trop lourd — « Rétro » est activé. Pour revenir : Paramètres → Graphismes.",
+  "Теперь в Google Play": "Maintenant sur Google Play",
+  "Скачать на Android": "Télécharger sur Android",
+  "Android-версия — в Google Play": "Version Android — sur Google Play",
 },
 it: {
   "CAM 04  ХОЛЛ": "CAM 04  ATRIO",
@@ -3646,6 +3658,9 @@ it: {
   "Скрытое достижение": "Obiettivo nascosto",
   "Получено {a} из {b}": "Ottenuti {a} su {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Su questo telefono «Cinema» era troppo pesante: è attivo «Retrò». Per tornare: Impostazioni → Grafica.",
+  "Теперь в Google Play": "Ora su Google Play",
+  "Скачать на Android": "Scarica su Android",
+  "Android-версия — в Google Play": "Versione Android — su Google Play",
 },
 pl: {
   "CAM 04  ХОЛЛ": "CAM 04  HOL",
@@ -4313,6 +4328,9 @@ pl: {
   "Скрытое достижение": "Ukryte osiągnięcie",
   "Получено {a} из {b}": "Zdobyte: {a} z {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Na tym telefonie tryb „Kino” był za ciężki — włączono „Retro”. Powrót: Ustawienia → Grafika.",
+  "Теперь в Google Play": "Teraz w Google Play",
+  "Скачать на Android": "Pobierz na Androida",
+  "Android-версия — в Google Play": "Wersja na Androida — w Google Play",
 },
 tr: {
   "CAM 04  ХОЛЛ": "CAM 04  LOBİ",
@@ -4980,6 +4998,9 @@ tr: {
   "Скрытое достижение": "Gizli başarım",
   "Получено {a} из {b}": "{b} başarımdan {a} tanesi alındı",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "Bu telefonda «Sinema» fazla ağır geldi — «Retro» açıldı. Geri almak için: Ayarlar → Grafik.",
+  "Теперь в Google Play": "Artık Google Play’de",
+  "Скачать на Android": "Android’e indir",
+  "Android-версия — в Google Play": "Android sürümü — Google Play’de",
 },
 uk: {
   "CAM 04  ХОЛЛ": "CAM 04  ХОЛ",
@@ -5647,6 +5668,9 @@ uk: {
   "Скрытое достижение": "Приховане досягнення",
   "Получено {a} из {b}": "Отримано {a} з {b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "На цьому телефоні «Кіно» виявилося заважким — увімкнено «Ретро». Повернути: Налаштування → Графіка.",
+  "Теперь в Google Play": "Тепер у Google Play",
+  "Скачать на Android": "Завантажити на Android",
+  "Android-версия — в Google Play": "Android-версія — у Google Play",
 },
 zh: {
   "CAM 04  ХОЛЛ": "CAM 04  大厅",
@@ -6314,6 +6338,9 @@ zh: {
   "Скрытое достижение": "隐藏成就",
   "Получено {a} из {b}": "已获得 {a}/{b}",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "此手机运行「电影」画质过于吃力——已切换为「复古」。如需恢复：设置 → 画质。",
+  "Теперь в Google Play": "现已登陆 Google Play",
+  "Скачать на Android": "在 Android 上下载",
+  "Android-версия — в Google Play": "Android 版 — 在 Google Play",
 },
 ja: {
   "CAM 04  ХОЛЛ": "CAM 04  ロビー",
@@ -6981,6 +7008,9 @@ ja: {
   "Скрытое достижение": "隠し実績",
   "Получено {a} из {b}": "{b}個中{a}個獲得",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "この端末では「シネマ」が重すぎたため「レトロ」に切り替えました。戻すには：設定 → グラフィック。",
+  "Теперь в Google Play": "Google Play で配信中",
+  "Скачать на Android": "Android でダウンロード",
+  "Android-версия — в Google Play": "Android 版は Google Play で",
 },
 ko: {
   "CAM 04  ХОЛЛ": "CAM 04  로비",
@@ -7648,6 +7678,9 @@ ko: {
   "Скрытое достижение": "숨겨진 업적",
   "Получено {a} из {b}": "{b}개 중 {a}개 달성",
   "На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.": "이 휴대폰에서는 '시네마'가 너무 무거워 '레트로'로 전환했습니다. 되돌리기: 설정 → 그래픽.",
+  "Теперь в Google Play": "이제 Google Play에서",
+  "Скачать на Android": "Android에서 다운로드",
+  "Android-версия — в Google Play": "Android 버전 — Google Play에서",
 },
 };
 // ==== /DICT ====
