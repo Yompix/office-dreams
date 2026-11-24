@@ -730,6 +730,47 @@ body.land .studio .logo { top: 80%; }
 .studio.tapgo { cursor: pointer; } .studio .tpi { display: flex; flex-direction: column; align-items: center; gap: calc(3 * var(--u)); color: #bbb; font: 600 calc(3.4 * var(--u)) NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.6 * var(--u)); text-transform: uppercase; animation: tpi 1.8s ease-in-out infinite; }
 .studio .tpi i { width: 0; height: 0; border-left: calc(6 * var(--u)) solid #ddd; border-top: calc(3.6 * var(--u)) solid transparent; border-bottom: calc(3.6 * var(--u)) solid transparent; }
 @keyframes tpi { 50% { opacity: .35; } }
+/* 24 ноя (владелец: «заставка маскота без крутой анимации — сделай получше»): тот же таймлайн 4,6 с и звук (studioSound), но живое движение.
+   0,4–1,4 с — маскот выплывает из темноты рывками под удары сердца (0,5 · 0,78 · 1,08 · 1,3), зрачки краснеют; 1,45 — крик: лицо бросается в экран,
+   экран трясёт, красная вспышка; 2,18 · 2,24 · 2,33 — хруст: голова тремя рывками набок, корона слетает; 2,85 — удар: логотип врезается, маскот дышит, кровь стекает */
+.studio.m-horror { animation: spShake 4.6s linear forwards; }
+@keyframes spShake { 0%, 31.4% { transform: none; } 31.6% { transform: translate(-2.4%, 1.4%); } 32.2% { transform: translate(2.2%, -1.8%); } 32.8% { transform: translate(-1.6%, -1%); } 33.4% { transform: translate(1.2%, 1.2%); } 34.2% { transform: translate(-.6%, .4%); } 35.2%, 47.3% { transform: none; }
+  47.5% { transform: translate(1%, 0); } 48% { transform: none; } 48.8% { transform: translate(-1.2%, .4%); } 49.3% { transform: none; } 50.8% { transform: translate(1.6%, -.6%); } 51.4%, 61.9% { transform: none; }
+  62.1% { transform: translate(0, 2.2%) scale(1.03); } 62.8% { transform: translate(0, -1.2%); } 63.6% { transform: translate(0, .6%); } 64.5%, 100% { transform: none; } }
+.studio.m-horror .st-n { opacity: 0; animation: spEmerge 4.6s linear forwards; }
+@keyframes spEmerge { 0%, 8.6% { opacity: 0; transform: translate(-50%, -46%) scale(.55); filter: blur(6px) brightness(.2); }
+  10.8% { opacity: .55; transform: translate(-50%, -48%) scale(.66); filter: blur(3px) brightness(.5); } 12% { opacity: .35; transform: translate(-50%, -48%) scale(.64); }
+  17% { opacity: .8; transform: translate(-50%, -49%) scale(.78); filter: blur(1.5px) brightness(.75); } 18.4% { opacity: .55; transform: translate(-50%, -49%) scale(.76); }
+  23.4% { opacity: 1; transform: translate(-50%, -50%) scale(.9); filter: blur(.5px) brightness(.95); } 24.8% { transform: translate(-50%, -50%) scale(.88); }
+  28.2% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); filter: none; } 29.4% { transform: translate(-50.4%, -50%) scale(1); } 30.6% { transform: translate(-49.6%, -50%) scale(1.03); }
+  31.4% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } 31.5%, 100% { opacity: 0; } }
+.studio.m-horror .st-n .eyes.n { animation: spEyeN 4.6s steps(1) forwards; } .studio.m-horror .st-n .eyes.h { animation: spEyeH 4.6s steps(1) forwards; }
+@keyframes spEyeN { 0%, 26% { opacity: 1; } 26.1%, 26.8% { opacity: 0; } 27%, 28.3% { opacity: 1; } 28.4%, 100% { opacity: 0; } }
+@keyframes spEyeH { 0%, 26% { opacity: 0; } 26.1%, 26.8% { opacity: 1; } 27%, 28.3% { opacity: 0; } 28.4%, 100% { opacity: 1; } }
+.studio .st-big { opacity: 0; animation: spBigOn 4.6s steps(1) forwards; }
+@keyframes spBigOn { 0%, 31.4% { opacity: 0; } 31.5%, 61.9% { opacity: 1; } 62%, 100% { opacity: 0; } }
+.studio .st-bj { animation: spBigJ 4.6s linear forwards; transform-origin: 50% 72%; }
+@keyframes spBigJ { 0%, 31.4% { transform: scale(.35); } 32.6% { transform: scale(1.42) rotate(-1.5deg); } 33.4% { transform: scale(1.26) rotate(1deg); } 34.4% { transform: scale(1.32); }
+  36% { transform: translate(-.8%, .4%) scale(1.3); } 38% { transform: translate(.8%, -.3%) scale(1.31); } 40% { transform: translate(-.5%, 0) scale(1.32); } 43% { transform: translate(.6%, .3%) scale(1.33); } 47.3% { transform: scale(1.34) rotate(0); }
+  47.6% { transform: translate(1.5%, 0) scale(1.35) rotate(9deg); } 48.6% { transform: translate(1.2%, 0) scale(1.35) rotate(8deg); }
+  48.9% { transform: translate(3%, .5%) scale(1.36) rotate(19deg); } 50.5% { transform: translate(2.6%, .5%) scale(1.36) rotate(18deg); }
+  50.9% { transform: translate(5%, 1.4%) scale(1.38) rotate(33deg); } 52% { transform: translate(4.6%, 1.2%) scale(1.37) rotate(31deg); } 56% { transform: translate(4.8%, 1.4%) scale(1.39) rotate(32deg); }
+  61.9% { transform: translate(5.4%, 1.6%) scale(1.46) rotate(33deg); } 100% { transform: translate(5.4%, 1.6%) scale(1.46) rotate(33deg); } }
+.studio .st-big .crown { animation: spCrown 4.6s cubic-bezier(.4, 0, .9, .5) forwards; transform-box: fill-box; transform-origin: center; }
+@keyframes spCrown { 0%, 50.7% { transform: none; opacity: 1; } 51% { transform: translate(-10px, -24px) rotate(-30deg); } 61.9% { transform: translate(-90px, 260px) rotate(-200deg); opacity: 1; } 62%, 100% { opacity: 0; } }
+.studio .st-h { opacity: 0; animation: spHOn 4.6s steps(1) forwards; }
+@keyframes spHOn { 0%, 61.9% { opacity: 0; } 62%, 84.8% { opacity: 1; } 85% { opacity: .15; } 85.6%, 86.2% { opacity: 1; } 86.4%, 100% { opacity: 0; } }
+.studio .st-hj { animation: spHJ 4.6s cubic-bezier(.2, 1.4, .4, 1) forwards; transform-origin: 50% 80%; }
+@keyframes spHJ { 0%, 61.9% { transform: scale(1.7) rotate(14deg); } 64% { transform: scale(.96) rotate(-3deg); } 66.3% { transform: scale(1.02) rotate(1deg); } 68% { transform: scale(1) rotate(0); }
+  72% { transform: scale(1.03); } 76% { transform: scale(1); } 80% { transform: scale(1.035) rotate(-1deg); } 84.8% { transform: scale(1) rotate(0); } 100% { transform: scale(1); } }
+.studio .logo { animation: spLogo 4.6s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+@keyframes spLogo { 0%, 62.9% { opacity: 0; transform: translateX(-50%) scale(2.2); letter-spacing: .6em; } 64.6% { opacity: 1; transform: translateX(-50%) scale(.94); } 66% { transform: translateX(-50%) scale(1.03); }
+  67.5%, 84.8% { opacity: 1; transform: translateX(-50%) scale(1); } 85% { opacity: .2; } 85.6%, 86.2% { opacity: 1; } 86.4%, 100% { opacity: 0; transform: translateX(-50%) scale(1); } }
+@keyframes spRed { 0%, 31.4% { opacity: 0; } 31.5% { opacity: .85; } 33% { opacity: .5; } 40% { opacity: 0; } 47.4% { opacity: .25; } 48.2% { opacity: 0; } 48.7% { opacity: .3; } 49.5% { opacity: 0; } 50.7% { opacity: .4; } 52.5% { opacity: 0; }
+  61.9% { opacity: 0; } 62% { opacity: .9; background: #fff; } 62.6% { opacity: .6; background: #c0081a; } 66%, 100% { opacity: 0; } }
+.studio.m-horror .st-red { animation: spRed 4.6s linear forwards; }
+@keyframes spTear { 0%, 31.4% { opacity: 0; } 31.6% { opacity: 1; top: 22%; } 32.4% { opacity: 1; top: 61%; } 33.2% { opacity: 1; top: 38%; } 34%, 47.3% { opacity: 0; } 47.5% { opacity: 1; top: 55%; } 48%, 50.6% { opacity: 0; } 50.8% { opacity: 1; top: 30%; } 51.4%, 61.9% { opacity: 0; } 62.2% { opacity: 1; top: 48%; } 63%, 100% { opacity: 0; } }
+.studio.m-horror .st-tear { animation: spTear 4.6s steps(1) forwards; height: 4%; background: linear-gradient(90deg, rgba(255,40,60,.35), rgba(255,255,255,.25), rgba(40,220,255,.3)); }
 </style>
 </head>
 <body>
