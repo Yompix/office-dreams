@@ -75,13 +75,21 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    /** yurk://login/<token> */
+    /** yurk://login/<token> — sign in; yurk://connect/<token>?node=N — sign in and turn the VPN on (the «Подключить» button in Telegram) */
     private boolean handleLogin(Intent i) {
         Uri d = i == null ? null : i.getData();
-        if (d == null || !"yurk".equals(d.getScheme()) || !"login".equals(d.getHost())) return false;
+        if (d == null || !"yurk".equals(d.getScheme())) return false;
+        String host = d.getHost();
+        if (!"login".equals(host) && !"connect".equals(host)) return false;
         String t = d.getLastPathSegment();
         if (t == null || !t.matches("[A-Za-z0-9_-]{16,64}")) return false;
-        prefs.edit().putString("token", t).remove("config").apply();
+        if (!t.equals(prefs.getString("token", ""))) prefs.edit().putString("token", t).remove("config").apply();
+        if ("connect".equals(host)) {
+            int node = 0;
+            try { node = Integer.parseInt(d.getQueryParameter("node")); } catch (Exception ignored) { }
+            final int n = node;
+            getWindow().getDecorView().post(() -> new Bridge().connect(n, "ws")); // asks for VPN permission only the first time
+        }
         return true;
     }
 

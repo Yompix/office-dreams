@@ -107,6 +107,16 @@ main{max-width:520px;margin:0 auto;padding:14px 16px calc(120px + env(safe-area-
 .use.warn .bar2 i{background:linear-gradient(90deg,var(--warn),var(--bad))}
 .use.over .ut span{color:var(--bad);font-weight:700}
 
+.ga{margin-top:16px;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.ga .gh{display:flex;align-items:center;gap:12px}
+.ga .gh .e{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,#2a3150,#141a2b);border:1px solid var(--line2)}
+.ga .gh b{display:block;font-size:16px}
+.ga .gh span{font-size:12.5px;color:var(--mut)}
+.ga .gb{display:grid;gap:8px;margin-top:12px}
+.ga .gb button{height:48px;border-radius:14px;font-weight:800;background:var(--tx);color:var(--bg);transition:transform .15s}
+.ga .gb button.alt{background:rgba(255,255,255,.07);color:var(--tx);border:1px solid var(--line2);font-weight:650;height:42px;font-size:14px}
+.ga .gb button:active{transform:scale(.97)}
+.ga small{display:block;margin-top:9px;font-size:12px;color:var(--mut);text-align:center}
 .gift{position:relative;margin-top:16px;display:flex;align-items:center;gap:12px;padding:14px 14px 14px 12px;border-radius:var(--r);overflow:hidden;
   background:linear-gradient(120deg,rgba(255,181,71,.2),rgba(255,93,115,.12));border:1px solid rgba(255,181,71,.38)}
 .gift:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,220,150,.18) 50%,transparent 65%);transform:translateX(-120%);animation:shine 4s infinite}
@@ -261,6 +271,8 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
     <div class="use rv" id="use" hidden style="--d:4"><div class="ut"><span id="useL"></span><b id="useV"></b></div><div class="bar2"><i id="useBar"></i></div></div>
   </section>
 
+  <div class="ga rv" id="ga" hidden style="--d:4"></div>
+
   <div class="gift rv" id="gift" hidden style="--d:4"><div class="e">🎁</div><div><b id="giftH"></b><span data-t="giftP"></span></div><button id="trial" data-t="giftB"></button></div>
 
   <h3 class="rv" style="--d:5" data-t="plansH"></h3>
@@ -318,6 +330,7 @@ const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurre
 
 const L = {
   ru: {
+    gaAndH: "Приложение YURK для Android", gaAndS: "Подключение в одно касание, без копирования ссылок", gaAndB: "Скачать приложение", gaAndN: "Файл придёт в чат с ботом — откройте его и установите", gaOther: "Подключить через другое приложение", gaSent: "Приложение отправлено в чат ⬇️", gaIosH: "YURK на iPhone и Mac", gaIosS: "Через бесплатное приложение Happ — подписка встанет сама", gaIosB1: "Установить Happ из App Store", gaIosB2: "Подключить YURK", gaIosPlus: "Happ недоступен? Установить Happ Plus", gaPcH: "YURK на компьютере", gaPcS: "Windows, Mac, Linux — через бесплатный Hiddify", gaPcB: "Скачать Hiddify", gaPcSub: "Ссылка подписки и другие приложения",
     vpnConn: "Подключение…", vpnOff: "Отключить", srvSel: "выбран", vpnErr: "Ошибка VPN", loginH: "Войдите в YURK", loginP: "Нажмите кнопку — откроется наш бот в Telegram, там нажмите «🔑 Войти в приложение». Без паролей.", loginB: "Войти через Telegram",
     wdDone: "Деньги отправлены в @CryptoBot ✅",
     pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или моментально вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
@@ -339,6 +352,7 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    gaAndH: "YURK app for Android", gaAndS: "One-tap connect, no links to copy", gaAndB: "Download the app", gaAndN: "The file arrives in the bot chat — open it and install", gaOther: "Connect with another app", gaSent: "The app is in your chat ⬇️", gaIosH: "YURK on iPhone and Mac", gaIosS: "Via the free Happ app — the subscription is added automatically", gaIosB1: "Install Happ from the App Store", gaIosB2: "Connect YURK", gaIosPlus: "No Happ in your store? Install Happ Plus", gaPcH: "YURK on your computer", gaPcS: "Windows, Mac, Linux — via the free Hiddify app", gaPcB: "Download Hiddify", gaPcSub: "Subscription link and other apps",
     vpnConn: "Connecting…", vpnOff: "Disconnect", srvSel: "selected", vpnErr: "VPN error", loginH: "Log in to YURK", loginP: "Tap the button: our Telegram bot opens, then tap \"🔑 Log in to the app\". No passwords.", loginB: "Log in with Telegram",
     wdDone: "Sent to your @CryptoBot ✅",
     pH: 'Partner program', pDesc: (a, b, d) => `<em>${a}%</em> of every payment of your friend — forever, <em>${b}%</em> of your friends' friends and <em>+${d} days</em> for a friend's first payment.`, pFriends: 'Friends', pEarned: 'Earned', pBal: 'Balance', pOut: 'Withdraw', pNote: (m) => `Spend the balance on your subscription or withdraw USDT via @CryptoBot from $${m}`, mBal: 'YURK balance', mBalS: (b) => `Partner money · ${b}`, wdOk: 'Withdrawal requested ⏳', refBtn: 'Invite friends',
@@ -360,6 +374,7 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    gaAndH: "Застосунок YURK для Android", gaAndS: "Підключення в один дотик, без копіювання посилань", gaAndB: "Завантажити застосунок", gaAndN: "Файл прийде в чат із ботом — відкрийте й встановіть", gaOther: "Підключити через інший застосунок", gaSent: "Застосунок надіслано в чат ⬇️", gaIosH: "YURK на iPhone і Mac", gaIosS: "Через безкоштовний Happ — підписка встановиться сама", gaIosB1: "Встановити Happ з App Store", gaIosB2: "Підключити YURK", gaIosPlus: "Happ недоступний? Встановити Happ Plus", gaPcH: "YURK на компʼютері", gaPcS: "Windows, Mac, Linux — через безкоштовний Hiddify", gaPcB: "Завантажити Hiddify", gaPcSub: "Посилання підписки та інші застосунки",
     vpnConn: "Підключення…", vpnOff: "Відключити", srvSel: "обрано", vpnErr: "Помилка VPN", loginH: "Увійдіть у YURK", loginP: "Натисніть кнопку — відкриється наш бот у Telegram, там натисніть «🔑 Увійти в застосунок». Без паролів.", loginB: "Увійти через Telegram",
     wdDone: "Гроші надіслано в @CryptoBot ✅",
     pH: 'Партнерка', pDesc: (a, b, d) => `<em>${a}%</em> з кожної оплати друга — назавжди, <em>${b}%</em> з оплат друзів ваших друзів і <em>+${d} дні</em> підписки за першу оплату друга.`, pFriends: 'Друзів', pEarned: 'Зароблено', pBal: 'Баланс', pOut: 'Вивести', pNote: (m) => `Баланс можна витрачати на підписку або вивести в USDT через @CryptoBot від $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнерські гроші · ${b}`, wdOk: 'Заявку на виведення надіслано ⏳', refBtn: 'Покликати друзів',
@@ -381,6 +396,7 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    gaAndH: "اپ YURK برای اندروید", gaAndS: "اتصال با یک لمس، بدون کپی لینک", gaAndB: "دانلود اپ", gaAndN: "فایل در چت ربات می‌آید — بازش کنید و نصب کنید", gaOther: "اتصال با اپ دیگر", gaSent: "اپ در چت ارسال شد ⬇️", gaIosH: "YURK روی آیفون و مک", gaIosS: "با اپ رایگان Happ — اشتراک خودکار اضافه می‌شود", gaIosB1: "نصب Happ از App Store", gaIosB2: "اتصال YURK", gaIosPlus: "Happ در دسترس نیست؟ Happ Plus", gaPcH: "YURK روی کامپیوتر", gaPcS: "ویندوز، مک، لینوکس — با Hiddify رایگان", gaPcB: "دانلود Hiddify", gaPcSub: "لینک اشتراک و اپ‌های دیگر",
     vpnConn: "در حال اتصال…", vpnOff: "قطع اتصال", srvSel: "انتخاب‌شده", vpnErr: "خطای VPN", loginH: "ورود به YURK", loginP: "دکمه را بزنید: ربات ما در تلگرام باز می‌شود، سپس «🔑 ورود به اپ» را بزنید. بدون رمز.", loginB: "ورود با تلگرام",
     wdDone: "به @CryptoBot ارسال شد ✅",
     pH: 'برنامه همکاری', pDesc: (a, b, d) => `<em>${a}٪</em> از هر پرداخت دوست — برای همیشه، <em>${b}٪</em> از دوستانِ دوستان و <em>${d}+ روز</em> برای اولین پرداخت دوست.`, pFriends: 'دوستان', pEarned: 'درآمد', pBal: 'موجودی', pOut: 'برداشت', pNote: (m) => `موجودی را برای اشتراک خرج کنید یا از $${m} به USDT در @CryptoBot برداشت کنید`, mBal: 'موجودی YURK', mBalS: (b) => `پول همکاری · ${b}`, wdOk: 'درخواست برداشت ثبت شد ⏳', refBtn: 'دعوت دوستان',
@@ -402,6 +418,7 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    gaAndH: "Android için YURK uygulaması", gaAndS: "Tek dokunuşla bağlantı, link kopyalamak yok", gaAndB: "Uygulamayı indir", gaAndN: "Dosya bot sohbetine gelir — açıp yükleyin", gaOther: "Başka bir uygulamayla bağlan", gaSent: "Uygulama sohbete gönderildi ⬇️", gaIosH: "iPhone ve Mac’te YURK", gaIosS: "Ücretsiz Happ ile — abonelik otomatik eklenir", gaIosB1: "App Store’dan Happ’i yükle", gaIosB2: "YURK’u bağla", gaIosPlus: "Happ yok mu? Happ Plus’ı yükle", gaPcH: "Bilgisayarda YURK", gaPcS: "Windows, Mac, Linux — ücretsiz Hiddify ile", gaPcB: "Hiddify’ı indir", gaPcSub: "Abonelik linki ve diğer uygulamalar",
     vpnConn: "Bağlanıyor…", vpnOff: "Bağlantıyı kes", srvSel: "seçili", vpnErr: "VPN hatası", loginH: "YURK'a giriş", loginP: "Düğmeye dokunun: Telegram botumuz açılır, ardından \"🔑 Uygulamaya giriş\"e dokunun. Şifre yok.", loginB: "Telegram ile giriş",
     wdDone: "@CryptoBot'a gönderildi ✅",
     pH: 'Ortaklık', pDesc: (a, b, d) => `Arkadaşının her ödemesinin <em>%${a}</em>'i — süresiz, arkadaşlarının arkadaşlarından <em>%${b}</em> ve ilk ödemede <em>+${d} gün</em>.`, pFriends: 'Arkadaş', pEarned: 'Kazanç', pBal: 'Bakiye', pOut: 'Çek', pNote: (m) => `Bakiyeyi abonelikte kullanın veya $${m}'dan itibaren @CryptoBot ile USDT çekin`, mBal: 'YURK bakiyesi', mBalS: (b) => `Ortaklık parası · ${b}`, wdOk: 'Çekim talebi gönderildi ⏳', refBtn: 'Arkadaş davet et',
@@ -423,6 +440,7 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    gaAndH: "YURK 安卓应用", gaAndS: "一键连接，无需复制链接", gaAndB: "下载应用", gaAndN: "文件将发送到机器人聊天中——打开并安装", gaOther: "使用其他应用连接", gaSent: "应用已发送到聊天 ⬇️", gaIosH: "iPhone 和 Mac 上的 YURK", gaIosS: "通过免费的 Happ——订阅自动添加", gaIosB1: "从 App Store 安装 Happ", gaIosB2: "连接 YURK", gaIosPlus: "找不到 Happ？安装 Happ Plus", gaPcH: "电脑上的 YURK", gaPcS: "Windows、Mac、Linux——使用免费的 Hiddify", gaPcB: "下载 Hiddify", gaPcSub: "订阅链接和其他应用",
     vpnConn: "连接中…", vpnOff: "断开", srvSel: "已选", vpnErr: "VPN 错误", loginH: "登录 YURK", loginP: "点击按钮：将打开我们的 Telegram 机器人，然后点击“🔑 登录应用”。无需密码。", loginB: "通过 Telegram 登录",
     wdDone: "已转入 @CryptoBot ✅",
     pH: '推广计划', pDesc: (a, b, d) => `好友每次付款得 <em>${a}%</em>（永久），二级好友付款得 <em>${b}%</em>，好友首次付款再送 <em>+${d} 天</em>。`, pFriends: '好友', pEarned: '已赚', pBal: '余额', pOut: '提现', pNote: (m) => `余额可用于支付订阅，满 $${m} 可通过 @CryptoBot 提现 USDT`, mBal: 'YURK 余额', mBalS: (b) => `推广收入 · ${b}`, wdOk: '提现申请已提交 ⏳', refBtn: '邀请好友',
@@ -444,6 +462,7 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    gaAndH: "App YURK para Android", gaAndS: "Conexión con un toque, sin copiar enlaces", gaAndB: "Descargar la app", gaAndN: "El archivo llega al chat del bot: ábrelo e instálalo", gaOther: "Conectar con otra app", gaSent: "La app está en tu chat ⬇️", gaIosH: "YURK en iPhone y Mac", gaIosS: "Con la app gratuita Happ: la suscripción se añade sola", gaIosB1: "Instalar Happ desde App Store", gaIosB2: "Conectar YURK", gaIosPlus: "¿No hay Happ? Instalar Happ Plus", gaPcH: "YURK en tu ordenador", gaPcS: "Windows, Mac, Linux — con Hiddify gratis", gaPcB: "Descargar Hiddify", gaPcSub: "Enlace de suscripción y otras apps",
     vpnConn: "Conectando…", vpnOff: "Desconectar", srvSel: "elegido", vpnErr: "Error de VPN", loginH: "Entra en YURK", loginP: "Toca el botón: se abrirá nuestro bot de Telegram, luego toca \"🔑 Entrar en la app\". Sin contraseñas.", loginB: "Entrar con Telegram",
     wdDone: "Enviado a tu @CryptoBot ✅",
     pH: 'Programa de socios', pDesc: (a, b, d) => `<em>${a}%</em> de cada pago de tu amigo — para siempre, <em>${b}%</em> de los amigos de tus amigos y <em>+${d} días</em> por el primer pago.`, pFriends: 'Amigos', pEarned: 'Ganado', pBal: 'Saldo', pOut: 'Retirar', pNote: (m) => `Usa el saldo para tu suscripción o retíralo en USDT vía @CryptoBot desde $${m}`, mBal: 'Saldo YURK', mBalS: (b) => `Dinero de socios · ${b}`, wdOk: 'Retiro solicitado ⏳', refBtn: 'Invitar amigos',
@@ -467,6 +486,9 @@ const L = {
 };
 const RU = ['be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka'];
 let T = L.ru, S = null, plan = 'm3', method = 'stars';
+// android | ios | desktop — where the Mini App runs
+const PLATFORM = (() => { const p = (tg && tg.platform) || ''; if (p === 'android' || /android/i.test(navigator.userAgent)) return 'android'; if (p === 'ios' || p === 'macos' || /iphone|ipad|mac os/i.test(navigator.userAgent)) return 'ios'; return 'desktop'; })();
+const goUrl = (app) => `${location.origin}/go/${app}/${S.token}${node ? '?node=' + node : ''}`;
 const $ = (id) => document.getElementById(id);
 const toast = (m) => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2400); };
 const fmt = (ms) => new Date(ms).toLocaleDateString(T.locale || 'en-GB', { day: 'numeric', month: 'long' });
@@ -534,6 +556,7 @@ function render() {
     $('useV').textContent = `${U.used} / ${U.quota} ${T.gb}`;
     requestAnimationFrame(() => { $('useBar').style.width = (sh * 100).toFixed(1) + '%'; });
   }
+  renderGetApp();
   $('gift').hidden = !S.trial;
   $('giftH').textContent = T.giftH(S.trialDays);
 
@@ -605,7 +628,11 @@ function open(url) {
 
 $('connect').onclick = () => {
   haptic('medium');
-  if (!NATIVE) return open(S.sub);
+  if (!NATIVE) {
+    if (PLATFORM === 'android' && S.token) return open(goUrl('yurk'));   // our app turns the VPN on (or the bot sends it)
+    if (PLATFORM === 'ios' && S.token) return open(goUrl('happ'));       // Happ imports the YURK subscription
+    return open(S.sub);
+  }
   if (vpn === 'on' || vpn === 'connecting') NATIVE.disconnect();
   else { const n = (S.nodeList || []).find((x) => x.id === node) || (S.nodeList || [])[0]; NATIVE.connect(n ? n.id : 0, 'ws'); vpn = 'connecting'; render(); }
 };
@@ -659,6 +686,31 @@ $('pay').onclick = async () => {
 };
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S && method === 'crypto') api('me', { check: true }).then((s) => { if (s.expires !== S.expires) { S = s; render(); } }).catch(() => {}); });
+
+function renderGetApp() {
+  const ga = $('ga');
+  if (NATIVE || !S || !S.token) { ga.hidden = true; return; }
+  ga.hidden = false;
+  if (PLATFORM === 'android') {
+    ga.innerHTML = `<div class="gh"><span class="e">🤖</span><div><b>${T.gaAndH}</b><span>${T.gaAndS}</span></div></div>
+      <div class="gb">${S.apk ? `<button id="gaApk">📲 ${T.gaAndB}</button>` : ''}<button class="alt" id="gaHapp">${T.gaOther}</button></div>${S.apk ? `<small>${T.gaAndN}</small>` : ''}`;
+  } else if (PLATFORM === 'ios') {
+    ga.innerHTML = `<div class="gh"><span class="e">📱</span><div><b>${T.gaIosH}</b><span>${T.gaIosS}</span></div></div>
+      <div class="gb"><button id="gaStore">1. ${T.gaIosB1}</button><button class="alt" id="gaConn">2. ⚡ ${T.gaIosB2}</button><button class="alt" id="gaPlus">${T.gaIosPlus}</button></div>`;
+  } else {
+    ga.innerHTML = `<div class="gh"><span class="e">💻</span><div><b>${T.gaPcH}</b><span>${T.gaPcS}</span></div></div>
+      <div class="gb"><button id="gaPc">${T.gaPcB}</button><button class="alt" id="gaSub">${T.gaPcSub}</button></div>`;
+  }
+}
+document.addEventListener('click', async (e) => {
+  const id = e.target.closest('button') && e.target.closest('button').id;
+  if (id === 'gaApk') { haptic('medium'); try { await api('apk'); toast(T.gaSent); setTimeout(() => tg && tg.close && tg.close(), 1400); } catch (er) { toast(T.fail); } }
+  if (id === 'gaHapp' || id === 'gaSub') open(S.sub);
+  if (id === 'gaStore') open('https://apps.apple.com/app/id6504287215');
+  if (id === 'gaPlus') open('https://apps.apple.com/app/id6746188973');
+  if (id === 'gaConn') open(goUrl('happ'));
+  if (id === 'gaPc') open('https://github.com/hiddify/hiddify-app/releases/latest');
+});
 
 function countUp(el, to) {
   const t0 = performance.now(), d = 1100;

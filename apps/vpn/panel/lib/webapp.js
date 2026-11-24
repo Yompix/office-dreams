@@ -157,6 +157,7 @@ function create({ cfg, store, bot, tg, cb = cfg.cryptoToken ? cryptoBot(cfg) : n
       return [ok ? 200 : 409, ok ? view(store.user(user.id), now) : { error: 'trial' }];
     }
     if (action === 'reset') return [200, view(store.resetKey(user.id), now)];
+    if (action === 'apk') { if (!cfg.apk.fileId) return [404, { error: 'apk' }]; await bot.sendApk(user.id, user); return [200, { ok: true }]; }
     if (action === 'withdraw') { const r = await bot.referral.requestWithdraw(store.user(user.id), now); return [r.error ? 400 : 200, r.error ? r : { ...view(store.user(user.id), now), paidOut: !!r.paid }]; }
     if (action === 'pay') {
       const r = await pay(user, String(body.plan || ''), String(body.method || ''));

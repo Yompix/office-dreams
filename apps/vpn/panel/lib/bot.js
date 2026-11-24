@@ -94,7 +94,7 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     const t = pick(user.lang);
     if (isAdmin(m.from.id) && /^\/(stats|money|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
     if (text.startsWith('/key')) return showKey(chat, user, now);
-    if (text.startsWith('/android')) return sendApk(chat, user);
+    if (text.startsWith('/android') || /^\/start android\b/.test(text)) return sendApk(chat, user);
     if (/^\/start app\b/.test(text)) return send(chat, '📱 YURK', [[{ text: t.bAppLogin, url: `${cfg.publicUrl}/applogin/${user.token}` }]]);
     if (text.startsWith('/buy')) return send(chat, t.plans, plansKb(user));
     if (text.startsWith('/help')) return send(chat, t.help, back(t));
@@ -207,7 +207,7 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     }
   }
 
-  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral };
+  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral, sendApk };
 }
 
 module.exports = { create, fmtDate };
