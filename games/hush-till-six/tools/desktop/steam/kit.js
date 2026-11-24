@@ -74,7 +74,7 @@ async function shots(b) {
       if (bi === 'shift') {
         await p.evaluate(s => window.__ns.startScene(s), sc);
         await p.waitForFunction(() => window.__ns.mode === 'shift' && window.__ns.shf, null, { timeout: 120000 });
-        await p.waitForTimeout(2500); if (act === 'log') await p.click('#shLog');
+        await p.waitForTimeout(2500); if (act === 'log') await p.evaluate(() => { const b = document.getElementById('shLog'); b && b.click(); });
         await p.waitForTimeout(1500);
       } else if (bi === 'end') {
         await p.evaluate(s => window.__ns.startScene(s, true), sc);
