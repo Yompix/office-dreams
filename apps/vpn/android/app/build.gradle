@@ -1,8 +1,8 @@
 plugins { id 'com.android.application' }
 
 // Version: bump both for every release (Google Play / updates need a bigger versionCode).
-def vCode = 1
-def vName = '1.0.0'
+def vCode = 2
+def vName = '1.0.1'
 
 android {
     namespace 'com.yompix.yurk'

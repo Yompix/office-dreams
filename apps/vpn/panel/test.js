@@ -55,7 +55,7 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   // referral: bob comes from alice, english texts
   await bot.handle(msg(bob, '/start r100'), now);
   assert.strictEqual(store.user(200).ref, 100);
-  assert.ok(last('sendMessage').p.text.includes('fast VPN'));
+  assert.ok(last('sendMessage').p.text.includes('just works'));
   await bot.handle(msg({ id: 300, first_name: 'Self' }, '/start r300'), now);
   assert.strictEqual(store.user(300).ref, 0);
   ok('referral link');
@@ -235,7 +235,7 @@ let n = 0; const ok = (name) => { n++; console.log('  ✓', name); };
   assert.strictEqual(await pre('m1:500:mid', 149), false);
   assert.strictEqual(await pre('m1:500:cheap', 1), false);
   await bot.handle(msg({ id: 700, first_name: 'Ali', language_code: 'tr' }, '/start'), now);
-  assert.ok(last('sendMessage').p.text.includes('hızlı VPN'));
+  assert.ok(last('sendMessage').p.text.includes('sorunsuz'));
   ok('regional prices + languages');
 
   // traffic from the node + money report
