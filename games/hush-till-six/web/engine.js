@@ -2668,7 +2668,7 @@ function afterSplash() {
 }
 studio();
 // остальные места догреваются в фоне по одному (World.warmMore: шейдеры собирает драйвер в своих потоках, кадр не рисуется): в меню и на паузе — подряд и с тенями, в игре — реже и без лишних кадров
-function warmBg() { const idle = mode === 'menu' || userPause, tv = !!window.nsTV; let p = null; try { p = window.World && World.warmMore && World.warmMore(idle && !tv); } catch (e) { console.warn(e); } if (p) p.then(() => setTimeout(warmBg, idle ? (tv ? 400 : 40) : (tv ? 1500 : 700))); }   // ТВ: прогрев реже, без лишнего кадра — меню отвечает на пульт
+function warmBg() { const idle = mode === 'menu' || userPause, tv = !!window.nsTV; let p = null; try { p = window.World && World.warmMore && World.warmMore(idle && !tv); } catch (e) { console.warn(e); } if (p) p.then(() => setTimeout(warmBg, idle ? (tv ? 400 : 160) : (tv ? 1500 : 700))); }   // 24 ноя: в меню — пауза 160 мс между местами (было 40: меню «лагало капец», пока шёл прогрев)   // ТВ: прогрев реже, без лишнего кадра — меню отвечает на пульт
 load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => {
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда

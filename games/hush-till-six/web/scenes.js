@@ -4768,7 +4768,7 @@ function draw(g, W, H, id, o) {
   for (const k of used) if (A[k].reflOnly) A[k].root.visible = false;
   if (CINE) { cineTick(loc, T0); if (!CO) R.shadowMap.needsUpdate = newShot || (++shadowN & 1) === 0; }   // 24 ноя: и на ПК тени через кадр (2 лампы × 6 сторон = 12 проходов сцены — самое дорогое в «Кино»); на склейке — сразу   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
   if (CO === 1) return compileOnly(R, loc.S);
-  if (CO) { const R0 = R.getRenderTarget(); R.shadowMap.needsUpdate = true; R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam); R.setRenderTarget(R0); return null; }   // тени ламп (их шейдеры собираются только при рисовании)
+  if (CO) { const R0 = R.getRenderTarget(); R.shadowMap.needsUpdate = true; R.setRenderTarget(warmRT()); R.render(loc.S, cam); R.setRenderTarget(R0); return null; }   // 24 ноя: прогрев рисует в крошечный буфер того же вида (шейдеры те же), а не в полный кадр — меню не лагает   // тени ламп (их шейдеры собираются только при рисовании)
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
   if (CINE) cineRender(R, T0, cctv ? 1 : 0, clamp(o.scare || 0, 0, 1), o.vhs ?? VHS);
   else { R.setRenderTarget(null); R.render(postScene, postCam); }
@@ -4814,8 +4814,10 @@ function warmRun(id, k) {
   return p;
 }
 // собрать шейдеры сцены, не рисуя: как в R.render в буфер кадра (те же тон и цвет на выходе — иначе соберутся не те шейдеры)
+let wRT = null;
+function warmRT() { if (!wRT) { const M = window.__W3core.RT; wRT = new T.WebGLRenderTarget(64, 36, CINE ? { type: T.HalfFloatType, samples: M.samples || 0 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter }); } return wRT; }
 function compileOnly(R, S) {
-  const R0 = R.getRenderTarget(); R.setRenderTarget(window.__W3core.RT); let mats = null;
+  const R0 = R.getRenderTarget(); R.setRenderTarget(warmRT()); let mats = null;
   try { mats = R.compile(S, cam); } finally { R.setRenderTarget(R0); }
   if (!mats || !mats.size || !R.properties) return Promise.resolve();
   return new Promise(res => { const t0 = performance.now(), tick = () => {
