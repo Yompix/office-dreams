@@ -19,23 +19,34 @@ function create({ cfg, store, tg, cb = null, log = console }) {
 
   function menu(u, now = Date.now()) {
     const t = pick(u.lang);
-    const names = store.enabledNodes().map((n) => n.name).join(', ');
-    const status = u.expires > now ? t.active(fmtDate(u.expires)) : t.none;
+    const flags = store.enabledNodes().map((n) => n.name.split(' ')[0]).join(' ');
+    const status = u.expires > now ? t.active(fmtDate(u.expires), Math.ceil((u.expires - now) / DAY)) : t.none;
     const kb = [];
     if (cfg.publicUrl.startsWith('https://')) kb.push([{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]);
     if (!u.trial && u.expires <= now && cfg.trialDays > 0) kb.push([{ text: t.bTrial(cfg.trialDays), callback_data: 'trial' }]);
-    kb.push([{ text: t.bKey, callback_data: 'key' }, { text: t.bBuy, callback_data: 'buy' }]);
-    kb.push([{ text: t.bHelp, callback_data: 'help' }, { text: t.bRef, callback_data: 'ref' }]);
+    kb.push([{ text: t.bBuy, callback_data: 'buy' }, { text: t.bKey, callback_data: 'key' }]);
+    kb.push([{ text: t.bRef, callback_data: 'ref' }, { text: t.bHelp, callback_data: 'help' }]);
+    if (cfg.apk.fileId) kb.push([{ text: t.bAndroid, callback_data: 'apk' }]);
     if (cfg.support) kb.push([{ text: t.bSupport, url: cfg.support.startsWith('http') ? cfg.support : `https://t.me/${cfg.support.replace(/^@/, '')}` }]);
-    return { text: `${t.hello(cfg.brand, names)}\n\n${status}`, kb };
+    return { text: `${t.hello(cfg.brand, flags)}\n\n${status}`, kb };
   }
   const back = (t) => [[{ text: t.bBack, callback_data: 'menu' }]];
 
-  async function showKey(chat, u, now) {
+  // the Android app as a Telegram file + a one-tap login button (opens the app with this user's token)
+  async function sendApk(chat, u) {
     const t = pick(u.lang);
-    if (u.expires <= now) return send(chat, t.noSub, [[{ text: t.bBuy, callback_data: 'buy' }], ...back(t)]);
+    if (!cfg.apk.fileId) return send(chat, t.apkSoon);
+    return tg.call('sendDocument', {
+      chat_id: chat, document: cfg.apk.fileId, caption: t.apkCaption, parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: [[{ text: t.bAppLogin, url: `${cfg.publicUrl}/applogin/${u.token}` }]] },
+    });
+  }
+
+  async function showKey(chat, u, now, out = (x, k) => send(chat, x, k), top = '') {
+    const t = pick(u.lang);
+    if (u.expires <= now) return out(t.noSub, [[{ text: t.bBuy, callback_data: 'buy' }], ...back(t)]);
     const q = Quota.usage(store, cfg, u, now);
-    return send(chat, t.key(subUrl(u), fmtDate(u.expires)) + '\n\n' + (q.over ? t.qOver : t.qLine(q.usedGb, q.quotaGb)), [
+    return out((top ? top + '\n\n' : '') + t.key(subUrl(u), fmtDate(u.expires)) + '\n\n' + (q.over ? t.qOver : t.qLine(q.usedGb, q.quotaGb)), [
       [{ text: t.bConnect, url: subUrl(u) }],
       [{ text: t.bReset, callback_data: 'reset' }, { text: t.bHelp, callback_data: 'help' }],
       ...back(t),
@@ -83,6 +94,8 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     const t = pick(user.lang);
     if (isAdmin(m.from.id) && /^\/(stats|money|nodes|addnode|node_off|node_on|give|admin)\b/.test(text)) return onAdmin(chat, text);
     if (text.startsWith('/key')) return showKey(chat, user, now);
+    if (text.startsWith('/android') || /^\/start android\b/.test(text)) return sendApk(chat, user);
+    if (/^\/start app\b/.test(text)) return send(chat, '📱 YURK', [[{ text: t.bAppLogin, url: `${cfg.publicUrl}/applogin/${user.token}` }]]);
     if (text.startsWith('/buy')) return send(chat, t.plans, plansKb(user));
     if (text.startsWith('/help')) return send(chat, t.help, back(t));
     const mn = menu(user, now);
@@ -97,18 +110,22 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     const chat = q.message ? q.message.chat.id : q.from.id;
     await tg.call('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
     const d = q.data || '';
-    if (d === 'menu') { const mn = menu(u, now); return send(chat, mn.text, mn.kb); }
+    const mid = q.message && q.message.message_id && !q.message.document ? q.message.message_id : 0;
+    const out = (text, kb) => (mid
+      ? tg.call('editMessageText', { chat_id: chat, message_id: mid, text, parse_mode: 'HTML', disable_web_page_preview: true, ...(kb ? { reply_markup: { inline_keyboard: kb } } : {}) }).catch(() => send(chat, text, kb))
+      : send(chat, text, kb));
+    if (d === 'menu') { const mn = menu(u, now); return out(mn.text, mn.kb); }
     if (d === 'trial') {
       const exp = cfg.trialDays > 0 ? store.startTrial(u.id, cfg.trialDays, now) : 0;
-      if (!exp) return send(chat, t.trialUsed, plansKb(u));
-      await send(chat, t.trialOk(fmtDate(exp)));
-      return showKey(chat, store.user(u.id), now);
+      if (!exp) return out(t.trialUsed, plansKb(u));
+      return showKey(chat, store.user(u.id), now, out, t.trialOk(fmtDate(exp)));
     }
-    if (d === 'key') return showKey(chat, u, now);
-    if (d === 'reset') { const nu = store.resetKey(u.id); await send(chat, t.reset); return showKey(chat, nu, now); }
-    if (d === 'buy') return send(chat, t.plans, plansKb(u));
-    if (d === 'help') return send(chat, t.help, back(t));
-    if (d === 'ref') return send(chat, referral.text(u), [...(cfg.publicUrl.startsWith('https://') ? [[{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]] : []), ...back(t)]);
+    if (d === 'key') return showKey(chat, u, now, out);
+    if (d === 'apk') return sendApk(chat, u);
+    if (d === 'reset') { const nu = store.resetKey(u.id); return showKey(chat, nu, now, out, t.reset); }
+    if (d === 'buy') return out(t.plans, plansKb(u));
+    if (d === 'help') return out(t.help, back(t));
+    if (d === 'ref') return out(referral.text(u), [...(cfg.publicUrl.startsWith('https://') ? [[{ text: t.bApp, web_app: { url: `${cfg.publicUrl}/app` } }]] : []), ...back(t)]);
     const wd = /^wd_(ok|no):(\d+)$/.exec(d);
     if (wd && isAdmin(q.from.id)) return referral.decide(chat, Number(wd[2]), wd[1] === 'ok');
     if (d.startsWith('plan:')) {
@@ -193,7 +210,7 @@ function create({ cfg, store, tg, cb = null, log = console }) {
     }
   }
 
-  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral };
+  return { handle, remind, quotaWarn, menu, fulfil, planById, plansFor, referral, sendApk };
 }
 
 module.exports = { create, fmtDate };

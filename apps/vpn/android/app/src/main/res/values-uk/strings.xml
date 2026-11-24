@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="n_channel">Стан VPN</string>
+    <string name="n_connecting">Підключення…</string>
+    <string name="n_on">Захищено</string>
+    <string name="n_stop">Відключити</string>
+</resources>

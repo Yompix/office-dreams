@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YURK VPN</string>
+    <string name="n_channel">Состояние VPN</string>
+    <string name="n_connecting">Подключение…</string>
+    <string name="n_on">Защищено</string>
+    <string name="n_stop">Отключить</string>
+</resources>

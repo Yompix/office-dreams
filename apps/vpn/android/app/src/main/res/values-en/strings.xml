@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="n_channel">VPN status</string>
+    <string name="n_connecting">Connecting…</string>
+    <string name="n_on">Protected</string>
+    <string name="n_stop">Disconnect</string>
+</resources>

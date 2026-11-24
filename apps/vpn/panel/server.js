@@ -13,6 +13,7 @@ const Tg = require('./lib/tg.js');
 const WebApp = require('./lib/webapp.js');
 const Money = require('./lib/money.js');
 const Quota = require('./lib/quota.js');
+const ClientCfg = require('./lib/clientcfg.js');
 const APP_HTML = path.join(__dirname, 'public', 'app.html');
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -48,11 +49,11 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
       if (p === '/health') return send(200, 'ok');
 
       if (p === '/app') return send(200, fs.readFileSync(APP_HTML), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' });
-      let a = /^\/api\/(me|trial|pay|reset|withdraw)$/.exec(p);
+      let a = /^\/api\/(me|trial|pay|reset|withdraw|apk)$/.exec(p);
       if (a && req.method === 'POST' && webapp) {
         let body = {};
         try { body = JSON.parse((await readBody(req, 1e4)) || '{}'); } catch { /* empty */ }
-        const [code, out] = await webapp.api(a[1], String(req.headers['x-init-data'] || ''), body);
+        const [code, out] = await webapp.api(a[1], String(req.headers['x-init-data'] || ''), body, Date.now(), String(req.headers['x-app-token'] || ''));
         return send(code, JSON.stringify(out), { 'content-type': 'application/json', 'cache-control': 'no-store' });
       }
 
@@ -74,6 +75,54 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         const uu = cfg.adminIds.includes(u.id) ? { ...u, expires: Math.max(u.expires, now + 3650 * 86400000) } : u;
         const s = Links.subscription(uu, store.enabledNodes(), cfg, now, Quota.usage(store, cfg, u, now));
         return send(200, s.body, s.headers);
+      }
+
+      // Android app: full Xray client config for one node (the app passes it to the core with the VPN tun)
+      m = /^\/app-config\/([A-Za-z0-9_-]{16,64})$/.exec(p);
+      if (m && req.method === 'GET') {
+        const u = store.userByToken(m[1]);
+        if (!u || u.banned) return send(404, JSON.stringify({ error: 'token' }), { 'content-type': 'application/json' });
+        const now = Date.now();
+        const allowed = Quota.allowedUsers(store, cfg, now).some((x) => x.id === u.id);
+        if (!allowed) return send(402, JSON.stringify({ error: Quota.usage(store, cfg, u, now).over ? 'quota' : 'expired' }), { 'content-type': 'application/json' });
+        const nodes = store.enabledNodes();
+        const n = nodes.find((x) => x.id === Number(url.searchParams.get('node'))) || nodes[0];
+        if (!n) return send(503, JSON.stringify({ error: 'nodes' }), { 'content-type': 'application/json' });
+        const mode = url.searchParams.get('mode') === 'reality' ? 'reality' : 'ws';
+        return send(200, JSON.stringify({ node: { id: n.id, name: n.name }, config: ClientCfg.config(u, n, mode) }), { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      }
+
+      // «Подключить» from the Mini App: opens the right app with this subscription.
+      //   /go/yurk/<token>  — Android: our app turns the VPN on (no app -> the bot sends the APK)
+      //   /go/happ/<token>  — iPhone / Mac / Windows: Happ imports the YURK subscription
+      m = /^\/go\/(yurk|happ|hiddify)\/([A-Za-z0-9_-]{16,64})$/.exec(p);
+      if (m && req.method === 'GET') {
+        const u = store.userByToken(m[2]);
+        if (!u) return send(404, 'not found');
+        const sub = `${cfg.publicUrl}/sub/${u.token}`;
+        const node = Number(url.searchParams.get('node')) || 0;
+        const bot = `https://t.me/${cfg.botUsername}?start=android`;
+        const target = m[1] === 'yurk'
+          ? `intent://connect/${u.token}?node=${node}#Intent;scheme=yurk;package=${cfg.apk.pkg};S.browser_fallback_url=${encodeURIComponent(bot)};end`
+          : m[1] === 'happ' ? `happ://add/${sub}` : `hiddify://import/${sub}#${encodeURIComponent(cfg.brand)}`;
+        const store1 = m[1] === 'happ' ? '<a class="s" href="https://apps.apple.com/app/id6504287215">Нет Happ? Установить из App Store</a><a class="s" href="https://apps.apple.com/app/id6746188973">Happ Plus (если Happ недоступен в вашей стране)</a>' : '';
+        return send(200, `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YURK</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#05060b;color:#f1f3fb;font:17px system-ui,sans-serif;text-align:center}a{display:block;margin:14px auto;padding:17px 24px;border-radius:16px;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);color:#06101c;font-weight:800;text-decoration:none;max-width:290px}a.s{background:#151a28;color:#cfd6ea;font-weight:600;font-size:15px;border:1px solid #262e45}</style></head>
+<body><div><h2>⚡ YURK</h2><a href="${esc(target)}">Подключить</a>${store1}</div>
+<script>setTimeout(function(){location.href=${JSON.stringify(target)}},250)</script></body></html>`, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+      }
+
+      // «Войти в приложение» from the bot: opens the installed YURK app with the user's token
+      m = /^\/applogin\/([A-Za-z0-9_-]{16,64})$/.exec(p);
+      if (m && req.method === 'GET') {
+        const u = store.userByToken(m[1]);
+        if (!u) return send(404, 'not found');
+        const deep = `yurk://login/${u.token}`;
+        const intent = `intent://login/${u.token}#Intent;scheme=yurk;package=${cfg.apk.pkg};end`;
+        return send(200, `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YURK</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#05060b;color:#f1f3fb;font:17px system-ui,sans-serif;text-align:center}a{display:block;margin:18px auto;padding:18px 26px;border-radius:16px;background:linear-gradient(120deg,#8b5cff,#2fb8ff 50%,#22e3b0);color:#06101c;font-weight:800;text-decoration:none;max-width:280px}p{color:#8f97ad;font-size:14px;max-width:300px;margin:0 auto}</style></head>
+<body><div><h2>🛡 YURK</h2><a id="go" href="${esc(intent)}">Открыть приложение YURK</a><p>Нет приложения? Вернитесь в бота и нажмите «📱 Приложение для Android».</p></div>
+<script>setTimeout(function(){location.href=${JSON.stringify(/android/i.test(req.headers['user-agent'] || '') ? intent : deep)}},300)</script></body></html>`, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
       }
 
       // node agent: Bearer <node secret>; it also reports its Hysteria2 certificate fingerprint
@@ -104,6 +153,7 @@ function createApp({ cfg, store, bot, webapp, log = console }) {
         return send(200, JSON.stringify({ ...store.stats(), nodeList: nodes }, null, 1), { 'content-type': 'application/json' });
       }
 
+      if (p === '/privacy') return send(200, fs.readFileSync(path.join(__dirname, 'public', 'privacy.html')), { 'content-type': 'text/html; charset=utf-8' });
       if (p === '/') return send(200, cfg.botUsername ? `${cfg.brand}: https://t.me/${cfg.botUsername}` : cfg.brand);
       return send(404, 'not found');
     } catch (e) {

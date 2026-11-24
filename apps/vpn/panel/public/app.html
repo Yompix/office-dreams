@@ -15,6 +15,9 @@
 }
 @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
 [hidden]{display:none!important}
+body.login .tab:not([data-tab=home]),body.login .tab[data-tab=home] > *:not(.hero),body.login .bar,body.login .tabs,body.login .btns,body.login #use,body.login .pill{display:none!important}
+body.login .tab[data-tab=home]{display:block!important}
+body.login .hero{padding-top:40px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 html,body{margin:0;color:var(--tx);font:15px/1.42 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -36,7 +39,9 @@ body.on .bg .b2{opacity:.5}
 .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
 #fx{position:fixed;inset:0;z-index:20;pointer-events:none;width:100%;height:100%}
 
-main{max-width:520px;margin:0 auto;padding:14px 16px calc(120px + env(safe-area-inset-bottom))}
+main{max-width:520px;margin:0 auto;padding:14px 16px calc(100px + env(safe-area-inset-bottom))}
+body.t-plans main{padding-bottom:calc(200px + env(safe-area-inset-bottom))}
+body:not(.t-plans) .bar{display:none}
 
 /* ---------- entrance ---------- */
 .rv{opacity:0;transform:translateY(18px) scale(.985);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--d,0) * 70ms)}
@@ -105,6 +110,38 @@ main{max-width:520px;margin:0 auto;padding:14px 16px calc(120px + env(safe-area-
 .use.warn .bar2 i{background:linear-gradient(90deg,var(--warn),var(--bad))}
 .use.over .ut span{color:var(--bad);font-weight:700}
 
+/* what is left */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.sc{position:relative;padding:14px 14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow:hidden}
+.sc .sl{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.sc b{display:block;font-size:30px;font-weight:850;letter-spacing:-.02em;margin-top:6px;line-height:1.05}
+.sc b small{font-size:15px;font-weight:700;color:var(--mut);margin-left:4px;letter-spacing:0}
+.sc .ss{display:block;font-size:12.5px;color:var(--mut);margin-top:3px;min-height:17px}
+.sc .mb{display:block;height:6px;border-radius:99px;background:rgba(255,255,255,.07);margin-top:11px;overflow:hidden}
+.sc .mb i{display:block;height:100%;width:0;border-radius:99px;background:var(--grad);transition:width 1.1s var(--ease)}
+.sc.warn .mb i{background:linear-gradient(90deg,var(--warn),var(--bad))}
+.sc.warn b{color:var(--warn)}
+/* bottom tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(9,11,18,.88);border-top:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.tabs button{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:14px;color:var(--dim);font-size:11.5px;font-weight:700;transition:color .2s,background .2s}
+.tabs button svg{width:24px;height:24px}
+.tabs button.on{color:var(--tx);background:rgba(255,255,255,.06)}
+.tabs button.on svg{stroke:url(#g);color:#2fb8ff}
+.tab[hidden]{display:none!important}
+.tab{animation:tabin .35s var(--ease)}
+@keyframes tabin{from{opacity:0;transform:translateY(10px)}}
+.orb{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.orb:active .core{transform:scale(.95)}
+.ga{margin-top:16px;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.ga .gh{display:flex;align-items:center;gap:12px}
+.ga .gh .e{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,#2a3150,#141a2b);border:1px solid var(--line2)}
+.ga .gh b{display:block;font-size:16px}
+.ga .gh span{font-size:12.5px;color:var(--mut)}
+.ga .gb{display:grid;gap:8px;margin-top:12px}
+.ga .gb button{height:48px;border-radius:14px;font-weight:800;background:var(--tx);color:var(--bg);transition:transform .15s}
+.ga .gb button.alt{background:rgba(255,255,255,.07);color:var(--tx);border:1px solid var(--line2);font-weight:650;height:42px;font-size:14px}
+.ga .gb button:active{transform:scale(.97)}
+.ga small{display:block;margin-top:9px;font-size:12px;color:var(--mut);text-align:center}
 .gift{position:relative;margin-top:16px;display:flex;align-items:center;gap:12px;padding:14px 14px 14px 12px;border-radius:var(--r);overflow:hidden;
   background:linear-gradient(120deg,rgba(255,181,71,.2),rgba(255,93,115,.12));border:1px solid rgba(255,181,71,.38)}
 .gift:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,220,150,.18) 50%,transparent 65%);transform:translateX(-120%);animation:shine 4s infinite}
@@ -173,6 +210,8 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
 /* ---------- servers ---------- */
 .srv{display:grid;gap:8px}
 .sv{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.sv.sel{border-color:rgba(34,227,176,.7);box-shadow:0 8px 26px -12px rgba(34,227,176,.8)}
+.sv[data-node]{cursor:pointer}
 .sv .fl{font-size:24px;line-height:1}
 .sv .nm{flex:1;font-weight:650}
 .sv .nm small{display:block;font-weight:500;font-size:12px;color:var(--a2)}
@@ -218,7 +257,7 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
 .foot a{color:var(--mut)}
 
 /* ---------- bottom bar ---------- */
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:14px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(5,6,11,.9) 34%)}
+.bar{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:5;padding:14px 16px 10px;background:linear-gradient(transparent,rgba(5,6,11,.9) 34%)}
 .bar .btn{max-width:488px;margin:0 auto;width:100%;height:58px;font-size:17px}
 .bar small{display:block;text-align:center;color:var(--dim);font-size:11.5px;margin-top:6px}
 .toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-90px);background:rgba(28,34,54,.92);border:1px solid var(--line2);padding:11px 18px;border-radius:14px;font-weight:650;font-size:14px;transition:transform .45s var(--ease);z-index:30;max-width:90vw;backdrop-filter:blur(14px);box-shadow:0 12px 30px -10px rgba(0,0,0,.7)}
@@ -240,79 +279,110 @@ h3:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--lin
     <div class="pill" id="pill"><b></b><span id="pillTx">…</span></div>
   </div>
 
-  <section class="hero">
-    <div class="orb rv" id="ring" style="--d:1">
-      <div class="halo"></div><span class="rip"></span><span class="rip r2"></span><span class="rip r3"></span>
-      <svg class="ring" viewBox="0 0 228 228"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cff"/><stop offset=".55" stop-color="#2fb8ff"/><stop offset="1" stop-color="#22e3b0"/></linearGradient></defs>
-        <circle cx="114" cy="114" r="104" stroke="rgba(255,255,255,.06)" stroke-width="6" fill="none"/>
-        <circle id="arc" cx="114" cy="114" r="104" stroke="url(#g)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="653.5" style="transition:stroke-dashoffset 1.6s cubic-bezier(.2,.9,.25,1)"/></svg>
-      <svg class="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
-      <div class="core"><div class="v" id="coreV"><b id="days">–</b><span id="daysTx"></span></div></div>
+  <!-- ============ HOME ============ -->
+  <div class="tab" data-tab="home">
+    <section class="hero">
+      <div class="orb rv" id="ring" style="--d:1" role="button">
+        <div class="halo"></div><span class="rip"></span><span class="rip r2"></span><span class="rip r3"></span>
+        <svg class="ring" viewBox="0 0 228 228"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cff"/><stop offset=".55" stop-color="#2fb8ff"/><stop offset="1" stop-color="#22e3b0"/></linearGradient></defs>
+          <circle cx="114" cy="114" r="104" stroke="rgba(255,255,255,.06)" stroke-width="6" fill="none"/>
+          <circle id="arc" cx="114" cy="114" r="104" stroke="url(#g)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="653.5" style="transition:stroke-dashoffset 1.6s cubic-bezier(.2,.9,.25,1)"/></svg>
+        <svg class="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+        <div class="core"><div class="v" id="coreV"><b id="days">–</b><span id="daysTx"></span></div></div>
+      </div>
+      <div class="st rv" style="--d:2"><h2 id="stH" class="sk">Загрузка</h2><p id="stP" class="sk">подождите</p></div>
+      <div class="btns rv" style="--d:3">
+        <button class="btn main" id="connect" disabled>⚡ <span data-t="connect"></span></button>
+        <button class="btn ghost" id="copy" disabled title="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button>
+      </div>
+      <div class="use" id="use" hidden><div class="ut"><span id="useL"></span><b id="useV"></b></div><div class="bar2"><i id="useBar"></i></div></div>
+    </section>
+
+    <!-- what is left: days + traffic -->
+    <div class="stats rv" id="stats" style="--d:4" hidden>
+      <div class="sc"><span class="sl" data-t="leftH"></span><b id="stDays">–</b><span class="ss" id="stDaysS"></span><i class="mb"><i id="stDaysBar"></i></i></div>
+      <div class="sc"><span class="sl" data-t="trafH"></span><b id="stGb">–</b><span class="ss" id="stGbS"></span><i class="mb"><i id="stGbBar"></i></i></div>
     </div>
-    <div class="st rv" style="--d:2"><h2 id="stH" class="sk">Загрузка</h2><p id="stP" class="sk">подождите</p></div>
-    <div class="btns rv" style="--d:3">
-      <button class="btn main" id="connect" disabled>⚡ <span data-t="connect"></span></button>
-      <button class="btn ghost" id="copy" disabled title="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button>
+
+    <div class="gift rv" id="gift" hidden style="--d:4"><div class="e">🎁</div><div><b id="giftH"></b><span data-t="giftP"></span></div><button id="trial" data-t="giftB"></button></div>
+
+    <h3 class="rv" style="--d:5" data-t="srvH"></h3>
+    <div class="srv rv" style="--d:6" id="nodes"></div>
+
+    <div class="ga rv" id="ga" hidden style="--d:7"></div>
+  </div>
+
+  <!-- ============ PLANS ============ -->
+  <div class="tab" data-tab="plans" hidden>
+    <h3 data-t="plansH"></h3>
+    <div class="plans" id="plans"></div>
+    <h3 data-t="payH"></h3>
+    <div class="methods" id="methods"></div>
+    <h3 data-t="whyH"></h3>
+    <div class="feat">
+      <div class="f"><em>🥷</em><b data-t="f1"></b><span data-t="f1s"></span></div>
+      <div class="f"><em>⚡</em><b data-t="f2"></b><span data-t="f2s"></span></div>
+      <div class="f"><em>📱</em><b data-t="f3"></b><span data-t="f3s"></span></div>
+      <div class="f"><em>🔒</em><b data-t="f4"></b><span data-t="f4s"></span></div>
     </div>
-    <div class="use rv" id="use" hidden style="--d:4"><div class="ut"><span id="useL"></span><b id="useV"></b></div><div class="bar2"><i id="useBar"></i></div></div>
-  </section>
-
-  <div class="gift rv" id="gift" hidden style="--d:4"><div class="e">🎁</div><div><b id="giftH"></b><span data-t="giftP"></span></div><button id="trial" data-t="giftB"></button></div>
-
-  <h3 class="rv" style="--d:5" data-t="plansH"></h3>
-  <div class="plans rv" style="--d:6" id="plans"></div>
-
-  <h3 class="rv" style="--d:7" data-t="payH"></h3>
-  <div class="methods rv" style="--d:8" id="methods"></div>
-
-  <h3 class="rv" style="--d:9" data-t="srvH"></h3>
-  <div class="srv rv" style="--d:10" id="nodes"></div>
-
-  <h3 class="rv" style="--d:11" data-t="whyH"></h3>
-  <div class="feat rv" style="--d:12">
-    <div class="f"><em>🥷</em><b data-t="f1"></b><span data-t="f1s"></span></div>
-    <div class="f"><em>⚡</em><b data-t="f2"></b><span data-t="f2s"></span></div>
-    <div class="f"><em>📱</em><b data-t="f3"></b><span data-t="f3s"></span></div>
-    <div class="f"><em>🔒</em><b data-t="f4"></b><span data-t="f4s"></span></div>
   </div>
 
-  <h3 class="rv" style="--d:13" data-t="refH"></h3>
-  <div class="pt rv" style="--d:14">
-    <div class="ph"><span class="e">💸</span><b data-t="pH"></b><span class="badge" id="pBadge"></span></div>
-    <div class="pd" id="pDesc"></div>
-    <div class="ps"><div><b id="pL1">0</b><span data-t="pFriends"></span></div><div><b id="pEarn">$0</b><span data-t="pEarned"></span></div><div><b id="pBal">$0</b><span data-t="pBal"></span></div></div>
-    <div class="pb"><button class="inviteB" id="share" data-t="refBtn"></button><button class="outB" id="out" data-t="pOut"></button></div>
-    <small id="pNote"></small>
+  <!-- ============ FRIENDS ============ -->
+  <div class="tab" data-tab="friends" hidden>
+    <h3 data-t="refH"></h3>
+    <div class="pt">
+      <div class="ph"><span class="e">💸</span><b data-t="pH"></b><span class="badge" id="pBadge"></span></div>
+      <div class="pd" id="pDesc"></div>
+      <div class="ps"><div><b id="pL1">0</b><span data-t="pFriends"></span></div><div><b id="pEarn">$0</b><span data-t="pEarned"></span></div><div><b id="pBal">$0</b><span data-t="pBal"></span></div></div>
+      <div class="pb"><button class="inviteB" id="share" data-t="refBtn"></button><button class="outB" id="out" data-t="pOut"></button></div>
+      <small id="pNote"></small>
+    </div>
+    <h3 data-t="howH"></h3>
+    <div class="steps">
+      <div class="step"><div><b data-t="s1"></b><br><span data-t="s1s"></span></div></div>
+      <div class="step"><div><b data-t="s2"></b><br><span data-t="s2s"></span></div></div>
+      <div class="step"><div><b data-t="s3"></b><br><span data-t="s3s"></span></div></div>
+    </div>
+    <p class="foot" id="foot"></p>
   </div>
-
-  <h3 class="rv" style="--d:15" data-t="howH"></h3>
-  <div class="steps rv" style="--d:16">
-    <div class="step"><div><b data-t="s1"></b><br><span data-t="s1s"></span></div></div>
-    <div class="step"><div><b data-t="s2"></b><br><span data-t="s2s"></span></div></div>
-    <div class="step"><div><b data-t="s3"></b><br><span data-t="s3s"></span></div></div>
-  </div>
-  <p class="foot" id="foot"></p>
 </main>
+
+<nav class="tabs" id="tabs">
+  <button data-go="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/></svg><span data-t="tabHome"></span></button>
+  <button data-go="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/></svg><span data-t="tabPlans"></span></button>
+  <button data-go="friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.6c2.4.2 4.3 2 4.8 4.9"/></svg><span data-t="tabFriends"></span></button>
+</nav>
 
 <div class="bar"><button class="btn main" id="pay" disabled>…</button><small id="payNote"></small></div>
 <div class="toast" id="toast"></div>
 
 <script>
 'use strict';
-const tg = window.Telegram && Telegram.WebApp;
+const NATIVE = window.YurkNative || null; // inside the YURK Android app
+const tg = !NATIVE && window.Telegram && Telegram.WebApp;
+let vpn = 'off', node = 0;
+try { node = Number(localStorage.getItem('yurk_node')) || 0; } catch (e) {}
+const cbs = {}; let cbn = 0;
+window.__yurkCb = (id, code, json) => { const f = cbs[id]; delete cbs[id]; if (f) f(code, json); };
+window.onYurkState = (st) => { vpn = String(st || 'off'); if (S) render(); if (vpn === 'on') { haptic('ok'); } if (vpn.startsWith('error')) toast(T.vpnErr + (vpn.length > 6 ? ': ' + vpn.slice(6) : '')); };
 const initData = tg ? tg.initData : '';
+const appToken = () => (NATIVE ? NATIVE.token() : '');
 const DEMO = !initData && /demo/.test(location.search);
 if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#07080d'); tg.setBackgroundColor('#07080d'); tg.setBottomBarColor && tg.setBottomBarColor('#07080d'); } catch (e) {} }
 const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred(k || 'light'); } catch (e) {} };
 
 const L = {
   ru: {
+    allDev: "Все серверы и устройства", tapOn: "Нажмите на шар, чтобы подключиться", tapOff: "Нажмите на шар, чтобы отключить",
+    tabHome: "Главная", tabPlans: "Тариф", tabFriends: "Друзья", leftH: "Осталось", trafH: "Трафик", untilD: (d) => `до ${d}`, ofGb: (q) => `осталось из ${q} ГБ`, unlim: "без ограничений", choosePlan: "Выбрать тариф",
+    gaAndH: "Приложение YURK для Android", gaAndS: "Подключение в одно касание, без копирования ссылок", gaAndB: "Скачать приложение", gaAndN: "Файл придёт в чат с ботом — откройте его и установите", gaOther: "Подключить через другое приложение", gaSent: "Приложение отправлено в чат ⬇️", gaIosH: "YURK на iPhone и Mac", gaIosS: "Через бесплатное приложение Happ — подписка встанет сама", gaIosB1: "Установить Happ из App Store", gaIosB2: "Подключить YURK", gaIosPlus: "Happ недоступен? Установить Happ Plus", gaPcH: "YURK на компьютере", gaPcS: "Windows, Mac, Linux — через бесплатный Hiddify", gaPcB: "Скачать Hiddify", gaPcSub: "Ссылка подписки и другие приложения",
+    vpnConn: "Подключение…", vpnOff: "Отключить", srvSel: "выбран", vpnErr: "Ошибка VPN", loginH: "Войдите в YURK", loginP: "Нажмите кнопку — откроется наш бот в Telegram, там нажмите «🔑 Войти в приложение». Без паролей.", loginB: "Войти через Telegram",
     wdDone: "Деньги отправлены в @CryptoBot ✅",
     pH: 'Партнёрка', pDesc: (a, b, d) => `<em>${a}%</em> с каждой оплаты друга — навсегда, <em>${b}%</em> с оплат друзей ваших друзей и <em>+${d} дня</em> подписки за первую оплату друга.`, pFriends: 'Друзей', pEarned: 'Заработано', pBal: 'Баланс', pOut: 'Вывести', pNote: (m) => `Баланс можно тратить на подписку или моментально вывести в USDT через @CryptoBot от $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнёрские деньги · ${b}`, wdOk: 'Заявка на вывод отправлена ⏳', refBtn: 'Позвать друзей',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафик в этом месяце', gb: 'ГБ', gbMo: 'ГБ/мес', qOver: 'Лимит исчерпан — продлите',
     on: 'Защищено', off: 'Не подключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'),
-    actH: 'Подписка активна', actP: (d) => `до ${d} · все серверы и устройства`, offH: 'Нет подписки', offP: 'Выберите тариф ниже — включится сразу после оплаты',
+    actH: 'Подписка активна', actP: (d) => `до ${d} · все серверы и устройства`, offH: 'Нет подписки', offP: 'Возьмите 3 дня бесплатно или выберите тариф',
     connect: 'Подключить', copied: 'Ссылка скопирована', giftH: (n) => `${n} дня бесплатно`, giftP: 'Без оплаты, без карты', giftB: 'Взять',
     trialOk: 'Пробный период включён 🎉', plansH: 'Тариф', payH: 'Способ оплаты', mo: 'мес', perMo: (v) => `${v} / мес`,
     d30: '1 месяц', d90: '3 месяца', d365: '1 год', pop: 'Хит', best: (p) => `−${p}%`,
@@ -327,12 +397,16 @@ const L = {
     support: 'Поддержка', openTg: 'Откройте приложение в Telegram: @', locale: 'ru-RU',
   },
   en: {
+    allDev: "All servers and devices", tapOn: "Tap the orb to connect", tapOff: "Tap the orb to disconnect",
+    tabHome: "Home", tabPlans: "Plans", tabFriends: "Friends", leftH: "Left", trafH: "Traffic", untilD: (d) => `until ${d}`, ofGb: (q) => `left of ${q} GB`, unlim: "unlimited", choosePlan: "Choose a plan",
+    gaAndH: "YURK app for Android", gaAndS: "One-tap connect, no links to copy", gaAndB: "Download the app", gaAndN: "The file arrives in the bot chat — open it and install", gaOther: "Connect with another app", gaSent: "The app is in your chat ⬇️", gaIosH: "YURK on iPhone and Mac", gaIosS: "Via the free Happ app — the subscription is added automatically", gaIosB1: "Install Happ from the App Store", gaIosB2: "Connect YURK", gaIosPlus: "No Happ in your store? Install Happ Plus", gaPcH: "YURK on your computer", gaPcS: "Windows, Mac, Linux — via the free Hiddify app", gaPcB: "Download Hiddify", gaPcSub: "Subscription link and other apps",
+    vpnConn: "Connecting…", vpnOff: "Disconnect", srvSel: "selected", vpnErr: "VPN error", loginH: "Log in to YURK", loginP: "Tap the button: our Telegram bot opens, then tap \"🔑 Log in to the app\". No passwords.", loginB: "Log in with Telegram",
     wdDone: "Sent to your @CryptoBot ✅",
     pH: 'Partner program', pDesc: (a, b, d) => `<em>${a}%</em> of every payment of your friend — forever, <em>${b}%</em> of your friends' friends and <em>+${d} days</em> for a friend's first payment.`, pFriends: 'Friends', pEarned: 'Earned', pBal: 'Balance', pOut: 'Withdraw', pNote: (m) => `Spend the balance on your subscription or withdraw USDT via @CryptoBot from $${m}`, mBal: 'YURK balance', mBalS: (b) => `Partner money · ${b}`, wdOk: 'Withdrawal requested ⏳', refBtn: 'Invite friends',
     online: 'Online · Reality + WebSocket',
     traffic: 'Traffic this month', gb: 'GB', gbMo: 'GB/mo', qOver: 'Limit reached — renew',
     on: 'Protected', off: 'Not connected', daysW: (n) => n === 1 ? 'day' : 'days',
-    actH: 'Subscription active', actP: (d) => `until ${d} · all servers and devices`, offH: 'No subscription', offP: 'Pick a plan below — it turns on right after payment',
+    actH: 'Subscription active', actP: (d) => `until ${d} · all servers and devices`, offH: 'No subscription', offP: 'Get 3 free days or pick a plan',
     connect: 'Connect', copied: 'Link copied', giftH: (n) => `${n} days free`, giftP: 'No payment, no card', giftB: 'Get it',
     trialOk: 'Free trial is on 🎉', plansH: 'Plan', payH: 'Payment method', mo: 'mo', perMo: (v) => `${v} / mo`,
     d30: '1 month', d90: '3 months', d365: '1 year', pop: 'Hit', best: (p) => `−${p}%`,
@@ -347,12 +421,16 @@ const L = {
     support: 'Support', openTg: 'Open the app in Telegram: @', locale: 'en-GB',
   },
   uk: {
+    allDev: "Усі сервери та пристрої", tapOn: "Натисніть на кулю, щоб підключитися", tapOff: "Натисніть на кулю, щоб відключити",
+    tabHome: "Головна", tabPlans: "Тариф", tabFriends: "Друзі", leftH: "Залишилось", trafH: "Трафік", untilD: (d) => `до ${d}`, ofGb: (q) => `залишилось з ${q} ГБ`, unlim: "без обмежень", choosePlan: "Обрати тариф",
+    gaAndH: "Застосунок YURK для Android", gaAndS: "Підключення в один дотик, без копіювання посилань", gaAndB: "Завантажити застосунок", gaAndN: "Файл прийде в чат із ботом — відкрийте й встановіть", gaOther: "Підключити через інший застосунок", gaSent: "Застосунок надіслано в чат ⬇️", gaIosH: "YURK на iPhone і Mac", gaIosS: "Через безкоштовний Happ — підписка встановиться сама", gaIosB1: "Встановити Happ з App Store", gaIosB2: "Підключити YURK", gaIosPlus: "Happ недоступний? Встановити Happ Plus", gaPcH: "YURK на компʼютері", gaPcS: "Windows, Mac, Linux — через безкоштовний Hiddify", gaPcB: "Завантажити Hiddify", gaPcSub: "Посилання підписки та інші застосунки",
+    vpnConn: "Підключення…", vpnOff: "Відключити", srvSel: "обрано", vpnErr: "Помилка VPN", loginH: "Увійдіть у YURK", loginP: "Натисніть кнопку — відкриється наш бот у Telegram, там натисніть «🔑 Увійти в застосунок». Без паролів.", loginB: "Увійти через Telegram",
     wdDone: "Гроші надіслано в @CryptoBot ✅",
     pH: 'Партнерка', pDesc: (a, b, d) => `<em>${a}%</em> з кожної оплати друга — назавжди, <em>${b}%</em> з оплат друзів ваших друзів і <em>+${d} дні</em> підписки за першу оплату друга.`, pFriends: 'Друзів', pEarned: 'Зароблено', pBal: 'Баланс', pOut: 'Вивести', pNote: (m) => `Баланс можна витрачати на підписку або вивести в USDT через @CryptoBot від $${m}`, mBal: 'Баланс YURK', mBalS: (b) => `Партнерські гроші · ${b}`, wdOk: 'Заявку на виведення надіслано ⏳', refBtn: 'Покликати друзів',
     online: 'Онлайн · Reality + WebSocket',
     traffic: 'Трафік цього місяця', gb: 'ГБ', gbMo: 'ГБ/міс', qOver: 'Ліміт вичерпано — продовжте',
     on: 'Захищено', off: 'Не підключено', daysW: (n) => n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дні' : 'днів'),
-    actH: 'Підписка активна', actP: (d) => `до ${d} · усі сервери та пристрої`, offH: 'Немає підписки', offP: 'Оберіть тариф нижче — увімкнеться одразу після оплати',
+    actH: 'Підписка активна', actP: (d) => `до ${d} · усі сервери та пристрої`, offH: 'Немає підписки', offP: 'Візьміть 3 дні безкоштовно або оберіть тариф',
     connect: 'Підключити', copied: 'Посилання скопійовано', giftH: (n) => `${n} дні безкоштовно`, giftP: 'Без оплати, без картки', giftB: 'Взяти',
     trialOk: 'Пробний період увімкнено 🎉', plansH: 'Тариф', payH: 'Спосіб оплати', perMo: (v) => `${v} / міс`,
     d30: '1 місяць', d90: '3 місяці', d365: '1 рік', pop: 'Хіт', best: (p) => `−${p}%`,
@@ -367,12 +445,16 @@ const L = {
     support: 'Підтримка', locale: 'uk-UA',
   },
   fa: {
+    allDev: "همه سرورها و دستگاه‌ها", tapOn: "برای اتصال روی دایره بزنید", tapOff: "برای قطع روی دایره بزنید",
+    tabHome: "خانه", tabPlans: "طرح", tabFriends: "دوستان", leftH: "باقی‌مانده", trafH: "ترافیک", untilD: (d) => `تا ${d}`, ofGb: (q) => `باقی از ${q} گیگ`, unlim: "نامحدود", choosePlan: "انتخاب طرح",
+    gaAndH: "اپ YURK برای اندروید", gaAndS: "اتصال با یک لمس، بدون کپی لینک", gaAndB: "دانلود اپ", gaAndN: "فایل در چت ربات می‌آید — بازش کنید و نصب کنید", gaOther: "اتصال با اپ دیگر", gaSent: "اپ در چت ارسال شد ⬇️", gaIosH: "YURK روی آیفون و مک", gaIosS: "با اپ رایگان Happ — اشتراک خودکار اضافه می‌شود", gaIosB1: "نصب Happ از App Store", gaIosB2: "اتصال YURK", gaIosPlus: "Happ در دسترس نیست؟ Happ Plus", gaPcH: "YURK روی کامپیوتر", gaPcS: "ویندوز، مک، لینوکس — با Hiddify رایگان", gaPcB: "دانلود Hiddify", gaPcSub: "لینک اشتراک و اپ‌های دیگر",
+    vpnConn: "در حال اتصال…", vpnOff: "قطع اتصال", srvSel: "انتخاب‌شده", vpnErr: "خطای VPN", loginH: "ورود به YURK", loginP: "دکمه را بزنید: ربات ما در تلگرام باز می‌شود، سپس «🔑 ورود به اپ» را بزنید. بدون رمز.", loginB: "ورود با تلگرام",
     wdDone: "به @CryptoBot ارسال شد ✅",
     pH: 'برنامه همکاری', pDesc: (a, b, d) => `<em>${a}٪</em> از هر پرداخت دوست — برای همیشه، <em>${b}٪</em> از دوستانِ دوستان و <em>${d}+ روز</em> برای اولین پرداخت دوست.`, pFriends: 'دوستان', pEarned: 'درآمد', pBal: 'موجودی', pOut: 'برداشت', pNote: (m) => `موجودی را برای اشتراک خرج کنید یا از $${m} به USDT در @CryptoBot برداشت کنید`, mBal: 'موجودی YURK', mBalS: (b) => `پول همکاری · ${b}`, wdOk: 'درخواست برداشت ثبت شد ⏳', refBtn: 'دعوت دوستان',
     online: 'آنلاین · Reality + WebSocket',
     traffic: 'ترافیک این ماه', gb: 'گیگ', gbMo: 'گیگ/ماه', qOver: 'حجم تمام شد — تمدید کنید',
     on: 'محافظت‌شده', off: 'متصل نیست', daysW: () => 'روز',
-    actH: 'اشتراک فعال است', actP: (d) => `تا ${d} · همه سرورها و دستگاه‌ها`, offH: 'اشتراکی ندارید', offP: 'یک طرح را از پایین انتخاب کنید — بلافاصله پس از پرداخت فعال می‌شود',
+    actH: 'اشتراک فعال است', actP: (d) => `تا ${d} · همه سرورها و دستگاه‌ها`, offH: 'اشتراکی ندارید', offP: '۳ روز رایگان بگیرید یا یک طرح انتخاب کنید',
     connect: 'اتصال', copied: 'لینک کپی شد', giftH: (n) => `${n} روز رایگان`, giftP: 'بدون پرداخت، بدون کارت', giftB: 'دریافت',
     trialOk: 'دوره آزمایشی فعال شد 🎉', plansH: 'طرح', payH: 'روش پرداخت', perMo: (v) => `${v} / ماه`,
     d30: '۱ ماه', d90: '۳ ماه', d365: '۱ سال', pop: 'محبوب', best: (p) => `٪${p}−`,
@@ -387,12 +469,16 @@ const L = {
     support: 'پشتیبانی', locale: 'fa-IR', rtl: true,
   },
   tr: {
+    allDev: "Tüm sunucular ve cihazlar", tapOn: "Bağlanmak için küreye dokunun", tapOff: "Kesmek için küreye dokunun",
+    tabHome: "Ana", tabPlans: "Paket", tabFriends: "Arkadaşlar", leftH: "Kalan", trafH: "Trafik", untilD: (d) => `${d} tarihine kadar`, ofGb: (q) => `${q} GB’tan kalan`, unlim: "sınırsız", choosePlan: "Paket seç",
+    gaAndH: "Android için YURK uygulaması", gaAndS: "Tek dokunuşla bağlantı, link kopyalamak yok", gaAndB: "Uygulamayı indir", gaAndN: "Dosya bot sohbetine gelir — açıp yükleyin", gaOther: "Başka bir uygulamayla bağlan", gaSent: "Uygulama sohbete gönderildi ⬇️", gaIosH: "iPhone ve Mac’te YURK", gaIosS: "Ücretsiz Happ ile — abonelik otomatik eklenir", gaIosB1: "App Store’dan Happ’i yükle", gaIosB2: "YURK’u bağla", gaIosPlus: "Happ yok mu? Happ Plus’ı yükle", gaPcH: "Bilgisayarda YURK", gaPcS: "Windows, Mac, Linux — ücretsiz Hiddify ile", gaPcB: "Hiddify’ı indir", gaPcSub: "Abonelik linki ve diğer uygulamalar",
+    vpnConn: "Bağlanıyor…", vpnOff: "Bağlantıyı kes", srvSel: "seçili", vpnErr: "VPN hatası", loginH: "YURK'a giriş", loginP: "Düğmeye dokunun: Telegram botumuz açılır, ardından \"🔑 Uygulamaya giriş\"e dokunun. Şifre yok.", loginB: "Telegram ile giriş",
     wdDone: "@CryptoBot'a gönderildi ✅",
     pH: 'Ortaklık', pDesc: (a, b, d) => `Arkadaşının her ödemesinin <em>%${a}</em>'i — süresiz, arkadaşlarının arkadaşlarından <em>%${b}</em> ve ilk ödemede <em>+${d} gün</em>.`, pFriends: 'Arkadaş', pEarned: 'Kazanç', pBal: 'Bakiye', pOut: 'Çek', pNote: (m) => `Bakiyeyi abonelikte kullanın veya $${m}'dan itibaren @CryptoBot ile USDT çekin`, mBal: 'YURK bakiyesi', mBalS: (b) => `Ortaklık parası · ${b}`, wdOk: 'Çekim talebi gönderildi ⏳', refBtn: 'Arkadaş davet et',
     online: 'Çevrimiçi · Reality + WebSocket',
     traffic: 'Bu ayki trafik', gb: 'GB', gbMo: 'GB/ay', qOver: 'Limit doldu — yenileyin',
     on: 'Korunuyor', off: 'Bağlı değil', daysW: () => 'gün',
-    actH: 'Abonelik aktif', actP: (d) => `${d} tarihine kadar · tüm sunucular ve cihazlar`, offH: 'Abonelik yok', offP: 'Aşağıdan bir paket seçin — ödemeden hemen sonra açılır',
+    actH: 'Abonelik aktif', actP: (d) => `${d} tarihine kadar · tüm sunucular ve cihazlar`, offH: 'Abonelik yok', offP: '3 gün ücretsiz alın veya bir paket seçin',
     connect: 'Bağlan', copied: 'Bağlantı kopyalandı', giftH: (n) => `${n} gün ücretsiz`, giftP: 'Ödeme yok, kart yok', giftB: 'Al',
     trialOk: 'Deneme süresi açıldı 🎉', plansH: 'Paket', payH: 'Ödeme yöntemi', perMo: (v) => `${v} / ay`,
     d30: '1 ay', d90: '3 ay', d365: '1 yıl', pop: 'Popüler', best: (p) => `−%${p}`,
@@ -407,12 +493,16 @@ const L = {
     support: 'Destek', locale: 'tr-TR',
   },
   zh: {
+    allDev: "所有服务器和设备", tapOn: "点击圆球连接", tapOff: "点击圆球断开",
+    tabHome: "首页", tabPlans: "套餐", tabFriends: "好友", leftH: "剩余", trafH: "流量", untilD: (d) => `至 ${d}`, ofGb: (q) => `共 ${q} GB，剩余`, unlim: "不限", choosePlan: "选择套餐",
+    gaAndH: "YURK 安卓应用", gaAndS: "一键连接，无需复制链接", gaAndB: "下载应用", gaAndN: "文件将发送到机器人聊天中——打开并安装", gaOther: "使用其他应用连接", gaSent: "应用已发送到聊天 ⬇️", gaIosH: "iPhone 和 Mac 上的 YURK", gaIosS: "通过免费的 Happ——订阅自动添加", gaIosB1: "从 App Store 安装 Happ", gaIosB2: "连接 YURK", gaIosPlus: "找不到 Happ？安装 Happ Plus", gaPcH: "电脑上的 YURK", gaPcS: "Windows、Mac、Linux——使用免费的 Hiddify", gaPcB: "下载 Hiddify", gaPcSub: "订阅链接和其他应用",
+    vpnConn: "连接中…", vpnOff: "断开", srvSel: "已选", vpnErr: "VPN 错误", loginH: "登录 YURK", loginP: "点击按钮：将打开我们的 Telegram 机器人，然后点击“🔑 登录应用”。无需密码。", loginB: "通过 Telegram 登录",
     wdDone: "已转入 @CryptoBot ✅",
     pH: '推广计划', pDesc: (a, b, d) => `好友每次付款得 <em>${a}%</em>（永久），二级好友付款得 <em>${b}%</em>，好友首次付款再送 <em>+${d} 天</em>。`, pFriends: '好友', pEarned: '已赚', pBal: '余额', pOut: '提现', pNote: (m) => `余额可用于支付订阅，满 $${m} 可通过 @CryptoBot 提现 USDT`, mBal: 'YURK 余额', mBalS: (b) => `推广收入 · ${b}`, wdOk: '提现申请已提交 ⏳', refBtn: '邀请好友',
     online: '在线 · Reality + WebSocket',
     traffic: '本月流量', gb: 'GB', gbMo: 'GB/月', qOver: '流量已用完 — 请续费',
     on: '已保护', off: '未连接', daysW: () => '天',
-    actH: '订阅有效', actP: (d) => `至 ${d} · 所有服务器和设备`, offH: '暂无订阅', offP: '在下方选择套餐 — 付款后立即生效',
+    actH: '订阅有效', actP: (d) => `至 ${d} · 所有服务器和设备`, offH: '暂无订阅', offP: '免费领取 3 天或选择套餐',
     connect: '连接', copied: '链接已复制', giftH: (n) => `免费 ${n} 天`, giftP: '无需付款，无需银行卡', giftB: '领取',
     trialOk: '试用已开启 🎉', plansH: '套餐', payH: '支付方式', perMo: (v) => `${v} / 月`,
     d30: '1 个月', d90: '3 个月', d365: '1 年', pop: '热门', best: (p) => `−${p}%`,
@@ -427,12 +517,16 @@ const L = {
     support: '客服', locale: 'zh-CN',
   },
   es: {
+    allDev: "Todos los servidores y dispositivos", tapOn: "Toca la esfera para conectar", tapOff: "Toca la esfera para desconectar",
+    tabHome: "Inicio", tabPlans: "Planes", tabFriends: "Amigos", leftH: "Quedan", trafH: "Tráfico", untilD: (d) => `hasta el ${d}`, ofGb: (q) => `quedan de ${q} GB`, unlim: "sin límites", choosePlan: "Elegir plan",
+    gaAndH: "App YURK para Android", gaAndS: "Conexión con un toque, sin copiar enlaces", gaAndB: "Descargar la app", gaAndN: "El archivo llega al chat del bot: ábrelo e instálalo", gaOther: "Conectar con otra app", gaSent: "La app está en tu chat ⬇️", gaIosH: "YURK en iPhone y Mac", gaIosS: "Con la app gratuita Happ: la suscripción se añade sola", gaIosB1: "Instalar Happ desde App Store", gaIosB2: "Conectar YURK", gaIosPlus: "¿No hay Happ? Instalar Happ Plus", gaPcH: "YURK en tu ordenador", gaPcS: "Windows, Mac, Linux — con Hiddify gratis", gaPcB: "Descargar Hiddify", gaPcSub: "Enlace de suscripción y otras apps",
+    vpnConn: "Conectando…", vpnOff: "Desconectar", srvSel: "elegido", vpnErr: "Error de VPN", loginH: "Entra en YURK", loginP: "Toca el botón: se abrirá nuestro bot de Telegram, luego toca \"🔑 Entrar en la app\". Sin contraseñas.", loginB: "Entrar con Telegram",
     wdDone: "Enviado a tu @CryptoBot ✅",
     pH: 'Programa de socios', pDesc: (a, b, d) => `<em>${a}%</em> de cada pago de tu amigo — para siempre, <em>${b}%</em> de los amigos de tus amigos y <em>+${d} días</em> por el primer pago.`, pFriends: 'Amigos', pEarned: 'Ganado', pBal: 'Saldo', pOut: 'Retirar', pNote: (m) => `Usa el saldo para tu suscripción o retíralo en USDT vía @CryptoBot desde $${m}`, mBal: 'Saldo YURK', mBalS: (b) => `Dinero de socios · ${b}`, wdOk: 'Retiro solicitado ⏳', refBtn: 'Invitar amigos',
     online: 'En línea · Reality + WebSocket',
     traffic: 'Tráfico este mes', gb: 'GB', gbMo: 'GB/mes', qOver: 'Límite agotado — renueva',
     on: 'Protegido', off: 'No conectado', daysW: (n) => n === 1 ? 'día' : 'días',
-    actH: 'Suscripción activa', actP: (d) => `hasta el ${d} · todos los servidores y dispositivos`, offH: 'Sin suscripción', offP: 'Elige un plan abajo — se activa justo después del pago',
+    actH: 'Suscripción activa', actP: (d) => `hasta el ${d} · todos los servidores y dispositivos`, offH: 'Sin suscripción', offP: 'Consigue 3 días gratis o elige un plan',
     connect: 'Conectar', copied: 'Enlace copiado', giftH: (n) => `${n} días gratis`, giftP: 'Sin pago, sin tarjeta', giftB: 'Obtener',
     trialOk: 'Prueba gratis activada 🎉', plansH: 'Plan', payH: 'Método de pago', perMo: (v) => `${v} / mes`,
     d30: '1 mes', d90: '3 meses', d365: '1 año', pop: 'Top', best: (p) => `−${p}%`,
@@ -449,6 +543,9 @@ const L = {
 };
 const RU = ['be', 'kk', 'ky', 'uz', 'tg', 'tk', 'az', 'hy', 'ka'];
 let T = L.ru, S = null, plan = 'm3', method = 'stars';
+// android | ios | desktop — where the Mini App runs
+const PLATFORM = (() => { const p = (tg && tg.platform) || ''; if (p === 'android' || /android/i.test(navigator.userAgent)) return 'android'; if (p === 'ios' || p === 'macos' || /iphone|ipad|mac os/i.test(navigator.userAgent)) return 'ios'; return 'desktop'; })();
+const goUrl = (app) => `${location.origin}/go/${app}/${S.token}${node ? '?node=' + node : ''}`;
 const $ = (id) => document.getElementById(id);
 const toast = (m) => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2400); };
 const fmt = (ms) => new Date(ms).toLocaleDateString(T.locale || 'en-GB', { day: 'numeric', month: 'long' });
@@ -456,6 +553,11 @@ const usd = (v) => '$' + (Math.round(v * 100) / 100).toString();
 
 async function api(action, body) {
   if (DEMO) return demo(action);
+  if (NATIVE) return new Promise((res, rej) => {
+    const id = ++cbn;
+    cbs[id] = (code, json) => { let j = {}; try { j = JSON.parse(json || '{}'); } catch (e) {} if (code >= 200 && code < 300) res(j); else rej(Object.assign(new Error(j.error || code), { data: j, code })); };
+    NATIVE.api(id, action, JSON.stringify(body || {}));
+  });
   const r = await fetch('api/' + action, { method: 'POST', headers: { 'content-type': 'application/json', 'x-init-data': initData }, body: JSON.stringify(body || {}) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.error || r.status), { data: j });
@@ -476,11 +578,12 @@ function render() {
   document.documentElement.dir = T.rtl ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach((e) => { const v = T[e.dataset.t]; if (typeof v === 'string') e.textContent = v; });
 
-  $('pill').classList.toggle('on', S.active);
-  $('pillTx').textContent = S.active ? T.on : T.off;
+  const live = NATIVE ? vpn === 'on' : S.active;
+  $('pill').classList.toggle('on', live);
+  $('pillTx').textContent = NATIVE ? (vpn === 'on' ? T.on : vpn === 'connecting' ? T.vpnConn : T.off) : (S.active ? T.on : T.off);
   $('stH').className = $('stP').className = '';
   $('stH').textContent = S.active ? T.actH : T.offH;
-  $('stP').textContent = S.active ? T.actP(fmt(S.expires)) : T.offP;
+  $('stP').textContent = S.active ? (NATIVE ? (vpn === 'on' ? T.tapOff : T.tapOn) : T.allDev) : T.offP;
   document.body.classList.toggle('on', !!S.active);
   $('ring').classList.toggle('on', !!S.active);
   const forever = S.daysLeft > 1000;
@@ -491,10 +594,19 @@ function render() {
   const total = Math.max(30, S.daysLeft);
   requestAnimationFrame(() => { $('arc').style.strokeDashoffset = S.active ? 653.5 * (1 - Math.min(1, forever ? 1 : S.daysLeft / total)) : 653.5; });
   $('connect').disabled = $('copy').disabled = !S.sub;
-  document.querySelector('.btns').hidden = !S.sub;
+  document.querySelector('.btns').hidden = !S.sub && !S.trial;
+  if (!S.sub) { $('connect').disabled = false; $('connect').innerHTML = '💳 ' + T.choosePlan; $('connect').onclick = () => showTab('plans'); $('copy').hidden = true; }
+  if (NATIVE) {
+    $('copy').hidden = true;
+    document.querySelectorAll('.steps, h3[data-t="howH"]').forEach((el) => { el.hidden = true; });
+    document.querySelector('.btns').style.gridTemplateColumns = '1fr';
+    $('connect').innerHTML = vpn === 'on' ? '⏻ ' + T.vpnOff : vpn === 'connecting' ? '⏳ ' + T.vpnConn : '⚡ ' + T.connect;
+    $('ring').classList.toggle('on', S.active && vpn === 'on');
+    document.body.classList.toggle('on', S.active && vpn === 'on');
+  }
 
   const U = S.usage || {};
-  $('use').hidden = !(S.active || U.over) || !U.quota;
+  $('use').hidden = true;
   if (U.quota) {
     const sh = Math.min(1, U.used / U.quota);
     $('use').className = 'use' + (U.over ? ' over' : sh >= 0.8 ? ' warn' : '');
@@ -502,6 +614,8 @@ function render() {
     $('useV').textContent = `${U.used} / ${U.quota} ${T.gb}`;
     requestAnimationFrame(() => { $('useBar').style.width = (sh * 100).toFixed(1) + '%'; });
   }
+  renderGetApp();
+  renderStats();
   $('gift').hidden = !S.trial;
   $('giftH').textContent = T.giftH(S.trialDays);
 
@@ -527,10 +641,13 @@ function render() {
     <span class="ic ${m.ic}">${m.e}</span><span class="tx"><b>${m.h}</b><span>${m.s}</span></span>
     <span class="am">${m.on ? price(P, m.id) : (m.id === 'balance' ? price(P, 'balance') : T.soon)}</span>${m.on ? '<span class="rd"></span>' : ''}</button>`).join('');
 
-  $('nodes').innerHTML = S.nodes.length ? S.nodes.map((n) => {
-    const m = /^(\S+)\s+(.*)$/.exec(n) || [n, '🌐', n];
-    const esc = (x) => x.replace(/</g, '&lt;');
-    return `<div class="sv"><span class="fl">${esc(m[1])}</span><span class="nm">${esc(m[2])}<small>${T.online}</small></span><span class="sig"><i></i><i></i><i></i><i></i></span></div>`;
+  const NL = S.nodeList || S.nodes.map((n, i) => ({ id: i, name: n }));
+  if (NATIVE && !NL.some((x) => x.id === node) && NL[0]) node = NL[0].id;
+  $('nodes').innerHTML = NL.length ? NL.map((x) => {
+    const m = /^(\S+)\s+(.*)$/.exec(x.name) || [x.name, '🌐', x.name];
+    const esc = (v) => v.replace(/</g, '&lt;');
+    const sel = NATIVE && x.id === node;
+    return `<div class="sv${sel ? ' sel' : ''}" ${NATIVE ? `data-node="${x.id}"` : ''}><span class="fl">${esc(m[1])}</span><span class="nm">${esc(m[2])}<small>${sel ? T.srvSel : T.online}</small></span><span class="sig"><i></i><i></i><i></i><i></i></span></div>`;
   }).join('') : `<div class="sv"><span class="nm">${T.none}</span></div>`;
   const PT = S.partner || { p1: 20, p2: 5, days: 3, l1: 0, l2: 0, earned: '0.00', bal: '0.00', balCents: 0, min: 5 };
   $('pBadge').textContent = `${PT.p1}% + ${PT.p2}%`;
@@ -548,20 +665,51 @@ function render() {
   $('payNote').textContent = T.payNote;
 }
 
+let tab = 'home';
+try { tab = localStorage.getItem('yurk_tab') || 'home'; } catch (e) {}
+function showTab(t) {
+  tab = ['home', 'plans', 'friends'].includes(t) ? t : 'home';
+  document.querySelectorAll('.tab').forEach((el) => { el.hidden = el.dataset.tab !== tab; });
+  document.querySelectorAll('.tabs [data-go]').forEach((b) => b.classList.toggle('on', b.dataset.go === tab));
+  document.body.classList.toggle('t-plans', tab === 'plans');
+  try { localStorage.setItem('yurk_tab', tab); } catch (e) {}
+  scrollTo(0, 0);
+}
+document.addEventListener('click', (e) => {
+  const g = e.target.closest('[data-go]');
+  if (g) { haptic(); showTab(g.dataset.go); }
+  if (e.target.closest('#ring') && S && S.sub && !document.body.classList.contains('login')) $('connect').click();
+});
 document.addEventListener('click', async (e) => {
   const p = e.target.closest('[data-p]'), m = e.target.closest('[data-m]');
   if (p) { plan = p.dataset.p; haptic(); render(); }
+  const nd = e.target.closest('[data-node]');
+  if (nd && NATIVE) {
+    const id = Number(nd.dataset.node);
+    if (id !== node) { node = id; try { localStorage.setItem('yurk_node', id); } catch (er) {} haptic(); if (vpn === 'on') NATIVE.connect(node, 'ws'); render(); }
+  }
+  if (e.target.closest('#login')) open('https://t.me/' + ((S && S.bot) || 'yurkvpn_bot') + '?start=app');
   if (m && !m.disabled) { method = m.dataset.m; haptic(); render(); }
   if (e.target.closest('#sup')) { e.preventDefault(); const s = S.support; open(s.startsWith('http') ? s : 'https://t.me/' + s.replace('@', '')); }
 });
 
 function open(url) {
+  if (NATIVE) return NATIVE.open(url);
   if (tg && /^https:\/\/t\.me\//.test(url)) return tg.openTelegramLink(url);
   if (tg) return tg.openLink(url);
   window.open(url, '_blank');
 }
 
-$('connect').onclick = () => { haptic('medium'); open(S.sub); };
+$('connect').onclick = () => {
+  haptic('medium');
+  if (!NATIVE) {
+    if (PLATFORM === 'android' && S.token) return open(goUrl('yurk'));   // our app turns the VPN on (or the bot sends it)
+    if (PLATFORM === 'ios' && S.token) return open(goUrl('happ'));       // Happ imports the YURK subscription
+    return open(S.sub);
+  }
+  if (vpn === 'on' || vpn === 'connecting') NATIVE.disconnect();
+  else { const n = (S.nodeList || []).find((x) => x.id === node) || (S.nodeList || [])[0]; NATIVE.connect(n ? n.id : 0, 'ws'); vpn = 'connecting'; render(); }
+};
 $('copy').onclick = async () => {
   try { await navigator.clipboard.writeText(S.sub); } catch (e) { const t = document.createElement('textarea'); t.value = S.sub; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
   haptic('ok'); toast(T.copied);
@@ -588,7 +736,7 @@ function waitPaid(before) {
     n++;
     try {
       const s = await api('me', { check: method === 'crypto' });
-      if (s.expires > before) { clearInterval(watch); S = s; render(); haptic('ok'); toast(T.paid); confetti(); }
+      if (s.expires > before) { clearInterval(watch); S = s; render(); showTab('home'); haptic('ok'); toast(T.paid); confetti(); }
     } catch (e) {}
     if (n > 40) clearInterval(watch);
   }, 4000);
@@ -600,7 +748,7 @@ $('pay').onclick = async () => {
   const before = S.expires;
   try {
     const r = await api('pay', { plan, method });
-    if (r.kind === 'done') { S = await api('me'); render(); haptic('ok'); toast(T.paid); confetti(); }
+    if (r.kind === 'done') { S = await api('me'); render(); showTab('home'); haptic('ok'); toast(T.paid); confetti(); }
     else if (r.kind === 'invoice' && tg && tg.openInvoice) {
       tg.openInvoice(r.link, (status) => { if (status === 'paid') waitPaid(before); else if (status === 'failed') toast(T.fail); });
     } else {
@@ -612,6 +760,52 @@ $('pay').onclick = async () => {
 };
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S && method === 'crypto') api('me', { check: true }).then((s) => { if (s.expires !== S.expires) { S = s; render(); } }).catch(() => {}); });
+
+function renderStats() {
+  const st = $('stats');
+  st.hidden = !S.active && !(S.usage && S.usage.over);
+  if (st.hidden) return;
+  const forever = S.daysLeft > 1000;
+  $('stDays').innerHTML = forever ? '∞' : `${S.daysLeft}<small>${T.daysW(S.daysLeft)}</small>`;
+  $('stDaysS').textContent = forever ? T.unlim : T.untilD(fmt(S.expires));
+  const dd = forever ? 1 : Math.min(1, S.daysLeft / Math.max(30, S.daysLeft));
+  st.children[0].classList.toggle('warn', !forever && S.daysLeft <= 3);
+  const U = S.usage || {};
+  if (!U.quota) { $('stGb').textContent = '∞'; $('stGbS').textContent = T.unlim; }
+  else {
+    const left = Math.max(0, Math.round((U.quota - U.used) * 10) / 10);
+    $('stGb').innerHTML = `${left}<small>${T.gb}</small>`;
+    $('stGbS').textContent = T.ofGb(U.quota);
+  }
+  const gl = U.quota ? Math.max(0, 1 - U.used / U.quota) : 1;
+  st.children[1].classList.toggle('warn', !!U.quota && gl <= .2);
+  requestAnimationFrame(() => { $('stDaysBar').style.width = (dd * 100).toFixed(1) + '%'; $('stGbBar').style.width = (gl * 100).toFixed(1) + '%'; });
+}
+
+function renderGetApp() {
+  const ga = $('ga');
+  if (NATIVE || !S || !S.token) { ga.hidden = true; return; }
+  ga.hidden = false;
+  if (PLATFORM === 'android') {
+    ga.innerHTML = `<div class="gh"><span class="e">🤖</span><div><b>${T.gaAndH}</b><span>${T.gaAndS}</span></div></div>
+      <div class="gb">${S.apk ? `<button id="gaApk">📲 ${T.gaAndB}</button>` : ''}<button class="alt" id="gaHapp">${T.gaOther}</button></div>${S.apk ? `<small>${T.gaAndN}</small>` : ''}`;
+  } else if (PLATFORM === 'ios') {
+    ga.innerHTML = `<div class="gh"><span class="e">📱</span><div><b>${T.gaIosH}</b><span>${T.gaIosS}</span></div></div>
+      <div class="gb"><button id="gaStore">1. ${T.gaIosB1}</button><button class="alt" id="gaConn">2. ⚡ ${T.gaIosB2}</button><button class="alt" id="gaPlus">${T.gaIosPlus}</button></div>`;
+  } else {
+    ga.innerHTML = `<div class="gh"><span class="e">💻</span><div><b>${T.gaPcH}</b><span>${T.gaPcS}</span></div></div>
+      <div class="gb"><button id="gaPc">${T.gaPcB}</button><button class="alt" id="gaSub">${T.gaPcSub}</button></div>`;
+  }
+}
+document.addEventListener('click', async (e) => {
+  const id = e.target.closest('button') && e.target.closest('button').id;
+  if (id === 'gaApk') { haptic('medium'); try { await api('apk'); toast(T.gaSent); setTimeout(() => tg && tg.close && tg.close(), 1400); } catch (er) { toast(T.fail); } }
+  if (id === 'gaHapp' || id === 'gaSub') open(S.sub);
+  if (id === 'gaStore') open('https://apps.apple.com/app/id6504287215');
+  if (id === 'gaPlus') open('https://apps.apple.com/app/id6746188973');
+  if (id === 'gaConn') open(goUrl('happ'));
+  if (id === 'gaPc') open('https://github.com/hiddify/hiddify-app/releases/latest');
+});
 
 function countUp(el, to) {
   const t0 = performance.now(), d = 1100;
@@ -667,14 +861,26 @@ function demo(action) {
 }
 
 (async () => {
-  if (!initData && !DEMO) {
+  if (NATIVE && !appToken()) {
+    $('stH').className = $('stP').className = '';
+    const lang = (navigator.language || 'ru').slice(0, 2);
+    T = L[lang] || (RU.includes(lang) ? L.ru : L.en);
+    document.body.classList.add('login');
+    $('coreV').innerHTML = '<svg class="pw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>';
+    $('stH').textContent = T.loginH;
+    $('stP').innerHTML = T.loginP + `<br><br><button class="btn main" id="login" style="width:100%">✈️ ${T.loginB}</button>`;
+    document.body.classList.add('ready');
+    return;
+  }
+  if (!initData && !DEMO && !NATIVE) {
     $('stH').className = $('stP').className = '';
     $('stH').textContent = 'YURK VPN';
     $('stP').innerHTML = 'Откройте приложение в Telegram';
     document.body.classList.add('ready');
     return;
   }
-  try { S = await api('me', { check: true }); render(); requestAnimationFrame(() => document.body.classList.add('ready')); } catch (e) { $('stH').className = $('stP').className = ''; $('stH').textContent = 'Ошибка'; $('stP').textContent = 'Закройте и откройте приложение ещё раз'; }
+  showTab(tab);
+  try { S = await api('me', { check: true }); if (NATIVE) { NATIVE.saveMe(JSON.stringify({ token: S.token, bot: S.bot })); vpn = NATIVE.state(); } render(); requestAnimationFrame(() => document.body.classList.add('ready')); } catch (e) { $('stH').className = $('stP').className = ''; $('stH').textContent = 'Ошибка'; $('stP').textContent = 'Закройте и откройте приложение ещё раз'; }
 })();
 </script>
 </body>

@@ -7,15 +7,17 @@
 
 const R = {
   ru: {
-    ref: (o) => `👥 <b>Партнёрка YURK</b>\n\n💸 <b>${o.p1}%</b> с каждой оплаты приглашённого друга — навсегда\n🔗 <b>${o.p2}%</b> с оплат друзей ваших друзей\n🎁 <b>+${o.days} дня</b> подписки за первую оплату друга\n\nДрузей: <b>${o.l1}</b> · их друзей: <b>${o.l2}</b>\nЗаработано: <b>$${o.earned}</b> · баланс: <b>$${o.bal}</b>\n\nБаланс можно потратить на подписку или вывести в USDT от $${o.min} (в приложении 🚀).\n\nВаша ссылка:\n${o.link}`,
-    earn: (a, lvl) => `💸 +$${a} на баланс — ${lvl === 1 ? 'ваш друг' : 'друг вашего друга'} оплатил подписку!`,
+    ref: (o) => `<b>Зовите друзей — зарабатывайте</b>\n\n${o.p1}% с каждой оплаты друга, пока он платит. ${o.p2}% — с оплат его друзей. И +${o.days} дня вам, когда друг впервые оплатит.\n\nДрузей: <b>${o.l1}</b>, их друзей: <b>${o.l2}</b>\nЗаработано $${o.earned}, на балансе <b>$${o.bal}</b>\n\nБаланс можно потратить на подписку или вывести в USDT от $${o.min} — в приложении YURK.\n\nВаша ссылка:\n${o.link}`,
+    refOld: (o) => `👥 <b>Партнёрка YURK</b>\n\n💸 <b>${o.p1}%</b> с каждой оплаты приглашённого друга — навсегда\n🔗 <b>${o.p2}%</b> с оплат друзей ваших друзей\n🎁 <b>+${o.days} дня</b> подписки за первую оплату друга\n\nДрузей: <b>${o.l1}</b> · их друзей: <b>${o.l2}</b>\nЗаработано: <b>$${o.earned}</b> · баланс: <b>$${o.bal}</b>\n\nБаланс можно потратить на подписку или вывести в USDT от $${o.min} (в приложении 🚀).\n\nВаша ссылка:\n${o.link}`,
+    earn: (a, lvl) => `+$${a} на баланс: ${lvl === 1 ? 'ваш друг' : 'друг вашего друга'} оплатил подписку.`,
     days: (n) => `🎁 Ваш друг впервые оплатил подписку — вам +${n} дня!`,
     wdReq: (a) => `⏳ Заявка на вывод $${a} в USDT принята. Деньги придут в @CryptoBot после проверки.`,
     wdPaid: (a) => `✅ $${a} USDT отправлены вам в @CryptoBot.`,
     wdNo: (a) => `↩️ Вывод $${a} отклонён, деньги вернулись на баланс. Напишите в поддержку, если есть вопросы.`,
   },
   uk: {
-    ref: (o) => `👥 <b>Партнерка YURK</b>\n\n💸 <b>${o.p1}%</b> з кожної оплати запрошеного друга — назавжди\n🔗 <b>${o.p2}%</b> з оплат друзів ваших друзів\n🎁 <b>+${o.days} дні</b> підписки за першу оплату друга\n\nДрузів: <b>${o.l1}</b> · їхніх друзів: <b>${o.l2}</b>\nЗароблено: <b>$${o.earned}</b> · баланс: <b>$${o.bal}</b>\n\nБаланс можна витратити на підписку або вивести в USDT від $${o.min} (у застосунку 🚀).\n\nВаше посилання:\n${o.link}`,
+    ref: (o) => `<b>Кличте друзів — заробляйте</b>\n\n${o.p1}% з кожної оплати друга, поки він платить. ${o.p2}% — з оплат його друзів. І +${o.days} дні вам, коли друг уперше оплатить.\n\nДрузів: <b>${o.l1}</b>, їхніх друзів: <b>${o.l2}</b>\nЗароблено $${o.earned}, на балансі <b>$${o.bal}</b>\n\nБаланс можна витратити на підписку або вивести в USDT від $${o.min} — у застосунку YURK.\n\nВаше посилання:\n${o.link}`,
+    refOld: (o) => `👥 <b>Партнерка YURK</b>\n\n💸 <b>${o.p1}%</b> з кожної оплати запрошеного друга — назавжди\n🔗 <b>${o.p2}%</b> з оплат друзів ваших друзів\n🎁 <b>+${o.days} дні</b> підписки за першу оплату друга\n\nДрузів: <b>${o.l1}</b> · їхніх друзів: <b>${o.l2}</b>\nЗароблено: <b>$${o.earned}</b> · баланс: <b>$${o.bal}</b>\n\nБаланс можна витратити на підписку або вивести в USDT від $${o.min} (у застосунку 🚀).\n\nВаше посилання:\n${o.link}`,
     earn: (a, lvl) => `💸 +$${a} на баланс — ${lvl === 1 ? 'ваш друг' : 'друг вашого друга'} оплатив підписку!`,
     days: (n) => `🎁 Ваш друг уперше оплатив підписку — вам +${n} дні!`,
     wdReq: (a) => `⏳ Заявку на виведення $${a} у USDT прийнято. Гроші прийдуть у @CryptoBot після перевірки.`,
@@ -23,7 +25,8 @@ const R = {
     wdNo: (a) => `↩️ Виведення $${a} відхилено, гроші повернулися на баланс.`,
   },
   en: {
-    ref: (o) => `👥 <b>YURK partner program</b>\n\n💸 <b>${o.p1}%</b> of every payment of a friend you invited — forever\n🔗 <b>${o.p2}%</b> of payments of your friends' friends\n🎁 <b>+${o.days} days</b> of subscription for a friend's first payment\n\nFriends: <b>${o.l1}</b> · their friends: <b>${o.l2}</b>\nEarned: <b>$${o.earned}</b> · balance: <b>$${o.bal}</b>\n\nSpend the balance on your subscription or withdraw USDT from $${o.min} (in the app 🚀).\n\nYour link:\n${o.link}`,
+    ref: (o) => `<b>Invite friends, earn money</b>\n\n${o.p1}% of every payment your friend makes, for as long as they pay. ${o.p2}% of their friends' payments. Plus +${o.days} days for you on a friend's first payment.\n\nFriends: <b>${o.l1}</b>, their friends: <b>${o.l2}</b>\nEarned $${o.earned}, balance <b>$${o.bal}</b>\n\nSpend the balance on your subscription or withdraw USDT from $${o.min} in the YURK app.\n\nYour link:\n${o.link}`,
+    refOld: (o) => `👥 <b>YURK partner program</b>\n\n💸 <b>${o.p1}%</b> of every payment of a friend you invited — forever\n🔗 <b>${o.p2}%</b> of payments of your friends' friends\n🎁 <b>+${o.days} days</b> of subscription for a friend's first payment\n\nFriends: <b>${o.l1}</b> · their friends: <b>${o.l2}</b>\nEarned: <b>$${o.earned}</b> · balance: <b>$${o.bal}</b>\n\nSpend the balance on your subscription or withdraw USDT from $${o.min} (in the app 🚀).\n\nYour link:\n${o.link}`,
     earn: (a, lvl) => `💸 +$${a} to your balance — ${lvl === 1 ? 'your friend' : "your friend's friend"} bought a subscription!`,
     days: (n) => `🎁 Your friend made the first payment — you get +${n} days!`,
     wdReq: (a) => `⏳ Withdrawal of $${a} USDT requested. It arrives in @CryptoBot after a check.`,
