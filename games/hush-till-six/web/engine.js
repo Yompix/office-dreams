@@ -84,7 +84,7 @@ function ldInfo() {
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { drone: 6, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 8, p11: 8, p12: 5, h08: 5, dg02: 5, dg04: 8, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 , r01: 6, h01: 6, h10: 6, n08: 6, fb00: 6, fb01: 6, n22: 7, s01: 7, ch_katya: 7};   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
+const SNDV = { w08: 6, drone: 6, mus_p2a: 5, sv08: 5, n26: 5, theme: 7, p07: 5, p09: 8, p11: 8, p12: 5, h08: 5, dg02: 5, dg04: 8, dg06: 5, dg08: 5, dg10: 5, dg12: 5, p14: 5, shift: 6, end_sister: 5, end_newentry: 5, end_inside: 5, end_dawn: 5, whispers: 5, tick: 5, tension: 5, ring_mob: 5, heart: 6, click: 5, cleaner_hum: 5, breath_close: 5 , r01: 6, h01: 6, h10: 6, n08: 6, fb00: 6, fb01: 6, n22: 7, s01: 7, ch_katya: 7};   // перезаписанные реплики и звуки (19 ноя: дневной охранник — запись владельца; музыка смены и концовок, whispers, tick, tension, ring_mob, heart — версии владельца; список присланного — tools/OWNER_SOUNDS.md) — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);   // vl — у реплики своя запись на языке игры (Лили по-украински, 7 ноя: snd/uk/)
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -110,7 +110,7 @@ async function load(onp) {
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
   const TIMV = { en: 13, uk: 10, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=19', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=20', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; LD.s++; tick(); }).catch(tick));
   const info = setInterval(ldInfo, 1000);
   await Promise.all([world, within(Promise.all([...sn, tm]), window.nsTV ? 60000 : 150000, 'звуки догрузятся в игре')]); clearInterval(info);   // звуки, не успевшие за минуту, докачает очередь в фоне
