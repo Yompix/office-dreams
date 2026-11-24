@@ -2302,7 +2302,7 @@ function frame(tp) {
   if (window.nsTV && lastP && tp - lastP < 30 && tp > lastP) return requestAnimationFrame(frame);   // ТВ-приставка: 30 кадров в секунду — вдвое меньше работы процессору, ровнее
   if (holdN === 0 && paused) { lastP = tp; return requestAnimationFrame(frame); }
   if (holdN > 0) holdN--;
-  const fs = performance.now(), dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += Math.min(dt0, 4);   // долгий кадр (шейдеры, сборка мусора) — звук уже ушёл вперёд; часы догоняют, чтобы субтитры не отставали
+  const fs = performance.now(), dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && mode !== 'studio' && mode !== 'load' && !paused) World.perf(tp - lastP);   // 24 ноя: и в смене, выборе, мини-играх (раньше авто-качество работало только в кат-сценах и меню) lastP = tp; if (!paused) clockT += Math.min(dt0, 4);   // долгий кадр (шейдеры, сборка мусора) — звук уже ушёл вперёд; часы догоняют, чтобы субтитры не отставали
   // слабый телефон в «Ретро»: кадры идут медленно (в среднем > 36 мс за 90 кадров) → 2D-холст 720×1280 вместо 1080×1920, один раз за сессию
   if (CS === 1 && !(window.World && World.cine) && inGame() && !paused && dt0 < .25) { perf2S += dt0; if (++perf2N >= 90) { if (perf2S / perf2N > .036) { CS = 2 / 3; applyLand(LAND); } perf2N = perf2S = 0; } }
   if (!paused && PLAYING.has(mode)) { run.sec += Math.min(1, dt0); if ((runSaveT += dt0) > 5) { runSaveT = 0; runSave(); } }   // сколько реально играли (для журнала в конце)

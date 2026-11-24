@@ -4373,8 +4373,8 @@ function cinePost() {
     fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
       vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
       gl_FragColor = vec4(c, 1.); }` });
-  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, tAO: { value: null }, uAO: { value: 0 }, uHQ: { value: ULTRA ? 1 : 0 }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 }, uSharp: { value: 0 }, uTx: { value: new T.Vector2() } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD, tBl, tAO; uniform float uAO, uHQ, uT, uCctv, uIr, uVhs, uScare, uAsp, uExp, uSharp; uniform vec2 uTx; varying vec2 vUv; ${FIN}
+  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, tAO: { value: null }, uAO: { value: 0 }, uHQ: { value: ULTRA ? 1 : 0 }, uGr: { value: 1 }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 }, uSharp: { value: 0 }, uTx: { value: new T.Vector2() } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD, tBl, tAO; uniform float uAO, uHQ, uGr, uT, uCctv, uIr, uVhs, uScare, uAsp, uExp, uSharp; uniform vec2 uTx; varying vec2 vUv; ${FIN}
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
       void main(){
@@ -4411,7 +4411,7 @@ function cinePost() {
         c = mix(c, vec3(pow(max(l, 0.), .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
         c *= 1. - uCctv * mix(.09, .035, uHQ) * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
-        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.018 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * (.004 + .011 * uCctv));   // 24 ноя: зерно «кино» вдвое тише (владелец: «моментами глаза режет») — камеры наблюдения как были   // зерно: сильнее в полутонах, слабее в чёрном и белом
+        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.018 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * (.004 + .011 * uCctv)) * uGr;   // 24 ноя: зерно «кино» вдвое тише (владелец: «моментами глаза режет») — камеры наблюдения как были   // зерно: сильнее в полутонах, слабее в чёрном и белом
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         gl_FragColor = vec4(c, 1.); }` });
 }
@@ -4423,14 +4423,20 @@ function cineRender(R, T0, cctv, scare, vhs) {
   if (PB.ao && RT.depthTexture) { const A = PB.ao.uniforms; A.tZ.value = RT.depthTexture; A.uPI.value.copy(cam.projectionMatrixInverse); A.uP.value.copy(cam.projectionMatrix); A.uPx.value.set(2 / V.RW, 2 / V.RH); pass(PB.ao, PB.o1);
     B.tD.value = PB.o1.texture; B.uDir.value.set(1 / PB.o1.width, 0); pass(PB.blur, PB.o2); B.tD.value = PB.o2.texture; B.uDir.value.set(0, 1 / PB.o1.height); pass(PB.blur, PB.o1); }
   for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
-  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.tAO.value = PB.o1 ? PB.o1.texture : null; U.uAO.value = PB.ao && RT.depthTexture && !window.__NOAO ? (window.__AOVIS ? -1 : .85) : 0;   // window.__NOAO = 1 — сравнить без контактных теней U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0;   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.tAO.value = PB.o1 ? PB.o1.texture : null; U.uAO.value = PB.ao && RT.depthTexture && !window.__NOAO ? (window.__AOVIS ? -1 : .85) : 0;   // window.__NOAO = 1 — сравнить без контактных теней U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0; U.uGr.value = clamp(((V.rs || 1) - .45) / .55, .25, 1);   // 24 ноя: кадр меньше экрана — зерно тише (растянутое зерно мельтешит крупными точками и «режет глаза»)   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
 let perfT = 0, perfN = 0, perfS = 0, perfCool = 0, perfGood = 0;
+// счётчик кадров для проверки на своём ПК: F3 (или ?fps=1) — кадры в секунду, мс на кадр, доля разрешения и размер кадра «Кино», видеокарта
+let fpsOn = /[?&]fps=1\b/.test(location.search), fpsEl = null;
+function fpsShow(avg) { if (!fpsOn) { if (fpsEl) fpsEl.style.display = 'none'; return; }
+  if (!fpsEl) { fpsEl = document.createElement('div'); fpsEl.style.cssText = 'position:fixed;left:6px;top:6px;z-index:99999;font:600 12px/1.35 monospace;color:#9f9;background:rgba(0,0,0,.65);padding:4px 7px;border-radius:4px;pointer-events:none;white-space:pre'; document.body.appendChild(fpsEl); }
+  fpsEl.style.display = 'block'; fpsEl.textContent = `${Math.round(1000 / avg)} FPS · ${avg.toFixed(1)} мс\n${CINE ? 'Кино' : 'Ретро'} ${Math.round((V.rs || 1) * 100)}% · ${V.RW}×${V.RH}\n${(window.__W3core.GPU || {}).name || ''}`; }
+document.addEventListener('keydown', e => { if (e.code === 'F3') { e.preventDefault(); fpsOn = !fpsOn; if (!fpsOn && fpsEl) fpsEl.style.display = 'none'; } });
 function perfTick(d) {   // d — мс между кадрами движка
   if (!CINE || !scenesReady || d > 250 || V.rsPin) return;   // пауза/вкладка в фоне — не считаем; ?rs= — разрешение задано вручную
-  perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; if (perfCool-- > 0) return;
+  perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; fpsShow(avg); if (perfCool-- > 0) return;
   // 24 ноя: держим ~50–60 кадров: ниже ~42 кадров (24 мс) разрешение сразу на 10 % меньше (на совсем медленном — на 15 %); назад — только после 3 быстрых окон подряд (без «качелей»)
   const rs = V.rs || 1; perfGood = avg < 18 ? perfGood + 1 : 0;
   const nr = avg > 38 ? Math.max(.55, rs - .15) : avg > 24 ? Math.max(.55, rs - .1) : perfGood >= 3 && rs < 1 ? Math.min(1, rs + .1) : rs; if (nr > rs) perfGood = 0;
@@ -4485,7 +4491,7 @@ function init() {
     if (document.visibilityState === 'visible' && localStorage.getItem('ns1_gfxAuto') !== '2' && !/[?&]gfx=/.test(location.search) && window.nsGfxFallback) window.nsGfxFallback(5); });
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
-  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: FINE ? 2 : 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
   ST('плёнка');
   postMat = new T.ShaderMaterial({
@@ -4760,7 +4766,7 @@ function draw(g, W, H, id, o) {
     cam.updateMatrixWorld(); if (!CO) renderRefl(R, loc, used, newShot);
   }
   for (const k of used) if (A[k].reflOnly) A[k].root.visible = false;
-  if (CINE) { cineTick(loc, T0); if (!CO) R.shadowMap.needsUpdate = FINE || (++shadowN & 1) === 0; }   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
+  if (CINE) { cineTick(loc, T0); if (!CO) R.shadowMap.needsUpdate = newShot || (++shadowN & 1) === 0; }   // 24 ноя: и на ПК тени через кадр (2 лампы × 6 сторон = 12 проходов сцены — самое дорогое в «Кино»); на склейке — сразу   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
   if (CO === 1) return compileOnly(R, loc.S);
   if (CO) { const R0 = R.getRenderTarget(); R.shadowMap.needsUpdate = true; R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam); R.setRenderTarget(R0); return null; }   // тени ламп (их шейдеры собираются только при рисовании)
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
