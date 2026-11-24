@@ -87,7 +87,7 @@ const CINE = GFX === 'cine' || GFX === 'ultra';
 const ULTRA = CINE && FINE && (GFX === 'ultra' || GPU.tier >= 2) && (() => { try { return localStorage.getItem('ns1_hq') !== '0'; } catch { return true; } })();
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); if (q) return Math.max(.2, Math.min(2, +q[1]));
   try { const v = +JSON.parse(localStorage.getItem('ns1_res')); if (v > 0) return Math.max(.5, Math.min(ULTRA ? 2 : 1, v)); } catch {} return 0; })();   // настройка «Разрешение»: 0 — авто (подстройка по кадрам); 150–200 % — суперсэмплинг в «Ультра»   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
-const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
+const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? .85 : .75), rsPin: !!RS };   // 24 ноя: ПК начинает с 85 % (резкость FSR возвращает чёткость), авто-качество поднимет до 100 %, если тянет   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));

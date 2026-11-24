@@ -4223,7 +4223,7 @@ const rcam = new T.PerspectiveCamera(50, V.RW / V.RH, .05, 120);
 
 /* ---------- «Кино»: тени, отражения, объёмный свет, пыль, постобработка ---------- */
 // тени: в каждом месте тени отбрасывают две самые заметные для камеры лампы (число постоянное — шейдеры не пересобираются)
-const SHADOW_N = 2;
+const SHADOW_N = 1;   // 24 ноя (владелец: «всё равно лагает»): тень отбрасывает одна лампа (ближайшая яркая) — точечная тень = 6 проходов сцены
 // лучи света под лампами: мягкий конус, ярче у лампы, тает к полу и в тумане; дышит пылью
 const BEAM_VS = `varying vec3 vN, vV, vW; varying float vY; uniform float uH;
   void main(){ vY = position.y / uH + .5; vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; vec4 mv = viewMatrix * w; vV = -mv.xyz; vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * mv; }`;
@@ -4423,7 +4423,7 @@ function cineRender(R, T0, cctv, scare, vhs) {
   if (PB.ao && RT.depthTexture) { const A = PB.ao.uniforms; A.tZ.value = RT.depthTexture; A.uPI.value.copy(cam.projectionMatrixInverse); A.uP.value.copy(cam.projectionMatrix); A.uPx.value.set(2 / V.RW, 2 / V.RH); pass(PB.ao, PB.o1);
     B.tD.value = PB.o1.texture; B.uDir.value.set(1 / PB.o1.width, 0); pass(PB.blur, PB.o2); B.tD.value = PB.o2.texture; B.uDir.value.set(0, 1 / PB.o1.height); pass(PB.blur, PB.o1); }
   for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
-  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.tAO.value = PB.o1 ? PB.o1.texture : null; U.uAO.value = PB.ao && RT.depthTexture && !window.__NOAO ? (window.__AOVIS ? -1 : .85) : 0;   // window.__NOAO = 1 — сравнить без контактных теней U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0; U.uGr.value = clamp(((V.rs || 1) - .45) / .55, .25, 1);   // 24 ноя: кадр меньше экрана — зерно тише (растянутое зерно мельтешит крупными точками и «режет глаза»)   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.tAO.value = PB.o1 ? PB.o1.texture : null; U.uAO.value = PB.ao && RT.depthTexture && !window.__NOAO ? (window.__AOVIS ? -1 : .85) : 0;   // window.__NOAO = 1 — сравнить без контактных теней U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = FINE && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0; U.uGr.value = clamp(((V.rs || 1) - .45) / .55, .25, 1);   // 24 ноя: кадр меньше экрана — зерно тише (растянутое зерно мельтешит крупными точками и «режет глаза»)   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
