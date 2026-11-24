@@ -4,7 +4,7 @@
    Реплики: русские — timing.json и snd/*.mp3, остальные — timing_<язык>.json и snd/<VOICE>/*.mp3 (VOICE — чьими записями озвучен язык). */
 (() => {
 'use strict';
-const LANGS = ['ru', 'en', 'es', 'pt', 'de', 'fr', 'it', 'pl', 'tr', 'uk', 'zh', 'ja', 'ko'];
+const LANGS = ['en', 'de', 'es', 'fr', 'it', 'pl', 'pt', 'tr', 'ru', 'uk', 'zh', 'ja', 'ko'];   // 24 ноя (владелец): в настройках English первым, дальше по алфавиту (латиница → кириллица → CJK)
 const VOICE = { ru: 'ru', en: 'en', es: 'es', pt: 'pt', de: 'de', fr: 'en', it: 'en', pl: 'en', tr: 'en', uk: 'en', zh: 'en', ja: 'en', ko: 'en' };   // чьими записями озвучен язык: свой голос (es) или английские записи с субтитрами на языке игры
 const q = /[?&]lang=(ru|en|es|pt|de|fr|it|pl|tr|uk|zh|ja|ko)\b/.exec(location.search);
 const LANG0 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
