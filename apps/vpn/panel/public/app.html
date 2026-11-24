@@ -518,6 +518,7 @@ function render() {
   document.querySelector('.btns').hidden = !S.sub;
   if (NATIVE) {
     $('copy').hidden = true;
+    document.querySelectorAll('.steps, h3[data-t="howH"]').forEach((el) => { el.hidden = true; });
     document.querySelector('.btns').style.gridTemplateColumns = '1fr';
     $('connect').innerHTML = vpn === 'on' ? '⏻ ' + T.vpnOff : vpn === 'connecting' ? '⏳ ' + T.vpnConn : '⚡ ' + T.connect;
     $('ring').classList.toggle('on', S.active && vpn === 'on');
