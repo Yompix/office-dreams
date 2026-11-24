@@ -126,10 +126,10 @@ function pageMain() {
       const PR = cd.promo, l1 = PR ? (L === 'ru' ? 'УЖЕ В GOOGLE PLAY' : 'NOW ON GOOGLE PLAY') : L === 'ru' ? 'ИГРАЙ СЕЙЧАС НА ITCH.IO' : 'PLAY NOW ON ITCH.IO'; const lines1 = wrap(l1, LAND ? W * .8 : 900 * U);
       lines1.forEach((l, i) => spaced(l, W / 2, y1 + i * 84 * U, 4 * U));
       const yf = y1 + (lines1.length - 1) * 84 * U + 58 * U; g.font = `600 ${(LAND ? 34 : 38) * U}px NSUI`; g.fillStyle = GOLD;
-      spaced(PR ? (L === 'ru' ? '10 БЕСПЛАТНЫХ КОДОВ — В TELEGRAM' : '10 FREE CODES — IN TELEGRAM') : L === 'ru' ? 'БЕСПЛАТНОЕ ДЕМО В БРАУЗЕРЕ' : 'FREE DEMO IN YOUR BROWSER', W / 2, yf, 5 * U);
+      spaced(PR ? (L === 'ru' ? '10 БЕСПЛАТНЫХ КОДОВ НА ИГРУ' : '10 FREE GAME CODES') : L === 'ru' ? 'БЕСПЛАТНОЕ ДЕМО В БРАУЗЕРЕ' : 'FREE DEMO IN YOUR BROWSER', W / 2, yf, 5 * U);
       const y2 = yf + 34 * U; g.fillStyle = 'rgba(236,232,220,.35)'; g.globalAlpha = a * pulse; g.fillRect(W / 2 - 160 * U, y2, 320 * U, 3 * U); g.globalAlpha = a;
       g.font = `600 ${(LAND ? 40 : 44) * U}px NSUI`; g.fillStyle = 'rgba(236,232,220,.85)';
-      const l2 = PR ? (L === 'ru' ? 'ССЫЛКА В ПРОФИЛЕ · @YOMPIXGAMES' : 'LINK IN BIO · @YOMPIXGAMES') : L === 'ru' ? 'СКОРО В STEAM, GOOGLE PLAY И APP STORE' : 'COMING SOON TO STEAM, GOOGLE PLAY & APP STORE'; const lines2 = wrap(l2, LAND ? W * .8 : 880 * U);
+      const l2 = PR ? (L === 'ru' ? 'ССЫЛКА В ПРОФИЛЕ' : 'LINK IN BIO') : L === 'ru' ? 'СКОРО В STEAM, GOOGLE PLAY И APP STORE' : 'COMING SOON TO STEAM, GOOGLE PLAY & APP STORE'; const lines2 = wrap(l2, LAND ? W * .8 : 880 * U);
       lines2.forEach((l, i) => spaced(l, W / 2, y2 + 76 * U + i * 56 * U, 5 * U));
       const by = y2 + 76 * U + lines2.length * 56 * U + (LAND ? 50 : 80) * U; badge18(W / 2, by, (LAND ? 38 : 46) * U, a);
       g.restore();
