@@ -103,7 +103,8 @@ function tiktok(L) {
 
 // TikTok-промо (24 ноя): тот же ролик, в конце — «уже в Google Play · 10 бесплатных кодов в Telegram» (подольше, чтобы успели прочитать)
 function tiktokPromo(L) {
-  const S = tiktok(L), e = S[S.length - 1];
+  const keep = new Set(['lily', 'far', 'smile', 'gap', 'there', 'lunge', 'cut', 'end']);   // коротко (~20 с): крючок → улыбка → «вот ты где» → бросок → коды
+  const S = tiktok(L).filter(s => keep.has(s.id)), e = S[S.length - 1];
   e.black = 7; e.card = { kind: 'end', at: 0, dur: 7, logo: 1, promo: 1 };
   e.sfx = [['boom', 0, { gain: .9 }], ['knock', 5.1, { gain: .7 }], ['knock', 5.55, { gain: .7 }], ['knock', 6.0, { gain: .7 }]];
   return S;
