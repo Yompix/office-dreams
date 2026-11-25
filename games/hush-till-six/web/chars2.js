@@ -901,10 +901,17 @@ function buildHands() {
 function hookHand(C, sd) {
   setFingers(C, sd, 'hook', 1); C.root.updateWorldMatrix(true, true);
   const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
-  for (const [f, a] of [['index', .14], ['ring', .1], ['pinky', .24]]) {
+  for (const [f, a] of [['index', .24], ['ring', .14], ['pinky', .38]]) {
     const b = C.bone[f + '_01_' + sd], p = W(f + '_01'), d = W(f + '_02').sub(p).normalize(), sv = p.clone().sub(pm); sv.addScaledVector(d, -sv.dot(d));
     if (sv.lengthSq() < 1e-10) continue;
     setWorldQ(b, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a).multiply(b.getWorldQuaternion(new T.Quaternion())));
+  }
+  // 25 ноя (критик): последняя фаланга выгнута назад (неживая кисть), средние суставы согнуты по-разному — пальцы не одинаковые
+  for (const [f, k2, k3] of [['index', 1.05, -.45], ['middle', 1.2, -.55], ['ring', 1.1, -.4], ['pinky', .9, -.5]]) {
+    for (const [j, k] of [['02', k2], ['03', k3]]) { const bn = f + '_' + j + '_' + sd, b = C.bone[bn], r = C.rest[bn]; if (!b || !r) continue;
+      const dq = r.clone().invert().multiply(b.quaternion); if (dq.w < 0) { dq.x = -dq.x; dq.y = -dq.y; dq.z = -dq.z; dq.w = -dq.w; }
+      const ang = 2 * Math.acos(Math.min(1, dq.w)); if (ang < 1e-3) continue; const ax = new T.Vector3(dq.x, dq.y, dq.z).normalize();
+      b.quaternion.copy(r).multiply(new T.Quaternion().setFromAxisAngle(ax, ang * k)); }
   }
 }
 // пальцы веером: в открытых позах (ладонь плашмя, тянется, «когти», мягкая кисть) пальцы лежали вплотную и на крупном плане кисть читалась
@@ -1846,7 +1853,7 @@ const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
     float fph = atan(vB.x, vB.z + .3 + 1e-5) * 14. + vn3(vB * 6.) * 5., fold = sin(fph) * (.08 + .14 * smoothstep(1.5, .6, vB.y)) * (1. - smoothstep(.6, 1.6, fwidth(fph)));   // вдали складки сливаются в тон, без муара
     float dirt = smoothstep(.55, .78, vn3(vB * 8.5)) * .55 + smoothstep(1.1, .55, vB.y) * .35;
     gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
-    vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85);
+    vec3 cloth = vec3(.27, .27, .24) * (1. + fold) * (1. - .45 * dirt) * mix(vec3(1.), vec3(.6, .56, .46), dirt * .85);   // 25 ноя: грязно-серый саван, а не «персиковая ночнушка»
     cloth *= 1. - .55 * gWet; gClothC = mix(cloth, vec3(.06, .055, .05), .4 * gWet * smoothstep(.4, .7, vn3(vB * 30.)));
     float arm = smoothstep(.34, .44, abs(vB.x)) * smoothstep(1.78, 1.86, vB.y);   // руки в позе «Т» лежат вдоль x: жилы на руках идут вдоль руки, на ногах и шее — вдоль y
     float vnv = vn3(mix(vec3(vB.x * 38., vB.y * 9., vB.z * 38.), vec3(vB.x * 9., vB.y * 38., vB.z * 38.), arm)), vw = fwidth(vnv);
@@ -1854,7 +1861,7 @@ const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
     diffuseColor.rgb *= 1. - .34 * vein * vec3(1., .8, .7); }
 `;
 // кожа Жильца в «Кино»: сухая, бугристая, мелкие трещинки пятнами (крупная сетка на кистях читалась узором «мозг»; рельеф — в SHROUD_N); ak гасит трещины, когда пиксель крупнее их
-const SKIN_MH = `float skH(vec3 p, float ak) { float cr = 1. - abs(vn3(p * 170.) * 2. - 1.); return -pow(max(cr, 0.), 10.) * .00024 * ak * smoothstep(.3, .7, vn3(p * 7. + 5.)) + (vn3(p * 22.) - .5) * .0012; }
+const SKIN_MH = `float skH(vec3 p, float ak) { float cr = 1. - abs(vn3(p * 170.) * 2. - 1.); return -pow(max(cr, 0.), 10.) * .00012 * ak * smoothstep(.3, .7, vn3(p * 7. + 5.)) + (vn3(p * 6.) - .5) * .00025; }   /* 25 ноя: без «потрескавшейся глины» */
 `;
 const RE_ARGS = 'const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight';
 const HUM_RE = {
@@ -1945,7 +1952,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
   ${kind === 'skin' ? `shK = 1. - .8 * smoothstep(.17, .1, length(vB - ((uEyeL3 + uEyeR3) * .5 + vec3(0., .02, -.08))));` : ''}
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(${LUMA}) * vec3(.8, .85, .9), uGrey);
   diffuseColor.rgb *= 1. - .22 * uWet;
-  ${claws ? `diffuseColor.rgb *= 1. - .6 * smoothstep(.3, 1., vNail.y);   // кончики пальцев почернели
+  ${claws ? `diffuseColor.rgb *= 1. - .6 * smoothstep(.3, 1., vNail.y); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.05, .045, .05), smoothstep(.5, .95, vNail.y));   /* мёртвые кончики: кровь осела */   // кончики пальцев почернели
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.06, .05, .035), smoothstep(.15, .65, vNail.x));   // когти: толстые, жёлто-чёрные` : ''}
   ${claws && CINE ? `{ float mo = vn3(vB * 5. + 3.); diffuseColor.rgb *= mix(vec3(1.), vec3(.84, .74, .88), smoothstep(.52, .8, mo) * .75) * (.88 + .24 * vn3(vB * 17.)); }   // трупные пятна — сиреневые, тон неровный` : ''}
   ${shroud ? 'diffuseColor.rgb = mix(diffuseColor.rgb, gClothC, gCloth);   // ткань — после серости кожи: грязно-белая, не в тон мёртвой коже' : ''}
@@ -2013,7 +2020,7 @@ function clipsFor(k) {
   }
   return (CLIPS3[key] = out);
 }
-const _qa = new T.Quaternion(), _ma = new T.Matrix4(), _va = new T.Vector3();
+const _qa = new T.Quaternion(), _ma = new T.Matrix4(), _va = new T.Vector3(), _vb = new T.Vector3();
 function makeHuman(o) {
   const sc = window.THREE_SkeletonUtils.clone(G[o.model].scene);
   const root = new T.Group(); root.name = o.name;
@@ -2083,7 +2090,7 @@ function makeHuman(o) {
   C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
   C.update = (t, dt) => updateSkinned(C, t, dt);
   fitProps(C);
-  if (o.monster) clawHands(C.mesh);
+  if (o.monster) { clawHands(C.mesh); thinLimbs(C.mesh); clawMeshes(C); }
   if (o.gown) skinGown(C);
   if (o.monster && C.hairM) capsOn(C, C.hairM, .008 * C.ss);   // длинные волосы — по спине и плечам, а не сквозь них
   return C;
@@ -2113,13 +2120,13 @@ function clawHands(n) {
   for (let i = 0; i < N; i++) {
     const w = who[i]; if (!w || w[0].bad) continue; const f = w[0];
     v.fromArray(P, i * 3); const s = v.clone().sub(f.c[0]).dot(f.d); foot.copy(f.c[0]).addScaledVector(f.d, s); r.copy(v).sub(foot);
-    const along = clamp((s - f.s0) / (f.s1 - f.s0), 0, 1), th = (f.thumb ? .14 : .24) * T.MathUtils.smoothstep(along, 0, .3);   // тоньше; у ладони — плавно, без ступеньки
+    const along = clamp((s - f.s0) / (f.s1 - f.s0), 0, 1), th = (f.thumb ? .26 : lerp(.28, .5, along)) * T.MathUtils.smoothstep(along, 0, .3);   // 25 ноя (критик: «пальцы — пластилиновые сосиски»): тоньше, костлявые   // тоньше; у ладони — плавно, без ступеньки
     v.copy(foot).addScaledVector(r, 1 - th);
     const ph = r.dot(f.u) * (1 - th), tipK = w[1] === 3 ? T.MathUtils.smoothstep(s, f.s1 - .02, f.s1 - .004) : 0;
     let nx = 0;
     if (!f.thumb && tipK > 0) {   // коготь: верх кончика тянется вдоль пальца на 1,8 см и загибается вниз
       const top = T.MathUtils.smoothstep(ph, -.002, .006), k2 = T.MathUtils.smoothstep(s, f.s1 - .012, f.s1) * top;
-      v.addScaledVector(f.d, .018 * k2).addScaledVector(f.u, -ph * .6 * k2 * k2);
+      v.addScaledVector(f.d, .004 * k2);   // коготь теперь — отдельная заострённая сетка на кости (clawMeshes); кончик пальца только чуть вытянут
       nx = tipK * T.MathUtils.smoothstep(ph, -.001, .004);
     } else if (f.thumb) nx = tipK * .55;
     nail[i * 2] = nx; nail[i * 2 + 1] = T.MathUtils.smoothstep(along, .45, 1);
@@ -2129,6 +2136,57 @@ function clawHands(n) {
   g.setAttribute('aNail', new T.BufferAttribute(nail, 2));
 }
 
+// 25 ноя (критик: «руки упитанные, нет истощения»): кожа рук и шеи стягивается к оси кости (в позе покоя, до скелета) — костлявые плечи, предплечья, тонкая шея
+function thinLimbs(n) {
+  const g = n && n.geometry; if (!g || g.userData.thin) return; g.userData.thin = 1;
+  const sk = n.skeleton, names = sk.bones.map(b => b.name), pa = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight;
+  const Q = n.userData.Q, Qi = Q.clone().invert(), R = Q.clone().multiply(n.bindMatrix.clone().invert());   // всё в метрах позы покоя (вершины сжаты: Q)
+  const J = nm => { const i = names.indexOf(nm); return i < 0 ? null : new T.Vector3().setFromMatrixPosition(R.clone().multiply(sk.boneInverses[i].clone().invert())); };
+  const K = { upperarm: ['lowerarm', .72], lowerarm: ['hand', .6], hand: ['middle_01', .7], neck_01: ['Head', .82] } /* кисть: тоньше пясть («опухшая варежка») */, seg = {};
+  for (const sd of ['_l', '_r', '']) for (const b in K) { const a = J(b + sd), e = J(K[b][0] + sd); if (a && e) seg[names.indexOf(b + sd)] = [a, e, K[b][1]]; }
+  const v = new T.Vector3(), d = new T.Vector3(), f = new T.Vector3();
+  for (let i = 0; i < pa.count; i++) {
+    let wsum = 0, kk = 0, bi = -1, bw = -1;   // смесь по весам: у плеча, локтя и кисти стягивание плавно сходит на нет
+    for (let c = 0; c < 4; c++) { const w = sw.getComponent(i, c), j = si.getComponent(i, c), sg = seg[j]; wsum += w; kk += w * (sg ? sg[2] : 1); if (sg && w > bw) { bw = w; bi = j; } }
+    if (bi < 0 || !wsum) continue; const k = kk / wsum, sg = seg[bi];
+    v.fromBufferAttribute(pa, i).applyMatrix4(Q); d.copy(sg[1]).sub(sg[0]); const L = d.length(); d.divideScalar(L);
+    f.copy(sg[0]).addScaledVector(d, clamp(_vb.copy(v).sub(sg[0]).dot(d), 0, L));
+    v.sub(f).multiplyScalar(k).add(f).applyMatrix4(Qi); pa.setXYZ(i, v.x, v.y, v.z);
+  }
+  pa.needsUpdate = true;
+}
+// 25 ноя: настоящие когти — заострённые изогнутые роговые сетки на последних фалангах (были вершины кожи, «пластилин»).
+// Длина ~4 см (× масштаб кисти Жильца), у основания 0,45 см, загиб к ладони ~25°; тёмный рог к желтоватому кончику, блестит
+let clawMat = null;
+function clawMeshes(C) {
+  const n = C.mesh, sk = n && n.skeleton; if (!sk) return;
+  const names = sk.bones.map(b => b.name), pa = n.geometry.attributes.position, si = n.geometry.attributes.skinIndex, sw = n.geometry.attributes.skinWeight;
+  const Q = n.userData.Q, Qi = Q.clone().invert(), R = Q.clone().multiply(n.bindMatrix.clone().invert()), upW = new T.Vector3(0, 1, 0);   // в метрах позы покоя
+  const Ls = 12, Rs = 8, P = [], I = [], col = [], SI = [], SW = [], M = new T.Matrix4(), q = new T.Vector3();
+  for (const sd of ['l', 'r']) for (const fg of ['index', 'middle', 'ring', 'pinky', 'thumb']) {
+    const i3 = names.indexOf(`${fg}_03_${sd}`), i2 = names.indexOf(`${fg}_02_${sd}`); if (i3 < 0 || i2 < 0) continue;
+    const o3 = new T.Vector3().setFromMatrixPosition(R.clone().multiply(sk.boneInverses[i3].clone().invert())), o2 = new T.Vector3().setFromMatrixPosition(R.clone().multiply(sk.boneInverses[i2].clone().invert()));
+    const dir = o3.clone().sub(o2).normalize(); let tip = -1e9;
+    for (let i = 0; i < pa.count; i++) { let bi = 0, bw = -1; for (let c = 0; c < 4; c++) { const w = sw.getComponent(i, c); if (w > bw) { bw = w; bi = si.getComponent(i, c); } } if (bi !== i3) continue;
+      const s = _va.fromBufferAttribute(pa, i).applyMatrix4(Q).sub(o3).dot(dir); if (s > tip) tip = s; }
+    if (tip < 0) tip = o3.distanceTo(o2) * .7;
+    const up = upW.clone().addScaledVector(dir, -upW.dot(dir)).normalize(), side = new T.Vector3().crossVectors(dir, up);
+    const th = fg === 'thumb', len = th ? .028 : .035, base = o3.clone().addScaledVector(dir, tip - .012).addScaledVector(up, th ? .002 : .003);   // корень когтя — над кончиком, со стороны ногтя
+    M.makeBasis(dir, up, side).setPosition(base); M.premultiply(Qi);   // x — вдоль пальца, y — к ногтю (загиб — к ладони, −y); сразу в сжатые координаты сетки
+    const b0 = P.length / 3;
+    for (let a = 0; a <= Ls; a++) { const t = a / Ls, r = .0055 * Math.pow(1 - t, 1.1) + .0002, cx = len * t, cy = -.35 * len * t * t;   // 25 ноя (критик): шире у корня, плоский, загиб к ладони ~35°
+      for (let b = 0; b <= Rs; b++) { const ph = b / Rs * Math.PI * 2; q.set(cx, cy + Math.cos(ph) * r * .5, Math.sin(ph) * r).applyMatrix4(M); P.push(q.x, q.y, q.z);
+        const k = t * t; col.push(.07 + .13 * k, .055 + .11 * k, .04 + .07 * k);   /* #1a140f → #4a3e2c */ SI.push(i3, 0, 0, 0); SW.push(1, 0, 0, 0); } }
+    for (let a = 0; a < Ls; a++) for (let b = 0; b < Rs; b++) { const i = b0 + a * (Rs + 1) + b; I.push(i, i + Rs + 1, i + 1, i + 1, i + Rs + 1, i + Rs + 2); }
+  }
+  if (!P.length) return;
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('color', new T.Float32BufferAttribute(col, 3));
+  g.setAttribute('skinIndex', new T.Uint16BufferAttribute(SI, 4)); g.setAttribute('skinWeight', new T.Float32BufferAttribute(SW, 4)); g.setIndex(I); g.computeVertexNormals();
+  if (!clawMat) clawMat = CINE ? new T.MeshStandardMaterial({ vertexColors: true, roughness: .75, metalness: 0 }) : new T.MeshLambertMaterial({ vertexColors: true });   // тёмный рог, к кончику желтоватый, блестит
+  const m = new T.SkinnedMesh(g, clawMat); m.name = 'claws'; m.frustumCulled = false; m.castShadow = true;
+  m.position.copy(n.position); m.quaternion.copy(n.quaternion); m.scale.copy(n.scale);
+  n.parent.add(m); m.bind(sk, n.bindMatrix); C.claws = m;
+}
 // рубаха-саван Жильца — своя свободная сетка со скелетом (как полы плаща у v2), от плеч ниже колен.
 // Строится один раз в позе покоя по самому телу: на каждой высоте — эллипс вокруг туловища (руки в позе «Т» отрезаны), ниже бёдер —
 // вокруг обеих ног сразу и не уже бёдер (подол, а не штанины), книзу свободнее, по низу складки. Кости: грудь → поясница → таз → бёдра
@@ -2227,7 +2285,7 @@ float gH(vec2 sv, vec3 g, float f, float aF, float aN) { return sin(atan(sv.x, s
   if (vF > .93 - .08 * vn3(vec3(vG.x * 22., 0., vG.z * 22.)) - .04 * hh3(vec3(floor(gA * 9.), 1., 2.))) discard;   // рваный подол
   if (vF > .62 && vn3(vG * 13.) > .8) discard;   // дыры у подола
   float fold = sin(gA * 11. + gN * 4.) * (.1 + .16 * vF), dirt = smoothstep(.55, .78, vn3(vG * 8.5)) * .55 + vF * vF * .5; gWet = smoothstep(.62, .92, vF);
-  vec3 cloth = vec3(.44, .42, .37) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.76, .63, .46), dirt * .8);
+  vec3 cloth = vec3(.29, .29, .26) * (1. + fold) * (1. - .45 * dirt) * mix(vec3(1.), vec3(.6, .56, .46), dirt * .8);
   cloth *= 1. - .55 * gWet; cloth = mix(cloth, vec3(.05, .045, .04), .45 * gWet * smoothstep(.4, .7, vn3(vG * 30.)));
   if (uGore > 0.) cloth = mix(cloth, vec3(.2, .012, .012), uGore * smoothstep(.62, .78, vn3(vG * 4. + 3.)) * (1. - vF));   // кровь на груди, когда ест
   diffuseColor.rgb = cloth * (1. - .15 * uWet);`)
@@ -2262,6 +2320,7 @@ function faceV3(C, tt, dt) {
     add('eyeBlinkLeft', b); add('eyeBlinkRight', b);
   }
   if (o.dead) { add('eyeBlinkLeft', .7); add('eyeBlinkRight', .62); add('jawOpen', .18); }
+  if (o.monster) { add('jawOpen', .3); add('mouthStretchLeft', .35); add('mouthStretchRight', .35); add('mouthLowerDownLeft', .3); add('mouthLowerDownRight', .3); }   // 25 ноя (критик): рот приоткрыт, оскал — не «скучающее лицо»
   // взгляд: голова почти довернулась к цели — глаза доводят остаток. Живой взгляд держится на цели,
   // изредка — едва заметный скачок (1–2°); в тревоге — чаще и шире, но без беготни по сторонам
   if (!o.dead && C.lookDir && C.headFwd) {
@@ -2355,7 +2414,7 @@ function castV3() {
   A.katyaThing = H(Object.assign({ name: 'katyaThing', noBlink: true, grey: .85, smile: 2.1, deadEyes: 0x000000, socket: 1, tilt: .22, jerk: true }, lily));
   // Оно: выше двери, истощённое, серая сухая кожа (не блестит), чёрные глаза, длинные пальцы и шея; мокрые чёрные волосы
   A.monster = H({ name: 'monster', model: 'tenant', monster: true, shroud: true, gown: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
-    deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
+    deadEyes: 0xbdb7a0, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0x9c978a, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
   // двойник Итана (смерть «Ты назвался»): та же куртка, но кожа серая, глаза чёрные, не моргает; голова поворачивается дальше человеческого
