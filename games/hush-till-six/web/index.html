@@ -812,6 +812,55 @@ body.land .studio .logo { top: 80%; }
 </div>
 <script src="compat.js?v=1"></script>
 <script>
+/* 25 ноя (владелец): на сайте играют только с ПК. Телефоны и планшеты (и в режиме «Версия для ПК» тоже) видят экран «Скачать в Google Play»,
+   игра дальше не грузится (window.stop). Приложения (Android nsAppNative, Steam nsDesktop, ТВ) и автотесты (webdriver) не трогаем. */
+(function () {
+  try {
+    if (window.nsDesktop || window.nsAppNative || window.nsTV || (navigator.webdriver && !/[?&]mbtest=1/.test(location.search)) || location.hostname === 'appassets.androidplatform.net') return;   /* ?mbtest=1 — проверка экрана в автотесте */
+    var U = navigator.userAgent || '', mm = function (q) { try { return matchMedia(q).matches; } catch (e) { return false; } }, tp = navigator.maxTouchPoints || 0;
+    var mob = (navigator.userAgentData && navigator.userAgentData.mobile) || /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|Opera Mini|IEMobile|webOS|BlackBerry/i.test(U)
+      || (/Macintosh/.test(U) && tp > 1)   /* iPad в режиме ПК */
+      || (mm('(any-pointer: coarse)') && !mm('(any-pointer: fine)'))   /* только палец, без мыши — телефон в режиме ПК */
+      || (tp > 0 && Math.min(screen.width, screen.height) < 600)
+      || (/Linux/.test(U) && !/CrOS/.test(U) && tp > 0 && !mm('(any-hover: hover)'));
+    if (!mob) return;
+    var GP = 'https://play.google.com/store/apps/details?id=com.yompix.hushtillsix', ios = /iPhone|iPad|iPod/.test(U) || (/Macintosh/.test(U) && tp > 0);
+    var q = /[?&]lang=([a-z]{2})\b/.exec(location.search), l = q && q[1];
+    if (!l) { try { l = JSON.parse(localStorage.getItem('ns1_lang')); } catch (e) {} }
+    if (!l) { var n = (navigator.language || '').toLowerCase(); l = /^(ru|be|kk)/.test(n) ? 'ru' : n.slice(0, 2); }
+    try { if (l === 'ru' && /^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) l = 'uk'; } catch (e) {}
+    var M = {
+      en: ['On phones and tablets the game is now on Google Play', 'Download on Google Play', 'In the browser the game runs on PC only.', 'iPhone and iPad version is not available yet — play on PC.'],
+      ru: ['На телефоне и планшете игра теперь в Google Play', 'Скачать в Google Play', 'В браузере игра работает только на ПК.', 'Версии для iPhone и iPad пока нет — играйте на ПК.'],
+      uk: ['На телефоні й планшеті гра тепер у Google Play', 'Завантажити в Google Play', 'У браузері гра працює лише на ПК.', 'Версії для iPhone та iPad поки немає — грайте на ПК.'],
+      de: ['Auf Handy und Tablet gibt es das Spiel jetzt bei Google Play', 'Bei Google Play laden', 'Im Browser läuft das Spiel nur am PC.', 'Für iPhone und iPad gibt es noch keine Version — spiel am PC.'],
+      es: ['En móviles y tabletas el juego ya está en Google Play', 'Descargar en Google Play', 'En el navegador el juego solo funciona en PC.', 'Aún no hay versión para iPhone y iPad: juega en PC.'],
+      fr: ['Sur téléphone et tablette, le jeu est maintenant sur Google Play', 'Télécharger sur Google Play', 'Dans le navigateur, le jeu fonctionne uniquement sur PC.', 'Pas encore de version iPhone/iPad — joue sur PC.'],
+      it: ['Su telefono e tablet il gioco è ora su Google Play', 'Scarica su Google Play', 'Nel browser il gioco funziona solo su PC.', 'La versione per iPhone e iPad non c’è ancora: gioca su PC.'],
+      pl: ['Na telefonie i tablecie gra jest teraz w Google Play', 'Pobierz z Google Play', 'W przeglądarce gra działa tylko na PC.', 'Wersji na iPhone i iPad jeszcze nie ma — graj na PC.'],
+      pt: ['No celular e tablet o jogo agora está no Google Play', 'Baixar no Google Play', 'No navegador o jogo funciona só no PC.', 'Ainda não há versão para iPhone e iPad — jogue no PC.'],
+      tr: ['Telefon ve tablette oyun artık Google Play’de', 'Google Play’den indir', 'Tarayıcıda oyun yalnızca PC’de çalışır.', 'iPhone ve iPad sürümü henüz yok — PC’de oyna.'],
+      zh: ['手机和平板请到 Google Play 下载游戏', '在 Google Play 下载', '浏览器版仅支持电脑。', '暂无 iPhone / iPad 版本——请在电脑上玩。'],
+      ja: ['スマホ・タブレット版は Google Play で配信中', 'Google Play でダウンロード', 'ブラウザ版は PC 専用です。', 'iPhone / iPad 版はまだありません。PC で遊んでください。'],
+      ko: ['휴대폰과 태블릿에서는 이제 Google Play에서 플레이하세요', 'Google Play에서 다운로드', '브라우저 버전은 PC 전용입니다.', 'iPhone / iPad 버전은 아직 없습니다 — PC에서 플레이하세요.']
+    }, t = M[l] || M.en;
+    var css = 'html,body{margin:0;height:100%;background:#07080a;color:#e8e4da;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}'
+      + '.mb{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 20px;gap:18px;background:radial-gradient(ellipse at 50% 30%,#1a1d22 0%,#07080a 70%)}'
+      + '.mb h1{margin:0;font-size:30px;letter-spacing:.14em;font-weight:800;color:#f2efe6;text-shadow:0 0 18px rgba(200,40,30,.45)}.mb h1 b{color:#c8281e}'
+      + '.mb p{margin:0;max-width:360px;color:#b9b4a8}.mb .big{font-size:19px;color:#f2efe6;font-weight:600}'
+      + '.mb a{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:12px;background:#f2efe6;color:#111;text-decoration:none;font-weight:700;font-size:17px;box-shadow:0 6px 24px rgba(0,0,0,.5)}'
+      + '.mb a i{width:0;height:0;border-left:16px solid #1a9e4b;border-top:10px solid transparent;border-bottom:10px solid transparent}.mb small{color:#7d786d;font-size:13px}';
+    document.title = 'Hush Till Six';
+    document.head.insertAdjacentHTML('beforeend', '<style>' + css + '</style>');
+    document.body.className = ''; document.body.innerHTML = '<div class="mb"><h1>HUSH TILL <b>SIX</b></h1><p class="big">' + t[0] + '</p>'
+      + (ios ? '' : '<a href="' + GP + '" rel="noopener"><i></i>' + t[1] + '</a>') + '<p>' + t[2] + '</p>' + (ios ? '<p>' + t[3] + '</p>' : '') + '<small>yompix.github.io</small></div>';
+    try { var z = innerWidth / Math.min(screen.width, screen.height); if (z > 1.2) document.body.style.zoom = Math.min(3, z); } catch (e) {}   /* режим «Версия для ПК»: страница шире экрана — текст не мелкий */
+    window.__mobileBlock = 1; try { window.stop(); } catch (e) {}
+    throw 0;
+  } catch (e) { if (window.__mobileBlock) { try { document.execCommand('Stop'); } catch (x) {} } }
+})();
+</script>
+<script>
 /* 24 ноя (владелец: «заставка в начале с опозданием»): на сайте «Нажми, чтобы начать» видно сразу, пока качаются тяжёлые файлы игры.
    Нажатие здесь же создаёт звук (так требует браузер) — engine.js берёт этот AudioContext и сразу запускает заставку со звуком. */
 (function () {
