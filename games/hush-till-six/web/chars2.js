@@ -1994,6 +1994,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
       .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('))
       // глубже во рту свет не бликует: нёбо в «Кино» блестело серебром (или рыжим от тёплого света) — там выход не ярче самого цвета
       .replace('#include <opaque_fragment>', '#include <opaque_fragment>' + (kind === 'teeth' || kind === 'tongue' ? '\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, min(gl_FragColor.rgb, diffuseColor.rgb * .8), smoothstep(.08, .6, mouthD));' : '')
+        + (shroud ? '\n  { float lc = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(lc) * vec3(.82, .81, .76), .75 * gCloth); }   /* 25 ноя (критик): саван не красится в персиковый/зелёный от ламп будки — ткань почти бесцветная */' : '')
         + (kind === 'skin' && CINE ? '\n  { float lm = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb += vec3(.04, .01, .0025) * (1. - smoothstep(.03, .32, lm)) * diffuseColor.r * (1. - uGrey); }' : ''));   // кожа: в тенях чуть тёплого (кровь под кожей), не серый пластик; на свету тёплый край даёт RE_Direct_Hum
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
@@ -2295,7 +2296,8 @@ float gH(vec2 sv, vec3 g, float f, float aF, float aN) { return sin(atan(sv.x, s
     vec2 dh = vec2(gH(vS + dFdx(vS), vG + dFdx(vG), vF + dFdx(vF), aaF, aaN) - h0, gH(vS + dFdy(vS), vG + dFdy(vG), vF + dFdy(vF), aaF, aaN) - h0);
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(.93, .5, gWet);');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(.93, .5, gWet);')
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  { float lc = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(lc) * vec3(.82, .81, .76), .75); }');   /* 25 ноя (критик): саван не персиковый/зелёный от ламп — почти бесцветный */
   };
   m.customProgramCacheKey = () => 'gown2' + (CINE ? 'c' : '');
   return m;
@@ -2414,7 +2416,7 @@ function castV3() {
   A.katyaThing = H(Object.assign({ name: 'katyaThing', noBlink: true, grey: .85, smile: 2.1, deadEyes: 0x000000, socket: 1, tilt: .22, jerk: true }, lily));
   // Оно: выше двери, истощённое, серая сухая кожа (не блестит), чёрные глаза, длинные пальцы и шея; мокрые чёрные волосы
   A.monster = H({ name: 'monster', model: 'tenant', monster: true, shroud: true, gown: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
-    deadEyes: 0xbdb7a0, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0x9c978a, hair: [0x0a0a0a, 1, .6] } });
+    deadEyes: 0xa8a28c, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0x9c978a, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
   // двойник Итана (смерть «Ты назвался»): та же куртка, но кожа серая, глаза чёрные, не моргает; голова поворачивается дальше человеческого
