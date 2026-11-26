@@ -526,6 +526,16 @@ public final class Housing {
         for (ServerPlayerEntity o : p.getServer().getPlayerManager().getPlayerList()) pins(o);
     }
 
+    /** 0.9.8: изъятие банком в счёт кредита (gta/Loans): дом уходит, машины из гаража — на штрафстоянку. */
+    public static void repossess(MinecraftServer server, UUID who, String id) {
+        Listing l = BY_ID.get(id);
+        if (l == null) return;
+        ServerPlayerEntity p = server.getPlayerManager().getPlayer(who);
+        if (p != null && l.flag != null) Life.get(p).flags.remove(l.flag);
+        evict(server, who, l);
+        for (ServerPlayerEntity o : server.getPlayerManager().getPlayerList()) pins(o);
+    }
+
     private static void evict(MinecraftServer server, UUID who, Listing l) {
         State st = state(server);
         st.owner(who).homes.remove(l.id);

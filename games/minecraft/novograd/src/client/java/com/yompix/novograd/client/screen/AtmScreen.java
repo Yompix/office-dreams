@@ -36,6 +36,31 @@ public class AtmScreen extends LifeScreen {
         this.cash = cash;
     }
 
+    /** 0.9.8: карта уже вставлена руками у банкомата — экран сразу с меню, сбоку (мир и руки видны). */
+    private boolean physical, didOp;
+
+    public AtmScreen physical(boolean on) {
+        physical = on;
+        if (on) go(Stage.MENU);
+        return this;
+    }
+
+    @Override
+    protected void background(DrawContext ctx) {
+        if (!physical) super.background(ctx);
+        else ctx.fillGradient(width / 2, 0, width, height, 0x00000000, 0x90000000);
+    }
+
+    @Override
+    public void close() {
+        if (physical && !didOp) { // ничего не сделал — забрать карту (руками)
+            NbtCompound n = new NbtCompound();
+            n.putString("action", "leave");
+            NovogradClient.send("atm", n);
+        }
+        super.close();
+    }
+
     private void go(Stage s) {
         stage = s;
         stageAt = System.currentTimeMillis();
@@ -53,7 +78,7 @@ public class AtmScreen extends LifeScreen {
     @Override
     protected void draw(DrawContext ctx, float delta) {
         int w = 300, h = 236;
-        int x = width / 2 - w / 2, y = height / 2 - h / 2 + (int) ((1 - openAnim()) * 30);
+        int x = physical ? Math.max(width / 2 + 10, width - w - 24) : width / 2 - w / 2, y = height / 2 - h / 2 + (int) ((1 - openAnim()) * 30);
         // корпус банкомата
         roundRect(ctx, x - 6, y - 6, w + 12, h + 12, 0xFF1B1E24);
         roundRect(ctx, x, y, w, h, 0xFF3A404C);
@@ -173,6 +198,10 @@ public class AtmScreen extends LifeScreen {
             }
             case PROCESS -> {
                 center(ctx, "Обработка операции…", cx, sy + 36, 0xFFFFFFFF);
+                if (physical && answered && error.isEmpty() && since() > 0.35f) { // 0.9.8: дальше — руками в мире (купюры из лотка)
+                    super.close();
+                    return;
+                }
                 // крутилка
                 float a = since() * 6;
                 for (int i = 0; i < 8; i++) {
@@ -195,6 +224,10 @@ public class AtmScreen extends LifeScreen {
                 center(ctx, "Остаток: $" + balance, cx, sy + 80, 0xFF9FD3FF);
             }
             case DEPOSIT -> {
+                if (physical && answered && since() > 0.5f) {
+                    super.close();
+                    return;
+                }
                 center(ctx, "Пересчёт купюр…", cx, sy + 30, 0xFFFFFFFF);
                 center(ctx, "Зачислено $" + sum, cx, sy + 52, since() > 1 ? 0xFF66FF88 : 0x00000000);
                 center(ctx, "Баланс: $" + balance, cx, sy + 80, 0xFF9FD3FF);
@@ -226,6 +259,7 @@ public class AtmScreen extends LifeScreen {
         n.putInt("amount", amount);
         NovogradClient.send("atm", n);
         go(Stage.PROCESS);
+        didOp = true;
     }
 
     private void deposit() {
@@ -240,6 +274,7 @@ public class AtmScreen extends LifeScreen {
         for (int v : new int[]{100, 50, 10}) while (left >= v && bills.size() < 12) { bills.add(v); left -= v; }
         sum = cash;
         go(Stage.DEPOSIT);
+        didOp = true;
     }
 
     /** Ответ сервера. */

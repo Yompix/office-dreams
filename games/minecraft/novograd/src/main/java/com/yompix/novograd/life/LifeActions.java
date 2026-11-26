@@ -20,7 +20,7 @@ public final class LifeActions {
         switch (kind) {
             case CHALKBOARD -> {}
             case DESK -> SeatBlockHelper.sit(world, pos, p, 0.3);
-            case ATM -> Bank.useAtm(p, stack);
+            case ATM -> Bank.useAtm(p, stack, pos, state); // 0.9.8: подойти, карта, PIN — руками
             case JOB_BOARD -> Jobs.jobBoard(p);
             case MAILBOX -> Jobs.mailbox(p, pos, stack);
             case SHOP_COUNTER -> Jobs.cashier(p);

@@ -43,7 +43,7 @@ public final class ShowAutotest {
         String mode = System.getProperty("novograd.autotest");
         if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife")
                 || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
-                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap"))) return;
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -56,7 +56,7 @@ public final class ShowAutotest {
         cmd(5, "clear " + P);
         cmd(5, "effect clear " + P);
         if (mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
-                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap")) server(5, s -> {
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow")) server(5, s -> {
             var d = com.yompix.novograd.life.Life.get(pl(s));
             d.storyStarted = true;
             d.storyDone = true;
@@ -73,6 +73,9 @@ public final class ShowAutotest {
         else if (mode.equals("bodyshow")) BodyShow.bodyshow();
         else if (mode.equals("agetest")) BodyShow.agetest();
         else if (mode.equals("spawnmap")) BodyShow.spawnmap();
+        else if (mode.equals("handshow")) HandShow.handshow(); // 0.9.8: «Руки»
+        else if (mode.equals("bankshow")) HandShow.bankshow(); // 0.9.8: «Сити-Банк» до/после
+        else if (mode.equals("gaitshow")) HandShow.gaitshow(); // 0.9.8: походка до/после
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }

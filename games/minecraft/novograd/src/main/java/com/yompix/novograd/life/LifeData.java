@@ -75,6 +75,8 @@ public class LifeData {
     public long gymDay = -1;
     /** Навыки как в SA (gta/Skills): id → очки 0..1000 (вождение, мотоцикл, полёт, стрельба по классам, плавание, скрытность…). */
     public java.util.Map<String, Integer> skills = new java.util.HashMap<>();
+    /** 0.9.8: кредит и кредитная история (gta/Loans): score, principal, pay, left, next, rate, missed, stage, hist, earn7… Пусто — кредита не было. */
+    public NbtCompound loan = new NbtCompound();
 
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
@@ -192,6 +194,7 @@ public class LifeData {
         NbtCompound sk = new NbtCompound();
         skills.forEach(sk::putInt);
         n.put("skills", sk);
+        n.put("loan", loan.copy());
         return n;
     }
 
@@ -264,6 +267,7 @@ public class LifeData {
         d.gymDay = n.contains("gymDay") ? n.getLong("gymDay") : -1;
         NbtCompound sk = n.getCompound("skills");
         for (String k : sk.getKeys()) d.skills.put(k, sk.getInt(k));
+        d.loan = n.getCompound("loan").copy();
         return d;
     }
 }

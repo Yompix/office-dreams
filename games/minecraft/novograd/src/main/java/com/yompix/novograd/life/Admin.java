@@ -46,6 +46,8 @@ public final class Admin {
         /** 0.9.7: бензин — "normal", "slow" (вдвое медленнее) или "off" (не тратится); fuelRate — множитель расхода. */
         public String fuelMode = "normal";
         public double fuelRate = 1.0;
+        /** 0.9.8: кредит — платёж раз в столько игровых дней (1 день = 20 минут). */
+        public int loanPeriodDays = 3;
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

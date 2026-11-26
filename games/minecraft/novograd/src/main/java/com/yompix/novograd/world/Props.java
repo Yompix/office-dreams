@@ -164,6 +164,9 @@ public final class Props {
 
     private static void vending(ServerWorld w, BlockPos pos, ServerPlayerEntity p) {
         if (cooldown(p, "vend", 20)) return;
+        if (com.yompix.novograd.life.Hands.busy(p)) return;
+        com.yompix.novograd.life.HandUses.vending(w, pos, p, JAMMED); // 0.9.8: руками — монетка, кнопка, банка, выпить
+        if (true) return;
         boolean snack = p.isSneaking();
         if (!Life.pay(p, snack ? 4 : 3, snack ? "чипсы «Хруст»" : "газировка «Новоград-Кола»")) return;
         w.playSound(null, pos, SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 0.8f, 0.7f); // бам — банка упала
@@ -264,6 +267,10 @@ public final class Props {
 
     private static void food(ServerWorld w, BlockPos pos, ServerPlayerEntity p, int price, int hunger, float heal, String what, String[] lines) {
         if (cooldown(p, "food", 30)) return;
+        if (com.yompix.novograd.life.Hands.busy(p)) return;
+        // 0.9.8: руками — заказал, заплатил, получил, съел
+        com.yompix.novograd.life.HandUses.stall(w, pos, p, "food", price, hunger, heal, what, lines[w.random.nextInt(lines.length)]);
+        if (true) return;
         if (!Life.pay(p, price, what)) return;
         p.getHungerManager().add(hunger, 0.6f);
         p.heal(heal);
@@ -278,6 +285,10 @@ public final class Props {
 
     private static ActionResult useVanilla(ServerWorld w, BlockPos pos, ServerPlayerEntity p, ItemStack hand) {
         BlockState st = w.getBlockState(pos);
+        // 0.9.8: дверь — рука на ручку (видно всем); колонка на заправке пешком — бензин/ремонт руками
+        if (st.getBlock() instanceof DoorBlock || st.getBlock() instanceof net.minecraft.block.FenceGateBlock || st.getBlock() instanceof net.minecraft.block.TrapdoorBlock)
+            com.yompix.novograd.life.Hands.gesture(p, com.yompix.novograd.life.HandKind.DOOR, "");
+        if (hand.isEmpty() && !com.yompix.novograd.life.Hands.busy(p) && com.yompix.novograd.life.HandUses.pump(p, pos)) return ActionResult.SUCCESS;
         if (st.isOf(ModContent.ATM) && p.isSneaking() && hand.getItem() instanceof SwordItem) {
             pryAtm(w, pos, p);
             return ActionResult.SUCCESS;

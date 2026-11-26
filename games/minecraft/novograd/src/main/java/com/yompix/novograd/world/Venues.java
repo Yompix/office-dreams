@@ -604,7 +604,9 @@ public final class Venues {
         Dish[] menu = s.kind() == Kind.MARKET ? MARKET_MENU : CAFE_MENU;
         if (i < 0 || i >= menu.length) return;
         Dish d = menu[i];
+        boolean cashPay = com.yompix.novograd.life.HandUses.paysCash(p, d.price());
         if (!Life.pay(p, d.price(), d.name() + " · " + s.name())) return;
+        com.yompix.novograd.life.HandUses.checkout(p, cashPay, null); // 0.9.8: оплата на кассе руками
         ItemStack it = d.item().get();
         if (!p.getInventory().insertStack(it)) p.dropItem(it, false);
         p.playSoundToPlayer(ModContent.CASH, SoundCategory.PLAYERS, 0.6f, 1.3f);

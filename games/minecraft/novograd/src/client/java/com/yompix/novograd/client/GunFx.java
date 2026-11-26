@@ -251,6 +251,19 @@ public final class GunFx {
         cueP = 0;
     }
 
+    /** 0.9.8: для вида от третьего лица — с пустого ли и сколько патронов дробовику. */
+    public static boolean reloadEmpty() {
+        return reloadEmpty;
+    }
+
+    public static int reloadShells() {
+        return reloadShells;
+    }
+
+    public static float reloadSeconds() {
+        return reloadLen / 1e9f;
+    }
+
     /** 0..1 — ход перезарядки, или -1. */
     public static float reloadProgress(Item item) {
         if (reloadItem != item || reloadLen <= 0) return -1;
@@ -754,5 +767,6 @@ public final class GunFx {
             model.head.roll = 0.12f * s * aim;
             model.hat.roll = model.head.roll;
         }
+        com.yompix.novograd.client.anim.GunThird.gunPose(model, e); // 0.9.8: перезарядка своего типа, достать, отдача
     }
 }

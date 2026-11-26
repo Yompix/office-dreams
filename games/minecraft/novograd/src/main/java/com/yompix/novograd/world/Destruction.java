@@ -362,7 +362,7 @@ public final class Destruction {
         w.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, new ItemStack(Items.BONE_MEAL)), c.x, c.y + 0.3, c.z, n / 2, 0.4, 0.3, 0.4, 0.15);
     }
 
-    static void dropCan(ServerWorld w, Vec3d c) {
+    public static void dropCan(ServerWorld w, Vec3d c) {
         var it = new net.minecraft.entity.ItemEntity(w, c.x, c.y + 0.3, c.z, new ItemStack(ModContent.COLA));
         it.setVelocity((w.random.nextDouble() - 0.5) * 0.2, 0.25, (w.random.nextDouble() - 0.5) * 0.2);
         it.setToDefaultPickupDelay();

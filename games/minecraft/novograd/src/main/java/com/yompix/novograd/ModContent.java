@@ -76,7 +76,9 @@ public final class ModContent {
     public static final Block LAMP_POST = block("lamp_post", new FacingBlock(metal().nonOpaque(), box(6, 0, 6, 10, 16, 10)));
     public static final Block STREET_LAMP = block("street_lamp", new FacingBlock(metal().nonOpaque().luminance(s -> 15),
             VoxelShapes.union(box(6, 0, 6, 10, 16, 10), box(5, 12, 0, 11, 16, 6))));
-    public static final Block ATM = block("atm", new LifeBlock(metal().nonOpaque(), LifeBlock.Kind.ATM, box(1, 0, 2, 15, 16, 16)));
+    // 0.9.8: банкомат — новая модель (экран, клавиатура, прорези, козырёк; 1,9 блока в высоту, коллизия — нижний блок) и настенный в нише фасада
+    public static final Block ATM = block("atm", new LifeBlock(metal().nonOpaque().luminance(s -> 4), LifeBlock.Kind.ATM, box(1, 0, 1, 15, 16, 16)));
+    public static final Block ATM_WALL = block("atm_wall", new LifeBlock(metal().nonOpaque().luminance(s -> 4), LifeBlock.Kind.ATM, box(0, 0, 1, 16, 16, 16)));
     public static final Block JOB_BOARD = block("job_board", new LifeBlock(wood().nonOpaque(), LifeBlock.Kind.JOB_BOARD, box(0, 0, 12, 16, 16, 16)));
     public static final Block MAILBOX = block("mailbox", new LifeBlock(metal().nonOpaque(), LifeBlock.Kind.MAILBOX,
             VoxelShapes.union(box(4, 7, 3, 12, 15, 13), box(7, 0, 7, 9, 7, 9))));

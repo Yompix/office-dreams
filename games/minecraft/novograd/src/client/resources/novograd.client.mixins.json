@@ -11,6 +11,8 @@
     "PreviewWalkMixin",
     "ChatLiftMixin",
     "GunHeldItemMixin",
+    "HandsFirstPersonMixin",
+    "ShowCameraMixin",
     "GunCooldownMixin",
     "GunCameraMixin",
     "GunPoseMixin",

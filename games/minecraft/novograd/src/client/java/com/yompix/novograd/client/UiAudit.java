@@ -118,6 +118,14 @@ public final class UiAudit {
         screen("shop", c -> new com.yompix.novograd.client.screen.ShopScreen(true));
         screen("shop_guns", c -> new com.yompix.novograd.client.screen.ShopScreen(true, true));
         screen("atm", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400));
+        screen("atm_physical", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400).physical(true)); // 0.9.8: у банкомата, мир виден
+        screen("loan", c -> { // 0.9.8: кредит — предложение
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putInt("score", 684); n.putString("band", "хороший"); n.putInt("income", 1240); n.putInt("limit", 18_500);
+            n.putDouble("rateMonth", 4.9); n.putDouble("periodRate", 0.0049); n.putInt("period", 3); n.putLong("day", 12);
+            com.yompix.novograd.client.screen.LoanScreen.state = n;
+            return new com.yompix.novograd.client.screen.LoanScreen();
+        });
         screen("finance", c -> new com.yompix.novograd.client.screen.FinanceScreen());
         screen("news", c -> new com.yompix.novograd.client.screen.NewsScreen());
         screen("collections", c -> new com.yompix.novograd.client.screen.CollectionsScreen());

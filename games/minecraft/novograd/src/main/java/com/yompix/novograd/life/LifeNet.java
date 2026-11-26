@@ -65,7 +65,7 @@ public final class LifeNet {
     }
 
     private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none",
-            "gym_curl", "gym_bench", "gym_pullup", "gym_bag", "gym_pushup", "gym_run", "gym_squat", "gym_yoga");
+            "gym_curl", "gym_bench", "gym_pullup", "gym_bag", "gym_pushup", "gym_run", "gym_squat", "gym_yoga", "phone_ear", "phone_text");
 
     /** 0.8: разослать жест игрокам в том же мире ближе 160 блоков (только внешний вид, без механики). */
     private static void emote(ServerPlayerEntity p, String id) {
@@ -136,6 +136,7 @@ public final class LifeNet {
             }
             case "mycars" -> com.yompix.novograd.gta.MyCars.handle(p, d.getString("act"), d);
             case "stash" -> com.yompix.novograd.gta.Money.stashAction(p, d.getString("act"), d.getInt("amount"));
+            case "stash_open" -> HandUses.stashOpen(p); // 0.9.8: дома — к сейфу руками, потом экран
             case "stash_state" -> com.yompix.novograd.gta.Money.sendStash(p);
             case "bj" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet")); }
             case "crash_start" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto")); }
@@ -175,6 +176,8 @@ public final class LifeNet {
                 }
             }
             default -> {
+                if (type.startsWith("hand_") && Hands.handle(p, type, d)) return; // 0.9.8: руки — прервать, закурить, выпить
+                if (type.startsWith("loan_") && com.yompix.novograd.gta.Loans.handle(p, type, d)) return; // 0.9.8: кредит
                 if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
                 if (type.startsWith("city_") && com.yompix.novograd.gta.CityServices.handle(p, type, d)) return; // автобусы, службы города
                 if (type.startsWith("call_") && com.yompix.novograd.story.Calls.handle(p, type, d)) return; // звонки героев, «Контакты»
