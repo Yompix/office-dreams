@@ -1,6 +1,7 @@
 package com.godot.game;
 
-// LANTERN 2.0 by Yompix Games: покупки Google Play (Play Billing Library 7). Плагин Godot v2:
+// LANTERN 2.0 by Yompix Games: покупки Google Play (Play Billing Library 8; 2.0.4: 7 → 8, с 31.08.2026 Play не
+// принимает новые приложения и обновления на Billing 7). Плагин Godot v2:
 // manifest meta-data org.godotengine.plugin.v2.LanternBilling → Engine.get_singleton("LanternBilling").
 // Работает только в сборке из Google Play (или у тестировщиков Play Console). В APK со стороны (sideload)
 // подключение к Play не удаётся — приложение это видит (событие {"k":"state","ok":false}) и платное просто прячет.
@@ -27,6 +28,7 @@ import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.QueryPurchasesParams;
 
 import org.godotengine.godot.Godot;
@@ -112,8 +114,9 @@ public class LanternBilling extends GodotPlugin implements PurchasesUpdatedListe
 			if (!id.trim().isEmpty()) list.add(QueryProductDetailsParams.Product.newBuilder().setProductId(id.trim()).setProductType(type).build());
 		}
 		if (list.isEmpty()) return;
-		client.queryProductDetailsAsync(QueryProductDetailsParams.newBuilder().setProductList(list).build(), (r, pds) -> {
+		client.queryProductDetailsAsync(QueryProductDetailsParams.newBuilder().setProductList(list).build(), (r, res) -> {
 			JSONArray arr = new JSONArray();
+			List<ProductDetails> pds = res != null ? res.getProductDetailsList() : null;
 			if (pds != null) {
 				for (ProductDetails d : pds) {
 					details.put(d.getProductId(), d);

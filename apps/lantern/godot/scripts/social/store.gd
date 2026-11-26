@@ -1,7 +1,7 @@
 class_name Store
 extends RefCounted
 ## Покупки Google Play и реклама AdMob.
-## 2.0: покупки — свой плагин LanternBilling (Play Billing Library 7, addons/lantern_android/android/LanternBilling.java).
+## 2.0: покупки — свой плагин LanternBilling (Play Billing Library 8, addons/lantern_android/android/LanternBilling.java).
 ## Порядок: Play показывает оплату → токен покупки уходит на сервер LANTERN → сервер проверяет его у Google
 ## (relay/billing.js) и начисляет → для искр приложение «расходует» покупку (можно купить снова).
 ## Нет Google Play (APK со стороны, ПК, эмулятор без Play) — платное просто не показывается, остальное работает.
@@ -112,9 +112,15 @@ static func ads_config() -> Dictionary:
 	return d
 
 
+## 2.0.4: есть ли что показать по «Смотреть рекламу»: ДЕМО (отладка) или настоящий AdMob. В выпуске AdMob не подключён —
+## кнопки нет (иначе в Google Play был бы фальшивый экран «Тестовая реклама», а в анкете Play — «рекламы нет»).
+static func ads_available() -> bool:
+	return Social.demo or (Engine.has_singleton("PoingGodotAdMob") and bool(ads_config().enabled))
+
+
 ## Реклама за награду: ДЕМО — экран «Тестовая реклама»; при настроенном AdMob — настоящий ролик.
 static func show_rewarded(app: Control) -> void:
-	if not Cfg.paid():
+	if not Cfg.paid() or not ads_available():
 		return
 	if Social.demo or not Engine.has_singleton("PoingGodotAdMob") or not ads_config().enabled:
 		Overlays.ad(app, true)

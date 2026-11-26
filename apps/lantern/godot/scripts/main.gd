@@ -84,7 +84,7 @@ func _ready() -> void:
 	vnet = VNet.new()
 	vnet.name = "VNet"
 	vnet.relay_url = Cfg.relay_url()
-	vnet.allow_p2p = Cfg.get_value("net", "p2p", true) and Cfg.autotest_args.get("vnet_p2p", "1") != "0"
+	vnet.allow_p2p = Cfg.p2p_allowed() and Cfg.get_value("net", "p2p", true) and Cfg.autotest_args.get("vnet_p2p", "1") != "0"
 	vnet.token_fn = func() -> String: return Social.token
 	add_child(vnet)
 	vnet.event.connect(_on_vnet_event)

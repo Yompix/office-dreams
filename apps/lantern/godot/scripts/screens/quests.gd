@@ -154,7 +154,7 @@ func _quests() -> void:
 		lv.add_child(bar)
 		lv.add_child(UI.para(L.t("%d / %d очков света до следующего уровня") % [int(lan.minutes), int(lan.next)], 12, UI.DIM))
 	right.add_child(lp)
-	if Cfg.paid():
+	if Cfg.paid() and Store.ads_available():     # 2.0.4: без настоящей рекламы кнопки нет
 		var left_ads := int(e.get("ads_left", 3))
 		var ab := UI.button(L.t("Смотреть рекламу"), "tonal", func(): Store.show_rewarded(app), "play")
 		ab.disabled = left_ads <= 0

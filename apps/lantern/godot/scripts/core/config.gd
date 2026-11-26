@@ -3,7 +3,7 @@ extends Node
 ## Никаких паролей и ключей здесь нет.
 
 const APP_NAME := "LANTERN"
-const APP_VERSION := "2.0.3"
+const APP_VERSION := "2.0.4"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Платные функции (LANTERN Pro, наборы искр, премиум-путь сезона, реклама) и их ДЕМО.
@@ -202,6 +202,18 @@ static func mode_name(m: String) -> String:
 func paid() -> bool:
 	# 2.0: платное видно, когда Google Play подключился (сборка из Play) — в APK со стороны и на ПК его нет совсем
 	return PAID or autotest_args.has("paid") or Store.ready
+
+
+## 2.0.4: ДЕМО покупок/рекламы — только в отладочных сборках и автотестах. В выпуске для Google Play его нет:
+## лист «как в Google Play» без оплаты и экран «Тестовая реклама» нарушают правила Play (платежи, реклама).
+func demo_allowed() -> bool:
+	return OS.is_debug_build() or autotest_args.has("paid")
+
+
+## 2.0.4: «Любые игры» на Android — только через relay (TLS). Правила Google Play для VpnService требуют шифровать
+## трафик от устройства до конца туннеля, а P2P-пакеты только подписаны (docs/VLAN.md §5).
+static func p2p_allowed() -> bool:
+	return OS.get_name() != "Android"
 
 
 func mobile() -> bool:
