@@ -48,6 +48,10 @@ public final class NovogradConfig {
     public boolean liveAnims = true;
     /** 0.8: от первого лица качается только предмет в руке; камера при ходьбе не качается (true — как в Minecraft). */
     public boolean camBob = false;
+    /** 0.9.6: предупреждение «Мод для взрослых 18+» показано и принято (один раз на установку). */
+    public boolean adultOk;
+    /** 0.9.6: сообщения мода в чат (по умолчанию — всплывашкой, чат для игроков). */
+    public boolean modChat;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static NovogradConfig cfg;

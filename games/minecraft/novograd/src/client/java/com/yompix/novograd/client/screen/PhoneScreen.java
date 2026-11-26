@@ -43,7 +43,7 @@ public class PhoneScreen extends LifeScreen {
             new App("weather", "Погода", 0xFF5B8FB0), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
             new App("taxi", "Такси", 0xFFE0B020), new App("friends", "Друзья", 0xFF6A5F80), new App("missions", "Задания", 0xFFD32F2F),
-            new App("style", "Стиль", 0xFFD42A3A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
+            new App("style", "Стиль", 0xFFD42A3A), new App("looks", "Внешность", 0xFFB96890), new App("guide", "Гид", 0xFFFFC428), new App("mycars", "Мои машины", 0xFF00897B), new App("stash", "Тайник", 0xFFA0785A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
             new App("auto", "Авто", 0xFF00897B),
             new App("collect", "Коллекции", 0xFFC2405A),
             new App("skills", "Навыки", 0xFF3FB8B0), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
@@ -270,6 +270,10 @@ public class PhoneScreen extends LifeScreen {
             case "shop" -> mc().setScreen(new ShopScreen(true));
             case "camera" -> NovogradClient.takePhoto();
             case "style" -> com.yompix.novograd.client.style.StyleClient.phone();
+            case "looks" -> com.yompix.novograd.client.style.StyleClient.creator();
+            case "guide" -> mc().setScreen(new com.yompix.novograd.client.guide.GuideScreen());
+            case "mycars" -> mc().setScreen(new com.yompix.novograd.client.city.MyCarsScreen());
+            case "stash" -> mc().setScreen(new com.yompix.novograd.client.city.StashScreen());
             case "finance" -> mc().setScreen(new FinanceScreen());
             case "news" -> mc().setScreen(new NewsScreen());
             case "collect" -> mc().setScreen(new CollectionsScreen());

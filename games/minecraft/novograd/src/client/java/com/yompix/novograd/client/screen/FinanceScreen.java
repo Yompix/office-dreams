@@ -34,15 +34,48 @@ public class FinanceScreen extends LifeScreen {
         int money = state.getInt("money"), dirty = state.getInt("dirty");
         switch (tab) {
             case "money" -> {
-                bigText(ctx, "$" + money, x + w / 2, cy + 10, 2.5f, 0xFF7CFF8A);
-                center(ctx, "на карте — чистые, тратятся везде и не пропадают", x + w / 2, cy + 40, 0xFFB0BEC5);
-                bigText(ctx, "$" + dirty, x + w / 2, cy + 62, 2f, 0xFFFF5252);
-                center(ctx, "грязные наличные — с ограблений, налётов и инкассаторов", x + w / 2, cy + 86, 0xFFB0BEC5);
-                int ty = cy + 104;
-                ty += wrap(ctx, "• Грязными платят у оружейника «Калибр» (чёрный рынок).", x + 14, ty, w - 28, 0xFFE0E0E0);
-                ty += 2 + wrap(ctx, "• Отмыть: каждый твой бизнес отмывает часть каждый день (85% на карту); Рэй на пристани Ривьеры — всё сразу, но берёт 30%.", x + 14, ty, w - 28, 0xFFE0E0E0);
-                ty += 2 + wrap(ctx, "• Риск: погиб — теряешь половину грязных, задержан — полиция забирает все.", x + 14, ty + 2, w - 28, 0xFFE0E0E0);
-                wrap(ctx, "• Сейфы бизнесов копят выручку до трёх дней — заезжай и забирай (золотая метка у бизнеса).", x + 14, ty + 2, w - 28, 0xFFE0E0E0);
+                // 0.9.6: карта · наличные · грязные, цены и проценты — цифрами
+                int cash = state.getInt("cash");
+                int cw = (w - 20) / 3;
+                String[][] cols = {{"$" + money, "КАРТА"}, {"$" + cash, "НАЛИЧНЫЕ"}, {"$" + dirty, "ГРЯЗНЫЕ"}};
+                int[] colors = {0xFF7CFF8A, 0xFFFFE08A, 0xFFFF5252};
+                for (int i = 0; i < 3; i++) {
+                    int cx = x + 10 + cw * i + cw / 2;
+                    bigText(ctx, cols[i][0], cx, cy + 8, 1.8f, colors[i]);
+                    center(ctx, cols[i][1], cx, cy + 30, 0xFFB0BEC5);
+                }
+                double cpi = state.contains("cpi") ? state.getDouble("cpi") : 1;
+                String[][] rows = {
+                        {"Цены", String.format(java.util.Locale.ROOT, "×%.3f", cpi)},
+                        {"Инфляция", String.format(java.util.Locale.ROOT, "%+.1f%% / мес.", state.getDouble("inflMonth"))},
+                        {"Вклад (остаток на карте)", String.format(java.util.Locale.ROOT, "+%.1f%% / мес.", state.getDouble("saveRate"))},
+                        {"Долг на карте", String.format(java.util.Locale.ROOT, "−%.0f%% / мес.", state.getDouble("loanRate"))},
+                        {"Счета вчера", "−$" + state.getInt("bills")},
+                        {"Проценты вчера", (state.getInt("interest") >= 0 ? "+$" : "−$") + Math.abs(state.getInt("interest"))}};
+                int ty = cy + 46;
+                for (String[] r : rows) {
+                    ctx.drawText(textRenderer, r[0], x + 16, ty, 0xFFE0E0E0, false);
+                    ctx.drawText(textRenderer, r[1], x + w - 16 - textRenderer.getWidth(r[1]), ty, 0xFFFFFFFF, true);
+                    ty += 12;
+                }
+                // график индекса цен
+                var hist = state.getList("cpiHistory", NbtElement.DOUBLE_TYPE);
+                int gx = x + 16, gw = w - 32, gy = ty + 6, gh = Math.max(16, y + h - gy - 10);
+                ctx.fill(gx, gy, gx + gw, gy + gh, 0x40000000);
+                if (hist.size() > 1) {
+                    double lo = Double.MAX_VALUE, hi = -Double.MAX_VALUE;
+                    for (int i = 0; i < hist.size(); i++) {
+                        lo = Math.min(lo, hist.getDouble(i));
+                        hi = Math.max(hi, hist.getDouble(i));
+                    }
+                    if (hi - lo < 1e-4) hi = lo + 1e-4;
+                    for (int i = 0; i < hist.size(); i++) {
+                        int px = gx + i * (gw - 2) / (hist.size() - 1);
+                        int py = gy + gh - 2 - (int) ((hist.getDouble(i) - lo) / (hi - lo) * (gh - 4));
+                        ctx.fill(px, py, px + 2, py + 2, 0xFFFFC428);
+                    }
+                }
+                ctx.drawText(textRenderer, "ЦЕНЫ", gx + 3, gy + 3, 0x90FFFFFF, false);
             }
             case "biz" -> {
                 var list = state.getList("biz", NbtElement.COMPOUND_TYPE);

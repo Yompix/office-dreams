@@ -51,6 +51,7 @@ public final class LifeNet {
         PayloadTypeRegistry.playC2S().register(C2S.ID, C2S.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(C2S.ID, (payload, ctx) -> {
             ServerPlayerEntity p = ctx.player();
+            if (!Admin.allow(p)) return; // 0.9.6: лимит пакетов от одного игрока
             try {
                 handle(p, payload.type(), payload.data());
             } catch (RuntimeException e) {
@@ -63,7 +64,8 @@ public final class LifeNet {
         ServerPlayNetworking.send(p, new S2C(type, data));
     }
 
-    private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none");
+    private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none",
+            "gym_curl", "gym_bench", "gym_pullup", "gym_bag", "gym_pushup", "gym_run", "gym_squat", "gym_yoga");
 
     /** 0.8: разослать жест игрокам в том же мире ближе 160 блоков (только внешний вид, без механики). */
     private static void emote(ServerPlayerEntity p, String id) {
@@ -117,7 +119,14 @@ public final class LifeNet {
             case "taxi_order" -> Jobs.takeTaxiOrder(p);
             case "work_answer" -> Jobs.answer(p, d);
             case "transfer" -> transfer(p, d.getString("to"), d.getInt("amount"));
-            case "atm" -> Bank.atm(p, d.getString("action"), d.getInt("amount"));
+            case "atm" -> {
+                String a = d.getString("action");
+                if (a.startsWith("cash_")) com.yompix.novograd.gta.Money.atm(p, a, d.getInt("amount"));
+                else Bank.atm(p, a, d.getInt("amount"));
+            }
+            case "mycars" -> com.yompix.novograd.gta.MyCars.handle(p, d.getString("act"), d);
+            case "stash" -> com.yompix.novograd.gta.Money.stashAction(p, d.getString("act"), d.getInt("amount"));
+            case "stash_state" -> com.yompix.novograd.gta.Money.sendStash(p);
             case "bj" -> OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet"));
             case "crash_start" -> OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto"));
             case "cg" -> CasinoGames.handle(p, d); // покер, кости, колесо, бега, плинко, мины
@@ -173,7 +182,7 @@ public final class LifeNet {
             from.sendMessage(Text.literal("Игрок «" + toName + "» не в сети").formatted(Formatting.RED), true);
             return;
         }
-        if (!Life.pay(from, amount, "перевод " + to.getName().getString())) return;
+        if (!Life.payRaw(from, amount, "перевод " + to.getName().getString())) return;
         LifeData d = Life.get(to);
         d.money += amount;
         Life.message(to, "Банк", "Перевод $" + amount + " от " + from.getName().getString());

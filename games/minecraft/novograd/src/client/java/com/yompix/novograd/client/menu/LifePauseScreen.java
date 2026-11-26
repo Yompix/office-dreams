@@ -106,8 +106,8 @@ public class LifePauseScreen extends Screen {
         // деньги — крупно, зелёным
         Ui.slant(ctx, cx, cy, cw, 26, 6, 0xE00A0A0A);
         ctx.fill(cx, cy + 26, cx + cw, cy + 27, Ui.MONEY);
-        Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money), cx + cw - 10, cy + 6, 2f, Ui.MONEY, 2);
-        ctx.drawText(textRenderer, "НАЛИЧНЫЕ", cx + 10, cy + 10, 0xFF9C9B96, false);
+        Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money + d.cash), cx + cw - 10, cy + 6, 2f, Ui.MONEY, 2);
+        ctx.drawText(textRenderer, "ДЕНЬГИ", cx + 10, cy + 10, 0xFF9C9B96, false);
         int y = cy + 34;
         int ch = 96;
         Ui.panel(ctx, cx, y, cw, ch, Ui.GOLD);

@@ -212,8 +212,9 @@ public class GtaInventoryScreen extends HandledScreen<PlayerScreenHandler> {
         int rx = x + 296;
         ctx.fill(rx - 6, y + 54, x + W - 6, y + 198, 0x60000000);
         var d = NovogradClient.data;
-        Ui.small(ctx, tr, "НАЛИЧНЫЕ", rx, y + 58, 0.7f, Ui.DIM, 0);
-        Ui.big(ctx, tr, "$" + String.format(java.util.Locale.ROOT, "%,d", d.money).replace(',', ' '), rx, y + 67, 1.1f, Ui.MONEY, 0);
+        Ui.small(ctx, tr, "КАРТА · НАЛИЧНЫЕ", rx, y + 58, 0.7f, Ui.DIM, 0);
+        Ui.big(ctx, tr, "$" + String.format(java.util.Locale.ROOT, "%,d", d.money).replace(',', ' ') + " · $" + String.format(java.util.Locale.ROOT, "%,d", d.cash).replace(',', ' '),
+                rx, y + 67, 1.0f, Ui.MONEY, 0);
         Ui.small(ctx, tr, "ГРЯЗНЫЕ", rx, y + 82, 0.7f, Ui.DIM, 0);
         Ui.big(ctx, tr, "$" + String.format(java.util.Locale.ROOT, "%,d", d.dirty).replace(',', ' '), rx, y + 91, 1.1f, d.dirty > 0 ? Ui.GOLD : Ui.DIM, 0);
         Ui.small(ctx, tr, "РОЗЫСК", rx, y + 106, 0.7f, Ui.DIM, 0);

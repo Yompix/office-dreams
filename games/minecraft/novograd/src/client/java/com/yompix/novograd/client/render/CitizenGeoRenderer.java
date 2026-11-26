@@ -112,7 +112,19 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
     @Override
     public void render(CitizenEntity e, float yaw, float tickDelta, MatrixStack m, VertexConsumerProvider buffers, int light) {
         if (e.isInvisible()) return; // ушёл к себе в комнату
-        super.render(e, yaw, tickDelta, m, buffers, light);
+        // 0.9.6: телосложение и рост из генератора (только картинка — хитбокс прежний); голову не растягиваем
+        var look = com.yompix.novograd.client.style.CitizenLooks.get(e);
+        if (look != null && (look.width() != 1f || look.height() != 1f)) {
+            m.push();
+            m.scale(look.width(), look.height(), look.width());
+            BODY_W.set(look.width());
+            super.render(e, yaw, tickDelta, m, buffers, light);
+            BODY_W.set(1f);
+            m.pop();
+        } else {
+            BODY_W.set(1f);
+            super.render(e, yaw, tickDelta, m, buffers, light);
+        }
         if (e.asleep()) {
             // «Z z z» поднимаются над спящим
             var tr = getTextRenderer();
@@ -178,6 +190,9 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         return super.shouldRender(e, frustum, x, y, z);
     }
 
+    /** Ширина тела текущего жителя (голову масштабируем обратно, чтобы не «плыла»). */
+    static final ThreadLocal<Float> BODY_W = ThreadLocal.withInitial(() -> 1f);
+
     static class Model extends GeoModel<CitizenEntity> {
         @Override
         public Identifier getModelResource(CitizenEntity e) {
@@ -186,7 +201,9 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
 
         @Override
         public Identifier getTextureResource(CitizenEntity e) {
-            return SKINS[e.getSkin()];
+            // 0.9.6: внешность из генератора — свой скин (собирается один раз на зерно)
+            Identifier gen = com.yompix.novograd.client.style.CitizenLooks.texture(e);
+            return gen != null ? gen : SKINS[e.getSkin()];
         }
 
         @Override
@@ -204,6 +221,12 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         public void setCustomAnimations(CitizenEntity e, long instanceId, AnimationState<CitizenEntity> state) {
             var head = getAnimationProcessor().getBone("neck");
             var data = state.getData(DataTickets.ENTITY_MODEL_DATA);
+            var headBone = getAnimationProcessor().getBone("head");
+            if (headBone != null) {
+                float inv = 1f / BODY_W.get();
+                headBone.setScaleX(inv);
+                headBone.setScaleZ(inv);
+            }
             if (head != null && (e.asleep() || e.knockPhase() != CitizenEntity.KO_NONE)) { head.setRotX(0); head.setRotY(0); head.setRotZ(0); return; }
             if (head != null && data != null) {
                 // ставим, а не прибавляем: иначе поворот копится каждый кадр и голову «колбасит»
