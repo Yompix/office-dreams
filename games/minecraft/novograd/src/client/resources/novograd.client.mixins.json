@@ -41,7 +41,8 @@
     "PlayerAnimMixin",
     "HandOnlyBobMixin",
     "DisplayTickBiomeMixin",
-    "BlackoutLightMixin"
+    "BlackoutLightMixin",
+    "BloodMildMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -61,3 +61,13 @@ tasks.register('economyTest', JavaExec) {
     args '30'
     jvmArgs '-Dstdout.encoding=UTF-8', '-Dfile.encoding=UTF-8'
 }
+
+// 0.9.7: рынок — 90 дней трёх сценариев (gta/MacroSim): всё в пределах, без разгона; таблица build/macro.csv
+tasks.register('macroTest', JavaExec) {
+    group = 'verification'
+    dependsOn 'classes'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.yompix.novograd.gta.MacroSim'
+    args '90'
+    jvmArgs '-Dstdout.encoding=UTF-8', '-Dfile.encoding=UTF-8'
+}

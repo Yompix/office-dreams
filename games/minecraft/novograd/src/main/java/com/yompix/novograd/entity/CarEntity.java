@@ -42,7 +42,7 @@ public class CarEntity extends Entity {
     public static final int SUPERCAR = 12, CLASSIC = 13, LOWRIDER = 14, BUGGY = 15, COMPACT = 16, SWAT = 17, AMBULANCE = 18, FIRETRUCK = 19, BUS = 20;
     /** Стоит на красном или в очереди за стоящими (gta/TrafficLights): тиков осталось. Задние не объезжают такую машину. */
     public int lightWait;
-    /** Бензин 0..FUEL_MAX (gta/Fuel): полный бак — 15–20 минут езды. */
+    /** Бензин 0..FUEL_MAX (gta/Fuel): полный бак — 25–30 минут езды (0.9.7). */
     public static final int FUEL_MAX = 1000;
     private static final TrackedData<Integer> FUEL = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
     /** Тюнинг: цвет (0 — заводской), нитро, двигатель 0–2, броня 0–2; здоровье машины 0–100. */

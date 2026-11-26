@@ -41,6 +41,11 @@ public final class Admin {
         public int maxHeistPlayers = 4;
         public boolean muggers = true;
         public int packetsPerSecond = 60;
+        /** 0.9.7: только 18+ — клиент, сказавший «нет» (или не ответивший), отключается. Честное слово клиента. */
+        public boolean requireAdult = false;
+        /** 0.9.7: бензин — "normal", "slow" (вдвое медленнее) или "off" (не тратится); fuelRate — множитель расхода. */
+        public String fuelMode = "normal";
+        public double fuelRate = 1.0;
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

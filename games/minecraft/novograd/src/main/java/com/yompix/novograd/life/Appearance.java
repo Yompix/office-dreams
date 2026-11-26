@@ -21,6 +21,12 @@ public class Appearance {
     public boolean skinChosen;
     /** Телосложение 0 худое, 1 среднее, 2 спортивное, 3 плотное; рост −5…+5 % (хитбокс не меняется). */
     public int build = 1, height;
+    /**
+     * 0.9.7: форма тела. chest — женский персонаж: 0…4 (от небольшой до умеренно большой, без крайностей), середина — 2;
+     * pecs — мужской: рельеф груди при спортивном телосложении (0 обычная, 1 рельеф, 2 мощная). Всегда под одеждой.
+     */
+    public int chest = MID_CHEST, pecs = 1;
+    public static final int MID_CHEST = 2, CHEST_STEPS = 5, PEC_STEPS = 3;
     // ---- лицо
     public int eyes = 1, eyeColor = 1, brows = 1, mouth;
     public int freckles, mole, scar, bags, lashes, blush, lipstick, liner, earrings, nose, faceTat;
@@ -107,6 +113,8 @@ public class Appearance {
         n.putBoolean("skinChosen", skinChosen);
         n.putByte("build", (byte) build);
         n.putByte("height", (byte) height);
+        n.putByte("chest", (byte) chest);
+        n.putByte("pecs", (byte) pecs);
         n.putByteArray("face", new byte[]{(byte) eyes, (byte) eyeColor, (byte) brows, (byte) mouth, (byte) freckles, (byte) mole, (byte) scar, (byte) bags,
                 (byte) lashes, (byte) blush, (byte) lipstick, (byte) liner, (byte) earrings, (byte) nose, (byte) faceTat});
         n.putString("top", top);
@@ -145,6 +153,9 @@ public class Appearance {
         a.skinChosen = n.getBoolean("skinChosen");
         if (n.contains("build")) a.build = clamp(n.getByte("build"), 0, 3);
         a.height = clamp(n.getByte("height"), -5, 5);
+        // 0.9.7: в старых сохранениях полей нет — средний размер
+        a.chest = n.contains("chest") ? clamp(n.getByte("chest"), 0, CHEST_STEPS - 1) : MID_CHEST;
+        a.pecs = n.contains("pecs") ? clamp(n.getByte("pecs"), 0, PEC_STEPS - 1) : 1;
         byte[] f = n.getByteArray("face");
         a.eyes = b(f, 0, 1);
         a.eyeColor = b(f, 1, a.skin >= 6 ? 0 : 1);
@@ -206,6 +217,8 @@ public class Appearance {
         skin = Math.floorMod(skin, StyleCatalog.SKIN_TONES.length);
         build = clamp(build, 0, 3);
         height = clamp(height, -5, 5);
+        chest = clamp(chest, 0, CHEST_STEPS - 1);
+        pecs = clamp(pecs, 0, PEC_STEPS - 1);
         eyes = clamp(eyes, 0, StyleCatalog.EYE_SHAPES.size() - 1);
         eyeColor = clamp(eyeColor, 0, StyleCatalog.EYE_COLORS.size() - 1);
         brows = clamp(brows, 0, StyleCatalog.BROWS.size() - 1);

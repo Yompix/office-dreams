@@ -29,8 +29,16 @@ public class ContactsScreen extends LifeScreen {
         int x = width / 2 - w / 2, y = height / 2 - h / 2;
         panel(ctx, x, y, w, h, 0xF0101418, 0xF0080A0D);
         title(ctx, "КОНТАКТЫ", x + 10, y + 8, 0xFF5AE6A0);
-        String sub = "дружба растёт, когда берёшь трубку и помогаешь";
-        ctx.drawText(textRenderer, sub, x + w - 10 - textRenderer.getWidth(sub), y + 11, 0xFF90A4AE, false);
+        // 0.9.7: «Не беспокоить» — герои не звонят (СМС приходят тихо)
+        boolean dnd = com.yompix.novograd.client.NovogradClient.data.flags.contains("dnd");
+        int bw = 118;
+        button(ctx, x + w - bw - 10, y + 7, bw, 13, dnd ? "Не беспокоить: ВКЛ" : "Не беспокоить: ВЫКЛ", dnd ? 0xFFD32F2F : 0xFF455A64, true, () -> {
+            NbtCompound n = new NbtCompound();
+            n.putBoolean("on", !dnd);
+            NovogradClient.send("call_dnd", n);
+            if (dnd) com.yompix.novograd.client.NovogradClient.data.flags.remove("dnd");
+            else com.yompix.novograd.client.NovogradClient.data.flags.add("dnd");
+        });
         NbtList list = data.getList("list", NbtElement.COMPOUND_TYPE);
         if (list.isEmpty()) {
             center(ctx, data.contains("list") ? "Пока никто не оставил тебе номер." : "Загрузка…", x + w / 2, y + h / 2, 0xFFB0BEC5);

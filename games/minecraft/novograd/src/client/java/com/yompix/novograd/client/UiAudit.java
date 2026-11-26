@@ -51,7 +51,7 @@ public final class UiAudit {
             pre(2, c -> scale(c, s));
             pre(30, c -> shot(c, "menu_main", s));
         }
-        for (int t = 0; t < 3; t++) {
+        for (int t = 0; t < 4; t++) {
             final int tt = t;
             for (int s : scales) {
                 pre(2, c -> {
@@ -101,7 +101,7 @@ public final class UiAudit {
         run(120, c -> { if (c.currentScreen != null) c.setScreen(null); });
         // экраны: имя → как открыть
         screen("pause", c -> new com.yompix.novograd.client.menu.LifePauseScreen());
-        for (int t = 0; t < 3; t++) {
+        for (int t = 0; t < 4; t++) {
             final int tt = t;
             screen("settings_tab" + t, c -> {
                 var s = new com.yompix.novograd.client.menu.SettingsScreen(null);
@@ -146,7 +146,8 @@ public final class UiAudit {
         screen("guide", c -> new com.yompix.novograd.client.guide.GuideScreen());
         screen("mycars", c -> new com.yompix.novograd.client.city.MyCarsScreen());
         screen("stash", c -> new com.yompix.novograd.client.city.StashScreen());
-        screen("adult_notice", c -> new com.yompix.novograd.client.menu.AdultNoticeScreen(null));
+        screen("age_gate", c -> new com.yompix.novograd.client.menu.AgeGateScreen(null));
+        screen("age_gate_typed", c -> new com.yompix.novograd.client.menu.AgeGateScreen(null).typed("2403199"));
         screen("casino_lobby", c -> new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
         screen("online_casino", c -> new com.yompix.novograd.client.screen.OnlineCasinoScreen());
         screen("gun_tune", c -> new com.yompix.novograd.client.screen.GunTuneScreen());

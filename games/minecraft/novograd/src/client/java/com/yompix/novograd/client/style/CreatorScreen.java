@@ -70,6 +70,23 @@ public class CreatorScreen extends LifeScreen {
         return look;
     }
 
+    /** 0.9.7, автотест: ракурс витрины (поворот, приближение, шаг) без автоповорота. */
+    public void pose(float yaw, float zoom, boolean walk) {
+        this.yaw = yaw;
+        this.zoom = zoom;
+        this.walk = walk;
+        idleSince = System.currentTimeMillis() + 3_600_000L;
+    }
+
+    /** Есть ли сейчас строка с таким названием (для автотеста «18+»). */
+    public boolean hasRow(String label) {
+        rowLabels.clear();
+        buildRows();
+        return rowLabels.contains(label);
+    }
+
+    private final java.util.Set<String> rowLabels = new java.util.HashSet<>();
+
     /** Для ролика-автотеста: одно действие как у игрока. */
     public void demo(String act) {
         idleSince = System.currentTimeMillis();
@@ -99,6 +116,9 @@ public class CreatorScreen extends LifeScreen {
             }
             case "tat" -> look.tats[1] = 4;
             case "build" -> look.build = (look.build + 1) % 4;
+            case "chest+" -> look.chest = Math.min(Appearance.CHEST_STEPS - 1, look.chest + 1);
+            case "chest-" -> look.chest = Math.max(0, look.chest - 1);
+            case "female" -> setGender(true);
             case "zoom" -> zoom = zoom > 1.3f ? 1f : 2.4f;
             case "rot" -> rot(90);
             case "random" -> randomize();
@@ -247,6 +267,7 @@ public class CreatorScreen extends LifeScreen {
     }
 
     private void addStep(String label, String[] values, IntSupplier get, IntConsumer set) {
+        rowLabels.add(label);
         rows.add((ctx, x, y, w, vis) -> {
             label(ctx, label, x, y);
             int lw = labelW();
@@ -258,6 +279,7 @@ public class CreatorScreen extends LifeScreen {
     }
 
     private void addSwatch(String label, int[] colors, boolean none, IntSupplier get, IntConsumer set) {
+        rowLabels.add(label);
         rows.add((ctx, x, y, w, vis) -> {
             label(ctx, label, x, y);
             int lw = labelW();
@@ -266,6 +288,7 @@ public class CreatorScreen extends LifeScreen {
     }
 
     private void addToggle(String label, java.util.function.BooleanSupplier get, Runnable flip) {
+        rowLabels.add(label);
         rows.add((ctx, x, y, w, vis) -> {
             label(ctx, label, x, y);
             toggle(ctx, x + labelW(), y, get.getAsBoolean(), vis, flip);
@@ -274,6 +297,7 @@ public class CreatorScreen extends LifeScreen {
     }
 
     private void addSlider(String label, int min, int max, IntSupplier get, IntConsumer set) {
+        rowLabels.add(label);
         rows.add((ctx, x, y, w, vis) -> {
             label(ctx, label, x, y);
             int lw = labelW(), sx = x + lw + 4, sw = w - lw - 30;
@@ -288,6 +312,34 @@ public class CreatorScreen extends LifeScreen {
                 final int val = i;
                 int px = sx + (int) (sw * (i - min) / (float) (max - min));
                 area(px - sw / (2 * (max - min)) - 1, y, sw / (max - min) + 2, 10, () -> set.accept(val));
+            }
+            return 13;
+        });
+    }
+
+    static final String[] CHEST_NAMES = {"XS", "S", "M", "L", "XL"}, PEC_NAMES = {"Обычный", "Рельеф", "Мощный"};
+
+    /** Ползунок по шагам с подписью шага (0.9.7: размер). */
+    private void addSteps(String label, String[] names, IntSupplier get, IntConsumer set) {
+        rowLabels.add(label);
+        rows.add((ctx, x, y, w, vis) -> {
+            label(ctx, label, x, y);
+            int n = names.length, lw = labelW(), sx = x + lw + 4, sw = w - lw - 30;
+            int v = MathHelper.clamp(get.getAsInt(), 0, n - 1);
+            ctx.fill(sx, y + 4, sx + sw, y + 6, 0x40FFFFFF);
+            float k = v / (float) (n - 1);
+            ctx.fill(sx, y + 4, sx + (int) (sw * k), y + 6, accent());
+            for (int i = 0; i < n; i++) {
+                int px = sx + (int) (sw * i / (float) (n - 1));
+                ctx.fill(px, y + 3, px + 1, y + 7, 0x90FFFFFF);
+            }
+            int kx = sx + (int) (sw * k);
+            ctx.fill(kx - 2, y + 1, kx + 3, y + 9, 0xFFFFFFFF);
+            Ui.small(ctx, textRenderer, names[v], x + w - 2, y + 2, 0.75f, 0xFFFFFFFF, 2);
+            if (vis) for (int i = 0; i < n; i++) {
+                final int val = i;
+                int px = sx + (int) (sw * i / (float) (n - 1));
+                area(px - sw / (2 * (n - 1)) - 1, y, sw / (n - 1) + 2, 10, () -> set.accept(val));
             }
             return 13;
         });
@@ -351,6 +403,10 @@ public class CreatorScreen extends LifeScreen {
                 addStep("Пол", new String[]{"Мужской", "Женский"}, () -> a.slim ? 1 : 0, v -> setGender(v == 1));
                 addSwatch("Кожа", StyleCatalog.SKIN_TONES, false, () -> a.skin, v -> a.skin = v);
                 addStep("Телосложение", StyleCatalog.BUILDS, () -> a.build, v -> a.build = v);
+                // 0.9.7: форма тела — размер у героини (5 шагов, только с «взрослым контентом»), рельеф у спортивного героя
+                if (a.slim && com.yompix.novograd.client.NovogradConfig.chestSizes())
+                    addSteps("Грудь", CHEST_NAMES, () -> a.chest, v -> a.chest = v);
+                if (!a.slim && a.build == 2) addStep("Рельеф груди", PEC_NAMES, () -> a.pecs, v -> a.pecs = v);
                 addSlider("Рост", -5, 5, () -> a.height, v -> a.height = v);
                 addSwatch("Ногти", colors(StyleCatalog.NAIL_COLORS, 1), true, () -> a.nails - 1, v -> a.nails = v + 1);
             }

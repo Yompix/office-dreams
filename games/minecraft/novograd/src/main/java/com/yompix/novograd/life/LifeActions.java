@@ -34,6 +34,10 @@ public final class LifeActions {
     }
 
     private static void openCasino(ServerPlayerEntity p, String game) {
+        if (!AgeGate.casino(p)) { // 0.9.7: взрослый контент выключен (или не 18+)
+            AgeGate.casinoClosed(p);
+            return;
+        }
         if (!Life.get(p).adult()) {
             p.sendMessage(Text.literal("Охранник: «Сегодня закрыто, приходи завтра»").formatted(Formatting.RED), false);
             return;

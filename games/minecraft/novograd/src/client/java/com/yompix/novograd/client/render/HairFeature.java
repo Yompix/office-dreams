@@ -231,6 +231,8 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         final java.util.List<ModelPart> skirtP = new java.util.ArrayList<>(), waistP = new java.util.ArrayList<>(), chestP = new java.util.ArrayList<>();
         final it.unimi.dsi.fastutil.ints.IntArrayList skirtC = new it.unimi.dsi.fastutil.ints.IntArrayList(), waistC = new it.unimi.dsi.fastutil.ints.IntArrayList(),
                 chestC = new it.unimi.dsi.fastutil.ints.IntArrayList();
+        /** 0.9.7: цепь/кулон/бандана висят спереди — при форме груди их выносим вперёд (не прячутся внутри). */
+        final java.util.BitSet chestFront = new java.util.BitSet();
         int lid, lens;
         boolean face, glasses;
         String lensPart = "glasses_lens";
@@ -406,9 +408,9 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             c.chestC.add(color(look, "coat", 0.85f));
         }
         if (look.has("scarf")) { c.chestP.add(parts.get("scarf")); c.chestC.add(color(look, "scarf", 1f)); }
-        if (look.has("chain")) { c.chestP.add(parts.get("chain")); c.chestC.add(color(look, "chain", 1f)); }
-        if (look.has("pendant")) { c.chestP.add(parts.get("pendant")); c.chestC.add(color(look, "pendant", 1f)); }
-        if (look.has("nbandana")) { c.chestP.add(parts.get("nbandana")); c.chestC.add(color(look, "nbandana", 1f)); }
+        if (look.has("chain")) { c.chestFront.set(c.chestP.size()); c.chestP.add(parts.get("chain")); c.chestC.add(color(look, "chain", 1f)); }
+        if (look.has("pendant")) { c.chestFront.set(c.chestP.size()); c.chestP.add(parts.get("pendant")); c.chestC.add(color(look, "pendant", 1f)); }
+        if (look.has("nbandana")) { c.chestFront.set(c.chestP.size()); c.chestP.add(parts.get("nbandana")); c.chestC.add(color(look, "nbandana", 1f)); }
         if (look.has("bag")) {
             String bg = look.get("bag").getAsString();
             if (parts.containsKey(bg)) {
@@ -467,9 +469,20 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         } else if (pass == 1 && (waist && !c.waistP.isEmpty() || chest && !c.chestP.isEmpty())) {
             VertexConsumer vc = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
             if (waist) for (int i = 0; i < c.waistP.size(); i++) c.waistP.get(i).render(m, vc, light, ov, c.waistC.getInt(i));
-            if (chest) for (int i = 0; i < c.chestP.size(); i++) c.chestP.get(i).render(m, vc, light, ov, c.chestC.getInt(i));
+            if (chest) for (int i = 0; i < c.chestP.size(); i++) {
+                boolean push = bustPush > 0 && c.chestFront.get(i);
+                if (push) {
+                    m.push();
+                    m.translate(0, 0, -bustPush / 16f);
+                }
+                c.chestP.get(i).render(m, vc, light, ov, c.chestC.getInt(i));
+                if (push) m.pop();
+            }
         }
     }
+
+    /** 0.9.7: насколько вынести вперёд висящее на груди (px), ставит {@link com.yompix.novograd.client.style.BodyShape}. */
+    public static float bustPush;
 
     public static boolean talking(CitizenEntity e) {
         return com.yompix.novograd.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK;

@@ -345,6 +345,8 @@ public final class Style {
         Appearance cur = d.look;
         next.sanitize();
         next.custom = true;
+        var age = AgeGate.of(p);
+        if (age != null && !age.adult()) next.chest = Appearance.MID_CHEST; // 0.9.7: не 18+ — средний размер
         boolean first = mode.equals("first") && d.flags.contains("creator:pending");
         if (first) {
             next.skinChosen = true;

@@ -396,6 +396,8 @@ public final class Housing {
         Garage.init();
         Residents.init();
         LifeAi.init(); // мозг прохожих: нужды, характер, реакции, разговоры
+        Crowd.init(); // 0.9.7: плотность людей по районам, без толп у точек появления
+        Attention.init(); // 0.9.7: прохожие смотрят на быстрые машины и отскакивают с пути машины игрока
         Leisure.init(); // пляжи, ларьки с очередью, собачники, стройки, порт, патруль, клуб
         com.yompix.novograd.gta.StreetPerformers.init();
     }

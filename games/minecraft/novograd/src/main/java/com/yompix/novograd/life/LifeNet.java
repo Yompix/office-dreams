@@ -78,8 +78,18 @@ public final class LifeNet {
     }
 
     private static void handle(ServerPlayerEntity p, String type, NbtCompound d) {
+        String scope = com.yompix.novograd.story.Npcs.push(p); // 0.9.7: герои сюжета — этого игрока
+        try {
+            handleScoped(p, type, d);
+        } finally {
+            com.yompix.novograd.story.Npcs.pop(scope);
+        }
+    }
+
+    private static void handleScoped(ServerPlayerEntity p, String type, NbtCompound d) {
         switch (type) {
             case "hello" -> Life.sync(p);
+            case "age" -> AgeGate.report(p, d); // 0.9.7: проверка возраста (ответ клиента)
             case "emote" -> emote(p, d.getString("id"));
             // 0.9: прогресс, «Империя», «Сеть», значки карты
             case "progress_state" -> com.yompix.novograd.gta.Progress.send(p);
@@ -127,11 +137,11 @@ public final class LifeNet {
             case "mycars" -> com.yompix.novograd.gta.MyCars.handle(p, d.getString("act"), d);
             case "stash" -> com.yompix.novograd.gta.Money.stashAction(p, d.getString("act"), d.getInt("amount"));
             case "stash_state" -> com.yompix.novograd.gta.Money.sendStash(p);
-            case "bj" -> OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet"));
-            case "crash_start" -> OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto"));
-            case "cg" -> CasinoGames.handle(p, d); // покер, кости, колесо, бега, плинко, мины
-            case "crash_cashout" -> OnlineCasino.crashCashout(p);
-            case "coin" -> OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads"));
+            case "bj" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet")); }
+            case "crash_start" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto")); }
+            case "cg" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else CasinoGames.handle(p, d); } // покер, кости, колесо, бега, плинко, мины
+            case "crash_cashout" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.crashCashout(p); }
+            case "coin" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads")); }
             case "rhythm_done" -> Fitness.result(p, d.getString("mode"), d.getInt("score"));
             case "buy_house" -> CityLife.buyHouse(p, d.getString("id"));
             case "photo" -> {
@@ -139,8 +149,8 @@ public final class LifeNet {
                 com.yompix.novograd.gta.Collectibles.onPhoto(p); // фото-точки коллекции
                 com.yompix.novograd.gta.Underworld.onPhoto(p); // разведка большого ограбления
             }
-            case "slots" -> Casino.spin(p, d.getInt("bet"));
-            case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
+            case "slots" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.spin(p, d.getInt("bet")); }
+            case "roulette" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number")); }
             case "side_list" -> com.yompix.novograd.story.SideMissions.sendList(p);
             case "side_start" -> com.yompix.novograd.story.SideMissions.start(p, d.getString("id"));
             case "side_cancel" -> com.yompix.novograd.story.SideMissions.cancel(p);

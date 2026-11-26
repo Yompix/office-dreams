@@ -25,7 +25,8 @@ import java.util.WeakHashMap;
 
 /**
  * Бензин и заправки «Нефтяник».
- *  • Машина игрока жжёт бензин: полный бак — 15–20 минут езды (на холостых — больше часа). Служебные, трафик, скутер — без бензина.
+ *  • Машина игрока жжёт бензин: полный бак — 25–30 минут езды (0.9.7; на холостых — больше полутора часов);
+ *    сервер: fuelMode normal/slow/off и fuelRate в novograd-server.json. Служебные, трафик, скутер — без бензина.
  *  • Пустой бак — мотор глохнет, машина катится и встаёт (CarEntity.drive).
  *  • Заправка: заедь под навес к колонкам и остановись — бак наполняется, деньги списываются с карты (не хватает — наличными).
  *  • На каждой заправке за кассой кассир — его можно ограбить, как продавца в магазине (Heists: целься в продавца).
@@ -75,6 +76,10 @@ public final class Fuel {
         if (!(car.getControllingPassenger() instanceof ServerPlayerEntity p)) return;
         Impound.driven(car, p);
         if (!car.usesFuel() || p.isCreative() || car.wrecked()) return;
+        // 0.9.7: настройка сервера fuelMode (normal/slow/off) и fuelRate; по умолчанию расход ×0,62 — бак на 25–30 мин
+        String mode = com.yompix.novograd.life.Admin.cfg.fuelMode == null ? "normal" : com.yompix.novograd.life.Admin.cfg.fuelMode;
+        if (mode.equals("off")) return;
+        float rate = (float) (0.62 * Math.max(0, com.yompix.novograd.life.Admin.cfg.fuelRate) * (mode.equals("slow") ? 0.5 : 1));
         double s = car.hitSpeed();
         float k = car.isBike() ? 0.6f : switch (car.body()) {
             case COMPACT -> 0.75f;
@@ -83,7 +88,7 @@ public final class Fuel {
             case SUV, PICKUP, CLASSIC, LOWRIDER -> 1.12f;
             default -> 1f;
         };
-        float use = (float) (0.22 + 0.82 * Math.min(2, s / 0.6)) * k * (car.nitroOn() ? 2 : 1);
+        float use = (float) (0.22 + 0.82 * Math.min(2, s / 0.6)) * k * (car.nitroOn() ? 2 : 1) * rate;
         float acc = ACC.getOrDefault(car, 0f) + use;
         int whole = (int) acc;
         ACC.put(car, acc - whole);
@@ -156,7 +161,8 @@ public final class Fuel {
             return;
         }
         int add = Math.min(max - car.fuel(), 60);
-        int cost = Math.max(1, (add + UNITS_PER_DOLLAR - 1) / UNITS_PER_DOLLAR);
+        // 0.9.7: цена бензина — с индексом цен и рынком (дефицит, зима — дороже; см. Macro)
+        int cost = Math.max(1, Macro.price(Money.price((add + UNITS_PER_DOLLAR - 1) / UNITS_PER_DOLLAR), "бензин"));
         LifeData d = Life.get(p);
         if (d.money >= cost) d.money -= cost;
         else if (d.dirty >= cost) d.dirty -= cost;

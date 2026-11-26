@@ -95,6 +95,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final TrackedData<String> SAY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.STRING);
     /** 0.9.6: зерно внешности из генератора (life/LookGen); 0 — обычный скин SKINS[skin]. */
     private static final TrackedData<Long> LOOK = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.LONG);
+    /** 0.9.7: чей сюжет (UUID игрока строкой): герой/массовка сцены видны и отвечают только ему. "" — общий. */
+    private static final TrackedData<String> OWNER = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.STRING);
     private int sayTicks;
     public static final int KO_NONE = 0, KO_DOWN = 1, KO_GETUP = 2, KO_DEAD = 3, KO_DEAD_LYING = 4;
     private Role role = Role.CITIZEN;
@@ -274,6 +276,22 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         builder.add(KNOCK, KO_NONE);
         builder.add(SAY, "");
         builder.add(LOOK, 0L);
+        builder.add(OWNER, "");
+    }
+
+    /** 0.9.7: чей это герой сюжета / массовка сцены ("" — общий, виден всем). */
+    public String getStoryOwner() {
+        return dataTracker.get(OWNER);
+    }
+
+    public void setStoryOwner(String uuid) {
+        dataTracker.set(OWNER, uuid == null ? "" : uuid);
+    }
+
+    /** Виден ли и доступен ли этот житель игроку (чужой сюжет — нет). */
+    public boolean visibleTo(java.util.UUID player) {
+        String o = getStoryOwner();
+        return o.isEmpty() || player == null || o.equals(player.toString());
     }
 
     @Override
@@ -752,12 +770,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (!getWorld().isClient && age % 20 == 11 && isOnGround() && !hasVehicle()) unperch();
         // двойник героя (старая копия из выгруженного района) — убрать, главный тот, кто записан в TownState
         if (!getWorld().isClient && !storyId.isEmpty() && age % 40 == 7 && getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
-            java.util.UUID main = com.yompix.novograd.world.TownState.get(sw).storyNpcs.get(storyId);
+            java.util.UUID main = com.yompix.novograd.world.TownState.get(sw).storyNpcs.get(com.yompix.novograd.story.Npcs.keyOf(storyId, getStoryOwner(), sw.getServer()));
             if (main != null && !main.equals(getUuid())) {
                 discard();
                 return;
             }
         }
+        if (!getWorld().isClient) gazeTick();
         if (knockPhase() != KO_NONE) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
         if (getWorld().isClient) {
             if (asleep()) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
@@ -867,6 +886,29 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     /** Есть ли собеседник (сценка встречи прохожих). */
     public boolean hasPartner() {
         return partner != null;
+    }
+
+    /** 0.9.7: на что засмотрелся (машина, трюк) и до какого тика — голова следит, тело идёт своим делом. */
+    private int gazeId = -1, gazeUntil;
+
+    public void gaze(net.minecraft.entity.Entity o, int ticks) {
+        gazeId = o.getId();
+        gazeUntil = age + ticks;
+    }
+
+    public boolean gazing() {
+        return gazeId >= 0 && age < gazeUntil;
+    }
+
+    private void gazeTick() {
+        if (gazeId < 0) return;
+        if (age >= gazeUntil) {
+            gazeId = -1;
+            return;
+        }
+        var o = getWorld().getEntityById(gazeId);
+        if (o == null) gazeId = -1;
+        else getLookControl().lookAt(o, 40, 40);
     }
 
     public void face(net.minecraft.entity.Entity o) {
@@ -1232,6 +1274,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
+        if (!visibleTo(player.getUuid())) return ActionResult.PASS; // 0.9.7: герой чужого сюжета
         if (!getWorld().isClient && !Story.onTalk((ServerPlayerEntity) player, this)
                 && !com.yompix.novograd.life.SideQuests.talk((ServerPlayerEntity) player, this)) LifeActions.talk(this, (ServerPlayerEntity) player);
         return ActionResult.success(getWorld().isClient);
@@ -1758,6 +1801,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         nbt.putString("Role", role.name());
         nbt.putBoolean("Stationary", stationary);
         nbt.putString("StoryId", storyId);
+        if (!getStoryOwner().isEmpty()) nbt.putString("StoryOwner", getStoryOwner());
         if (heroLook) nbt.putBoolean("HeroLook", true);
         nbt.putString("Home", home);
         nbt.putBoolean("Ambient", ambient);
@@ -1784,6 +1828,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         }
         stationary = nbt.getBoolean("Stationary");
         storyId = nbt.getString("StoryId");
+        setStoryOwner(nbt.getString("StoryOwner"));
         home = nbt.getString("Home");
         ambient = nbt.getBoolean("Ambient");
         hidden = nbt.getBoolean("Hidden");

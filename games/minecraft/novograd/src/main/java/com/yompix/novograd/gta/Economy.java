@@ -164,7 +164,7 @@ public final class Economy {
         for (String[] st : STOCKS) {
             double p = m.price.get(st[0]);
             double base = Double.parseDouble(st[2]);
-            double drift = (base - p) / base * 0.02 + 0.002;              // тянет к «справедливой» цене и чуть вверх
+            double drift = (base - p) / base * 0.02 + 0.002 + Macro.stockDrift(st[0]); // к «справедливой» цене, чуть вверх; 0.9.7: и за сектором
             p = Math.max(1, p * (1 + drift + r.nextGaussian() * 0.025));
             m.price.put(st[0], p);
             Deque<Double> h = m.history.get(st[0]);

@@ -574,6 +574,7 @@ public final class Residents {
         Vec3d pos = freeSpot(w, at[0]);
         if (pos == null) return false;
         if (w.isSkyVisible(BlockPos.ofFloored(pos).up()) && !Sidewalks.unseen(w, pos.add(0, 1, 0))) return false; // на улице — не из воздуха на глазах
+        if (m != Mode.SLEEP && m != Mode.HOME && !Crowd.room(w, pos)) return false; // 0.9.7: там уже людно — жилец «за кадром»
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
         c.setup(r.skin, CitizenEntity.Role.CITIZEN, false, r.name);
         c.randomizeBody(net.minecraft.util.math.random.Random.create(r.seed), false);

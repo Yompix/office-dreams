@@ -1,6 +1,7 @@
 package com.yompix.novograd.client.screen;
 
 import com.yompix.novograd.client.NovogradClient;
+import com.yompix.novograd.client.ui.Ui;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -25,10 +26,10 @@ public class FinanceScreen extends LifeScreen {
         int x = width / 2 - w / 2, y = height / 2 - h / 2;
         panel(ctx, x, y, w, h, 0xF0101418, 0xF0080A0D);
         title(ctx, "ФИНАНСЫ", x + 10, y + 8, 0xFF7CFF8A);
-        String[][] tabs = {{"money", "Деньги"}, {"biz", "Бизнесы"}, {"stocks", "Биржа"}};
+        String[][] tabs = {{"money", "Деньги"}, {"market", "Рынок"}, {"biz", "Бизнесы"}, {"stocks", "Биржа"}};
         for (int i = 0; i < tabs.length; i++) {
             String id = tabs[i][0];
-            button(ctx, x + 120 + i * 80, y + 6, 74, 14, tabs[i][1], tab.equals(id) ? 0xFF2E7D32 : 0xFF37474F, true, () -> tab = id);
+            button(ctx, x + 100 + i * 66, y + 6, 62, 14, tabs[i][1], tab.equals(id) ? 0xFF2E7D32 : 0xFF37474F, true, () -> tab = id);
         }
         int cy = y + 30;
         int money = state.getInt("money"), dirty = state.getInt("dirty");
@@ -76,6 +77,54 @@ public class FinanceScreen extends LifeScreen {
                     }
                 }
                 ctx.drawText(textRenderer, "ЦЕНЫ", gx + 3, gy + 3, 0x90FFFFFF, false);
+            }
+            case "market" -> {
+                // 0.9.7: рынок — ставка ЦБ, безработица, зарплаты, новость дня, цены по категориям, график
+                var mk = state.getCompound("macro");
+                String ev = mk.getString("eventTitle");
+                String[][] rows = {
+                        {"Инфляция", String.format(java.util.Locale.ROOT, "%+.2f%% / мес.", mk.getDouble("infl"))},
+                        {"Ставка центробанка", String.format(java.util.Locale.ROOT, "%.2f%% / мес.", mk.getDouble("rate"))},
+                        {"Безработица", String.format(java.util.Locale.ROOT, "%.1f%%", mk.getDouble("unemp"))},
+                        {"Зарплаты", String.format(java.util.Locale.ROOT, "×%.2f", mk.contains("wage") ? mk.getDouble("wage") : 1)}};
+                int ty = cy;
+                for (String[] r : rows) {
+                    ctx.drawText(textRenderer, r[0], x + 16, ty, 0xFFE0E0E0, false);
+                    ctx.drawText(textRenderer, r[1], x + w / 2 - 10 - textRenderer.getWidth(r[1]), ty, 0xFFFFFFFF, true);
+                    ty += 12;
+                }
+                if (!ev.isEmpty()) wrap(ctx, "Новость: " + ev, x + 16, ty + 2, w / 2 - 26, 0xFFFFC428);
+                // цены по категориям: полоска от ×0,75 до ×1,4, отметка ×1
+                var cats = mk.getList("cats", NbtElement.COMPOUND_TYPE);
+                int bx = x + w / 2 + 6, by = cy, bw = w / 2 - 22;
+                for (int i = 0; i < cats.size(); i++) {
+                    var c = cats.getCompound(i);
+                    double m = c.getDouble("mul");
+                    int ry = by + i * 11;
+                    ctx.drawText(textRenderer, c.getString("name"), bx, ry, 0xFFCFD8DC, false);
+                    int sx = bx + 56, sw = bw - 92;
+                    ctx.fill(sx, ry + 3, sx + sw, ry + 5, 0x40FFFFFF);
+                    int one = sx + (int) (sw * (1 - 0.75) / 0.65), at = sx + (int) (sw * Math.max(0, Math.min(1, (m - 0.75) / 0.65)));
+                    ctx.fill(Math.min(one, at), ry + 2, Math.max(one, at) + 1, ry + 6, m >= 1 ? 0xFFFF7043 : 0xFF66BB6A);
+                    ctx.fill(one, ry + 1, one + 1, ry + 7, 0xFFFFFFFF);
+                    String v = String.format(java.util.Locale.ROOT, "×%.2f", m);
+                    ctx.drawText(textRenderer, v, bx + bw - textRenderer.getWidth(v), ry, 0xFFFFFFFF, false);
+                }
+                // график: инфляция, ставка, безработица по дням
+                var hist = mk.getList("hist", NbtElement.COMPOUND_TYPE);
+                int gx = x + 16, gw = w - 32, gy = Math.max(ty + 26, by + cats.size() * 11 + 6), gh = Math.max(16, y + h - gy - 10);
+                ctx.fill(gx, gy, gx + gw, gy + gh, 0x40000000);
+                String[] keys = {"infl", "rate", "unemp"};
+                int[] colors = {0xFFFFC428, 0xFF4FC3F7, 0xFFEF5350};
+                for (int k = 0; k < 3 && hist.size() > 1; k++) {
+                    double hi = k == 2 ? 15 : 10;
+                    for (int i = 0; i < hist.size(); i++) {
+                        int px = gx + i * (gw - 2) / (hist.size() - 1);
+                        int py = gy + gh - 2 - (int) (Math.max(0, Math.min(hi, hist.getCompound(i).getDouble(keys[k]))) / hi * (gh - 4));
+                        ctx.fill(px, py, px + 2, py + 2, colors[k]);
+                    }
+                }
+                Ui.small(ctx, textRenderer, "инфляция · ставка · безработица (по дням)", gx + 3, gy + 3, 0.7f, 0x90FFFFFF, 0);
             }
             case "biz" -> {
                 var list = state.getList("biz", NbtElement.COMPOUND_TYPE);

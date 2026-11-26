@@ -71,6 +71,18 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                                VertexConsumerProvider buffers, VertexConsumer buffer, float partialTick, int light, int overlay) {
                 if (!has[0] && !has[1] && !has[2]) return;
                 HairFeature.Compiled c = hair.compiled(e);
+                // 0.9.7: форма груди у жительниц (и рельеф у спортивных) — из того же скина; висящее на груди — вперёд
+                var gen = com.yompix.novograd.client.style.CitizenLooks.get(e);
+                HairFeature.bustPush = gen != null ? com.yompix.novograd.client.style.BodyShape.depth(gen.look()) : 0;
+                if (gen != null && has[1]) {
+                    var tex = com.yompix.novograd.client.style.SkinComposer.peek(gen.key());
+                    if (tex != null) {
+                        tmp.peek().getPositionMatrix().set(pos[1]);
+                        tmp.peek().getNormalMatrix().set(nrm[1]);
+                        com.yompix.novograd.client.style.BodyShape.render(tmp, buffers, tex, light, overlay, gen.look(), e.getId(), e,
+                                e.limbAnimator.getPos(partialTick), e.limbAnimator.getSpeed(partialTick), partialTick);
+                    }
+                }
                 if (c != null) {
                     boolean blink = HairFeature.blink(e.getId(), e.age), talk = HairFeature.talking(e), asleep = e.asleep();
                     for (int pass = 0; pass < 3; pass++) {
@@ -85,6 +97,7 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                         }
                     }
                 }
+                HairFeature.bustPush = 0;
                 has[0] = has[1] = has[2] = false;
             }
         });
@@ -185,6 +198,9 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
     /** 1.0: дальних жителей не рисуем вовсе (граница — от «Производительности»), актёров кат-сцены — всегда. */
     @Override
     public boolean shouldRender(CitizenEntity e, net.minecraft.client.render.Frustum frustum, double x, double y, double z) {
+        // 0.9.7: герои и массовка чужого сюжета (мультиплеер) — не видны
+        var me = net.minecraft.client.MinecraftClient.getInstance().player;
+        if (me != null && !e.visibleTo(me.getUuid())) return false;
         float lim = com.yompix.novograd.client.NovogradConfig.citizenDist();
         if (e.squaredDistanceTo(x, y, z) > lim * lim && !com.yompix.novograd.client.story.CutsceneScreen.ACTORS.containsValue(e.getId())) return false;
         return super.shouldRender(e, frustum, x, y, z);

@@ -36,7 +36,7 @@ online-mode=true
 pvp=true
 """
 
-CFG = {"earnMul": 1.0, "priceMul": 1.0, "pvp": True, "policeDifficulty": 1.0, "maxHeistPlayers": 4, "muggers": True, "packetsPerSecond": 60}
+CFG = {"earnMul": 1.0, "priceMul": 1.0, "pvp": True, "policeDifficulty": 1.0, "maxHeistPlayers": 4, "muggers": True, "packetsPerSecond": 60, "requireAdult": False, "fuelMode": "normal", "fuelRate": 1.0}
 
 START_BAT = "@echo off\r\nchcp 65001 >nul\r\ntitle Novograd server\r\njava -Xms2G -Xmx6G -jar fabric-server-launch.jar nogui\r\npause\r\n"
 START_SH = "#!/bin/sh\ncd \"$(dirname \"$0\")\"\nexec java -Xms2G -Xmx6G -jar fabric-server-launch.jar nogui\n"
@@ -54,7 +54,10 @@ README = """Новоград @@VER@@ — сервер для игры по се�
 Настройки Новограда — config/novograd-server.json (после правки: /novograd reload):
   earnMul — множитель заработка, priceMul — множитель цен, pvp — игроки ранят друг друга,
   policeDifficulty — строгость полиции, maxHeistPlayers — игроков в одном ограблении,
-  muggers — грабители ночью, packetsPerSecond — лимит пакетов мода от одного игрока.
+  muggers — грабители ночью, packetsPerSecond — лимит пакетов мода от одного игрока,
+  requireAdult — только 18+: игрок, чей клиент сказал «не 18+» (проверка возраста при первом запуске мода),
+    или не ответил за 15 с, вежливо отключается. Это честное слово клиента (подделать можно).
+  fuelMode — бензин: "normal", "slow" (тратится вдвое медленнее) или "off" (не тратится); fuelRate — множитель расхода.
 
 Команды оператора (op <ник>):
   /novograd money <игрок> give|take|set <сумма> [card|cash|dirty]

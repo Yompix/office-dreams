@@ -160,8 +160,36 @@ public final class LookGen {
             int n = 1 + r.nextInt(2);
             for (int i = 0; i < n; i++) a.tats[r.nextInt(4)] = 1 + r.nextInt(StyleCatalog.TATS.size() - 1);
         }
+        bodyShape(a, seed);
         a.sanitize();
         return a;
+    }
+
+    /** 0.9.7: веса размеров груди (женский персонаж, 0…4) — больше всего в середине. */
+    public static final int[] CHEST_WEIGHTS = {12, 24, 32, 22, 10};
+
+    /**
+     * 0.9.7: форма тела — отдельный поток случайности (от того же зерна), чтобы прежние жители 0.9.6 остались прежними:
+     * у женщин — естественный разброс размеров (чаще середина), у спортивных мужчин — рельеф груди.
+     */
+    static void bodyShape(Appearance a, long seed) {
+        Random b = new Random(seed * 0x9E3779B97F4A7C15L + 0x0B0D7L);
+        if (a.slim) {
+            int k = b.nextInt(100), acc = 0;
+            a.chest = Appearance.MID_CHEST;
+            for (int i = 0; i < CHEST_WEIGHTS.length; i++) {
+                acc += CHEST_WEIGHTS[i];
+                if (k < acc) {
+                    a.chest = i;
+                    break;
+                }
+            }
+            a.pecs = 1;
+        } else {
+            a.chest = Appearance.MID_CHEST;
+            int k = b.nextInt(100);
+            a.pecs = a.build == 2 ? (k < 30 ? 0 : k < 80 ? 1 : 2) : 1;
+        }
     }
 
     // ------------------------------------------------------------------ жители

@@ -292,7 +292,7 @@ public class PhoneScreen extends LifeScreen {
             case "empire" -> mc().setScreen(new com.yompix.novograd.client.city.EmpireScreen());
             case "grid" -> mc().setScreen(new com.yompix.novograd.client.city.GridScreen());
             case "casino" -> {
-                if (NovogradClient.data.adult()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
+                if (NovogradClient.data.adult() && com.yompix.novograd.client.NovogradConfig.casino()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
                 else openApp("casino");
             }
             default -> openApp(id);
@@ -456,7 +456,8 @@ public class PhoneScreen extends LifeScreen {
 
     private void casino(DrawContext ctx, int y) {
         center(ctx, "18+", sx + sw / 2, y + 10, 0xFFE53935);
-        wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
+        wrap(ctx, com.yompix.novograd.client.NovogradConfig.casino() ? "Казино «Фортуна» сейчас закрыто — загляни позже."
+                : "Казино недоступно: взрослый контент выключен.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
     }
 
     /** «Радио»: станции Новограда в наушниках — слушай пешком; в машине играет та же станция. */
@@ -662,6 +663,15 @@ public class PhoneScreen extends LifeScreen {
         }
         if (!o.contains("mission")) {
             wrap(ctx, "Сюжет начнётся в мире «Новоград: Город».", sx + 8, y + 10, sw - 16, 0xFFD1CFC9);
+            return;
+        }
+        if (o.getString("type").equals("free")) {
+            // 0.9.7: свободная игра — миссия ждёт на метке связного; можно гулять сколько угодно
+            ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFFFFC428, false);
+            ctx.drawText(textRenderer, "Свободная игра", sx + 8, y + 14, 0xFFFFFFFF, false);
+            int hh = wrap(ctx, "Доступна миссия «" + o.getString("mission") + "»" + (o.getString("contact").isEmpty() ? "" : " — " + o.getString("contact"))
+                    + ". Метка «" + o.getString("letter") + "» на карте. Подойди, когда захочешь.", sx + 8, y + 28, sw - 16, 0xFFD1CFC9);
+            wrap(ctx, "Все задания — телефон → «Задания».", sx + 8, y + 34 + hh, sw - 16, 0xFF8F8E8A);
             return;
         }
         ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFFFFC428, false);

@@ -139,7 +139,10 @@ public final class Money {
 
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(Money::tick);
-        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(s -> server = s);
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(s -> {
+            server = s;
+            Macro.bind(s); // 0.9.7: рынок
+        });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
     }
 
@@ -237,7 +240,8 @@ public final class Money {
         d.spent += total;
         st.spentToday += total;
         // проценты: остаток — немного растёт, долг — дорожает
-        int interest = d.money >= 0 ? (int) Math.min(500, Math.floor(d.money * SAVE_RATE)) : (int) Math.floor(d.money * LOAN_RATE);
+        // 0.9.7: проценты — от ставки центробанка (рынок)
+        int interest = d.money >= 0 ? (int) Math.min(500, Math.floor(d.money * Macro.saveDaily())) : (int) Math.floor(d.money * Macro.loanDaily());
         d.money += interest;
         d.lastBills = total;
         d.lastInterest = interest;
@@ -287,7 +291,9 @@ public final class Money {
         if (st.day != day) {
             if (st.day >= 0) {
                 st.lastRate = dailyRate(st.lastRate, st.earnedToday, st.spentToday);
-                st.cpi *= 1 + st.lastRate;
+                // 0.9.7: рынок — шаг дня; ставка центробанка тормозит рост цен
+                Macro.day(s, st.lastRate, day);
+                st.cpi *= 1 + Math.max(-0.0002, st.lastRate - (Macro.model().rate - 0.03) * 0.5 / 30);
                 st.history.addLast(st.cpi);
                 while (st.history.size() > 60) st.history.pollFirst();
                 Novograd.LOG.info("[деньги] день {}: индекс цен {} (+{}%/мес.), заработано {}, потрачено {}", day, String.format("%.4f", st.cpi),
@@ -479,8 +485,9 @@ public final class Money {
         LifeData d = Life.get(p);
         n.putDouble("cpi", st.cpi);
         n.putDouble("inflMonth", st.lastRate * 30 * 100);
-        n.putDouble("saveRate", SAVE_RATE * 30 * 100);
-        n.putDouble("loanRate", LOAN_RATE * 30 * 100);
+        n.putDouble("saveRate", Macro.saveDaily() * 30 * 100);
+        n.putDouble("loanRate", Macro.loanDaily() * 30 * 100);
+        Macro.fill(n); // 0.9.7: рынок для «Финансов»
         n.putInt("bills", d.lastBills);
         n.putInt("interest", d.lastInterest);
         n.putInt("cash", d.cash);
