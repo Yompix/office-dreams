@@ -221,6 +221,7 @@ public final class Money {
         if (d.billDay == day) return;
         boolean first = d.billDay < 0;
         d.billDay = day;
+        Loans.morning(p, d, day); // 0.9.8: кредит — платёж, просрочка, изъятие; доход за день в историю
         if (first) return; // первый день после обновления — без счетов
         var hs = com.yompix.novograd.world.Housing.state(p.getServer()).owner(p.getUuid());
         double owned = 0;
@@ -358,6 +359,7 @@ public final class Money {
 
     /** Банкомат: снять наличные / положить наличные на карту. */
     public static void atm(ServerPlayerEntity p, String action, int amount) {
+        if (!com.yompix.novograd.life.Bank.atAtm(p)) return; // 0.9.8: наличные — только у банкомата
         LifeData d = Life.get(p);
         boolean own = Story$near(p, "bank_tower", 40);
         int fee = own ? 0 : Math.max(2, amount * ATM_FEE_PCT / 100);

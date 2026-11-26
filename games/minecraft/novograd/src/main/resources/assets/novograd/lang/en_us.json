@@ -170,5 +170,8 @@
   "item.novograd.fish_gold": "Golden Fish",
   "entity.novograd.deer": "Deer",
   "entity.novograd.boar": "Boar",
-  "block.novograd.gift": "Gift"
+  "block.novograd.gift": "Gift",
+  "subtitles.novograd.hands": "Action",
+  "key.novograd.hands_cancel": "Cancel action",
+  "block.novograd.atm_wall": "Wall ATM"
 }

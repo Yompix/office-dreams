@@ -275,6 +275,8 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                     chest.setRotY(chest.getRotY() + MathHelper.cos(ph) * sway * 0.6f * MathHelper.RADIANS_PER_DEGREE);
                 }
             }
+            // 0.9.8: живой слой — характер, наклон в поворот, ступеньки, дыхание и вес с ноги на ногу
+            com.yompix.novograd.client.anim.CitizenLife.apply(e, n -> getAnimationProcessor().getBone(n), state.getPartialTick());
         }
     }
 }

@@ -273,7 +273,10 @@ public class PhoneScreen extends LifeScreen {
             case "looks" -> com.yompix.novograd.client.style.StyleClient.creator();
             case "guide" -> mc().setScreen(new com.yompix.novograd.client.guide.GuideScreen());
             case "mycars" -> mc().setScreen(new com.yompix.novograd.client.city.MyCarsScreen());
-            case "stash" -> mc().setScreen(new com.yompix.novograd.client.city.StashScreen());
+            case "stash" -> { // 0.9.8: дома — к сейфу руками (код, дверца), потом экран
+                mc().setScreen(null);
+                NovogradClient.send("stash_open");
+            }
             case "finance" -> mc().setScreen(new FinanceScreen());
             case "news" -> mc().setScreen(new NewsScreen());
             case "collect" -> mc().setScreen(new CollectionsScreen());
@@ -309,8 +312,11 @@ public class PhoneScreen extends LifeScreen {
         ctx.drawText(textRenderer, "Заработано: $" + d.earned, sx + 8, ly, 0xFFE7E5DE, false);
         ctx.drawText(textRenderer, "Потрачено: $" + d.spent, sx + 8, ly + 10, 0xFFE7E5DE, false);
         if (d.casinoWon + d.casinoLost > 0) ctx.drawText(textRenderer, "Казино: +" + d.casinoWon + " / −" + d.casinoLost, sx + 8, ly + 20, 0xFFFF5A7A, false);
-        button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, "Снять $50", 0xFF3A7BD5, d.money >= 50, () -> atm("withdraw", 50));
-        button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Внести", 0xFF3A7BD5, true, () -> atm("deposit", 0));
+        // 0.9.8: наличные — только у банкомата (руками); здесь — кредит и финансы
+        boolean hasLoan = d.loan.getInt("left") > 0 || d.loan.getInt("overdue") > 0;
+        button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, hasLoan ? "Кредит · $" + d.loan.getInt("pay") : "Кредит", hasLoan && d.loan.getInt("overdue") > 0 ? 0xFFC62828 : 0xFF2FA84F, true,
+                () -> mc().setScreen(new LoanScreen()));
+        button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Финансы", 0xFF3A7BD5, true, () -> mc().setScreen(new FinanceScreen()));
         ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 89, 0xFFB9B7B1, false);
         button(ctx, sx + 8, y + 150, sw - 16, 14, "Перевести", 0xFF2FA84F, !toField.getText().isEmpty() && !amountField.getText().isEmpty(), () -> {
             NbtCompound n = new NbtCompound();

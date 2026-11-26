@@ -449,8 +449,9 @@ public class CarEntity extends Entity {
             player.sendMessage(Text.literal("Это чужая машина: за руль садится только хозяин"), true);
             return ActionResult.CONSUME;
         }
-        if (player.startRiding(this) && driver) {
-            getWorld().playSound(null, getBlockPos(), ModContent.CAR_START, SoundCategory.NEUTRAL, 0.8f, 1f);
+        if (player.startRiding(this)) {
+            if (driver) getWorld().playSound(null, getBlockPos(), ModContent.CAR_START, SoundCategory.NEUTRAL, 0.8f, 1f);
+            if (player instanceof ServerPlayerEntity spIn && !isBike() && !isScooter()) com.yompix.novograd.life.HandUses.carIn(spIn); // 0.9.8: дверь, сел, закрыл
         }
         return ActionResult.CONSUME;
     }
@@ -1144,6 +1145,14 @@ public class CarEntity extends Entity {
             case SUPERCAR -> 3 / 16.0;
             default -> 0;
         };
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        // 0.9.8: вышел — дверь открыл и захлопнул (видно всем)
+        if (!getWorld().isClient && passenger instanceof ServerPlayerEntity sp && sp.isAlive() && !isBike() && !isScooter())
+            com.yompix.novograd.life.HandUses.carOut(sp);
     }
 
     @Override

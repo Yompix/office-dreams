@@ -170,5 +170,8 @@
   "item.novograd.fish_gold": "Золотая рыбка",
   "entity.novograd.deer": "Олень",
   "entity.novograd.boar": "Кабан",
-  "block.novograd.gift": "Подарок"
+  "block.novograd.gift": "Подарок",
+  "subtitles.novograd.hands": "Действие",
+  "key.novograd.hands_cancel": "Прервать действие",
+  "block.novograd.atm_wall": "Банкомат в стене"
 }

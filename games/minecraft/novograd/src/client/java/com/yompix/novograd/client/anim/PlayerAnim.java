@@ -37,13 +37,16 @@ import java.util.UUID;
 public final class PlayerAnim {
     private PlayerAnim() {}
 
-    public static final String[] EMOTES = {"wave", "dance", "dance2", "point", "sit", "facepalm", "salute"};
-    public static final String[] EMOTE_NAMES = {"Помахать", "Танец", "Диско", "Показать", "Сесть", "Фейспалм", "Честь"};
+    public static final String[] EMOTES = {"wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "drink", "smoke"};
+    public static final String[] EMOTE_NAMES = {"Помахать", "Танец", "Диско", "Показать", "Сесть", "Фейспалм", "Честь", "Выпить", "Закурить"};
 
     private static final class State {
         float lastBodyYaw = Float.NaN, lastT = -1;
         float stillSince, airSince = -1, landAt = -100, turnUntil = -1, turnSign = 1;
         double lastY = Double.NaN, vy;
+        // 0.9.8: скорость по земле (блок/тик, сглаженная), наклон в поворот и при разгоне, ступенька
+        double lastX = Double.NaN, lastZ;
+        float speed, turnLean, accelLean, stepUntil = -1, stopAt = -100;
         String emote = "";
         float emoteAt;
         boolean wasAir;
@@ -65,9 +68,12 @@ public final class PlayerAnim {
             if (c.currentScreen == null && NovogradConfig.get().liveAnims) c.setScreen(new EmoteWheelScreen());
         // телефон открыт — остальные видят, что ты в телефоне
         boolean phone = c.currentScreen instanceof com.yompix.novograd.client.screen.PhoneScreen;
-        String want = phone ? "phone" : "";
+        // 0.9.8: звонок — телефон у уха; набирает текст (поле ввода в телефоне) — большие пальцы по экрану
+        boolean call = com.yompix.novograd.client.story.CallClient.active();
+        boolean typing = phone && c.currentScreen.getFocused() instanceof net.minecraft.client.gui.widget.TextFieldWidget;
+        String want = call ? "phone_ear" : typing ? "phone_text" : phone ? "phone" : "";
         if (!want.equals(sentPhone)) {
-            if (phone || "phone".equals(emoteOf(c.player))) play(want.isEmpty() ? "none" : want);
+            if (!want.isEmpty() || emoteOf(c.player).startsWith("phone")) play(want.isEmpty() ? "none" : want);
             sentPhone = want;
         }
         if (c.world.getTime() % 400 == 0) S.keySet().removeIf(u -> c.world.getPlayerByUuid(u) == null);
@@ -77,6 +83,12 @@ public final class PlayerAnim {
     public static void play(String id) {
         var p = MinecraftClient.getInstance().player;
         if (p == null) return;
+        if (id.equals("drink") || id.equals("smoke")) { // 0.9.8: с предметом в руке — через сервер («Руки»), курить — только 18+
+            NbtCompound n = new NbtCompound();
+            n.putString("k", id);
+            NovogradClient.send("hand_emote", n);
+            return;
+        }
         set(p.getUuid(), id);
         NbtCompound n = new NbtCompound();
         n.putString("id", id);
@@ -97,6 +109,26 @@ public final class PlayerAnim {
     public static String emoteOf(PlayerEntity p) {
         State st = S.get(p.getUuid());
         return st == null ? "" : st.emote;
+    }
+
+    /** 0.9.8: «до» для роликов сравнения: -Dnovograd.oldgait=true — ванильные ноги. */
+    static final boolean OLD_GAIT = Boolean.getBoolean("novograd.oldgait");
+    static final float STANCE = 0.62f, LEG = 0.75f;
+
+    /** Размах ноги: опорная стопа за 62 % цикла проходит назад ровно столько, сколько тело вперёд (tools/gait_metrics.py). */
+    static float gaitAmp(float v, float s) {
+        float w = 0.6662f * Math.max(s, 1e-3f);
+        float T = MathHelper.TAU / w;
+        return Math.min(1.2f, v * STANCE * T / (2 * LEG));
+    }
+
+    /** Угол ноги и подъём (пикс.) в фазе ph: опора — равномерно назад, перенос — плавно вперёд с подъёмом стопы. */
+    static float[] gait(float ph, float A) {
+        float u = (ph / MathHelper.TAU) % 1f;
+        if (u < 0) u += 1;
+        if (u < STANCE) return new float[]{A - 2 * A * (u / STANCE), 0};
+        float k = (u - STANCE) / (1 - STANCE);
+        return new float[]{-A + 2 * A * (0.5f - 0.5f * MathHelper.cos(MathHelper.PI * k)), 1.1f * MathHelper.sin(MathHelper.PI * k) * Math.min(1, A * 2)};
     }
 
     // ===================================================================== слои
@@ -130,7 +162,20 @@ public final class PlayerAnim {
         if (Double.isNaN(st.lastY)) st.lastY = p.getY();
         if (dtTick > 0) {
             st.vy = (p.getY() - st.lastY) / dtTick;
+            // ступенька: на земле и на ходу поднялся — колено выше (6 тиков)
+            if (p.isOnGround() && p.getY() - st.lastY > 0.3 && limbDistance > 0.1f) st.stepUntil = t + 6;
             st.lastY = p.getY();
+            if (Double.isNaN(st.lastX)) {
+                st.lastX = p.getX();
+                st.lastZ = p.getZ();
+            }
+            float sp = (float) Math.sqrt((p.getX() - st.lastX) * (p.getX() - st.lastX) + (p.getZ() - st.lastZ) * (p.getZ() - st.lastZ)) / dtTick;
+            st.lastX = p.getX();
+            st.lastZ = p.getZ();
+            float acc = (sp - st.speed);
+            if (st.speed > 0.12f && sp < 0.03f) st.stopAt = t; // резко остановился — шаг-торможение
+            st.speed += (sp - st.speed) * Math.min(1, 0.5f * dtTick);
+            st.accelLean += (MathHelper.clamp(acc * 1.6f, -0.12f, 0.12f) - st.accelLean) * Math.min(1, 0.3f * dtTick);
         }
         boolean gun = p.getMainHandStack().getItem() instanceof com.yompix.novograd.item.GunItem;
         boolean swinging = m.handSwingProgress > 0;
@@ -147,7 +192,7 @@ public final class PlayerAnim {
         if (!emote.isEmpty() && st.emoteAt < 0) st.emoteAt = t;
         float et = t - st.emoteAt;
         boolean gym = emote.startsWith("gym_");
-        if (!emote.isEmpty() && !emote.equals("phone") && (moving && !emote.startsWith("dance") && !gym || riding || !ground && !gym || gun || et > 20 * (gym ? 90 : 30))) {
+        if (!emote.isEmpty() && !emote.startsWith("phone") && (moving && !emote.startsWith("dance") && !gym || riding || !ground && !gym || gun || et > 20 * (gym ? 90 : 30))) {
             st.emote = emote = ""; // пошёл, сел в машину, прыгнул, достал оружие — жест кончился (у всех одинаково)
         }
         if (emote.equals("wave") && et > 50) st.emote = emote = "";
@@ -157,6 +202,27 @@ public final class PlayerAnim {
             float a = MathHelper.clamp(limbDistance, 0, 1);
             boolean sprint = p.isSprinting();
             float ph = limbAngle * 0.6662f;
+            if (moving && !OLD_GAIT) {
+                // 0.9.8: шаг без скольжения — опора 62 % цикла, нога идёт назад равномерно со скоростью тела
+                float v = Math.max(0.02f, st.speed);
+                float A = gaitAmp(v, limbDistance);
+                float[] r = gait(ph, A), l = gait(ph + MathHelper.PI, A);
+                m.rightLeg.pitch = r[0];
+                m.leftLeg.pitch = l[0];
+                m.rightLeg.pivotY -= r[1];
+                m.leftLeg.pivotY -= l[1];
+                if (armsFree) {
+                    float armAmp = MathHelper.clamp(0.18f + v * 3.1f, 0.18f, 1.05f);
+                    m.rightArm.pitch = MathHelper.cos(ph + MathHelper.PI) * armAmp;
+                    m.leftArm.pitch = MathHelper.cos(ph) * armAmp;
+                }
+                // наклон в поворот (по скорости поворота и шага) и при разгоне
+                float rate = Float.isNaN(st.lastBodyYaw) || dtTick <= 0 ? 0 : MathHelper.wrapDegrees(p.bodyYaw - st.lastBodyYaw) / dtTick;
+                st.turnLean += (MathHelper.clamp(rate * v * 0.9f, -0.16f, 0.16f) - st.turnLean) * Math.min(1, 0.25f * Math.max(dtTick, 0.2f));
+                m.body.roll -= st.turnLean;
+                m.head.roll += st.turnLean * 0.5f; // голова держит горизонт
+                m.body.pitch += st.accelLean;
+            }
             if (moving) {
                 float k = m.sneaking ? 0.5f : 1f;
                 // тело ниже, когда ноги разведены (двойная опора), — шаг «садится», а не плывёт
@@ -209,12 +275,37 @@ public final class PlayerAnim {
                     m.rightLeg.yaw += 0.15f * st.turnSign * k;
                     m.leftLeg.yaw += 0.15f * st.turnSign * k;
                 }
+                // ---- шаг-торможение: корпус по инерции вперёд и обратно
+                float sa = t - st.stopAt;
+                if (sa >= 0 && sa < 10 && !OLD_GAIT) {
+                    float k2 = MathHelper.sin(sa / 10f * MathHelper.PI) * (1 - sa / 10f);
+                    m.body.pitch += 0.16f * k2;
+                    m.rightLeg.pitch -= 0.3f * k2;
+                    dy += 0.8f * k2;
+                }
+                // ---- мелкие движения головы (не каменная)
+                if (!OLD_GAIT) {
+                    float seed = (p.getUuid().hashCode() & 255) * 0.1f;
+                    m.head.yaw += 0.025f * MathHelper.sin(t * 0.033f + seed) + 0.015f * MathHelper.sin(t * 0.091f + seed * 2);
+                    m.head.pitch += 0.015f * MathHelper.sin(t * 0.047f + seed);
+                }
                 // ---- паузы после 8 с без дела
                 float idle = t - st.stillSince;
                 if (idle > 160 && armsFree && emote.isEmpty()) fidget(m, p, idle - 160);
             }
             st.lastBodyYaw = p.bodyYaw;
         } else st.lastBodyYaw = p.bodyYaw;
+        // ---- ступенька: ведущая нога выше
+        if (t < st.stepUntil && !OLD_GAIT) {
+            float k = MathHelper.sin((1 - (st.stepUntil - t) / 6f) * MathHelper.PI);
+            if (m.rightLeg.pitch < m.leftLeg.pitch) {
+                m.rightLeg.pitch -= 0.5f * k;
+                m.rightLeg.pivotY -= 1.2f * k;
+            } else {
+                m.leftLeg.pitch -= 0.5f * k;
+                m.leftLeg.pivotY -= 1.2f * k;
+            }
+        }
         // ---------------------------------------------------------------- прыжок, приземление, падение, вода
         boolean air = !ground && !water && !flying && !p.isClimbing();
         if (air && !st.wasAir) st.airSince = t;
@@ -254,21 +345,37 @@ public final class PlayerAnim {
         }
         // ---------------------------------------------------------------- телефон, руль, сидя
         boolean phoneItem = p.getMainHandStack().getItem() instanceof com.yompix.novograd.item.PhoneItem;
-        if ((emote.equals("phone") || phoneItem) && !gun && !swinging) {
+        if (emote.equals("phone_ear") && !gun) {
+            // 0.9.8: разговор: телефон у уха, локоть вниз-вперёд, свободная рука жестикулирует
+            float in = smooth(et / 6f);
+            m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -2.35f);
+            m.rightArm.yaw = MathHelper.lerp(in, m.rightArm.yaw, -0.62f);
+            m.rightArm.roll = MathHelper.lerp(in, m.rightArm.roll, 0.15f);
+            m.head.roll += 0.1f * in;
+            if (armsFree || moving) m.leftArm.pitch += -0.25f * in * Math.max(0, MathHelper.sin(et * 0.11f));
+        } else if ((emote.equals("phone") || emote.equals("phone_text") || phoneItem) && !gun && !swinging) {
             m.rightArm.pitch = -1.05f;
             m.rightArm.yaw = -0.38f;
             m.rightArm.roll = 0;
             m.leftArm.pitch = -0.55f;
             m.leftArm.yaw = 0.42f;
+            if (emote.equals("phone_text")) { // большие пальцы бегают по экрану
+                m.rightArm.pitch += 0.035f * MathHelper.sin(et * 1.9f);
+                m.leftArm.pitch += 0.035f * MathHelper.sin(et * 2.3f + 1);
+                m.leftArm.pitch = -1.0f + 0.03f * MathHelper.sin(et * 2.3f + 1);
+                m.leftArm.yaw = 0.3f;
+            }
             m.head.pitch = MathHelper.clamp(m.head.pitch + 0.4f, -0.6f, 0.9f);
         }
         if (riding) ride(m, p, t, armsFree);
         // ---------------------------------------------------------------- жесты (V)
-        if (!emote.isEmpty() && !emote.equals("phone")) dy += emote(m, emote, et);
+        if (!emote.isEmpty() && !emote.startsWith("phone")) dy += emote(m, emote, et);
+        GunThird.handsPose(m, p, t); // 0.9.8: кобура, удары битой/ножом/кулаком
         // ---------------------------------------------------------------- голова: в пределах
         m.head.yaw = MathHelper.clamp(m.head.yaw, -1.3f, 1.3f);
         m.head.pitch = MathHelper.clamp(m.head.pitch, -1.2f, 1.2f);
         if (dy != 0) for (ModelPart part : new ModelPart[]{m.head, m.body, m.rightArm, m.leftArm, m.rightLeg, m.leftLeg}) part.pivotY += dy;
+        HandsClient.applyThird(m, p, t); // 0.9.8: «Руки» — банкомат, автомат, колонка… (руки тянутся к точкам)
         // оверлеи скина (рукава, штанины, куртка, шапка) — за частями
         m.hat.copyTransform(m.head);
         m.leftPants.copyTransform(m.leftLeg);

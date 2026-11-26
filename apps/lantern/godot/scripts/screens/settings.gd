@@ -86,7 +86,7 @@ func _ready() -> void:
 		return
 
 	# --- покупки (в версии для Google Play скрыто: покупки и реклама не подключены)
-	if Cfg.paid():
+	if Cfg.paid() and Cfg.demo_allowed():     # 2.0.4: в выпуске из Google Play ДЕМО нет
 		var gm := _group(v, L.t("Покупки и реклама"))
 		var demo := UI.switch_row(L.t("ДЕМО-режим"), L.t("Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд."), Social.demo, func(b):
 			Social.set_demo(b)
@@ -157,7 +157,8 @@ func _ready() -> void:
 	gp.add_child(UI.para(L.t("Навсегда удалит ник, друзей, сообщения и облачные копии с сервера. Миры на устройстве останутся."), 12, UI.DIM))
 
 	# --- 2.0: «Любые игры» — прямое соединение (P2P) можно выключить: тогда всё идёт через relay и IP не раскрывается
-	var gn := _group(v, L.t("Любые игры"))
+	# 2.0.4: на Android P2P выключен (правила Play для VPN: только шифрованный relay) — переключателя нет
+	var gn: VBoxContainer = _group(v, L.t("Любые игры")) if Cfg.p2p_allowed() else UI.vbox(0)
 	var p2p := UI.switch_row(L.t("Напрямую (P2P)"), L.t("Меньше задержка. Участники вашей сети увидят ваш IP-адрес."), Cfg.get_value("net", "p2p", true), func(on):
 		Cfg.set_value("net", "p2p", on)
 		app.vnet.allow_p2p = on)

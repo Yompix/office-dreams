@@ -143,6 +143,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final java.util.Map<String, software.bernie.geckolib.animation.RawAnimation> GESTURES = new java.util.HashMap<>();
     /** Клиент ставит сюда темп шага героя (StoryLife.stride); на сервере — 1. */
     public static java.util.function.ToDoubleFunction<CitizenEntity> STRIDE = e -> 1;
+    /** 0.9.8: «до» для роликов сравнения (-Dnovograd.oldgait=true): прежняя опора клипов и без живого слоя. */
+    public static final boolean OLD_GAIT = Boolean.getBoolean("novograd.oldgait");
+    /** 0.9.8: состояние «живого» слоя анимации (только клиент, client/anim/CitizenLife). */
+    public Object animState;
     /** Слои-жесты, которые повторяются, пока не сняты (0.8: курит, телефон, думает, грустит, злится, руки на груди…). */
     public static final java.util.Set<String> LOOP_GESTURES = java.util.Set.of("g_fidget", "g_laugh", "g_walktalk", "g_smoke", "g_phonecheck",
             "g_think", "g_sad", "g_angry", "g_clap", "g_cheer", "g_crossarms");
@@ -186,7 +190,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                 // шаг и бег — темп ног под реальную скорость, чтобы не «скользили»
                 double v = Math.sqrt(sp);
                 double m = e.getWorld().isClient ? STRIDE.applyAsDouble(e) : 1; // 0.8: своя походка героя (клиент)
-                return m * (sp > 0.012 ? Math.max(0.8, Math.min(1.5, v / 0.17)) : Math.max(0.6, Math.min(1.6, v / 0.075)));
+                // 0.9.8: опора клипов откалибрована по стопе (tools/gait_metrics.py): шаг 0,0634, бег 0,1304 блока/тик
+                // при темпе 1.0 — опорная стопа не едет по земле (было 0,075/0,17 — скольжение 15–25 %)
+                if (OLD_GAIT) return m * (sp > 0.012 ? Math.max(0.8, Math.min(1.5, v / 0.17)) : Math.max(0.6, Math.min(1.6, v / 0.075)));
+                return m * (sp > 0.012 ? Math.max(0.6, Math.min(2.0, v / 0.1304)) : Math.max(0.45, Math.min(2.2, v / 0.0634)));
             }
             if (e.knockPhase() != KO_NONE) return 1.0;
             return 0.86 + Math.floorMod(e.getUuid().hashCode() >>> 3, 29) / 100.0;

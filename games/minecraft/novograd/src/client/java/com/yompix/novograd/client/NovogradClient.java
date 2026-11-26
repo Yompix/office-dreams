@@ -79,6 +79,8 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.entity.CitizenEntity.STRIDE = com.yompix.novograd.client.story.StoryLife::stride;
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.story.StoryLife::tick);
         com.yompix.novograd.client.anim.PlayerAnim.init();
+        com.yompix.novograd.client.anim.HandsClient.init(); // 0.9.8: «Руки»
+        com.yompix.novograd.client.anim.GunThird.init(); // 0.9.8: оружие от третьего лица
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.city.CityFx::tick);
         // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
         net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
@@ -317,7 +319,7 @@ public class NovogradClient implements ClientModInitializer {
                 wantedSeen = n.getBoolean("seen");
             }
             case "gta_title" -> com.yompix.novograd.client.story.StoryHud.gtaTitle(n.getString("title"), n.getString("sub"));
-            case "open_atm" -> client.setScreen(new com.yompix.novograd.client.screen.AtmScreen(n.getInt("balance"), n.getInt("cash")));
+            case "open_atm" -> client.setScreen(new com.yompix.novograd.client.screen.AtmScreen(n.getInt("balance"), n.getInt("cash")).physical(n.getBoolean("physical")));
             case "atm_result" -> {
                 if (client.currentScreen instanceof com.yompix.novograd.client.screen.AtmScreen s) s.result(n);
             }
@@ -341,6 +343,9 @@ public class NovogradClient implements ClientModInitializer {
                 if (client.currentScreen instanceof RouletteScreen s) s.result(n);
             }
             default -> {
+                if (type.startsWith("hand_") || type.equals("stash_screen")) if (com.yompix.novograd.client.anim.HandsClient.receive(client, type, n)) return; // 0.9.8
+                if (type.equals("loan")) { com.yompix.novograd.client.screen.LoanScreen.state = n; return; } // 0.9.8: кредит
+                if (type.equals("open_loan")) { client.setScreen(new com.yompix.novograd.client.screen.LoanScreen()); return; }
                 if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
                 if (type.startsWith("call_") && com.yompix.novograd.client.story.CallClient.receive(client, type, n)) return; // звонки героев
                 if (type.startsWith("uw_") && UnderworldClient.receive(client, type, n)) return; // тёмные дела

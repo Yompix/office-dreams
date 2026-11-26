@@ -24,6 +24,7 @@ public class PlayerLookFeature extends FeatureRenderer<AbstractClientPlayerEntit
         if (p.isInvisible()) return;
         String emote = com.yompix.novograd.client.anim.PlayerAnim.emoteOf(p);
         if (emote.startsWith("gym_")) GymProps.render(m, buffers, light, emote, getContextModel()); // 0.9.6: снаряды спортзала
+        com.yompix.novograd.client.anim.HandsClient.renderThird(m, buffers, light, p, getContextModel()); // 0.9.8: предметы в руках
         Appearance a = StyleClient.look(p);
         if (a == null || !a.custom) return;
         var json = StyleClient.headJson(a);
