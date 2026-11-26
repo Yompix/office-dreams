@@ -27,7 +27,8 @@ public final class Bank {
         int v = value(stack);
         if (v > 0) {
             stack.decrement(stack.getCount());
-            Life.earn(p, v, "наличные на счёт");
+            Life.get(p).money += v;
+            Life.sync(p);
             return;
         }
         // экран банкомата: баланс и наличные в кармане
@@ -38,7 +39,7 @@ public final class Bank {
     }
 
     static int cash(ServerPlayerEntity p) {
-        int c = 0;
+        int c = Life.get(p).cash;
         var inv = p.getInventory();
         for (int i = 0; i < inv.size(); i++) c += value(inv.getStack(i));
         return c;
@@ -57,23 +58,19 @@ public final class Bank {
 
     static void atm(ServerPlayerEntity p, String action, int amount) {
         if (action.equals("withdraw")) {
+            // 0.9.6: наличные — в кошелёк (видно на экране); у банкомата не в «Сити-Банке» — комиссия 2 %
             int sum = Math.max(10, Math.min(5000, amount / 10 * 10));
-            if (!Life.pay(p, sum, "снято наличными")) {
+            var bank = com.yompix.novograd.story.Story.place(p.getServerWorld(), "bank_tower");
+            int fee = bank != null && bank.squaredDistanceTo(p.getPos()) < 40 * 40 ? 0 : Math.max(2, sum * com.yompix.novograd.gta.Money.ATM_FEE_PCT / 100);
+            LifeData d = Life.get(p);
+            if (d.money < sum + fee) {
                 reply(p, "withdraw", false, sum, "Недостаточно средств на счёте");
                 return;
             }
-            // крупными купюрами: $250 = 2×$100 + 1×$50
-            int left = sum;
-            for (int i = 0; i < NOTES.length; i++) {
-                int n = left / VALUES[i];
-                left -= n * VALUES[i];
-                while (n > 0) {
-                    int k = Math.min(64, n);
-                    School.give(p, new ItemStack(NOTES[i], k));
-                    n -= k;
-                }
-            }
-            reply(p, "withdraw", true, sum, "");
+            d.money -= sum + fee;
+            d.cash += sum;
+            Life.sync(p);
+            reply(p, "withdraw", true, sum, fee > 0 ? "комиссия $" + fee : "");
         } else if (action.equals("deposit")) {
             var inv = p.getInventory();
             int total = 0;
@@ -84,12 +81,16 @@ public final class Bank {
                     inv.setStack(i, ItemStack.EMPTY);
                 }
             }
+            LifeData dd = Life.get(p);
+            total += dd.cash; // 0.9.6: и наличные из кошелька
+            dd.cash = 0;
             if (total == 0) {
                 p.sendMessage(Text.literal("Нет купюр в инвентаре").formatted(Formatting.RED), true);
                 reply(p, "deposit", false, 0, "Нет купюр в инвентаре");
                 return;
             }
-            Life.earn(p, total, "наличные на счёт");
+            Life.get(p).money += total;
+            Life.sync(p);
             reply(p, "deposit", true, total, "");
         }
     }

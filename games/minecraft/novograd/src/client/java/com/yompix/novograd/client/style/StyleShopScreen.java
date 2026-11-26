@@ -74,7 +74,7 @@ public class StyleShopScreen extends LifeScreen {
     }
 
     private String[] tabs() {
-        if (barber()) return new String[]{"СТРИЖКА", "ЦВЕТ", "БОРОДА", "ВНЕШНОСТЬ"};
+        if (barber()) return new String[]{"СТРИЖКА", "ЦВЕТ", "БОРОДА", "РЕДАКТОР"};
         StyleCatalog.Slot[] s = StyleCatalog.Slot.values();
         String[] t = new String[s.length];
         for (int i = 0; i < s.length; i++) t[i] = s[i].title.toUpperCase();
@@ -169,11 +169,11 @@ public class StyleShopScreen extends LifeScreen {
         StyleCatalog.Slot slot = slot();
         String worn = cur.get(slot);
         if (kind.equals("wardrobe")) {
-            if (slot == StyleCatalog.Slot.HAT || slot == StyleCatalog.Slot.GLASSES) {
+            if (slot.optional()) {
                 Appearance a = cur.copy();
                 a.set(slot, "");
                 boolean now = worn.isEmpty();
-                rows.add(new Row(slot == StyleCatalog.Slot.HAT ? "Без головного убора" : "Без очков", now ? "НАДЕТО" : "", Ui.MONEY, 0, a,
+                rows.add(new Row("Без: " + slot.title.toLowerCase(), now ? "НАДЕТО" : "", Ui.MONEY, 0, a,
                         now ? "НАДЕТО" : "СНЯТЬ", !now, () -> wear(slot, ""), "Голова открыта."));
             }
             List<String> owned = new ArrayList<>(d.wardrobe);
@@ -285,7 +285,22 @@ public class StyleShopScreen extends LifeScreen {
 
     private void setTab(int t) {
         tab = Math.floorMod(t, tabs().length);
+        if (barber() && tab == 3) {
+            // 0.9.6: внешность целиком — в редакторе
+            tab = 0;
+            mc().setScreen(new CreatorScreen(CreatorScreen.Mode.BARBER));
+            return;
+        }
         selectWorn();
+    }
+
+    private CreatorScreen.Mode creatorMode() {
+        return switch (kind) {
+            case "barber" -> CreatorScreen.Mode.BARBER;
+            case "lux" -> CreatorScreen.Mode.LUX;
+            case "cheap" -> CreatorScreen.Mode.CHEAP;
+            default -> CreatorScreen.Mode.WARDROBE;
+        };
     }
 
     // ------------------------------------------------------------------ отрисовка
@@ -309,7 +324,7 @@ public class StyleShopScreen extends LifeScreen {
         String sub = switch (kind) {
             case "cheap" -> "уличная одежда · цены для района";
             case "lux" -> "одежда класса люкс · для тех, кто поднялся";
-            case "barber" -> "стрижки · цвет · бороды · внешность";
+            case "barber" -> "стрижки · цвет · бороды";
             default -> "переодеться бесплатно";
         };
         Ui.small(ctx, textRenderer, sub, 14, hy + 12 * hs + 10, 0.8f, 0xFFD9D7D0, 0);
@@ -459,6 +474,7 @@ public class StyleShopScreen extends LifeScreen {
         ctx.enableScissor(x, y, x + w, y + h);
         hero(ctx, cx, floorY, size, yaw);
         ctx.disableScissor();
+        if (!kind.equals("wardrobe")) button(ctx, x + 6, y + 6, w - 12, 13, "РЕДАКТОР ВНЕШНОСТИ", acc, true, () -> mc().setScreen(new CreatorScreen(creatorMode())));
         if (kind.equals("wardrobe")) {
             boolean mcSkin = !d().look.custom;
             button(ctx, x + 6, y + 6, w - 12, 13, mcSkin ? "Свой скин Minecraft: ДА" : "Свой скин Minecraft: НЕТ", 0xFF7E57C2, true, () -> {

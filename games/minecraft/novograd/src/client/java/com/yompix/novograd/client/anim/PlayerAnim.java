@@ -146,7 +146,8 @@ public final class PlayerAnim {
         String emote = st.emote;
         if (!emote.isEmpty() && st.emoteAt < 0) st.emoteAt = t;
         float et = t - st.emoteAt;
-        if (!emote.isEmpty() && !emote.equals("phone") && (moving && !emote.startsWith("dance") || riding || !ground || gun || et > 20 * 30)) {
+        boolean gym = emote.startsWith("gym_");
+        if (!emote.isEmpty() && !emote.equals("phone") && (moving && !emote.startsWith("dance") && !gym || riding || !ground && !gym || gun || et > 20 * (gym ? 90 : 30))) {
             st.emote = emote = ""; // пошёл, сел в машину, прыгнул, достал оружие — жест кончился (у всех одинаково)
         }
         if (emote.equals("wave") && et > 50) st.emote = emote = "";
@@ -418,6 +419,87 @@ public final class PlayerAnim {
                 m.rightArm.yaw = MathHelper.lerp(e, m.rightArm.yaw, -0.85f);
                 m.rightArm.roll = MathHelper.lerp(e, m.rightArm.roll, 0.1f);
                 m.head.pitch -= 0.05f * e;
+            }
+            // ---- 0.9.6: спортзал (снаряды рисует client/style/GymProps)
+            case "gym_curl" -> {
+                float r = Math.max(0, MathHelper.sin(et * 0.22f)), l = Math.max(0, MathHelper.sin(et * 0.22f + MathHelper.PI));
+                m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -0.15f - 1.75f * r);
+                m.leftArm.pitch = MathHelper.lerp(in, m.leftArm.pitch, -0.15f - 1.75f * l);
+                m.rightArm.roll = MathHelper.lerp(in, m.rightArm.roll, 0.08f);
+                m.leftArm.roll = MathHelper.lerp(in, m.leftArm.roll, -0.08f);
+                m.rightArm.yaw = m.leftArm.yaw = 0;
+                m.body.pitch += 0.04f * (r + l) * in;
+            }
+            case "gym_bench", "gym_pushup" -> {
+                // лёжа (корпус кладёт PlayerStyleScaleMixin): руки к грифу/полу, жим — плечи «ходят» вдоль тела
+                float k = 0.5f + 0.5f * MathHelper.sin(et * 0.2f);
+                m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -1.57f);
+                m.leftArm.pitch = MathHelper.lerp(in, m.leftArm.pitch, -1.57f);
+                m.rightArm.yaw = m.leftArm.yaw = 0;
+                m.rightArm.roll = MathHelper.lerp(in, m.rightArm.roll, 0.12f);
+                m.leftArm.roll = MathHelper.lerp(in, m.leftArm.roll, -0.12f);
+                m.rightArm.pivotZ += 4.5f * (1 - k) * in;
+                m.leftArm.pivotZ += 4.5f * (1 - k) * in;
+                m.rightLeg.pitch = m.leftLeg.pitch = 0;
+                m.head.pitch = 0;
+            }
+            case "gym_pullup" -> {
+                float k = 0.5f + 0.5f * MathHelper.sin(et * 0.16f);
+                m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -3.05f + 0.9f * k);
+                m.leftArm.pitch = MathHelper.lerp(in, m.leftArm.pitch, -3.05f + 0.9f * k);
+                m.rightArm.roll = MathHelper.lerp(in, m.rightArm.roll, -0.25f);
+                m.leftArm.roll = MathHelper.lerp(in, m.leftArm.roll, 0.25f);
+                m.rightLeg.pitch = 0.15f;
+                m.leftLeg.pitch = 0.15f;
+                return -6f * k * in;
+            }
+            case "gym_bag" -> {
+                float t2 = et % 16f;
+                boolean right = ((int) (et / 16f)) % 2 == 0;
+                float punch = t2 < 4 ? t2 / 4f : t2 < 8 ? 1 - (t2 - 4) / 4f : 0;
+                ModelPart hit = right ? m.rightArm : m.leftArm, guard = right ? m.leftArm : m.rightArm;
+                hit.pitch = MathHelper.lerp(in, hit.pitch, -1.1f - 0.5f * punch);
+                hit.yaw = (right ? 0.25f : -0.25f) * (1 - punch);
+                guard.pitch = MathHelper.lerp(in, guard.pitch, -1.9f);
+                guard.yaw = right ? -0.45f : 0.45f;
+                m.body.yaw += (right ? -0.18f : 0.18f) * punch * in;
+                m.rightLeg.pitch = 0.2f;
+                m.leftLeg.pitch = -0.25f;
+            }
+            case "gym_run" -> {
+                float s = MathHelper.sin(et * 0.62f);
+                m.rightLeg.pitch = 0.95f * s * in;
+                m.leftLeg.pitch = -0.95f * s * in;
+                m.rightArm.pitch = -0.9f * s * in;
+                m.leftArm.pitch = 0.9f * s * in;
+                m.rightArm.roll = 0.12f;
+                m.leftArm.roll = -0.12f;
+                m.body.pitch += 0.12f * in;
+                return 1.2f * Math.abs(s) * in;
+            }
+            case "gym_squat" -> {
+                float k = 0.5f + 0.5f * MathHelper.sin(et * 0.14f - MathHelper.HALF_PI);
+                m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -1.5f);
+                m.leftArm.pitch = MathHelper.lerp(in, m.leftArm.pitch, -1.5f);
+                m.rightArm.yaw = m.leftArm.yaw = 0;
+                m.rightLeg.pitch = -1.1f * k * in;
+                m.leftLeg.pitch = -1.1f * k * in;
+                m.rightLeg.roll = 0.12f * k;
+                m.leftLeg.roll = -0.12f * k;
+                m.body.pitch += 0.35f * k * in;
+                return 6.5f * k * in;
+            }
+            case "gym_yoga" -> {
+                float b = MathHelper.sin(et * 0.05f);
+                m.rightArm.pitch = MathHelper.lerp(in, m.rightArm.pitch, -3.0f);
+                m.leftArm.pitch = MathHelper.lerp(in, m.leftArm.pitch, -3.0f);
+                m.rightArm.roll = MathHelper.lerp(in, m.rightArm.roll, 0.18f);
+                m.leftArm.roll = MathHelper.lerp(in, m.leftArm.roll, -0.18f);
+                m.rightArm.yaw = m.leftArm.yaw = 0;
+                m.leftLeg.pitch = MathHelper.lerp(in, 0, -0.35f);
+                m.leftLeg.roll = MathHelper.lerp(in, 0, -0.75f);
+                m.body.roll += 0.03f * b * in;
+                m.head.pitch = 0.05f;
             }
             default -> {
             }

@@ -132,6 +132,21 @@ public final class UiAudit {
         screen("skills", c -> new com.yompix.novograd.client.screen.SkillsScreen());
         screen("outdoor", c -> new com.yompix.novograd.client.screen.OutdoorScreen(""));
         screen("style", c -> new com.yompix.novograd.client.style.StyleAppScreen(false));
+        // 0.9.6: редактор внешности — все вкладки (и первый вход)
+        for (int t = 0; t < com.yompix.novograd.client.style.CreatorScreen.TABS.length; t++) {
+            final int tt = t;
+            screen("creator_tab" + t, c -> {
+                var s = new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.PHONE);
+                s.autotest(tt, null);
+                return s;
+            });
+        }
+        screen("creator_first", c -> new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.FIRST));
+        screen("creator_shop", c -> new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.CHEAP));
+        screen("guide", c -> new com.yompix.novograd.client.guide.GuideScreen());
+        screen("mycars", c -> new com.yompix.novograd.client.city.MyCarsScreen());
+        screen("stash", c -> new com.yompix.novograd.client.city.StashScreen());
+        screen("adult_notice", c -> new com.yompix.novograd.client.menu.AdultNoticeScreen(null));
         screen("casino_lobby", c -> new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
         screen("online_casino", c -> new com.yompix.novograd.client.screen.OnlineCasinoScreen());
         screen("gun_tune", c -> new com.yompix.novograd.client.screen.GunTuneScreen());

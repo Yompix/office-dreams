@@ -157,8 +157,11 @@ public class NovogradClient implements ClientModInitializer {
         // заставка студии при запуске, своё главное меню и пауза вместо ванильных
         ClientTickEvents.END_CLIENT_TICK.register(c -> {
             if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
-                c.setScreen(com.yompix.novograd.client.story.YompixSplash.shown() ? new com.yompix.novograd.client.menu.LifeMenuScreen()
-                        : new com.yompix.novograd.client.story.YompixSplash(new com.yompix.novograd.client.menu.LifeMenuScreen()));
+                net.minecraft.client.gui.screen.Screen next = com.yompix.novograd.client.story.YompixSplash.shown() ? new com.yompix.novograd.client.menu.LifeMenuScreen()
+                        : new com.yompix.novograd.client.story.YompixSplash(new com.yompix.novograd.client.menu.LifeMenuScreen());
+                // 0.9.6: «Мод для взрослых 18+» — один раз на установку (в автотестах не показываем)
+                boolean adult = NovogradConfig.get().adultOk || System.getProperty("novograd.autotest") != null;
+                c.setScreen(adult ? next : new com.yompix.novograd.client.menu.AdultNoticeScreen(next));
             } else if (c.currentScreen instanceof net.minecraft.client.gui.screen.GameMenuScreen g && g.shouldShowMenu()) {
                 c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen());
             }
@@ -209,7 +212,8 @@ public class NovogradClient implements ClientModInitializer {
         CineAutotest.init(); // -Dnovograd.autotest=cine:гл:мис:шаг (запись кат-сцены), camaudit (пути камеры всех сцен)
         FpsHunt.init(); // 1.0: -Dnovograd.autotest=fpshunt — где падает FPS (сценарии, рывки, GC)
         ShowAutotest.init(); // 0.8: -Dnovograd.autotest=animshow / lookshow — ролики анимаций игрока и «нет двойников»
-        UiAudit.init(); // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
+        UiAudit.init();
+        com.yompix.novograd.client.guide.GuideHints.init(); // 0.9.6: подсказки у мест, где есть чем заняться // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
         UiInvAutotest.init(); // -Dnovograd.autotest=uiinv: инвентарь «как в GTA», сундук, экран смерти
         DevAutotest.init();
         LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
@@ -247,6 +251,9 @@ public class NovogradClient implements ClientModInitializer {
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "emote" -> com.yompix.novograd.client.anim.PlayerAnim.receive(n); // 0.8: жест другого игрока
+            case "mycars" -> com.yompix.novograd.client.city.MyCarsScreen.state = n; // 0.9.6
+            case "car_offer" -> MinecraftClient.getInstance().setScreen(new com.yompix.novograd.client.city.CarOfferScreen(n));
+            case "stash" -> com.yompix.novograd.client.city.StashScreen.state = n;
             // 0.9: прогресс, «Империя», «Сеть», значки карты, события города
             case "progress_state" -> com.yompix.novograd.client.city.ProgressScreen.state = n;
             case "empire_state" -> com.yompix.novograd.client.city.EmpireScreen.state = n;

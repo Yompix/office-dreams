@@ -93,6 +93,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final TrackedData<Integer> KNOCK = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     /** Реплика над головой (короткий разговор прохожих, world/LifeAi); пусто — молчит. */
     private static final TrackedData<String> SAY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.STRING);
+    /** 0.9.6: зерно внешности из генератора (life/LookGen); 0 — обычный скин SKINS[skin]. */
+    private static final TrackedData<Long> LOOK = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.LONG);
     private int sayTicks;
     public static final int KO_NONE = 0, KO_DOWN = 1, KO_GETUP = 2, KO_DEAD = 3, KO_DEAD_LYING = 4;
     private Role role = Role.CITIZEN;
@@ -271,6 +273,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         builder.add(QUEST, false);
         builder.add(KNOCK, KO_NONE);
         builder.add(SAY, "");
+        builder.add(LOOK, 0L);
     }
 
     @Override
@@ -322,6 +325,62 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         this.stationary = stationary;
         setCustomName(net.minecraft.text.Text.literal(matchGender(name)));
         setCustomNameVisible(role != Role.CITIZEN);
+        lookPending = lookEligible();
+        if (!lookPending) dataTracker.set(LOOK, 0L);
+    }
+
+    // ===================================================================== 0.9.6: внешность из генератора
+    private boolean lookPending;
+
+    public long getLookSeed() {
+        return dataTracker.get(LOOK);
+    }
+
+    /** Для витрин и автотестов: задать внешность из генератора напрямую. */
+    public void forceLook(long seed) {
+        lookPending = false;
+        dataTracker.set(LOOK, seed);
+    }
+
+    /** Обычные горожане и продавцы со «случайным» скином; герои, массовка в облике героя, форма (полиция, врачи, охрана, банда) — нет. */
+    private boolean lookEligible() {
+        if (Boolean.getBoolean("novograd.legacylooks") || !storyId.isEmpty() || heroLook) return false;
+        int sk = getSkin();
+        return sk >= RANDOM_FROM && sk < STORY_FROM && (role == Role.CITIZEN || role == Role.SHOPKEEPER);
+    }
+
+    /** Профиль одежды по месту: деловой центр — костюмы, пляж и Ривьера — лёгкое, порт и промзона — рабочее, зимой — тёплое. */
+    private int lookProfile(net.minecraft.server.world.ServerWorld w, long h) {
+        int roll = (int) Math.floorMod(h >>> 17, 100);
+        boolean island = w.getChunkManager().getChunkGenerator() instanceof com.yompix.novograd.world.IslandChunkGenerator;
+        if (!island) return com.yompix.novograd.life.LookGen.CASUAL;
+        if (com.yompix.novograd.world.Seasons.season(w) == com.yompix.novograd.world.Seasons.Season.WINTER && roll < 75)
+            return com.yompix.novograd.life.LookGen.WINTER;
+        var z = com.yompix.novograd.world.Island.zone(getBlockX(), getBlockZ());
+        return switch (z) {
+            case DOWNTOWN, AIRFIELD -> roll < 60 ? com.yompix.novograd.life.LookGen.BUSINESS : roll < 85 ? com.yompix.novograd.life.LookGen.CASUAL : com.yompix.novograd.life.LookGen.SPORT;
+            case BEACH -> roll < 70 ? com.yompix.novograd.life.LookGen.BEACH : roll < 85 ? com.yompix.novograd.life.LookGen.SPORT : com.yompix.novograd.life.LookGen.CASUAL;
+            case RIVIERA, MIRAGE -> roll < 45 ? com.yompix.novograd.life.LookGen.RESORT : roll < 75 ? com.yompix.novograd.life.LookGen.BEACH : com.yompix.novograd.life.LookGen.BUSINESS;
+            case PORT, INDUSTRIAL -> roll < 60 ? com.yompix.novograd.life.LookGen.WORKER : roll < 80 ? com.yompix.novograd.life.LookGen.STREET : com.yompix.novograd.life.LookGen.CASUAL;
+            case CORE -> roll < 45 ? com.yompix.novograd.life.LookGen.STREET : roll < 55 ? com.yompix.novograd.life.LookGen.BIKER : com.yompix.novograd.life.LookGen.CASUAL;
+            case SUBURB -> roll < 70 ? com.yompix.novograd.life.LookGen.SUBURB : com.yompix.novograd.life.LookGen.SPORT;
+            case COUNTRY, VILLAGE -> roll < 40 ? com.yompix.novograd.life.LookGen.WORKER : roll < 55 ? com.yompix.novograd.life.LookGen.BIKER : com.yompix.novograd.life.LookGen.CASUAL;
+            default -> com.yompix.novograd.life.LookGen.CASUAL;
+        };
+    }
+
+    /** Подобрать внешность (на сервере, после того как житель встал на место): по имени и скину — стабильно для жильцов. */
+    private void assignLook(net.minecraft.server.world.ServerWorld w) {
+        lookPending = false;
+        if (!lookEligible()) {
+            dataTracker.set(LOOK, 0L);
+            return;
+        }
+        String n = getCustomName() == null ? getUuid().toString() : getCustomName().getString();
+        long h = n.hashCode() * 0x9E3779B97F4A7C15L + getSkin() * 0xC2B2AE3D27D4EB4FL;
+        if (getCustomName() == null) h ^= getUuid().getLeastSignificantBits();
+        h ^= h >>> 29;
+        dataTracker.set(LOOK, com.yompix.novograd.life.LookGen.citizenSeed(h, isSlim(getSkin()), lookProfile(w, h)));
     }
 
     /**
@@ -344,6 +403,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     /** 0.8: массовка кат-сцены в облике героя (без метки героя: после сцены её убирают). */
     public void setupAsHero(String heroId, Role role, String name) {
         dataTracker.set(SKIN, storySkin(heroId));
+        dataTracker.set(LOOK, 0L);
+        lookPending = false;
         this.role = role;
         this.stationary = true;
         setCustomName(net.minecraft.text.Text.literal(name));
@@ -362,6 +423,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     /** 0.8: герою — его собственный скин и имя из сценария (и в старых мирах, где он носил скин прохожего). */
     private void applyStoryLook() {
         if (storyId.isEmpty() || getWorld().isClient) return;
+        dataTracker.set(LOOK, 0L);
+        lookPending = false;
         int sk = storySkin(storyId);
         if (sk >= 0) dataTracker.set(SKIN, sk);
         try {
@@ -671,6 +734,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public void tick() {
         super.tick();
+        if (lookPending && age >= 1 && getWorld() instanceof net.minecraft.server.world.ServerWorld lw) assignLook(lw);
         if (holdYawTicks > 0 && !getWorld().isClient) {
             holdYawTicks--;
             setYaw(holdYaw);
@@ -1690,6 +1754,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
         nbt.putInt("Skin", getSkin());
+        if (getLookSeed() != 0) nbt.putLong("LookSeed", getLookSeed());
         nbt.putString("Role", role.name());
         nbt.putBoolean("Stationary", stationary);
         nbt.putString("StoryId", storyId);
@@ -1736,6 +1801,12 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (storyId.isEmpty() && hasCustomName()) {
             String n = getCustomName().getString(), f = matchGender(n);
             if (!f.equals(n)) setCustomName(net.minecraft.text.Text.literal(f));
+        }
+        // 0.9.6: внешность из генератора; житель из старого мира получает её при первом тике
+        if (nbt.contains("LookSeed") && lookEligible()) dataTracker.set(LOOK, nbt.getLong("LookSeed"));
+        else {
+            dataTracker.set(LOOK, 0L);
+            lookPending = lookEligible();
         }
     }
 }

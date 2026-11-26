@@ -83,6 +83,14 @@ public final class Minimap {
         pending = null;
     }
 
+    /** 0.9.6: на сколько поднять чат, чтобы он был над радаром (0 — радара нет). Низ чата в Minecraft — на 40 от низа экрана. */
+    public static int chatLift(DrawContext ctx) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.player == null || mc.options.hudHidden || !NovogradConfig.get().minimap || LifeHud.cinematic(mc)) return 0;
+        float K = NovogradConfig.hud();
+        return Math.max(0, (int) Math.ceil((96 + 22 + 8) * K) - 40 + 4);
+    }
+
     public static void render(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.world == null || mc.options.hudHidden || !NovogradConfig.get().minimap || LifeHud.cinematic(mc)) return;
@@ -205,6 +213,13 @@ public final class Minimap {
             }
         }
         if (!actLabel.isEmpty()) blip(ctx, mc, px, pz, actX, actZ, yaw, cx, cy, x, y, W, H, 0xFF3FD8FF, actLabel);
+        // 0.9.6: свои машины — всегда (последнее известное место; штрафстоянка — её место)
+        for (var e : com.yompix.novograd.client.city.MyCarsScreen.state.getList("list", 10)) {
+            var c = (net.minecraft.nbt.NbtCompound) e;
+            if (!c.contains("x")) continue;
+            String wh = c.getString("where");
+            blip(ctx, mc, px, pz, c.getDouble("x"), c.getDouble("z"), yaw, cx, cy, x, y, W, H, wh.equals("impound") ? 0xFFFFC428 : 0xFF00C8A0, "");
+        }
         if (actTimer >= 0) {
             String ts = String.format("%d:%02d", actTimer / 60, actTimer % 60);
             ctx.drawText(mc.textRenderer, ts, x + W - mc.textRenderer.getWidth(ts) - 3, y + 3, actTimer < 15 ? 0xFFFF5050 : 0xFFFFFFFF, true);

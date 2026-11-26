@@ -136,7 +136,7 @@ public final class Disguise {
 
     private static String lookKey(ServerPlayerEntity p) {
         Appearance a = Life.get(p).look;
-        return a.top + "|" + a.pants + "|" + a.shoes + "|" + a.hat + "|" + a.glasses + "|" + a.hair + "|" + a.hairColor + "|" + wearing(p);
+        return a.top + "|" + a.outer + "|" + a.pants + "|" + a.shoes + "|" + a.hat + "|" + a.glasses + "|" + a.hair + "|" + a.hairColor + "|" + wearing(p);
     }
 
     private static final Map<UUID, Boolean> INSIDE = new HashMap<>();
@@ -221,7 +221,7 @@ public final class Disguise {
             Appearance a = d.look;
             var r = p.getRandom();
             for (StyleCatalog.Slot slot : new StyleCatalog.Slot[]{StyleCatalog.Slot.TOP, StyleCatalog.Slot.PANTS, StyleCatalog.Slot.HAT}) {
-                List<StyleCatalog.Wear> l = StyleCatalog.of(slot, 0);
+                List<StyleCatalog.Wear> l = StyleCatalog.of(slot, 0, a.slim);
                 String cur = a.get(slot), ref = cur;
                 for (int k = 0; k < 8 && ref.equals(cur); k++) {
                     StyleCatalog.Wear w = l.get(r.nextInt(l.size()));

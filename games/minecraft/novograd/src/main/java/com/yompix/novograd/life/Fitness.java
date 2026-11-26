@@ -39,7 +39,10 @@ public final class Fitness {
     }
 
     public static void ate(ServerPlayerEntity p, float kg) {
-        if (true) return; // веса в Новограде нет: еда просто лечит
+        // 0.9.6: еда понемногу прибавляет жир (видно на теле: худое → среднее → плотное), спорт и ходьба — убавляют
+        LifeData d0 = Life.get(p);
+        d0.fat = Math.max(0, Math.min(100, d0.fat + Math.max(0, kg) * 1.5f));
+        if (true) return; // вес в кг не считаем — только жир
         LifeData d = Life.get(p);
         float before = d.weight;
         d.weight = Math.max(45, Math.min(130, d.weight + kg));
@@ -58,6 +61,7 @@ public final class Fitness {
         double w = WALKED.merge(p.getUuid(), dist * (p.isSprinting() ? 2 : 1), Double::sum);
         if (w >= 400) {
             WALKED.put(p.getUuid(), 0.0);
+            d.fat = Math.max(0, d.fat - 0.25f); // 0.9.6: ходьба и бег жгут жир
             if (d.weight > 55) {
                 d.weight -= 0.2f;
                 if (d.fitness < 40) d.fitness++;

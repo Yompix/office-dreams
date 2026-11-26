@@ -155,6 +155,7 @@ public final class Story {
         // игра с друзьями: новичок подхватывает сюжет того, кто ушёл дальше всех
         ServerPlayerEntity lead = leader(p);
         if (lead != null && (!d.storyStarted || stepKey(Life.get(lead)) > stepKey(d))) {
+            if (!d.storyStarted && com.yompix.novograd.life.Style.creatorOnJoin()) d.flags.add("creator:pending");
             copyProgress(Life.get(lead), d);
             applyAge(p, d.age);
             // появиться рядом с другом, а не на точке входа
@@ -164,6 +165,8 @@ public final class Story {
             return;
         }
         if (!d.storyStarted) {
+            // 0.9.6: новичок сначала создаёт персонажа (редактор внешности), заставка сюжета ждёт
+            if (com.yompix.novograd.life.Style.creatorOnJoin()) d.flags.add("creator:pending");
             d.storyStarted = true;
             d.chapter = d.mission = d.step = 0;
             run(p).timer = 30;
@@ -210,6 +213,9 @@ public final class Story {
         RUNS.remove(p.getUuid());
     }
 
+    /** Только автотесты витрин: сюжет не начинается (-Dnovograd.nostory=true). */
+    private static final boolean NO_STORY = Boolean.getBoolean("novograd.nostory");
+
     /** Каждый тик: таймеры, проверки целей. */
     public static void tick(ServerPlayerEntity p) {
         Director.tick(p);
@@ -219,7 +225,7 @@ public final class Story {
         Run r = run(p);
         r.ticks++;
         if (!r.started) {
-            if (!r.ready || --r.timer > 0) return;
+            if (!r.ready || d.flags.contains("creator:pending") || NO_STORY || --r.timer > 0) return;
             r.started = true;
             enter(p, d, freshStep(d));
             return;
