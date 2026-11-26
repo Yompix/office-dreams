@@ -36,13 +36,14 @@ public final class ShowAutotest {
     private static final List<Step> STEPS = new ArrayList<>();
     private static int index = -1, timer;
     private static final String P = "Dev";
-    private static Vec3d base;
-    private static Runnable perTick;
+    static Vec3d base;
+    static Runnable perTick;
 
     public static void init() {
         String mode = System.getProperty("novograd.autotest");
         if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife")
-                || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow"))) return;
+                || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -54,7 +55,8 @@ public final class ShowAutotest {
         cmd(5, "gamerule doMobSpawning false");
         cmd(5, "clear " + P);
         cmd(5, "effect clear " + P);
-        if (mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")) server(5, s -> {
+        if (mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap")) server(5, s -> {
             var d = com.yompix.novograd.life.Life.get(pl(s));
             d.storyStarted = true;
             d.storyDone = true;
@@ -68,12 +70,15 @@ public final class ShowAutotest {
         else if (mode.equals("creatorshow")) creatorshow();
         else if (mode.equals("mpload")) mpload();
         else if (mode.equals("gymshow")) gymshow();
+        else if (mode.equals("bodyshow")) BodyShow.bodyshow();
+        else if (mode.equals("agetest")) BodyShow.agetest();
+        else if (mode.equals("spawnmap")) BodyShow.spawnmap();
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }
 
     // ===================================================================== анимации игрока
-    private static void key(MinecraftClient c, net.minecraft.client.option.KeyBinding k, boolean on) {
+    static void key(MinecraftClient c, net.minecraft.client.option.KeyBinding k, boolean on) {
         k.setPressed(on);
     }
 
@@ -185,7 +190,7 @@ public final class ShowAutotest {
         label(1, what);
     }
 
-    private static void tp(String place, double dx, double dz, float yaw, float pitch) {
+    static void tp(String place, double dx, double dz, float yaw, float pitch) {
         server(1, s -> {
             ServerPlayerEntity p = pl(s);
             var w = p.getServerWorld();
@@ -277,6 +282,7 @@ public final class ShowAutotest {
     private static final java.util.Set<String> AI_ALL = new java.util.TreeSet<>();
     private static final java.util.Map<java.util.UUID, Object[]> AI_CARS = new java.util.HashMap<>(); // машина → {позиция, с какого тика стоит}
     private static int aiStuck;
+    private static final java.util.Map<String, Integer> AI_IDLE_KIND = new java.util.TreeMap<>(), AI_ALL_KIND = new java.util.TreeMap<>();
     private static double aiMspt;
     private static int aiMsptN;
 
@@ -288,7 +294,17 @@ public final class ShowAutotest {
             boolean idle = c.getActivity() == CitizenEntity.Activity.IDLE && c.directTo == null && !c.hasVehicle() && c.getNavigation().isIdle();
             int[] k = AI_SAMPLES.computeIfAbsent(c.getId(), x -> new int[2]);
             k[0]++;
-            if (idle) k[1]++;
+            if (idle) {
+                k[1]++;
+                // 0.9.7: кто именно «без дела» — чтобы понять, откуда процент
+                String kind = c.getRole() != CitizenEntity.Role.CITIZEN ? c.getRole().name() : !c.getStoryId().isEmpty() ? "герой"
+                        : c.getCommandTags().contains(com.yompix.novograd.world.Residents.TAG) ? "жилец" : c.isStationary() ? "стоит_на_месте(персонал)"
+                        : c.isAmbient() ? "прохожий" : "прочие";
+                AI_IDLE_KIND.merge(kind, 1, Integer::sum);
+            }
+            AI_ALL_KIND.merge(c.getRole() != CitizenEntity.Role.CITIZEN ? c.getRole().name() : !c.getStoryId().isEmpty() ? "герой"
+                    : c.getCommandTags().contains(com.yompix.novograd.world.Residents.TAG) ? "жилец" : c.isStationary() ? "стоит_на_месте(персонал)"
+                    : c.isAmbient() ? "прохожий" : "прочие", 1, Integer::sum);
             if (!idle) {
                 AI_ACTS.computeIfAbsent(c.getId(), x -> new java.util.HashSet<>()).add(a);
                 AI_ALL.add(a);
@@ -356,6 +372,8 @@ public final class ShowAutotest {
             int active = (int) AI_ACTS.values().stream().filter(x -> x.size() >= 2).count();
             Novograd.LOG.info("[ailife] горожан {} (долго в кадре), занятий всего {}: {}", n, AI_ALL.size(), AI_ALL);
             Novograd.LOG.info("[ailife] без дела: в среднем {}%, худший {}%; с ≥2 занятиями {}", n == 0 ? 0 : (int) (sum / n), worst, active);
+            Novograd.LOG.info("[ailife] без дела по видам (замеров): {} из {}; отскоков {}, засмотрелись {}", AI_IDLE_KIND, AI_ALL_KIND,
+                    com.yompix.novograd.world.Attention.dodges, com.yompix.novograd.world.Attention.gazes);
             Novograd.LOG.info("[ailife] поездки на своей машине: начато {} доехало {}; машин стояло >30 с: {}", com.yompix.novograd.world.Residents.tripsStarted,
                     com.yompix.novograd.world.Residents.tripsArrived, aiStuck);
             Novograd.LOG.info("[ailife] полиция без вызова: штрафов {} разговоров {} кофе {} обходов {}; mspt в среднем {}", com.yompix.novograd.gta.PoliceLife.tickets,
@@ -448,11 +466,11 @@ public final class ShowAutotest {
         SPAWNED.add(c.getUuid());
     }
 
-    private static final List<java.util.UUID> SPAWNED = new ArrayList<>();
+    static final List<java.util.UUID> SPAWNED = new ArrayList<>();
 
     // ===================================================================== 0.9.6: редактор внешности и разнообразие жителей
     /** Зерно жителя из генератора с нужным полом и тоном кожи (для витрины «все тона»). */
-    private static long seedFor(boolean female, int tone, int profile, long from) {
+    static long seedFor(boolean female, int tone, int profile, long from) {
         for (long k = from; k < from + 20000; k++) {
             long sd = com.yompix.novograd.life.LookGen.citizenSeed(k * 1_000_003L, female, profile);
             var a = com.yompix.novograd.life.LookGen.citizen(sd);
@@ -461,7 +479,7 @@ public final class ShowAutotest {
         return com.yompix.novograd.life.LookGen.citizenSeed(from, female, profile);
     }
 
-    private static CitizenEntity genCitizen(net.minecraft.server.world.ServerWorld w, long seed) {
+    static CitizenEntity genCitizen(net.minecraft.server.world.ServerWorld w, long seed) {
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
         boolean f = com.yompix.novograd.life.LookGen.female(seed);
         int skin = Looks.RANDOM_FROM + (f ? 0 : 1) + 2 * w.getRandom().nextInt(Looks.RANDOM_COUNT / 2 - 4);
@@ -471,7 +489,7 @@ public final class ShowAutotest {
 
     /** Лист: 3 снимка по 8 жителей (24: мужчины и женщины, все 10 тонов кожи, разные профили) — склеивает tools/contact_sheet.py. */
     /** Студия над городом: белый пол и фон (без мусора улиц на снимках). */
-    private static Vec3d studio(ServerPlayerEntity p) {
+    static Vec3d studio(ServerPlayerEntity p) {
         var w = p.getServerWorld();
         int x0 = (int) Math.floor(p.getX()) & ~15, z0 = (int) Math.floor(p.getZ()) & ~15, y0 = 200;
         var cs = w.getServer().getCommandManager();
@@ -792,7 +810,7 @@ public final class ShowAutotest {
         finish();
     }
 
-    private static void shot(MinecraftClient c, String name) {
+    static void shot(MinecraftClient c, String name) {
         try (var img = net.minecraft.client.util.ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             java.io.File dir = new java.io.File(c.runDirectory, "screenshots/show");
             dir.mkdirs();
@@ -804,16 +822,16 @@ public final class ShowAutotest {
     }
 
     // ===================================================================== служебное
-    private static void rec(MinecraftClient c) {
+    static void rec(MinecraftClient c) {
         String rec = System.getProperty("novograd.rec");
         if (rec != null) com.yompix.novograd.client.story.CineRec.start(rec, 30);
     }
 
-    private static void label(int delay, String what) {
+    static void label(int delay, String what) {
         run(delay, c -> Novograd.LOG.info("[show] {}", what));
     }
 
-    private static void finish() {
+    static void finish() {
         server(1, s -> { // поставленных для ролика — убрать из мира
             var w = s.getOverworld();
             for (var u : SPAWNED) if (w.getEntity(u) != null) w.getEntity(u).discard();
@@ -861,19 +879,19 @@ public final class ShowAutotest {
         if (index < STEPS.size()) timer = STEPS.get(index).delay();
     }
 
-    private static ServerPlayerEntity pl(IntegratedServer s) {
+    static ServerPlayerEntity pl(IntegratedServer s) {
         return s.getPlayerManager().getPlayer(P);
     }
 
-    private static void run(int delay, Consumer<MinecraftClient> a) {
+    static void run(int delay, Consumer<MinecraftClient> a) {
         STEPS.add(new Step(delay, a));
     }
 
-    private static void cmd(int delay, String command) {
+    static void cmd(int delay, String command) {
         server(delay, s -> s.getCommandManager().executeWithPrefix(s.getCommandSource(), command));
     }
 
-    private static void server(int delay, Consumer<IntegratedServer> action) {
+    static void server(int delay, Consumer<IntegratedServer> action) {
         STEPS.add(new Step(delay, c -> {
             IntegratedServer s = c.getServer();
             if (s != null) s.execute(() -> {

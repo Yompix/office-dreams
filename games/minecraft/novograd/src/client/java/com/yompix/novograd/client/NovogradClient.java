@@ -151,6 +151,7 @@ public class NovogradClient implements ClientModInitializer {
             data = new LifeData();
             com.yompix.novograd.client.story.ClientStory.objective = new NbtCompound();
             send("hello", new NbtCompound());
+            NovogradConfig.sendAge(); // 0.9.7: проверка возраста — ответ серверу (казино, выпивка, requireAdult)
         });
         ClientTickEvents.END_CLIENT_TICK.register(NovogradClient::tick);
         ClientTickEvents.END_CLIENT_TICK.register(c -> { if (c.player == null) CarRadio.tick(c); }); // радио в главном меню
@@ -159,9 +160,9 @@ public class NovogradClient implements ClientModInitializer {
             if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
                 net.minecraft.client.gui.screen.Screen next = com.yompix.novograd.client.story.YompixSplash.shown() ? new com.yompix.novograd.client.menu.LifeMenuScreen()
                         : new com.yompix.novograd.client.story.YompixSplash(new com.yompix.novograd.client.menu.LifeMenuScreen());
-                // 0.9.6: «Мод для взрослых 18+» — один раз на установку (в автотестах не показываем)
-                boolean adult = NovogradConfig.get().adultOk || System.getProperty("novograd.autotest") != null;
-                c.setScreen(adult ? next : new com.yompix.novograd.client.menu.AdultNoticeScreen(next));
+                // 0.9.7: «Подтверди возраст» — один раз на установку (в автотестах не показываем)
+                boolean asked = NovogradConfig.get().ageChecked || System.getProperty("novograd.autotest") != null;
+                c.setScreen(asked ? next : new com.yompix.novograd.client.menu.AgeGateScreen(next));
             } else if (c.currentScreen instanceof net.minecraft.client.gui.screen.GameMenuScreen g && g.shouldShowMenu()) {
                 c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen());
             }

@@ -196,10 +196,11 @@ public final class Minimap {
             int bx = (int) (cx + sxp * k), by = (int) (cy + syp * k);
             boolean pulse = (System.currentTimeMillis() / 400) % 2 == 0;
             if (o.getString("type").equals("free")) {
-                // метка новой миссии — жёлтая «М», как контакт в GTA
+                // метка новой миссии — жёлтая буква связного, как контакт в GTA (0.9.7: Д — Джейк, Б — Брик…)
+                String letter = o.getString("letter").isEmpty() ? "M" : o.getString("letter");
                 ctx.fill(bx - 5, by - 5, bx + 5, by + 5, 0xFF000000);
                 ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFFFFD000);
-                ctx.drawText(mc.textRenderer, "M", bx - 2, by - 3, 0xFF000000, false);
+                ctx.drawText(mc.textRenderer, letter, bx - mc.textRenderer.getWidth(letter) / 2, by - 3, 0xFF000000, false);
             } else {
                 ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFF000000);
                 ctx.fill(bx - 3, by - 3, bx + 3, by + 3, pulse ? 0xFFFFD000 : 0xFFFFE860);

@@ -57,6 +57,8 @@ final class Actions {
                 d.taskPos = null;
             }
             case "time" -> {
+                // 0.9.7: время суток общее для всех — сюжет одного игрока его не двигает, если в игре есть другие
+                if (p.getServer().getPlayerManager().getCurrentPlayerCount() > 1) return;
                 long tod = w.getTimeOfDay() % 24000, day = w.getTimeOfDay() / 24000;
                 long t = a.get(1).getAsLong();
                 w.setTimeOfDay((t < tod ? day + 1 : day) * 24000 + t);

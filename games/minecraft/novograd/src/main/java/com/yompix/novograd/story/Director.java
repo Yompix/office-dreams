@@ -118,7 +118,7 @@ public final class Director {
         // игра с друзьями: эту же сцену уже ставит напарник — смотрим вместе, второй раз актёров не зовём
         for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {
             Scene other = en.getValue();
-            if (other.step == step && !other.viewer && !en.getKey().equals(p.getUuid())) {
+            if (Story.COOP && other.step == step && !other.viewer && !en.getKey().equals(p.getUuid())) {
                 sc.viewer = true;
                 sc.actors = other.actors;
                 sc.extras = other.extras;
@@ -568,6 +568,7 @@ public final class Director {
                         w.spawnEntity(c);
                         c.setStationary(true);
                     }
+                    if (!Story.COOP) c.setStoryOwner(p.getUuidAsString()); // 0.9.7: массовку сцены видит только её зритель
                     sc.extras.add(c.getUuid());
                 }
                 sc.actors.put(id, c.getUuid());

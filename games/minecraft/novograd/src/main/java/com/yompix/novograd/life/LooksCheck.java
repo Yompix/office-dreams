@@ -71,6 +71,7 @@ public final class LooksCheck {
         String genWho = "";
         java.util.Set<String> distinct = new java.util.HashSet<>(), skins = new java.util.HashSet<>();
         java.util.Map<String, Integer> profiles = new java.util.TreeMap<>();
+        int[] chestHist = new int[Appearance.CHEST_STEPS];
         java.util.Set<String> heroOnly = java.util.Set.of("beret", "scarf", "chain", "coat", "goggles", "earrings", "fedora", "bandana", "cap_back", "nbandana");
         for (int i = 0; i < n; i++) {
             boolean f = r.nextBoolean();
@@ -90,6 +91,7 @@ public final class LooksCheck {
                 if (genBad < 10) System.out.println("ДВОЙНИК (генератор): зерно " + seed + " похож на " + who[0] + " (" + d + ")");
                 genBad++;
             }
+            if (a.slim) chestHist[a.chest]++;
             JsonObject rj = LookGen.renderJson(a);
             for (String k : heroOnly) if (rj.has(k)) genSig++;
             distinct.add(a.key() + "|" + a.hat + "|" + a.glasses + "|" + a.bag);
@@ -97,6 +99,11 @@ public final class LooksCheck {
         }
         System.out.printf(java.util.Locale.ROOT, "[lookalike] генератор: жителей=%d женщин=%d профили=%s двойников=%d подписей_героя=%d разных_образов=%d разных_скинов=%d ближе_всех=%s (%.2f)%n",
                 n, female, profiles, genBad, genSig, distinct.size(), skins.size(), genWho, genMin);
+        // 0.9.7: размеры у жительниц — естественный разброс, чаще середина, все в пределах 0…4
+        int mid = chestHist[1] + chestHist[2] + chestHist[3];
+        int shapeBad = female > 0 && (chestHist[2] < chestHist[0] || chestHist[2] < chestHist[4] || mid * 100 < female * 60) ? 1 : 0;
+        System.out.printf(java.util.Locale.ROOT, "[lookalike] форма тела (женщины): размеры 0..4 = %s, в середине (1–3) %d%% → %s%n",
+                java.util.Arrays.toString(chestHist), female == 0 ? 0 : mid * 100 / female, shapeBad == 0 ? "ок" : "ОШИБКА");
         System.out.printf(java.util.Locale.ROOT, "[catalog] верх=%d куртки=%d низ=%d обувь=%d аксессуары=%d (уборы %d, очки %d, шея %d, сумки %d, часы %d) причёсок=%d цветов_волос=%d тонов_кожи=%d цветов_глаз=%d%n",
                 StyleCatalog.count(StyleCatalog.Slot.TOP), StyleCatalog.count(StyleCatalog.Slot.OUTER), StyleCatalog.count(StyleCatalog.Slot.PANTS),
                 StyleCatalog.count(StyleCatalog.Slot.SHOES),
@@ -111,8 +118,8 @@ public final class LooksCheck {
         old.putString("top", "leather#1");
         old.putString("hair", "afro");
         Appearance oa = Appearance.fromNbt(old);
-        int compat = oa.skin == 8 && oa.outer.equals("leather#1") && oa.top.equals("tee#0") && oa.hair.equals("afro") ? 0 : 1;
+        int compat = oa.chest == Appearance.MID_CHEST && oa.pecs == 1 && oa.skin == 8 && oa.outer.equals("leather#1") && oa.top.equals("tee#0") && oa.hair.equals("afro") ? 0 : 1;
         System.out.println("[lookalike] старая внешность 0.9.5 → " + (compat == 0 ? "ок" : "ОШИБКА") + " (тон " + oa.skin + ", верх " + oa.top + ", куртка " + oa.outer + ")");
-        System.exit(bad + badName + badSkin + noSig + genBad + genSig + compat == 0 ? 0 : 1);
+        System.exit(bad + badName + badSkin + noSig + genBad + genSig + compat + shapeBad == 0 ? 0 : 1);
     }
 }

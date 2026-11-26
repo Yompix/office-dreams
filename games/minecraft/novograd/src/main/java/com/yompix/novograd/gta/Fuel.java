@@ -156,7 +156,8 @@ public final class Fuel {
             return;
         }
         int add = Math.min(max - car.fuel(), 60);
-        int cost = Math.max(1, (add + UNITS_PER_DOLLAR - 1) / UNITS_PER_DOLLAR);
+        // 0.9.7: цена бензина — с индексом цен и рынком (дефицит, зима — дороже; см. Macro)
+        int cost = Math.max(1, Macro.price(Money.price((add + UNITS_PER_DOLLAR - 1) / UNITS_PER_DOLLAR), "бензин"));
         LifeData d = Life.get(p);
         if (d.money >= cost) d.money -= cost;
         else if (d.dirty >= cost) d.dirty -= cost;

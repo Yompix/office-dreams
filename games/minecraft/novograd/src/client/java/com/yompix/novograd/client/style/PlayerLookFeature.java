@@ -30,7 +30,13 @@ public class PlayerLookFeature extends FeatureRenderer<AbstractClientPlayerEntit
         if (p.getEquippedStack(EquipmentSlot.CHEST).isEmpty()) {
             m.push();
             getContextModel().body.rotate(m);
+            HairFeature.bustPush = BodyShape.depth(a);
             hair.drawBody(m, buffers, light, json);
+            HairFeature.bustPush = 0;
+            // 0.9.7: форма груди / рельеф — из того же скина (одежда продолжается); физика — на клиенте
+            var tex = SkinComposer.peek(a.key());
+            if (tex != null) BodyShape.render(m, buffers, tex, light, net.minecraft.client.render.entity.LivingEntityRenderer.getOverlay(p, 0), a,
+                    StyleClient.inPreview ? BodyShape.PREVIEW_KEY : p.getId(), p, limbAngle, limbDistance, tickDelta);
             m.pop();
         }
         if (!p.getEquippedStack(EquipmentSlot.HEAD).isEmpty()) return;

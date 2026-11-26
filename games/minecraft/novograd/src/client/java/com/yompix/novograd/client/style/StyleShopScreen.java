@@ -518,7 +518,12 @@ public class StyleShopScreen extends LifeScreen {
                 break;
             }
         }
-        InventoryScreen.drawEntity(ctx, cx, floorY - size * 0.9f, size / scale, new Vector3f(0, e.getHeight() / 2f, 0), q, q2, e);
+        StyleClient.inPreview = true;
+        try {
+            InventoryScreen.drawEntity(ctx, cx, floorY - size * 0.9f, size / scale, new Vector3f(0, e.getHeight() / 2f, 0), q, q2, e);
+        } finally {
+            StyleClient.inPreview = false;
+        }
         if (slot >= 0) ((net.minecraft.entity.player.PlayerEntity) e).getInventory().selectedSlot = slot;
         e.bodyYaw = saveBody;
         e.prevBodyYaw = savePrevBody;

@@ -37,7 +37,8 @@ public final class Life {
     /** Заработок. Показывает зелёную сумму над хотбаром и звенит кассой. */
     public static void earn(ServerPlayerEntity p, int amount, String why) {
         LifeData d = get(p);
-        amount = (int) Math.round(com.yompix.novograd.gta.Money.indexed(amount) * Admin.cfg.earnMul); // 0.9.6: заработок индексируется вместе с ценами
+        // 0.9.6: заработок индексируется вместе с ценами; 0.9.7: и с индексом зарплат (безработица)
+        amount = (int) Math.round(com.yompix.novograd.gta.Money.indexed(amount) * com.yompix.novograd.gta.Macro.wage() * Admin.cfg.earnMul);
         com.yompix.novograd.gta.Money.earned(amount);
         d.money += amount;
         d.earned += amount;
@@ -48,7 +49,8 @@ public final class Life {
 
     /** Списать деньги. false — не хватает. */
     public static boolean pay(ServerPlayerEntity p, int amount, String why) {
-        return payRaw(p, com.yompix.novograd.gta.Money.price(amount), why); // 0.9.6: цены с инфляцией (индекс в «Финансах»)
+        // 0.9.6: цены с инфляцией (индекс в «Финансах»); 0.9.7: и с рынком категории (бензин, жильё, оружие…)
+        return payRaw(p, com.yompix.novograd.gta.Macro.price(com.yompix.novograd.gta.Money.price(amount), why), why);
     }
 
     /** Платёж ровно amount (переводы между игроками, банкомат) — без индекса цен. */

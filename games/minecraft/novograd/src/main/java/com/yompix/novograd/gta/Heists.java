@@ -322,7 +322,8 @@ public final class Heists {
             int sum = 0, washed = 0;
             for (int i = 0; i < BUSINESS.length; i++) {
                 if (!d.flags.contains("biz:" + i)) continue;
-                int income = income(d, i);
+                int income = (int) Math.round(income(d, i) * Macro.bizMul(i)); // 0.9.7: доход — от сектора района
+                Macro.bizIncome(income);
                 int safe = Math.min(safe(d, i) + income * (int) Math.min(3, today - last), income * 3); // сейф вмещает 3 дня
                 setSafe(d, i, safe);
                 sum += income;

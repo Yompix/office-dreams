@@ -121,6 +121,11 @@ public final class Territories {
     }
 
     private static final Map<UUID, War> WARS = new HashMap<>();
+
+    /** 0.9.7: идёт ли где-то война за район (для рынка: оружие дороже, жильё дешевле). */
+    public static boolean warActive(net.minecraft.server.MinecraftServer s) {
+        return !WARS.isEmpty();
+    }
     private static final Map<UUID, Integer> WHERE = new HashMap<>();
 
     public static boolean busy(ServerPlayerEntity p) {

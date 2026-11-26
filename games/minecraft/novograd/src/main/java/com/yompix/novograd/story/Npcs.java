@@ -15,9 +15,48 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.UUID;
 
-/** Герои сюжета — обычные жители с меткой storyId. Один герой — один житель на весь мир. */
+/**
+ * Герои сюжета — обычные жители с меткой storyId. Один герой — один житель на игрока: 0.9.7 — в мультиплеере у каждого
+ * игрока свои герои (ключ «id@uuid» в TownState.storyNpcs, у жителя — владелец {@link CitizenEntity#getStoryOwner}, чужие
+ * его не видят и не могут заговорить). У хозяина одиночной/LAN-игры ключ прежний («id») — старые сохранения не ломаются.
+ * Чей сюжет сейчас выполняется — {@link #push}/{@link #pop} вокруг входов сюжета.
+ */
 public final class Npcs {
     private Npcs() {}
+
+    private static String scope = "";
+    @Nullable private static net.minecraft.server.MinecraftServer server;
+    private static final java.util.Set<String> HOSTS = new java.util.HashSet<>();
+
+    /** Сюжет игрока p: герои ищутся и ставятся его. Вернуть прежний — {@link #pop}. */
+    public static String push(@Nullable ServerPlayerEntity p) {
+        String prev = scope;
+        if (p == null) scope = "";
+        else {
+            scope = p.getUuidAsString();
+            server = p.getServer();
+            if (server != null && !server.isDedicated() && server.isHost(p.getGameProfile())) HOSTS.add(scope);
+        }
+        return prev;
+    }
+
+    public static void pop(String prev) {
+        scope = prev == null ? "" : prev;
+    }
+
+    public static String scope() {
+        return scope;
+    }
+
+    /** Ключ героя в TownState.storyNpcs: у хозяина и вне сюжета — «id», у остальных — «id@uuid». */
+    public static String keyOf(String id, @Nullable String owner, @Nullable net.minecraft.server.MinecraftServer s) {
+        if (owner == null || owner.isEmpty() || HOSTS.contains(owner)) return id;
+        return id + "@" + owner;
+    }
+
+    static String key(String id) {
+        return keyOf(id, scope, server);
+    }
 
     /** Где герой «живёт», когда сюжету не нужен: учитель — в классе, Ирина — в офисе, Петров — в парке. */
     private static final Map<String, String> HOME = Map.of("teacher", "classroom1", "irina", "office_desk", "petrov", "park_center");
@@ -25,7 +64,7 @@ public final class Npcs {
 
     @Nullable
     public static CitizenEntity find(ServerWorld w, String id) {
-        UUID u = TownState.get(w).storyNpcs.get(id);
+        UUID u = TownState.get(w).storyNpcs.get(key(id));
         if (u == null) return null;
         return w.getServer().getOverworld().getEntity(u) instanceof CitizenEntity c && c.isAlive() ? c : null;
     }
@@ -37,7 +76,7 @@ public final class Npcs {
         ServerWorld w = p.getServerWorld();
         CitizenEntity c = find(w, id);
         if (c != null) return c;
-        String place = TownState.get(w).storyPlaces.get(id);
+        String place = TownState.get(w).storyPlaces.get(key(id));
         Vec3d at = place == null ? null : Story.place(w, place);
         if (at == null || p.squaredDistanceTo(at) > 80 * 80) return null; // далеко — метка ведёт на место, герой появится, когда подъедешь
         w.getChunk(BlockPos.ofFloored(at));
@@ -47,7 +86,7 @@ public final class Npcs {
 
     public static CitizenEntity spawn(ServerPlayerEntity p, String id, String place) {
         ServerWorld w = p.getServerWorld();
-        TownState.get(w).storyPlaces.put(id, place);
+        TownState.get(w).storyPlaces.put(key(id), place);
         TownState.get(w).markDirty();
         Vec3d at = Story.place(w, place);
         if (at == null) at = p.getPos();
@@ -63,7 +102,7 @@ public final class Npcs {
             c.refreshPositionAndAngles(at.x, g.getY(), at.z, Story.placeYaw(w, place), 0);
             w.spawnEntity(c);
             TownState t = TownState.get(w);
-            t.storyNpcs.put(id, c.getUuid());
+            t.storyNpcs.put(key(id), c.getUuid());
             t.markDirty();
         } else {
             BlockPos g = Story.ground(w, at);
@@ -71,6 +110,7 @@ public final class Npcs {
             c.refreshPositionAndAngles(at.x, g.getY(), at.z, Story.placeYaw(w, place), 0);
             c.setHeadYaw(Story.placeYaw(w, place));
         }
+        c.setStoryOwner(scope);
         c.setStationary(true);
         if (KIDS.contains(id)) {
             LifeData d = Life.get(p);

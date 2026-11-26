@@ -49,6 +49,11 @@ public final class Story {
     private Story() {}
 
     private static JsonObject root;
+    /**
+     * 0.9.7: совместный сюжет (общие сцены и враги у напарников на одном шаге). Пока выключен: сюжет и герои у каждого
+     * игрока свои; совместные миссии по приглашению — следующий шаг (docs/PLAN_1_0.md).
+     */
+    static final boolean COOP = false;
     private static final Map<UUID, Run> RUNS = new HashMap<>();
 
     /** То, что живёт только пока игрок в игре: таймеры, состояние гонки и экзамена. */
@@ -58,6 +63,14 @@ public final class Story {
         Vec3d lastCarPos;
         java.util.UUID target;
         int lastStep = -1;
+        int farTicks;
+    }
+
+    /** 0.9.7: игрок вошёл в метку — миссия начинается у него (сюжет у каждого свой). */
+    public static void startMission(ServerPlayerEntity p, LifeData d) {
+        if (!idle(d)) return;
+        d.flags.add("started:" + d.chapter + ":" + d.mission);
+        enter(p, d, true);
     }
 
     public static JsonObject root() {
@@ -152,18 +165,9 @@ public final class Story {
             Life.message(p, "Новоград", "Вышла новая глава сюжета: «" + str(chapter(d), "subtitle", "") + "»!");
             run(p).timer = 60;
         }
-        // игра с друзьями: новичок подхватывает сюжет того, кто ушёл дальше всех
-        ServerPlayerEntity lead = leader(p);
-        if (lead != null && (!d.storyStarted || stepKey(Life.get(lead)) > stepKey(d))) {
-            if (!d.storyStarted && com.yompix.novograd.life.Style.creatorOnJoin()) d.flags.add("creator:pending");
-            copyProgress(Life.get(lead), d);
-            applyAge(p, d.age);
-            // появиться рядом с другом, а не на точке входа
-            p.teleport(lead.getServerWorld(), lead.getX() + 1, lead.getY(), lead.getZ() + 1, lead.getYaw(), 0);
-            p.sendMessage(net.minecraft.text.Text.literal("Ты присоединился к сюжету друзей: " + str(chapter(d) != null ? chapter(d) : new JsonObject(), "title", "")).formatted(Formatting.AQUA), false);
-            run(p).timer = 20;
-            return;
-        }
+        // 0.9.7: сюжет у каждого игрока свой (раньше новичок подхватывал сюжет друга, который ушёл дальше всех).
+        // Вышел посреди миссии (и старые сохранения «на середине шага») — миссия снова ждёт на метке, без наказания.
+        if (d.storyStarted && !d.storyDone && d.side.isEmpty() && midMission(d)) backToMarker(d);
         if (!d.storyStarted) {
             // 0.9.6: новичок сначала создаёт персонажа (редактор внешности), заставка сюжета ждёт
             if (com.yompix.novograd.life.Style.creatorOnJoin()) d.flags.add("creator:pending");
@@ -218,6 +222,18 @@ public final class Story {
 
     /** Каждый тик: таймеры, проверки целей. */
     public static void tick(ServerPlayerEntity p) {
+        String prev = Npcs.push(p); // 0.9.7: герои — этого игрока
+        try {
+            tickScoped(p);
+        } finally {
+            Npcs.pop(prev);
+        }
+    }
+
+    /** 0.9.7: ушёл от миссии дальше этого (блоков) и от метки, и от цели — через 10 с миссия ждёт на метке снова. */
+    static final double LEAVE_DIST = 640;
+
+    private static void tickScoped(ServerPlayerEntity p) {
         Director.tick(p);
         if (!active(p)) return;
         Stage.tick(p); // 1.0: следующая сцена готовится, пока игрок подходит
@@ -239,16 +255,20 @@ public final class Story {
             // по горизонтали 5 блоков, по высоте до 9: метка «bridge_n» (акт IV) стоит у воды под настилом моста, и с
             // моста (на 6–7 блоков выше) миссия раньше не начиналась вовсе — только если нырнуть под мост
             double dx = p.getX() - (at == null ? 0 : at.x), dz = p.getZ() - (at == null ? 0 : at.z);
-            if (at != null && dx * dx + dz * dz < 5 * 5 && Math.abs(p.getY() - at.y) < 9) {
-                String key = "started:" + d.chapter + ":" + d.mission;
-                for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
-                    LifeData dq = Life.get(q);
-                    if (!active(q) || stepKey(dq) != stepKey(d)) continue;
-                    dq.flags.add(key);
-                    enter(q, dq, true);
-                }
-            }
+            if (at != null && dx * dx + dz * dz < 5 * 5 && Math.abs(p.getY() - at.y) < 9) startMission(p, d);
             return;
+        }
+        // 0.9.7: ушёл далеко от миссии — она мягко возвращается на метку (не во время кат-сцены и не во вступлении)
+        if (r.ticks % 20 == 0 && midMission(d) && d.prevMode < 0) {
+            Vec3d at = missionStart(p, d), tg = StepLogic.target(p, d, r, s);
+            boolean far = (at == null || p.squaredDistanceTo(at.x, p.getY(), at.z) > LEAVE_DIST * LEAVE_DIST)
+                    && (tg == null || p.squaredDistanceTo(tg.x, p.getY(), tg.z) > LEAVE_DIST * LEAVE_DIST);
+            r.farTicks = far ? r.farTicks + 20 : 0;
+            if (r.farTicks >= 200) {
+                r.farTicks = 0;
+                failMission(p, "Ты ушёл слишком далеко");
+                return;
+            }
         }
         StepLogic.tick(p, d, r, s);
     }
@@ -269,6 +289,40 @@ public final class Story {
                 && mission(d) != null && !d.flags.contains("started:" + d.chapter + ":" + d.mission);
     }
 
+    /** 0.9.7: идёт ли миссия (не вступление, не ожидание на метке). */
+    static boolean midMission(LifeData d) {
+        return !(d.chapter == 0 && d.mission == 0) && mission(d) != null && !idle(d);
+    }
+
+    /** 0.9.7: миссия снова ждёт на метке (сначала, с первого шага). */
+    static void backToMarker(LifeData d) {
+        d.flags.remove("entered:" + stepKey(d));
+        d.flags.remove("started:" + d.chapter + ":" + d.mission);
+        d.step = 0;
+        d.stepCount = 0;
+    }
+
+    /** 0.9.7: связной миссии — первый, кто говорит в ней (не рассказчик): буква на метке и строка в «Заданиях». */
+    public static String contact(@Nullable JsonObject m) {
+        if (m == null) return "";
+        for (JsonElement se : m.getAsJsonArray("steps")) {
+            JsonObject st = se.getAsJsonObject();
+            String npc = str(st, "npc", "");
+            if (!npc.isEmpty()) return npc;
+            if (st.has("lines")) for (JsonElement l : st.getAsJsonArray("lines")) {
+                if (!l.isJsonObject()) continue;
+                String who = str(l.getAsJsonObject(), "who", "");
+                if (!who.isEmpty() && !who.equals("narrator") && !who.equals("player")) return who;
+            }
+        }
+        return "";
+    }
+
+    public static String contactName(String id) {
+        JsonObject ch = root().getAsJsonObject("characters").getAsJsonObject(id);
+        return ch != null && ch.has("name") ? ch.get("name").getAsString() : "";
+    }
+
     /** Где начинается текущая миссия (метка «M» на карте). */
     @Nullable
     public static Vec3d missionStart(ServerPlayerEntity p, LifeData d) {
@@ -281,15 +335,19 @@ public final class Story {
         Vec3d at = missionStart(p, d);
         NbtCompound n = new NbtCompound();
         n.putString("chapter", c == null ? "" : str(c, "title", "") + " · " + str(c, "subtitle", ""));
-        n.putString("mission", "Свободная игра");
-        n.putString("hint", "Новая миссия «" + str(m, "title", "") + "» — жёлтая метка");
+        // 0.9.7: в свободной игре цели на экране нет — только метка связного на карте/радаре и строка в «Заданиях»
+        String who = contact(m), name = contactName(who);
+        n.putString("mission", str(m, "title", ""));
+        n.putString("hint", "");
         n.putString("type", "free");
+        n.putString("contact", name);
+        n.putString("letter", name.isEmpty() ? "M" : name.substring(0, 1).toUpperCase());
         if (at != null) {
             n.putDouble("x", at.x);
             n.putDouble("y", at.y);
             n.putDouble("z", at.z);
         }
-        n.putString("how", "Гуляй сколько хочешь: миссия начнётся, когда подойдёшь к метке");
+        n.putString("how", "");
         LifeNet.send(p, "objective", n);
     }
 
@@ -302,13 +360,15 @@ public final class Story {
             return;
         }
         if (idle(d) || d.chapter == 0 && d.mission == 0) return;
-        GtaSteps.cleanup(p);
-        Director.stop(p);
-        Stage.release(p);
-        d.flags.remove("entered:" + stepKey(d));
-        d.flags.remove("started:" + d.chapter + ":" + d.mission);
-        d.step = 0;
-        d.stepCount = 0;
+        String prev = Npcs.push(p);
+        try {
+            GtaSteps.cleanup(p);
+            Director.stop(p);
+            Stage.release(p);
+        } finally {
+            Npcs.pop(prev);
+        }
+        backToMarker(d);
         NbtCompound n = new NbtCompound();
         n.putString("title", "МИССИЯ ПРОВАЛЕНА");
         n.putString("sub", why + " · миссия снова ждёт на жёлтой метке");
@@ -369,22 +429,7 @@ public final class Story {
             }
         }
         enter(p, d, true);
-        // друзья в той же истории идут дальше вместе
-        for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
-            if (q == p || !active(q)) continue;
-            LifeData dq = Life.get(q);
-            boolean newMission = dq.mission != d.mission || dq.chapter != d.chapter;
-            dq.flags.remove("entered:" + stepKey(dq));
-            copyProgress(d, dq);
-            LifeNet.send(q, "dialog_close", new NbtCompound());
-            if (newMission && m != null) {
-                LifeNet.send(q, "mission_done", text("title", str(m, "title", "")));
-                Life.earn(q, 15, "миссия выполнена");
-                com.yompix.novograd.life.Achievements.give(q, "coop");
-                com.yompix.novograd.life.Achievements.give(p, "coop");
-            }
-            enter(q, dq, true);
-        }
+        // 0.9.7: сюжет у каждого свой — шаг игрока больше не тянет за собой других (совместный сюжет — docs/PLAN_1_0.md)
     }
 
     private static void finish(ServerPlayerEntity p, LifeData d) {
@@ -399,6 +444,7 @@ public final class Story {
     /** Нажали на жителя. true — разговор взял сюжет. */
     public static boolean onTalk(ServerPlayerEntity p, CitizenEntity c) {
         if (!active(p)) return false;
+        if (!c.visibleTo(p.getUuid())) return false; // 0.9.7: герой чужого сюжета
         LifeData d = Life.get(p);
         if (idle(d)) return false;
         JsonObject s = step(d);
@@ -407,12 +453,9 @@ public final class Story {
         if ((type.equals("talk") || type.equals("party")) && str(s, "npc", "").equals(c.getStoryId())) {
             Run r = run(p);
             if (!r.dialogSent) {
-                for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
-                    if (!active(q) || q.distanceTo(p) > 32) continue;
-                    sendDialog(q, linesFor(q, s), s.has("choices") && q == p ? s.getAsJsonArray("choices") : null);
-                    run(q).dialogSent = true;
-                    run(q).waitingDialog = true;
-                }
+                sendDialog(p, linesFor(p, s), s.has("choices") ? s.getAsJsonArray("choices") : null);
+                r.dialogSent = true;
+                r.waitingDialog = true;
             }
             return true;
         }

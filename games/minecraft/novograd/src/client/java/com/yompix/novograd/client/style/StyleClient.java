@@ -190,5 +190,7 @@ public final class StyleClient {
 
     /** Примерка: идёт ли герой на витрине (подменяет шаг модели). */
     public static boolean walkPreview;
+    /** 0.9.7: сейчас рисуется витрина (своя пружина «Физики тела», не как у героя в мире). */
+    public static boolean inPreview;
     public static float walkPhase;
 }
