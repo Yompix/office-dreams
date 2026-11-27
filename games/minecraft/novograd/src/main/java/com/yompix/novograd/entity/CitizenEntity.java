@@ -266,7 +266,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         float scale = kid ? 0.62f + r.nextFloat() * 0.2f : 0.92f + r.nextFloat() * 0.14f;
         setScale(scale);
         var speed = getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
-        if (speed != null) speed.setBaseValue((kid ? 0.28 : 0.22) + r.nextFloat() * 0.06);
+        // 0.9.9: темп ходьбы по характеру (как осанка в client/anim/CitizenLife: бодрый, уверенный, усталый, пожилой, обычный)
+        double[] pace = {0.03, 0.012, -0.025, -0.045, 0};
+        if (speed != null) speed.setBaseValue((kid ? 0.28 : 0.235 + pace[Math.floorMod(getUuid().hashCode() >>> 7, 5)]) + r.nextFloat() * 0.025);
     }
 
     public void setScale(float scale) {

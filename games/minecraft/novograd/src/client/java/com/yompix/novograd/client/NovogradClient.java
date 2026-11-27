@@ -81,6 +81,7 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.client.anim.PlayerAnim.init();
         com.yompix.novograd.client.anim.HandsClient.init(); // 0.9.8: «Руки»
         com.yompix.novograd.client.anim.GunThird.init(); // 0.9.8: оружие от третьего лица
+        com.yompix.novograd.client.city.SportHud.init(); // 0.9.9: табло гонки и дрифта
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.city.CityFx::tick);
         // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
         net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
@@ -346,6 +347,10 @@ public class NovogradClient implements ClientModInitializer {
                 if (type.startsWith("hand_") || type.equals("stash_screen")) if (com.yompix.novograd.client.anim.HandsClient.receive(client, type, n)) return; // 0.9.8
                 if (type.equals("loan")) { com.yompix.novograd.client.screen.LoanScreen.state = n; return; } // 0.9.8: кредит
                 if (type.equals("open_loan")) { client.setScreen(new com.yompix.novograd.client.screen.LoanScreen()); return; }
+                // 0.9.9 «Город»
+                if (com.yompix.novograd.client.city.CityApps.receive(type, n)) return;
+                if (type.equals("open_game")) { com.yompix.novograd.client.games.MiniGames.open(n); return; }
+                if (type.equals("sport_hud")) { com.yompix.novograd.client.city.SportHud.set(n); return; }
                 if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
                 if (type.startsWith("call_") && com.yompix.novograd.client.story.CallClient.receive(client, type, n)) return; // звонки героев
                 if (type.startsWith("uw_") && UnderworldClient.receive(client, type, n)) return; // тёмные дела

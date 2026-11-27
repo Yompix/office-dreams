@@ -299,6 +299,165 @@ public final class HandShow {
         finish();
     }
 
+    // ================================================================== 0.9.9 «Город»: приложения, игры, свидание, концерт, гонка, квартира
+    static void cityshow() {
+        cmd(5, "time set 6000");
+        cmd(5, "weather clear");
+        cmd(5, "gamerule doDaylightCycle false");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            var d = Life.get(p);
+            d.money = 20000;
+            d.cash = 500;
+            d.storyStarted = true;
+            d.storyDone = true;
+            Life.sync(p);
+        });
+        run(100, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        run(5, ShowAutotest::rec);
+        // ---- соцсеть: громкое дело и своё фото
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            com.yompix.novograd.gta.Social.onTitle(p, "ОГРАБЛЕНИЕ УДАЛОСЬ", "Сити-Банк");
+            com.yompix.novograd.gta.Social.onTitle(p, "ОТОРВАЛСЯ", "погоня");
+            com.yompix.novograd.gta.Social.onPhoto(p);
+        });
+        // ---- приложения
+        for (String app : new String[]{"night", "dating", "sport", "social", "cozy"}) {
+            run(10, c -> c.setScreen(switch (app) {
+                case "night" -> new com.yompix.novograd.client.city.CityApps.Night();
+                case "dating" -> new com.yompix.novograd.client.city.CityApps.Dating();
+                case "sport" -> new com.yompix.novograd.client.city.CityApps.Sport();
+                case "social" -> new com.yompix.novograd.client.city.CityApps.Social();
+                default -> new com.yompix.novograd.client.city.CityApps.Home();
+            }));
+            run(25, c -> shot(c, "city_app_" + app));
+            run(2, c -> c.setScreen(null));
+        }
+        // ---- игры: открыть, снимок, сдаться
+        for (String g : new String[]{"billiards", "bowling", "hoops", "golf"}) {
+            server(4, s -> com.yompix.novograd.gta.Games.open(pl(s), g, 50));
+            run(30, c -> shot(c, "city_game_" + g));
+            run(2, c -> { if (c.currentScreen != null) c.currentScreen.keyPressed(GLFW_ESC, 0, 0); });
+        }
+        // ---- знакомство и свидание (ускоренное: -Dnovograd.datefast)
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "cafe_dt");
+            p.teleport(p.getServerWorld(), at.x + 4, at.y, at.z + 4, 0, 10);
+            var c = com.yompix.novograd.gta.FunUtil.citizen(p.getServerWorld(), p.getPos().add(1.5, 0, 0), com.yompix.novograd.entity.CitizenEntity.Role.CITIZEN, null);
+            c.forceLook(0x5EEDL * 7919);
+            SPAWNED.add(c.getUuid());
+            p.setSneaking(true);
+            boolean got = com.yompix.novograd.life.Dating.meet(p, c);
+            p.setSneaking(false);
+            Novograd.LOG.info("[city] знакомство: {} номеров в «Встречах»", Life.get(p).city.getList("dating", 10).size());
+        });
+        server(20, s -> {
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putInt("i", 0);
+            n.putInt("place", 0);
+            com.yompix.novograd.life.Dating.handle(pl(s), "date_ask", n);
+        });
+        run(60, c -> {
+            CAM = null;
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+        });
+        run(20, c -> shot(c, "city_date"));
+        run(300, c -> Novograd.LOG.info("[city] свидание: симпатия {}", com.yompix.novograd.client.NovogradClient.data.city.getList("dating", 10).isEmpty() ? -1
+                : com.yompix.novograd.client.NovogradClient.data.city.getList("dating", 10).getCompound(0).getInt("rel")));
+        // ---- концерт
+        cmd(5, "time set 13600");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), com.yompix.novograd.gta.Nightlife.todayVenue(p.getServerWorld()));
+            p.teleport(p.getServerWorld(), at.x, at.y, at.z + 9, 180, 5);
+        });
+        run(80, c -> {
+            CAM = null;
+            c.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+        });
+        run(40, c -> shot(c, "city_concert"));
+        server(2, s -> Novograd.LOG.info("[city] концерт: на сцене и в толпе {}", com.yompix.novograd.gta.Nightlife.spawned()));
+        cmd(5, "time set 6000");
+        // ---- гонка соло: машина у старта, заезд «Кольцо центра»
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "dt_1");
+            p.teleport(p.getServerWorld(), at.x, at.y, at.z, 0, 0);
+            var car = com.yompix.novograd.gta.FunUtil.car(p.getServerWorld(), at, 0, 1);
+            SPAWNED.add(car.getUuid());
+            p.startRiding(car, true);
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putInt("route", 0);
+            n.putInt("fee", 0);
+            com.yompix.novograd.gta.Sports.handle(p, "sport_create", n);
+            com.yompix.novograd.gta.Sports.handle(p, "sport_start", n);
+        });
+        run(100, c -> {
+            c.options.hudHidden = false;
+            shot(c, "city_race_hud");
+        });
+        server(5, s -> {
+            com.yompix.novograd.gta.Sports.handle(pl(s), "sport_leave", new net.minecraft.nbt.NbtCompound());
+            pl(s).stopRiding();
+        });
+        // ---- квартира: дать жильё, мебель, вечеринка, питомец
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            var l = com.yompix.novograd.world.Housing.listings().get(0);
+            com.yompix.novograd.world.Housing.state(s).owner(p.getUuid()).homes.put(l.id, new com.yompix.novograd.world.Housing.Holding());
+            p.teleport(p.getServerWorld(), l.inside.x, l.inside.y, l.inside.z, 0, 30);
+            Novograd.LOG.info("[city] дом: {} ({})", l.name, l.id);
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putInt("i", 0);
+            com.yompix.novograd.world.HomeLife.handle(p, "home_buy", n);
+            n.putInt("i", 7);
+            com.yompix.novograd.world.HomeLife.handle(p, "home_buy", n);
+            for (int i = 0; i < p.getInventory().size(); i++)
+                if (com.yompix.novograd.world.HomeLife.isFurniture(p.getInventory().getStack(i))) {
+                    p.getInventory().selectedSlot = Math.min(8, i);
+                    if (i > 8) {
+                        var st = p.getInventory().getStack(i);
+                        p.getInventory().setStack(i, p.getInventory().getStack(0));
+                        p.getInventory().setStack(0, st);
+                        p.getInventory().selectedSlot = 0;
+                    }
+                    break;
+                }
+        });
+        run(20, c -> {
+            var hit = c.crosshairTarget;
+            if (hit instanceof net.minecraft.util.hit.BlockHitResult bh) c.interactionManager.interactBlock(c.player, net.minecraft.util.Hand.MAIN_HAND, bh);
+        });
+        server(10, s -> {
+            var n = new net.minecraft.nbt.NbtCompound();
+            com.yompix.novograd.world.HomeLife.handle(pl(s), "home_party", n);
+            n.putString("kind", "dog");
+            com.yompix.novograd.world.HomeLife.handle(pl(s), "home_pet", n);
+            n.putString("kind", "cat");
+            com.yompix.novograd.world.HomeLife.handle(pl(s), "home_pet", n);
+        });
+        run(60, c -> {
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+        });
+        run(10, c -> shot(c, "city_home_party"));
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.city.CityApps.Home()));
+        run(25, c -> shot(c, "city_app_cozy_home"));
+        run(2, c -> c.setScreen(null));
+        server(5, s -> {
+            var d = Life.get(pl(s));
+            Novograd.LOG.info("[city] итог: слава {}, подписчики {}, питомцы {}/{}, «Встречи» {}, мебели поставлено {}", d.city.getInt("fame"), d.city.getInt("followers"),
+                    d.city.getString("dogName"), d.city.getString("catName"), d.city.getList("dating", 10).size(), com.yompix.novograd.world.HomeLife.placed(pl(s)));
+        });
+        finish();
+    }
+
+    private static final int GLFW_ESC = 256;
+
     // ================================================================== «Сити-Банк»: снимки снаружи и внутри
     static void bankshow() {
         cmd(5, "time set 6000");

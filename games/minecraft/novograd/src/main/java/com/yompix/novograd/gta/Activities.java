@@ -335,6 +335,7 @@ public final class Activities {
         n.putString("sub", sub);
         LifeNet.send(p, "gta_title", n);
         News.onTitle(p, title, sub); // громкие дела попадают в новости «Новоград-24»
+        Social.onTitle(p, title, sub); // 0.9.9: и в «Фотограм» (горожане снимают)
     }
 
     // ------------------------------------------------------------------ коды
