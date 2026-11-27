@@ -1,0 +1,243 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "black": "minecraft:block/black_concrete",
+  "brick": "minecraft:block/bricks",
+  "smooth": "minecraft:block/smooth_stone",
+  "particle": "minecraft:block/black_concrete"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    8
+   ],
+   "to": [
+    16,
+    16,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#brick",
+     "uv": [
+      0,
+      0,
+      16.0,
+      16.0
+     ]
+    },
+    "south": {
+     "texture": "#brick",
+     "uv": [
+      0,
+      0,
+      16.0,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#brick",
+     "uv": [
+      8,
+      0,
+      16,
+      16.0
+     ]
+    },
+    "west": {
+     "texture": "#brick",
+     "uv": [
+      8,
+      0,
+      16,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#brick",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#brick",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    0,
+    7
+   ],
+   "to": [
+    13,
+    9,
+    8
+   ],
+   "faces": {
+    "north": {
+     "texture": "#black",
+     "uv": [
+      3,
+      7,
+      13,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#black",
+     "uv": [
+      3,
+      7,
+      13,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#black",
+     "uv": [
+      7,
+      7,
+      8,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#black",
+     "uv": [
+      7,
+      7,
+      8,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#black",
+     "uv": [
+      3,
+      7,
+      13,
+      8
+     ]
+    },
+    "down": {
+     "texture": "#black",
+     "uv": [
+      3,
+      7,
+      13,
+      8
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    -1,
+    16,
+    7
+   ],
+   "to": [
+    17,
+    17,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#smooth",
+     "uv": [
+      0.0,
+      15,
+      16.0,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#smooth",
+     "uv": [
+      0.0,
+      15,
+      16.0,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#smooth",
+     "uv": [
+      7,
+      15,
+      16,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#smooth",
+     "uv": [
+      7,
+      15,
+      16,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#smooth",
+     "uv": [
+      0.0,
+      7,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#smooth",
+     "uv": [
+      0.0,
+      7,
+      16.0,
+      16
+     ]
+    }
+   }
+  }
+ ],
+ "display": {
+  "gui": {
+   "rotation": [
+    30,
+    225,
+    0
+   ],
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "fixed": {
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "ground": {
+   "scale": [
+    0.25,
+    0.25,
+    0.25
+   ]
+  }
+ }
+}

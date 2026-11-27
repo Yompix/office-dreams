@@ -124,6 +124,12 @@ public final class UiAudit {
         screen("app_sport", c -> new com.yompix.novograd.client.city.CityApps.Sport());
         screen("app_social", c -> new com.yompix.novograd.client.city.CityApps.Social());
         screen("app_cozy", c -> new com.yompix.novograd.client.city.CityApps.Home());
+        // 0.9.10 «Работа»
+        screen("app_career", c -> new com.yompix.novograd.client.city.WorkApps.Career());
+        screen("app_crime", c -> new com.yompix.novograd.client.city.WorkApps.Crime());
+        screen("app_duty", c -> new com.yompix.novograd.client.city.WorkApps.Duty());
+        screen("app_biz", c -> new com.yompix.novograd.client.city.WorkApps.Biz());
+        screen("app_voice", c -> new com.yompix.novograd.client.city.WorkApps.VoiceApp());
         for (String g : new String[]{"billiards", "bowling", "hoops", "golf"}) screen("game_" + g, c -> {
             var n = new net.minecraft.nbt.NbtCompound();
             n.putString("game", g); n.putInt("bet", 100); n.putInt("foe", 7); n.putString("foeName", "Кий-Саныч"); n.putLong("seed", 5);

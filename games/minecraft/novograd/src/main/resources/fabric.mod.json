@@ -16,6 +16,9 @@
     ],
     "client": [
       "com.yompix.novograd.client.NovogradClient"
+    ],
+    "voicechat": [
+      "com.yompix.novograd.voice.NovogradVoicePlugin"
     ]
   },
   "depends": {
@@ -24,6 +27,9 @@
     "java": ">=21",
     "fabric-api": "*",
     "geckolib": ">=4.8.4"
+  },
+  "suggests": {
+    "voicechat": ">=2.5.0"
   },
   "mixins": [
     "novograd.mixins.json",

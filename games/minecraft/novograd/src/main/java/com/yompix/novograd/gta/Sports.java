@@ -355,6 +355,7 @@ public final class Sports {
         for (String[] r : ROUTES) routes.add(net.minecraft.nbt.NbtString.of(r[1]));
         out.put("routes", routes);
         Games.fill(out, p.getServerWorld());
+        Duels.fill(p, out); // 0.9.10: вызовы игрокам
         LifeNet.send(p, "sport", out);
     }
 

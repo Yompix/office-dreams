@@ -138,6 +138,37 @@ public final class Social {
         Life.message(p, "Фотограм", "Фото опубликовано: " + likes + " ♥");
     }
 
+    /** 0.9.10: размер снимка к посту (RGB565, 2 байта на точку). */
+    public static final int IMG_W = 96, IMG_H = 54;
+    /** Картинки храним только у последних постов — мир не растёт. */
+    static final int IMG_KEEP = 24, IMG_SEND = 12;
+
+    /** Снимок камеры (клиент уменьшает кадр до 96×54) — к своему посту за последние 10 с, один раз. */
+    public static void onImage(ServerPlayerEntity p, NbtCompound n) {
+        byte[] img = n.getByteArray("img");
+        if (img.length != IMG_W * IMG_H * 2) return;
+        String me = "@" + p.getName().getString();
+        long now = p.getServerWorld().getTime();
+        if (now - Life.get(p).city.getLong("photoAt") > 200) return;
+        State st = state(p.getServer());
+        for (NbtCompound c : st.feed) {
+            if (!c.getString("a").equals(me)) continue;
+            if (c.contains("i")) return;
+            c.putByteArray("i", img);
+            break;
+        }
+        int k = 0;
+        for (NbtCompound c : st.feed) if (c.contains("i") && ++k > IMG_KEEP) c.remove("i");
+        st.markDirty();
+        send(p);
+    }
+
+    /** Для автотеста: у последнего поста автора есть картинка. */
+    public static boolean latestHasImage(MinecraftServer s, String author) {
+        for (NbtCompound c : state(s).feed) if (c.getString("a").equals(author)) return c.contains("i");
+        return false;
+    }
+
     // ------------------------------------------------------------------ телефон
     public static boolean handle(ServerPlayerEntity p, String type, NbtCompound n) {
         if (!type.equals("social_feed")) return false;
@@ -150,10 +181,12 @@ public final class Social {
         LifeData d = Life.get(p);
         NbtCompound out = new NbtCompound();
         NbtList l = new NbtList();
-        int i = 0;
+        int i = 0, imgs = 0;
         for (NbtCompound c : st.feed) {
             if (i++ >= 40) break;
-            l.add(c.copy());
+            NbtCompound x = c.copy();
+            if (x.contains("i") && ++imgs > IMG_SEND) x.remove("i"); // в телефон — только свежие снимки
+            l.add(x);
         }
         out.put("feed", l);
         out.putInt("fame", d.city.getInt("fame"));

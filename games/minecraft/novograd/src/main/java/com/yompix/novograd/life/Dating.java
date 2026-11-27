@@ -5,6 +5,7 @@ import com.yompix.novograd.Novograd;
 import com.yompix.novograd.entity.CitizenEntity;
 import com.yompix.novograd.gta.FunUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -111,12 +112,21 @@ public final class Dating {
         long start = -1, created;
         int bonus;
         boolean met;
+        /** 0.9.10: что партнёр делает вместе с тобой (за столиком, танец, игра) и когда обновили. */
+        String together = "";
+        long togetherAt;
+        int shared;
     }
 
     private static final Map<UUID, Date> DATE = new HashMap<>();
+    private static UUID spawning;
 
     public static void init() {
         if (!Boolean.getBoolean("novograd.no099")) ServerTickEvents.END_SERVER_TICK.register(Dating::tick); // замер «до/после» (MSPT)
+        // 0.9.10: человек со свидания, оставшийся в мире после выключения сервера, — убрать при загрузке
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, w) -> {
+            if (e instanceof CitizenEntity c && c.getCommandTags().contains("nv_date") && !c.getUuid().equals(spawning) && DATE.values().stream().noneMatch(d -> c.getUuid().equals(d.npc))) c.discard();
+        });
         Achievements.ALL.putIfAbsent("first_date_contact", new String[]{"Номерок", "Познакомиться на улице"});
         Achievements.ALL.putIfAbsent("first_date", new String[]{"Первое свидание", "Сходить на свидание"});
         Achievements.ALL.putIfAbsent("couple", new String[]{"Пара", "Отношения до «пары»"});
@@ -208,7 +218,10 @@ public final class Dating {
         c.setCustomNameVisible(true);
         c.refreshPositionAndAngles(at.x + 1.5, at.y, at.z + 1.5, 0, 0);
         c.addCommandTag("nv_date");
+        c.setStationary(true); // ждёт на месте, а не бродит по городу (0.9.10)
+        spawning = c.getUuid();
         w.spawnEntity(c);
+        spawning = null;
         return c;
     }
 
@@ -249,6 +262,7 @@ public final class Dating {
             if (!dt.met && dist < 5 * 5) {
                 dt.met = true;
                 dt.start = now;
+                npc.setStationary(false);
                 npc.busy(CitizenEntity.Activity.WAVE, 30, null, ItemStack.EMPTY);
                 FunUtil.title(p, "СВИДАНИЕ", e.getString("name") + " · " + level(e.getInt("rel")));
                 Achievements.give(p, "first_date");
@@ -259,9 +273,7 @@ public final class Dating {
             else if (dist <= 3.5 * 3.5) {
                 npc.getNavigation().stop();
                 npc.getLookControl().lookAt(p);
-                // танцует с тобой, обнимает в конце
-                String em = com.yompix.novograd.life.Hands.current(p) != null ? "hands" : "";
-                if (!em.isEmpty() && now % 100 == 4) dt.bonus += 2; // ели/пили вместе
+                together(w, p, npc, dt, e, now); // 0.9.10: сидит за столиком и ест, танцует, играет с тобой
             }
             if (com.yompix.novograd.gta.Wanted.stars(p) > 0 || dist > 40 * 40) {
                 Life.message(p, e.getString("name"), dist > 40 * 40 ? "«Ты просто ушёл(ла)?!»" : "«Полиция?! Я ухожу»");
@@ -283,6 +295,115 @@ public final class Dating {
                 send(p);
             }
         }
+    }
+
+    // ------------------------------------------------------------------ 0.9.10: вместе
+    /**
+     * Партнёр повторяет твоё занятие: ты сел (кафе, диван, скамейка) — садится рядом и ест/пьёт; ты ешь/пьёшь — тоже;
+     * в клубе или у сцены концерта — танцует; ты за бильярдом/боулингом — играет против тебя (Games: соперник — партнёр)
+     * и болеет у стола. Каждые 5 с вместе — +1 к симпатии свидания (до 10).
+     */
+    private static void together(ServerWorld w, ServerPlayerEntity p, CitizenEntity npc, Date dt, NbtCompound e, long now) {
+        String want;
+        if (com.yompix.novograd.gta.Games.playing(p)) want = "game";
+        else if (p.getVehicle() instanceof com.yompix.novograd.entity.SeatEntity) want = "sit";
+        else if (com.yompix.novograd.life.Hands.current(p) != null) want = "eat";
+        else if (dancing(w, p)) want = "dance";
+        else want = "";
+        if (want.isEmpty()) {
+            dt.together = "";
+            return;
+        }
+        boolean fresh = !want.equals(dt.together);
+        if (!fresh && now - dt.togetherAt < 100) return;
+        dt.together = want;
+        dt.togetherAt = now;
+        if (!fresh && dt.shared < 10) {
+            dt.shared++;
+            dt.bonus++;
+        }
+        ItemStack food = new ItemStack(p.getRandom().nextBoolean() ? ModContent.PIZZA : ModContent.COLA);
+        switch (want) {
+            case "sit" -> {
+                net.minecraft.util.math.BlockPos seat = seatNear(w, p);
+                if (seat != null) {
+                    Vec3d at = Vec3d.ofBottomCenter(seat);
+                    float yaw = (float) (Math.toDegrees(Math.atan2(p.getZ() - at.z, p.getX() - at.x)) - 90);
+                    npc.refreshPositionAndAngles(at.x, at.y, at.z, yaw, 0);
+                    npc.setBodyYaw(yaw);
+                    npc.setHeadYaw(yaw);
+                    npc.busy(CitizenEntity.Activity.SIT_EAT, 120, at, food);
+                } else npc.busy(CitizenEntity.Activity.DRINK, 120, null, new ItemStack(ModContent.COLA));
+                if (fresh) p.sendMessage(Text.literal(e.getString("name") + " садится рядом").formatted(Formatting.LIGHT_PURPLE), true);
+            }
+            case "eat" -> npc.busy(p.getRandom().nextBoolean() ? CitizenEntity.Activity.EAT : CitizenEntity.Activity.DRINK, 120, null, food);
+            case "dance" -> {
+                CitizenEntity.Activity[] d = {CitizenEntity.Activity.DANCE, CitizenEntity.Activity.DANCE2, CitizenEntity.Activity.DANCE3};
+                npc.busy(d[(int) (now / 100 % 3)], 120, null, ItemStack.EMPTY);
+                if (fresh) p.sendMessage(Text.literal(e.getString("name") + " танцует с тобой").formatted(Formatting.LIGHT_PURPLE), true);
+            }
+            case "game" -> npc.busy(now / 100 % 2 == 0 ? CitizenEntity.Activity.POINT : CitizenEntity.Activity.CHEER, 120, null, ItemStack.EMPTY);
+            default -> {}
+        }
+    }
+
+    /** Танцпол: клуб «Неон» или сцена концерта (во время концерта). */
+    private static boolean dancing(ServerWorld w, ServerPlayerEntity p) {
+        Vec3d club = com.yompix.novograd.story.Story.place(w, "club_neon");
+        if (club != null && p.squaredDistanceTo(club) < 14 * 14) return true;
+        if (!com.yompix.novograd.gta.Nightlife.concertNow(w)) return false;
+        Vec3d v = com.yompix.novograd.story.Story.place(w, com.yompix.novograd.gta.Nightlife.todayVenue(w));
+        return v != null && p.squaredDistanceTo(v) < 20 * 20;
+    }
+
+    /** Свободное место рядом с сидящим игроком: стул-ступенька или мебель-сиденье, не его собственное. */
+    private static net.minecraft.util.math.BlockPos seatNear(ServerWorld w, ServerPlayerEntity p) {
+        net.minecraft.util.math.BlockPos mine = p.getVehicle().getBlockPos(), base = p.getBlockPos(), best = null;
+        double bd = 99;
+        for (net.minecraft.util.math.BlockPos b : net.minecraft.util.math.BlockPos.iterate(base.add(-3, -1, -3), base.add(3, 1, 3))) {
+            if (b.equals(mine)) continue;
+            var st = w.getBlockState(b);
+            boolean seat = st.getBlock() instanceof net.minecraft.block.StairsBlock && st.get(net.minecraft.block.StairsBlock.HALF) == net.minecraft.block.enums.BlockHalf.BOTTOM
+                    || st.getBlock() instanceof com.yompix.novograd.block.FurnitureBlock f && f.seat >= 0;
+            if (!seat || !w.getBlockState(b.up()).getCollisionShape(w, b.up()).isEmpty()) continue;
+            double d = b.getSquaredDistance(mine);
+            if (d < bd) {
+                bd = d;
+                best = b.toImmutable();
+            }
+        }
+        return best;
+    }
+
+    /** Для автотеста: что партнёр сейчас делает вместе с игроком ("" — ничего, нет свидания — null). */
+    public static String together(ServerPlayerEntity p) {
+        Date dt = DATE.get(p.getUuid());
+        if (dt == null) return null;
+        if (dt.met) return dt.together;
+        Entity e = dt.npc == null ? null : p.getServerWorld().getEntity(dt.npc);
+        return "(ждёт: " + (e == null ? "нет человека, до места " + (int) Math.sqrt(p.squaredDistanceTo(dt.at)) : "до человека " + (int) e.distanceTo(p)) + ")";
+    }
+
+    /** Для автотеста: человек на свидании (или null). */
+    public static CitizenEntity partner(ServerPlayerEntity p) {
+        Date dt = DATE.get(p.getUuid());
+        return dt == null || dt.npc == null || !(p.getServerWorld().getEntity(dt.npc) instanceof CitizenEntity c) ? null : c;
+    }
+
+    /** Для Games: имя партнёра, если он рядом на свидании (играет против тебя). */
+    public static String partnerNear(ServerPlayerEntity p) {
+        Date dt = DATE.get(p.getUuid());
+        if (dt == null || !dt.met || dt.npc == null || !(p.getServerWorld().getEntity(dt.npc) instanceof CitizenEntity c) || c.squaredDistanceTo(p) > 10 * 10) return null;
+        NbtList l = list(Life.get(p));
+        return dt.idx < l.size() ? l.getCompound(dt.idx).getString("name") : null;
+    }
+
+    /** Итог партии с партнёром: смеётся или аплодирует, симпатия +3. */
+    public static void afterGame(ServerPlayerEntity p, boolean youWon) {
+        Date dt = DATE.get(p.getUuid());
+        if (dt == null || dt.npc == null || !(p.getServerWorld().getEntity(dt.npc) instanceof CitizenEntity c)) return;
+        c.busy(youWon ? CitizenEntity.Activity.CLAP : CitizenEntity.Activity.LAUGH, 60, null, ItemStack.EMPTY);
+        dt.bonus += 3;
     }
 
     private static void end(ServerPlayerEntity p, Date dt, CitizenEntity npc, java.util.Iterator<?> it) {

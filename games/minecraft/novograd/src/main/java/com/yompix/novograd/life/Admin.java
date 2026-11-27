@@ -48,6 +48,8 @@ public final class Admin {
         public double fuelRate = 1.0;
         /** 0.9.8: кредит — платёж раз в столько игровых дней (1 день = 20 минут). */
         public int loanPeriodDays = 3;
+        /** 0.9.10: в тюрьме микрофон Simple Voice Chat выключен. */
+        public boolean voiceJailMute = true;
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

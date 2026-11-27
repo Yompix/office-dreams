@@ -226,8 +226,8 @@ public final class Heists {
             bag.setVelocity(p.getPos().subtract(clerk.getPos()).normalize().multiply(0.25).add(0, 0.25, 0));
             w.spawnEntity(bag);
             bag.setDespawnImmediately();
-            Economy.dirty(p, pay, "налёт на магазин");
-            Activities.title(p, "КАССА ВЗЯТА", "+$" + pay + " · полиция уже едет");
+            CrimeCareer.robbery(p, pay); // 0.9.10: вдвоём — больше и пополам
+            Activities.title(p, "КАССА ВЗЯТА", "полиция уже едет");
             com.yompix.novograd.life.Achievements.give(p, "holdup");
             Wanted.add(p, 0, "налёт на магазин", 2);
             clerk.lockActivity(null);

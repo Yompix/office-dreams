@@ -188,7 +188,8 @@ public final class CityApps {
 
     // ====================================================================== «Спорт»
     public static class Sport extends App {
-        private int route = 0, fee = 100;
+        private int route = 0, fee = 100, duelGame = 0, duelBet = 100;
+        static final String[] DUEL_GAMES = {"billiards", "bowling", "hoops", "golf"}, DUEL_TITLES = {"Бильярд", "Боулинг", "Баскетбол", "Гольф"};
 
         public Sport() {
             super("Спорт", 0xFFFF7043);
@@ -199,6 +200,22 @@ public final class CityApps {
         void body(DrawContext ctx, int y, int w) {
             NbtList ev = sport.getList("events", NbtElement.COMPOUND_TYPE);
             boolean in = false;
+            // 0.9.10: входящий вызов от игрока
+            if (sport.contains("ask")) {
+                NbtCompound a = sport.getCompound("ask");
+                row(ctx, y, w, "⚔ " + a.getString("from") + " · " + a.getString("game"), a.getInt("bet") > 0 ? "$" + a.getInt("bet") : "на интерес", Ui.GOLD, true);
+                y += 16;
+                int hw = (w - 4) / 2;
+                button(ctx, 12, y, hw, 16, "ПРИНЯТЬ", 0xFF43A047, true, () -> {
+                    send("duel_accept");
+                    sport.remove("ask");
+                });
+                button(ctx, 16 + hw, y, hw, 16, "НЕТ", 0xFF546E7A, true, () -> {
+                    send("duel_decline");
+                    sport.remove("ask");
+                });
+                y += 24;
+            }
             Ui.small(ctx, textRenderer, "ЗАЕЗДЫ", 12, y, 0.8f, 0xFF90A4AE, 0);
             y += 10;
             if (ev.isEmpty()) {
@@ -245,6 +262,32 @@ public final class CityApps {
                 button(ctx, 12, y, w, 18, "СОЗДАТЬ · СТАРТ ЧЕРЕЗ 60 С (НУЖНА МАШИНА У СТАРТА)", 0xFF43A047, true, () -> send("sport_create", "route", route, "fee", fee));
                 y += 26;
             }
+            // 0.9.10: вызов игроку — та же партия у обоих, ставка в залог
+            NbtList pls = sport.getList("players", NbtElement.STRING_TYPE);
+            Ui.small(ctx, textRenderer, "ВЫЗОВ ИГРОКУ" + (pls.isEmpty() ? " · в сети никого" : " · вживую: Shift+ПКМ по игроку"), 12, y, 0.8f, 0xFF90A4AE, 0);
+            y += 10;
+            if (!pls.isEmpty() && !sport.getBoolean("inDuel")) {
+                int gw = (w - 12) / 4;
+                for (int k = 0; k < 4; k++) {
+                    int kk = k;
+                    button(ctx, 12 + k * (gw + 4), y, gw, 14, DUEL_TITLES[k], duelGame == k ? accent : 0xFF37474F, true, () -> duelGame = kk);
+                }
+                y += 18;
+                int[] bets = {0, 50, 100, 500, 1000};
+                int bw2 = (w - 16) / bets.length;
+                for (int k = 0; k < bets.length; k++) {
+                    int bv = bets[k];
+                    button(ctx, 12 + k * (bw2 + 4), y, bw2, 14, bv == 0 ? "на интерес" : "$" + bv, duelBet == bv ? accent : 0xFF37474F, true, () -> duelBet = bv);
+                }
+                y += 18;
+                int cols = Math.max(1, w / 140), cw = (w - (cols - 1) * 4) / cols;
+                for (int k = 0; k < pls.size() && k < cols * 2; k++) {
+                    String who = pls.getString(k);
+                    button(ctx, 12 + (k % cols) * (cw + 4), y + (k / cols) * 18, cw, 16, "⚔ " + who, 0xFFE64A19, true,
+                            () -> send("duel_ask", "to", who, "game", DUEL_GAMES[duelGame], "bet", duelBet));
+                }
+                y += 18 * Math.min(2, (pls.size() + cols - 1) / cols) + 6;
+            } else y += 6;
             Ui.small(ctx, textRenderer, "ПЛОЩАДКИ", 12, y, 0.8f, 0xFF90A4AE, 0);
             y += 10;
             NbtList gl = sport.getList("games", NbtElement.COMPOUND_TYPE);
@@ -284,16 +327,21 @@ public final class CityApps {
             NbtList feed = s.getList("feed", NbtElement.COMPOUND_TYPE);
             String me = mc().player == null ? "" : mc().player.getName().getString();
             int start = MathHelper.clamp(scroll, 0, Math.max(0, feed.size() - 1));
-            for (int i = start; i < feed.size() && y < height - 30; i++) {
+            // 0.9.10: карточки с картинкой — снимок камеры или карточка по теме
+            int cols = w >= 520 ? 2 : 1, cw = (w - (cols - 1) * 6) / cols, ph = 54, pw = 96, ch = ph + 8;
+            for (int i = start, k = 0; i < feed.size() && y + ch < height - 18; i++, k++) {
                 NbtCompound c = feed.getCompound(i);
                 boolean mine = c.getString("p").equals(me);
-                Ui.slant(ctx, 12, y, w, 26, 3, mine ? 0xB0880E4F : 0x90161615);
-                ctx.drawText(textRenderer, c.getString("a"), 18, y + 3, 0xFFF48FB1, false);
-                Ui.small(ctx, textRenderer, "♥ " + c.getInt("l") + " · день " + c.getLong("d"), 12 + w - 6, y + 4, 0.75f, 0xFFB9B7B1, 2);
-                String t = c.getString("t");
-                if (textRenderer.getWidth(t) > w - 20) t = textRenderer.trimToWidth(t, w - 26) + "…";
-                ctx.drawText(textRenderer, t, 18, y + 14, Ui.WHITE, false);
-                y += 29;
+                int cx = 12 + (k % cols) * (cw + 6);
+                Ui.slant(ctx, cx, y, cw, ch, 3, mine ? 0xB0880E4F : 0x90161615);
+                FeedImages.draw(ctx, c, cx + 5, y + 4, pw, ph);
+                int tx = cx + pw + 11, tw = cw - pw - 18;
+                ctx.drawText(textRenderer, c.getString("a"), tx, y + 6, 0xFFF48FB1, false);
+                // текст поста — до трёх строк
+                var lines = textRenderer.wrapLines(net.minecraft.text.Text.literal(c.getString("t")), tw);
+                for (int li = 0; li < Math.min(3, lines.size()); li++) ctx.drawText(textRenderer, lines.get(li), tx, y + 18 + li * 10, Ui.WHITE, false);
+                Ui.small(ctx, textRenderer, "♥ " + c.getInt("l") + " · день " + c.getLong("d"), cx + cw - 8, y + ch - 10, 0.75f, 0xFFB9B7B1, 2);
+                if (k % cols == cols - 1) y += ch + 4;
             }
         }
 
@@ -331,16 +379,21 @@ public final class CityApps {
                 button(ctx, 16 + bw, y, bw, 14, "ПИТОМЕЦ — ДОМОЙ", 0xFF5D4037, true, () -> send("home_petcall", "home", true));
                 y += 18;
             }
-            Ui.small(ctx, textRenderer, "МЕБЕЛЬ · купи и поставь сам (ПКМ), убрать — удар", 12, y + 2, 0.8f, 0xFF90A4AE, 0);
+            Ui.small(ctx, textRenderer, "МЕБЕЛЬ · ПКМ — поставить, Z/X — повернуть, удар — убрать", 12, y + 2, 0.8f, 0xFF90A4AE, 0);
             y += 12;
             NbtList cat2 = s.getList("catalog", NbtElement.COMPOUND_TYPE);
-            int cols = Math.max(2, w / 150), cw = (w - (cols - 1) * 4) / cols;
+            int cols = Math.max(2, w / 120), cw = (w - (cols - 1) * 4) / cols;
             for (int i = 0; i < cat2.size(); i++) {
                 NbtCompound c = cat2.getCompound(i);
-                int cx = 12 + (i % cols) * (cw + 4), cy = y + (i / cols) * 18;
+                int cx = 12 + (i % cols) * (cw + 4), cy = y + (i / cols) * 22;
                 if (cy > height - 30) break;
                 int idx = i;
-                button(ctx, cx, cy, cw, 16, c.getString("name") + " · $" + c.getInt("price"), 0xFF6D4C41, s.getInt("homes") > 0, () -> send("home_buy", "i", idx));
+                // плитка: иконка предмета (объёмная модель) + название и цена
+                button(ctx, cx, cy, cw, 20, "", 0xFF6D4C41, s.getInt("homes") > 0, () -> send("home_buy", "i", idx));
+                var item = net.minecraft.registry.Registries.ITEM.get(net.minecraft.util.Identifier.of(c.getString("id")));
+                ctx.drawItem(new net.minecraft.item.ItemStack(item), cx + 4, cy + 2);
+                Ui.small(ctx, textRenderer, c.getString("name"), cx + 23, cy + 3, 0.8f, 0xFFFFFFFF, 0);
+                Ui.small(ctx, textRenderer, "$" + c.getInt("price"), cx + 23, cy + 12, 0.75f, 0xFFFFD54F, 0);
             }
         }
     }

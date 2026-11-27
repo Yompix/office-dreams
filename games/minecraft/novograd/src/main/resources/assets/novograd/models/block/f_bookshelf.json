@@ -1,0 +1,242 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "book": "minecraft:block/bookshelf",
+  "dark": "minecraft:block/dark_oak_planks",
+  "particle": "minecraft:block/bookshelf"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    8
+   ],
+   "to": [
+    16,
+    16,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#book",
+     "uv": [
+      0,
+      0,
+      16.0,
+      16.0
+     ]
+    },
+    "south": {
+     "texture": "#book",
+     "uv": [
+      0,
+      0,
+      16.0,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#book",
+     "uv": [
+      8,
+      0,
+      16,
+      16.0
+     ]
+    },
+    "west": {
+     "texture": "#book",
+     "uv": [
+      8,
+      0,
+      16,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    16,
+    8
+   ],
+   "to": [
+    16,
+    24,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#book",
+     "uv": [
+      8,
+      8,
+      16,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#book",
+     "uv": [
+      8,
+      8,
+      16,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#book",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    24,
+    8
+   ],
+   "to": [
+    16,
+    25,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      7,
+      16.0,
+      8
+     ]
+    },
+    "south": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      7,
+      16.0,
+      8
+     ]
+    },
+    "east": {
+     "texture": "#dark",
+     "uv": [
+      8,
+      7,
+      16,
+      8
+     ]
+    },
+    "west": {
+     "texture": "#dark",
+     "uv": [
+      8,
+      7,
+      16,
+      8
+     ]
+    },
+    "up": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    }
+   }
+  }
+ ],
+ "display": {
+  "gui": {
+   "rotation": [
+    30,
+    225,
+    0
+   ],
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "fixed": {
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "ground": {
+   "scale": [
+    0.25,
+    0.25,
+    0.25
+   ]
+  }
+ }
+}

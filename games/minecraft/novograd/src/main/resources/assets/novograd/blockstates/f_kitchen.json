@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/f_kitchen"
+  },
+  "facing=east": {
+   "model": "novograd:block/f_kitchen",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/f_kitchen",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/f_kitchen",
+   "y": 270
+  }
+ }
+}

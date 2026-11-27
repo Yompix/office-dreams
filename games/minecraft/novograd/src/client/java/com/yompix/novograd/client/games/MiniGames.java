@@ -30,12 +30,30 @@ public final class MiniGames {
             default -> new Golf(n);
         };
         MinecraftClient.getInstance().setScreen(s);
+        current = s;
+    }
+
+    static Base current;
+
+    /** 0.9.10: дуэль с игроком — счёт соперника по ходу и итог от сервера. */
+    public static void receive(String type, NbtCompound n) {
+        if (current == null) return;
+        if (type.equals("duel_live")) current.foeLive = n.getInt("score");
+        else if (type.equals("duel_result")) {
+            current.duelWin = n.getInt("win");
+            current.duelScore = n.getString("score");
+        }
     }
 
     // ====================================================================== общая рамка
     abstract static class Base extends LifeScreen {
         final String game, foeName;
         final int bet, foe;
+        final boolean duel;
+        int foeLive = -1, lastLive = -1;
+        Integer duelWin;
+        String duelScore = "";
+        float liveT, waitT, resT;
         final Random rnd;
         int score;
         boolean finished, sent;
@@ -49,6 +67,7 @@ public final class MiniGames {
             foeName = n.getString("foeName");
             bet = n.getInt("bet");
             foe = n.getInt("foe");
+            duel = n.getBoolean("duel");
             rnd = new Random(n.getLong("seed"));
         }
 
@@ -73,12 +92,40 @@ public final class MiniGames {
             fy = 40;
             // шапка: игра, соперник, счёт
             title(ctx, getTitle().getString().toUpperCase(), 12, 8, 0xFF3FB8B0);
-            Ui.small(ctx, textRenderer, foeName + ": " + foe + (lower() ? " ударов" : "") + "   ·   ставка $" + bet, width - 12, 10, 0.85f, Ui.GOLD, 2);
+            if (duel) {
+                Ui.small(ctx, textRenderer, "⚔ " + foeName + ": " + (foeLive < 0 ? "начинает…" : foeLive + (lower() ? " ударов" : "")) + "   ·   "
+                        + (bet > 0 ? "банк $" + bet * 2 : "на интерес"), width - 12, 10, 0.85f, Ui.GOLD, 2);
+                liveT += dt;
+                if (score != lastLive && liveT > 0.3f) { // свой счёт — сопернику (только показ, итог проверяет сервер)
+                    liveT = 0;
+                    lastLive = score;
+                    NbtCompound ln = new NbtCompound();
+                    ln.putInt("score", score);
+                    NovogradClient.send("duel_live", ln);
+                }
+            } else
+                Ui.small(ctx, textRenderer, foeName + ": " + foe + (lower() ? " ударов" : "") + "   ·   ставка $" + bet, width - 12, 10, 0.85f, Ui.GOLD, 2);
             Ui.big(ctx, textRenderer, String.valueOf(score), width - 12, 20, 1.4f, Ui.WHITE, 2);
             Ui.small(ctx, textRenderer, progress(), 12, 26, 0.85f, 0xFFB0BEC5, 0);
             for (int i = 0; i < 4 && !finished; i++) step(dt / 4);
             field(ctx);
-            if (finished) {
+            if (finished && duel) {
+                doneT += dt;
+                if (!sent && doneT > 0.4f) finish(false);
+                ctx.fill(fx, fy + fh / 2 - 22, fx + fw, fy + fh / 2 + 22, 0xC0000000);
+                if (duelWin == null) {
+                    waitT += dt;
+                    String dots = ".".repeat(1 + (int) (waitT * 2) % 3);
+                    Ui.big(ctx, textRenderer, "ЖДЁМ " + foeName.toUpperCase() + dots, width / 2, fy + fh / 2 - 12, 1.6f, Ui.GOLD, 1);
+                    Ui.small(ctx, textRenderer, "твой счёт " + score + (foeLive >= 0 ? " · у соперника пока " + foeLive : ""), width / 2, fy + fh / 2 + 8, 0.85f, 0xFFB0BEC5, 1);
+                    if (waitT > 120) close();
+                } else {
+                    int dw = duelWin;
+                    Ui.big(ctx, textRenderer, dw == 0 ? "НИЧЬЯ" : dw > 0 ? "ПОБЕДА" : "ПРОИГРЫШ", width / 2, fy + fh / 2 - 12, 2f, dw == 0 ? Ui.GOLD : dw > 0 ? Ui.MONEY : Ui.RED, 1);
+                    Ui.small(ctx, textRenderer, duelScore + (bet > 0 && dw > 0 ? " · +$" + bet * 2 : ""), width / 2, fy + fh / 2 + 10, 0.85f, Ui.WHITE, 1);
+                    if ((resT += dt) > 2.6f) close();
+                }
+            } else if (finished) {
                 doneT += dt;
                 boolean win = lower() ? score < foe : score > foe;
                 boolean draw = score == foe;
@@ -115,6 +162,7 @@ public final class MiniGames {
         @Override
         public void removed() {
             if (!sent) finish(true);
+            if (current == this && (!duel || duelWin != null)) current = null;
         }
 
         void sound(net.minecraft.sound.SoundEvent e, float vol, float pitch) {

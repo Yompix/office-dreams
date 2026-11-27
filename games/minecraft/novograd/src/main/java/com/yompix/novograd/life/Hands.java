@@ -125,7 +125,10 @@ public final class Hands {
             }
             ACTIVE.remove(p.getUuid());
         }
-        if (k.blocking && (p.hasVehicle() || !p.isAlive())) return null;
+        if (k.blocking && (p.hasVehicle() || !p.isAlive())) {
+            if (Boolean.getBoolean("novograd.workfast")) Novograd.LOG.info("[руки] нельзя {}: машина {} жив {}", k, p.getVehicle(), p.isAlive());
+            return null;
+        }
         Vec3d a = anchor == null ? p.getPos() : new Vec3d(anchor.x, p.getY(), anchor.z);
         if (k.blocking && a.squaredDistanceTo(p.getPos()) > REACH * REACH) {
             p.sendMessage(Text.literal("Подойди ближе").formatted(Formatting.GRAY), true);
