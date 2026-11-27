@@ -828,7 +828,7 @@ body.land .studio .logo { top: 80%; }
     var q = /[?&]lang=([a-z]{2})\b/.exec(location.search), l = q && q[1];
     if (!l) { try { l = JSON.parse(localStorage.getItem('ns1_lang')); } catch (e) {} }
     if (!l) { var n = (navigator.language || '').toLowerCase(); l = /^(ru|be|kk)/.test(n) ? 'ru' : n.slice(0, 2); }
-    try { if (l === 'ru' && /^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) l = 'uk'; } catch (e) {}
+    try { if (l === 'ru' && !(navigator.languages || [navigator.language]).some(function (x) { return /^(ru|be|kk)/i.test(x || ''); })) l = /^uk/i.test(navigator.language || '') ? 'uk' : 'en'; } catch (e) {}   /* русский — только при русском языке системы */
     var M = {
       en: ['On phones and tablets the game is now on Google Play', 'Download on Google Play', 'In the browser the game runs on PC only.', 'iPhone and iPad version is not available yet — play on PC.'],
       ru: ['На телефоне и планшете игра теперь в Google Play', 'Скачать в Google Play', 'В браузере игра работает только на ПК.', 'Версии для iPhone и iPad пока нет — играйте на ПК.'],
@@ -872,8 +872,7 @@ body.land .studio .logo { top: 80%; }
     var q = /[?&]lang=([a-z]{2})\b/.exec(location.search), l = q && q[1];
     if (!l) { try { l = JSON.parse(localStorage.getItem('ns1_lang')); } catch (e) {} }
     if (!l) { var n = (navigator.language || '').toLowerCase(); l = /^(ru|be|kk)/.test(n) ? 'ru' : n.slice(0, 2); }
-    var ua = false; try { ua = /^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || ''); } catch (e) {}
-    if (ua && l === 'ru' && !q) l = 'uk';
+    if (l === 'ru' && !q && !(navigator.languages || [navigator.language]).some(function (x) { return /^(ru|be|kk)/i.test(x || ''); })) l = /^uk/i.test(navigator.language || '') ? 'uk' : 'en';   /* русский — только при русском языке системы */
     var ui = document.getElementById('ui'); if (!ui) return;
     ui.innerHTML = '<div class="studio tapgo" id="preTap"><div class="tpi"><i></i><span>' + (T[l] || T.en) + '</span></div></div>';
     ui.onclick = function () {
@@ -884,7 +883,7 @@ body.land .studio .logo { top: 80%; }
   } catch (e) {}
 })();
 </script>
-<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=43"></script>
+<script src="fonts/cjk/faces.js?v=4"></script><script src="i18n.js?v=44"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
