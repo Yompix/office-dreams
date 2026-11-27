@@ -118,6 +118,18 @@ public final class UiAudit {
         screen("shop", c -> new com.yompix.novograd.client.screen.ShopScreen(true));
         screen("shop_guns", c -> new com.yompix.novograd.client.screen.ShopScreen(true, true));
         screen("atm", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400));
+        // 0.9.9 «Город»: приложения и игры
+        screen("app_night", c -> new com.yompix.novograd.client.city.CityApps.Night());
+        screen("app_dating", c -> new com.yompix.novograd.client.city.CityApps.Dating());
+        screen("app_sport", c -> new com.yompix.novograd.client.city.CityApps.Sport());
+        screen("app_social", c -> new com.yompix.novograd.client.city.CityApps.Social());
+        screen("app_cozy", c -> new com.yompix.novograd.client.city.CityApps.Home());
+        for (String g : new String[]{"billiards", "bowling", "hoops", "golf"}) screen("game_" + g, c -> {
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putString("game", g); n.putInt("bet", 100); n.putInt("foe", 7); n.putString("foeName", "Кий-Саныч"); n.putLong("seed", 5);
+            com.yompix.novograd.client.games.MiniGames.open(n);
+            return c.currentScreen;
+        });
         screen("atm_physical", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400).physical(true)); // 0.9.8: у банкомата, мир виден
         screen("loan", c -> { // 0.9.8: кредит — предложение
             var n = new net.minecraft.nbt.NbtCompound();
