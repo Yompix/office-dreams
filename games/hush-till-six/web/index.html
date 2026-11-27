@@ -86,6 +86,26 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #note div.memo i { white-space: pre-line; font-weight: 800; font-size: calc(4 * var(--u)); }
 /* выбор */
 #choice { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7% 14%; pointer-events: auto; background: linear-gradient(transparent, rgba(0,0,0,.85) 40%); animation: fadein .35s; }
+/* «Смена на двоих» (кооператив) */
+.screen.coop .cfield { display: block; margin: 0 0 calc(2 * var(--u)); text-align: left; } .screen.coop .cfield small { display: block; opacity: .7; margin-bottom: calc(1 * var(--u)); }
+.screen.coop input[type=text], .screen.coop .cfield input { width: 100%; box-sizing: border-box; padding: calc(3 * var(--u)); background: rgba(0,0,0,.6); color: #ece8dc; border: calc(.4 * var(--u)) solid rgba(255,70,80,.6); border-radius: calc(1.5 * var(--u)); font: inherit; font-size: calc(4.6 * var(--u)); letter-spacing: .08em; }
+.screen.coop .ccode { text-align: center; margin: calc(2 * var(--u)) 0 calc(4 * var(--u)); } .screen.coop .ccode b { display: block; font-size: calc(14 * var(--u)); letter-spacing: .18em; color: #ff4655; text-shadow: 0 0 calc(3 * var(--u)) rgba(255,40,60,.6); }
+.screen.coop .ccode small, .screen.coop .cwho small { opacity: .7; } .screen.coop .cwho { text-align: center; margin: calc(2 * var(--u)) 0; } .screen.coop .cerr { color: #ff6070; text-align: center; min-height: 1em; }
+.screen.coop .cposs { display: flex; gap: calc(2.5 * var(--u)); align-items: flex-start; text-align: left; margin: calc(3 * var(--u)) 0; } .screen.coop .cposs input { width: calc(5 * var(--u)); height: calc(5 * var(--u)); accent-color: #ff3048; flex: none; }
+.screen.coop .cposs b { font-size: calc(3.8 * var(--u)); } .screen.coop .cposs small { display: block; opacity: .7; font-size: calc(3.3 * var(--u)); } .screen.coop .btn[disabled] { opacity: .4; }
+#coopBar { position: absolute; left: calc(2 * var(--u)); top: calc(12 * var(--u)); z-index: 40; display: flex; flex-direction: column; gap: calc(1.5 * var(--u)); pointer-events: auto; font: 600 calc(3.2 * var(--u))/1.2 Inter, Arial, sans-serif; color: #ece8dc; }
+#coopBar .cpeer { background: rgba(0,0,0,.6); padding: calc(1.2 * var(--u)) calc(2.4 * var(--u)); border-radius: calc(5 * var(--u)); border: 1px solid rgba(255,70,80,.4); }
+#coopBar .cpeer i { display: inline-block; width: calc(2 * var(--u)); height: calc(2 * var(--u)); border-radius: 50%; background: #777; margin-right: calc(1.4 * var(--u)); } #coopBar .cpeer i.on { background: #3ce06a; box-shadow: 0 0 6px #3ce06a; }
+#coopBar .cemo { display: flex; gap: calc(1 * var(--u)); } #coopBar .cemo button { background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15); border-radius: 50%; width: calc(8 * var(--u)); height: calc(8 * var(--u)); font-size: calc(4.2 * var(--u)); padding: 0; cursor: pointer; }
+.cfly { position: absolute; bottom: 18%; z-index: 45; font-size: calc(10 * var(--u)); text-align: center; pointer-events: none; animation: cfly 2.6s ease-out forwards; } .cfly small { display: block; font: 600 calc(3 * var(--u)) Inter, Arial, sans-serif; color: #ece8dc; text-shadow: 0 0 4px #000; }
+@keyframes cfly { from { transform: translateY(0) scale(.6); opacity: 0; } 15% { transform: translateY(-4vh) scale(1.1); opacity: 1; } to { transform: translateY(-40vh) scale(1); opacity: 0; } }
+.ctoast { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 46; max-width: 86%; background: rgba(8,4,6,.92); border: 1px solid rgba(255,70,80,.6); border-radius: calc(2 * var(--u)); padding: calc(3 * var(--u)) calc(4 * var(--u)); color: #ece8dc; font: 500 calc(3.8 * var(--u))/1.4 Inter, Arial, sans-serif; text-align: center; animation: fadein .4s; transition: opacity .6s; } .ctoast.out { opacity: 0; }
+#choice .cwhis { margin: 0 0 calc(3.5 * var(--u)); padding: calc(2.5 * var(--u)) calc(3.5 * var(--u)); border-left: calc(.8 * var(--u)) solid #8a2be2; background: rgba(40,0,60,.55); font-style: italic; color: #e6d6ff; text-shadow: 0 0 6px #6a00c0; animation: cwhis 3s ease-in-out infinite; }
+#choice .cwhis b { font-style: normal; letter-spacing: .2em; color: #c9a0ff; margin-right: calc(2 * var(--u)); } #choice .cwhis small { display: block; opacity: .6; font-size: calc(3 * var(--u)); }
+@keyframes cwhis { 50% { opacity: .75; filter: blur(.4px); } }
+#choice button .cv { display: block; font-size: calc(3.1 * var(--u)); color: #7fd0ff; font-weight: 600; } #choice button.cmine { box-shadow: 0 0 0 calc(.6 * var(--u)) #ff4655 inset; } #choice button.cdead { border-color: #ff0018; color: #ff8a95; text-shadow: 0 0 8px #f00; }
+#choice .cstat { text-align: center; min-height: 1.2em; opacity: .85; } #choice .ctug { color: #ff4655; animation: cpulse .4s infinite alternate; } #choice.ctugging button:not([disabled]) { animation: cpulse .25s infinite alternate; } #choice button[disabled] { opacity: .25; }
+@keyframes cpulse { to { transform: scale(1.04); } }
 #choice h2 { margin: 0 0 calc(4 * var(--u)); text-align: center; font-size: calc(6.6 * var(--u)); font-weight: 900; text-shadow: 0 0 calc(2 * var(--u)) #000; }
 #choice button, .btn { display: block; width: 100%; margin: 0 0 calc(3 * var(--u)); padding: calc(4.2 * var(--u)) calc(3 * var(--u)); border: calc(.5 * var(--u)) solid rgba(255, 70, 80, .75); border-radius: calc(3 * var(--u)); background: rgba(20, 4, 6, .82); color: #fff; font-family: inherit; font-weight: 800; font-size: calc(5.4 * var(--u)); line-height: 1.15; box-shadow: 0 0 calc(3 * var(--u)) rgba(255, 40, 50, .35), inset 0 0 calc(2 * var(--u)) rgba(255, 40, 50, .2); cursor: pointer; text-align: left; }
 #choice button b { color: var(--red); margin-right: calc(2 * var(--u)); }
@@ -892,7 +912,7 @@ body.land .studio .logo { top: 80%; }
 <script src="chars2.js?v=56"></script>
 <script src="scenes.js?v=102"></script>
 <script src="story.js?v=41"></script>
-<script src="engine.js?v=116"></script>
+<script src="engine.js?v=117"></script>
 <script src="pad.js?v=4"></script>
 </body>
 </html>
