@@ -20,7 +20,11 @@ function main() {
   // LANTERN (приложение «мультиплеер для Minecraft»): ретранслятор живёт на том же сервере,
   // но отдельно от игры — только /lantern/* и WebSocket /lantern/ws. Ошибка в нём сайт не роняет.
   let lantern = null;
+  const htsCoop = require('./htscoop.js');
   const server = http.createServer((req, res) => {
+    if (req.url.startsWith('/hts/coop/')) {   // Hush Till Six: «Смена на двоих» (server/htscoop.js)
+      return htsCoop.handle(req, res, req.url.slice('/hts/coop'.length)).catch(e => { ctx.log('hts coop', e.message); try { res.writeHead(500); res.end(); } catch (x) {} });
+    }
     if (lantern && (req.url === '/lantern' || req.url.startsWith('/lantern/'))) {
       try { return lantern.http(req, res, req.url.slice('/lantern'.length) || '/'); } catch (e) { ctx.log('lantern http', e.message); res.writeHead(500); return res.end(); }
     }

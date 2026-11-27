@@ -39,6 +39,27 @@ const voiceOn = () => LS.get('voice', true);   // озвучка реплик (�
 const VOL = Object.assign({ all: 1, mus: 1, voice: 1, sfx: 1, amb: 1 }, LS.get('vol', {}));   // ползунки громкости в настройках (amb — дождь и фон места)
 let uMus = null, uSfx = null;
 const escH = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// «Смена на двоих» — состояние и сид (объявлены рано: startScene и профиль ночи смотрят COOP.on); остальное — в разделе кооператива ниже
+const COOP_URL = (/[?&]coopsrv=([^&]+)/.exec(location.search) || [])[1] ? decodeURIComponent(/[?&]coopsrv=([^&]+)/.exec(location.search)[1]) : 'https://office-dreams-production.up.railway.app/hts/coop';
+const COOP = { on: false, room: '', id: '', seed: 0, host: false, name: '', peer: '', peerOn: false, evs: null, poss: null, votes: {}, picks: {}, tugN: {}, visit: {}, here: {}, clock: {}, st: '', started: false, lobby: false };
+const CT = { 'Смена на двоих': ['Shift for two', 'Зміна на двох'], 'Создать комнату': ['Create room', 'Створити кімнату'], 'Войти по коду': ['Join with code', 'Увійти за кодом'],
+  'Твоё имя': ['Your name', 'Твоє ім’я'], 'Код комнаты': ['Room code', 'Код кімнати'], 'Скажи код напарнику': ['Tell this code to your partner', 'Скажи код напарнику'],
+  'Ждём напарника…': ['Waiting for partner…', 'Чекаємо напарника…'], 'Напарник': ['Partner', 'Напарник'], 'Начать смену вдвоём': ['Start the shift together', 'Почати зміну вдвох'],
+  'Ждём, пока напарник начнёт смену…': ['Waiting for the host to start…', 'Чекаємо, поки напарник почне зміну…'], 'Тайная роль «Одержимый»': ['Secret role: “Possessed”', 'Таємна роль «Одержимий»'],
+  'Одному из вас может достаться тайная роль: он знает, где смерть, и хочет, чтобы смена не дожила до шести.': ['One of you may secretly be possessed: they know which choices kill — and want the shift to die before six.', 'Одному з вас може дістатися таємна роль: він знає, де смерть, і хоче, щоб зміна не дожила до шостої.'],
+  'Нет такой комнаты': ['No such room', 'Немає такої кімнати'], 'Комната уже занята': ['The room is full', 'Кімната вже зайнята'], 'Нет связи с сервером': ['No connection to the server', 'Немає зв’язку з сервером'],
+  'ждём напарника': ['waiting for partner', 'чекаємо напарника'], 'голос напарника': ['partner’s vote', 'голос напарника'], 'СПОР! Жми свой вариант!': ['DISPUTE! Mash your choice!', 'СУПЕРЕЧКА! Тисни свій варіант!'],
+  'Решили вместе': ['Decided together', 'Вирішили разом'], 'Спор выиграл': ['Dispute won by', 'Суперечку виграв'], 'ШЁПОТ': ['WHISPER', 'ШЕПІТ'], 'только ты это слышишь': ['only you can hear this', 'тільки ти це чуєш'],
+  'там смерть': ['that is death', 'там смерть'], 'там безопасно': ['that one is safe', 'там безпечно'], 'ТЫ ОДЕРЖИМ': ['YOU ARE POSSESSED', 'ТИ ОДЕРЖИМИЙ'],
+  'Никому не говори. Красным отмечено то, что убьёт смену. Твоя цель — чтобы вы не дожили до шести. Не попадись.': ['Tell no one. Red marks the choices that kill the shift. Your goal: make sure you both die before six. Don’t get caught.', 'Нікому не кажи. Червоним позначено те, що вб’є зміну. Твоя мета — щоб ви не дожили до шостої. Не попадись.'],
+  'Ты обычный охранник. Но один из вас может быть одержим…': ['You are a regular guard. But one of you might be possessed…', 'Ти звичайний охоронець. Але один із вас може бути одержимим…'],
+  'Одержимым был': ['The possessed one was', 'Одержимим був'], 'Одержимый победил': ['The possessed one wins', 'Одержимий переміг'], 'Одержимого не было': ['Nobody was possessed', 'Одержимого не було'],
+  'Напарник погиб — смена окончена': ['Your partner died — the shift is over', 'Напарник загинув — зміна закінчена'], 'Напарник отключился': ['Partner disconnected', 'Напарник відключився'], 'Напарник снова здесь': ['Partner is back', 'Напарник знову тут'],
+  'ты': ['you', 'ти'], 'Выйти из комнаты': ['Leave room', 'Вийти з кімнати'] };
+const ct = s => { const L = window.NS_LANG; if (L === 'ru') return s; const r = CT[s]; return r ? (L === 'uk' ? r[1] : r[0]) : tr(s); };
+const coopRng = key => { let h = (COOP.seed ^ 0x9e3779b9) >>> 0; for (const c of String(key)) h = Math.imul(h ^ c.charCodeAt(0), 2654435761) >>> 0;   // mulberry32 от сида комнаты и ключа
+  return () => { h = (h + 0x6D2B79F5) >>> 0; let t = h; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+const coopR = key => COOP.on ? coopRng(key) : Math.random;
 // значки интерфейса: простые векторные, без эмодзи
 const ICON = {
   phones: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><path class="f" d="M3 14h4v7H3zM17 14h4v7h-4z"/></svg>',
@@ -537,7 +558,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
   uiEl.innerHTML = ''; $('hud').classList.remove('hide'); overBg = null;
-  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting', 'office', 'walking'); secBase = scene.sec ?? 7; sublScene = '';
+  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); coopScene(id); document.body.classList.remove('shifting', 'office', 'walking'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) setFlags('opened');   // через setFlags — запоминается и после перезагрузки
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) setFlags('mih');
   if (AC) for (const b of scene.beats || []) for (const k of MSEQ[b.music] || []) if (!BUF[k] && rawSnd[k] && !decQ[k]) decQ[k] = decodeOne(k, rawSnd[k]).then(() => { delete decQ[k]; });   // музыка кадров раскодируется заранее: после «нажми» вступает сразу
@@ -817,6 +838,7 @@ function showChoice(th) {
   let done = false, t0 = now(), lastTick = -1; const my = gen;
   const pick = i => { if (done || my !== gen) return; done = true; play('click'); choiceEl.classList.add('hide'); const o = th.opts[i];
     setFlags(o.set); if (!/^over_/.test(o.go)) runPick(sceneId, th.choice, o.t, i); startScene(o.go); };
+  if (COOP.on && COOP.started) return coopChoice(th, vis, i => { done = false; pick(i); }, my);   // вдвоём: голосование (coopChoice)
   const okC = freshTap(choiceEl);
   choiceEl.querySelectorAll('button').forEach(b => b.onclick = e => { if (okC(e)) pick(+b.dataset.i); });
   if (th.timeout) {
@@ -1070,7 +1092,7 @@ function shiftGame(th) {
 // — сюжетные события часа остаются, но обычные странности из сценария (свет, кошка, лифт, первые помехи) сдвигаются на ±6 минут.
 const AN_PLOT = new Set(['gus7', 'palm', 'knock3x', 'lilyDoor']);
 function shiftDirector(seg, NP = {}) {
-  const seen = LS.get('anSeen', {}), R = Math.random, m0 = shf.m0, m1 = shf.m1, span = Math.max(1, m1 - m0 - 14), fw = (S.shift.night || {}).floorW || 3;
+  const seen = COOP.on ? {} : LS.get('anSeen', {}), R = coopR('an:' + shf.id), m0 = shf.m0, m1 = shf.m1, span = Math.max(1, m1 - m0 - 14), fw = (S.shift.night || {}).floorW || 3;
   if (shf.id !== 'A1') for (const e of shf.ev) if (e.an && !e.say && !AN_PLOT.has(e.an) && (S.shift.an[e.an] || {}).fix !== 'none') { e.m = clamp(e.m + (R() * 12 - 6), m0 + 3, m1 - 8); e.mov = 1; }
   const roll = R(), n = Math.max(1, seg.rnd.n + (roll < .15 ? -1 : roll < .55 ? 0 : roll < .88 ? 1 : 2));
   const pool = [...new Set(seg.rnd.pool)].filter(id => S.shift.an[id] && !shf.ev.some(e => e.an === id)), pick = [];   // в часе странность не повторяется: ни дважды из пула, ни вслед за сюжетной
@@ -1092,7 +1114,7 @@ function anSeen(id) { const s = LS.get('anSeen', {}); s[id] = (s[id] || 0) + 1; 
    floor — «его» камера · voice, voiceAt — кто и когда звонит на внутренний · lull, lullAt — час и место затишья · fcall — когда звонят на телефон Фрэнка ·
    fake, fakeId — по какому каналу придёт одна подделка · lily — какие сообщения Лили придут этой ночью. */
 function nightRoll() {
-  const N = S.shift.night || {}, L = S.shift.lily || {}, seen = LS.get('nightSeen', {}), R = Math.random, used = [], no = (seen._n || 0) + 1;   // seen: «ручка:значение» → номер ночи, когда выпадало в последний раз
+  const N = S.shift.night || {}, L = S.shift.lily || {}, seen = COOP.on ? {} : LS.get('nightSeen', {}), R = coopR('night'), used = [], no = (seen._n || 0) + 1;   // seen: «ручка:значение» → номер ночи, когда выпадало в последний раз
   const wt = k => { const age = no - (seen[k] || -9); return age <= 1 ? .08 : age === 2 ? .35 : age === 3 ? .7 : 1; };   // было в прошлой ночи — почти не выпадает, позапрошлой — втрое реже
   const pick = (knob, list) => { const w = list.map(v => wt(knob + ':' + v)); let r = R() * w.reduce((a, b) => a + b, 0), i = 0; while (i < list.length - 1 && (r -= w[i]) > 0) i++; used.push(knob + ':' + list[i]); return list[i]; };
   const span = w => { const a = toMin(w[0]), b = toMin(w[1]); return Math.round(a + R() * (b - a)); };
@@ -1102,7 +1124,7 @@ function nightRoll() {
   for (const g of L.groups || []) { const ids = g.slice(1), n = Array.isArray(g[0]) ? g[0][0] + Math.floor(R() * (g[0][1] - g[0][0] + 1)) : g[0];
     for (let i = 0; i < n && ids.length; i++) { const k = pick('lm', ids); p.lily.push(k); ids.splice(ids.indexOf(k), 1); } }
   for (const k of used) seen[k] = no;
-  seen._n = no; LS.set('nightSeen', seen); LS.set('night', p); return p;
+  seen._n = no; if (!COOP.on) LS.set('nightSeen', seen); LS.set('night', p); return p;
 }
 const nightGet = () => LS.get('night', null) || nightRoll();   // сохранение из версии без профиля — профиль выпадает при первом же часе
 function nightPre(NP) {   // сюжетные события часа — по профилю: первые помехи ночи на «его» камере, кто и когда звонит на внутренний, когда звонят Фрэнку
@@ -1115,7 +1137,7 @@ function nightPre(NP) {   // сюжетные события часа — по �
   }
 }
 function nightMsgs(NP) {   // сообщения часа: переписка с Лили, пейджер «Щита» и — раз за ночь — подделка по чужому каналу. Время — случайно в окне сообщения
-  const id = shf.id, L = S.shift.lily || {}, P = S.shift.pager || {}, R = Math.random;
+  const id = shf.id, L = S.shift.lily || {}, P = S.shift.pager || {}, R = coopR('msg:' + shf.id);
   const hard = e => e.call || e.hold || e.radio || e.msg || e.task || e.c13;   // рядом с ними сообщение не приходит: окно с ответами закрыло бы звонок
   const when = w => { const a = Math.max(toMin(w[0]), shf.m0 + 2), b = Math.max(a, Math.min(toMin(w[1]), shf.m1 - 5)); let m = a; for (let i = 0; i < 40; i++) { m = a + R() * (b - a); if (shf.ev.every(e => !hard(e) || Math.abs(e.m - m) > 3)) break; } return m; };
   const add = (w, msg) => shf.ev.push({ m: when(w), msg, mov: 1 });
@@ -1700,6 +1722,7 @@ function menu() {
     <nav class="mlist">
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
+      <button id="mCoop">${ct('Смена на двоих')}</button>
       <button id="mGal">${tr('Концовки')}</button>
       <button id="mAch">${tr('Достижения')}</button>
       <button id="mSet">${tr('Настройки')}</button>
@@ -1709,7 +1732,7 @@ function menu() {
   const lg = $('logo'), m = `url(${logoMask()})`; lg.style.webkitMaskImage = lg.style.maskImage = m; lg.style.webkitMaskSize = lg.style.maskSize = '100% 100%';
   const T0 = uiEl.querySelector('.title'), ok = () => gateDone && now() - gateT > .45;   // тот же тап, что открыл меню, не жмёт кнопку под пальцем
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
-  btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
+  btn('mNew', () => { if (COOP.on) coopLeave(); begin('intro'); }); btn('mCoop', coopLobby); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); uiEl.querySelectorAll('[data-end]').forEach(b => { b.onclick = e => { e.stopPropagation(); uiSnd(); watchEnding(b.dataset.end); }; }); });
   btn('mAch', () => subScreen(achScreen()));
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
@@ -1899,7 +1922,7 @@ function endScreen(th) {
   const epi = watching ? [] : epiLines(th.ending);   // «Что стало с ними» — только в своей ночи, не при просмотре концовки из меню
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); if (watching) { LS.set('save', watching.save); LS.set('saveT', watching.saveT); watching = null; } else LS.set('save', null); runSave();
   ach('NIGHT_DONE'); ach('END_' + String(th.ending).toUpperCase());   // достижения: плашка в игре + Steam (ПК) / Google Play Игры (Android)
-  if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
+  coopEndNote(false); if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
   const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
   const rows = [['Время в игре', dur], ['Часов смены отстоял', run.hrs.length], ['Странностей замечено', run.ok], ['Записей в журнале', run.rec], ['Пропущено', run.miss]];
@@ -1936,7 +1959,7 @@ function demoEnd() {
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const ov = new Set(LS.get('overs', [])), oi = S.overs.indexOf(th.over); ov.add(OVER0[sceneId] || (oi >= 0 ? OVERS0[oi] : th.over)); LS.set('overs', [...ov]);
-  if (oi >= 0) ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер); плашка + Steam / Google Play
+  coopEndNote(true); if (oi >= 0) ach('DEATH_' + String(oi + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер); плашка + Steam / Google Play
   music(null); if (hushOn) hush(false);   // тишина финала (hush) не переходит на экран смерти и в повтор
   // обрыв в черноту, секунда темноты (звук смерти ещё звучит), потом название; за ним из темноты проступает последний кадр — застывший
   overBg = { t0: now(), st: lastShotT }; setTimeout(() => { const s = uiEl.querySelector('.screen.over'); if (s) s.style.pointerEvents = ''; }, 800);
@@ -2673,6 +2696,145 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
+/* ---------- «Смена на двоих» (кооператив, 27 ноя): двое по коду комнаты проходят одну ночь (профиль ночи общий — из сида комнаты).
+   Выбор — голосованием; разошлись — «СПОР»: 4 секунды оба жмут свой вариант, кто больше нажал — тот и решил. Шёпот Жильца — подсказка только одному из двоих
+   (часто правда, иногда ложь). Тайная роль «Одержимый» (по желанию хоста): видит смертельные варианты и хочет, чтобы смена не дожила до шести.
+   Погиб один — погибли оба. Реакции 👀 😱 ✋ 👍 летят на экран напарника. Сервер — server/htscoop.js (комнаты в памяти, без базы). ---------- */
+async function coopPost(path, b) { const r = await fetch(COOP_URL + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.err || 'net'); return j; }
+const coopSend = m => { if (COOP.on && COOP.room) coopPost('/send', { room: COOP.room, id: COOP.id, m }).catch(() => {}); };
+function coopListen() {
+  if (COOP.evs) COOP.evs.close();
+  const es = COOP.evs = new EventSource(`${COOP_URL}/ev?room=${COOP.room}&id=${encodeURIComponent(COOP.id)}`);
+  es.onmessage = e => { let d; try { d = JSON.parse(e.data); } catch { return; }
+    if (d.t === 'hello') { const p = d.peers[0]; if (p) { COOP.peer = p.name; COOP.peerOn = p.on; } coopUI(); }
+    else if (d.t === 'peer') { const back = COOP.started && !COOP.peerOn; COOP.peer = d.name; COOP.peerOn = true; if (back) coopToast(ct('Напарник снова здесь')); coopUI(); }
+    else if (d.t === 'left') { COOP.peerOn = false; if (COOP.started) coopToast(ct('Напарник отключился')); coopUI(); }
+    else if (d.t === 'msg' && d.m) coopMsg(d.m); };
+}
+function coopMsg(m) {
+  if (m.t === 'start') { COOP.poss = m.poss; COOP.visit = {}; COOP.votes = {}; COOP.picks = {}; COOP.started = true; coopUI(); begin('intro').then(coopRole); }
+  else if (m.t === 'st') { COOP.st = m.s; coopUI(); }
+  else if (m.t === 'vote') { (COOP.votes[m.sc] = COOP.votes[m.sc] || {}).peer = m.i; if (COOP.onVote) COOP.onVote(); }
+  else if (m.t === 'tug0') { if (COOP.onTug) COOP.onTug(m); else COOP.tug0 = m; }
+  else if (m.t === 'tugN') { COOP.tugN[m.sc] = m.n; if (COOP.onTugN) COOP.onTugN(); }
+  else if (m.t === 'pick') { COOP.picks[m.sc] = m; if (COOP.onPick) COOP.onPick(); }
+  else if (m.t === 'here') { COOP.here[m.sc] = 1; if (COOP.onHere) COOP.onHere(); }
+  else if (m.t === 'clock') { COOP.clock[m.sc] = m.ms; if (COOP.onClock) COOP.onClock(); }
+  else if (m.t === 'go') { if (sceneId !== m.id && S.scenes[m.id]) { coopToast(ct('Напарник погиб — смена окончена')); COOP.remoteGo = m.id; startScene(m.id); } }
+  else if (m.t === 'emo') coopEmo(m.e, COOP.peer);
+}
+// роль показывается один раз в начале ночи
+function coopRole() {
+  if (!COOP.on) return; const me = COOP.host ? 'host' : 'guest', mine = COOP.poss === me;
+  if (COOP.poss === undefined || COOP.poss === false) return;
+  coopToast(mine ? `<b style="color:#ff3048">${ct('ТЫ ОДЕРЖИМ')}</b><br>${ct('Никому не говори. Красным отмечено то, что убьёт смену. Твоя цель — чтобы вы не дожили до шести. Не попадись.')}` : ct('Ты обычный охранник. Но один из вас может быть одержим…'), 7000);
+}
+// статус и реакции поверх игры
+function coopUI() {
+  if (COOP.redraw) COOP.redraw();
+  let el = $('coopBar'); if (!COOP.on || !COOP.started) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'coopBar'; ($('stage') || document.body).appendChild(el);
+    el.innerHTML = `<div class="cpeer"></div><div class="cemo">${['👀', '😱', '✋', '👍'].map(e => `<button data-e="${e}">${e}</button>`).join('')}</div>`;
+    el.querySelectorAll('[data-e]').forEach(b => b.onclick = e => { e.stopPropagation(); const x = b.dataset.e; coopSend({ t: 'emo', e: x }); coopEmo(x, ct('ты')); });
+    el.onpointerdown = e => e.stopPropagation(); }
+  el.querySelector('.cpeer').innerHTML = `<i class="${COOP.peerOn ? 'on' : ''}"></i>${escH(COOP.peer || '…')}${COOP.st ? ` · <small>${escH(COOP.st)}</small>` : ''}`;
+}
+function coopEmo(e, who) { const d = document.createElement('div'); d.className = 'cfly'; d.style.left = (20 + Math.random() * 60) + '%'; d.innerHTML = `${escH(e)}<small>${escH(who || '')}</small>`; ($('stage') || document.body).appendChild(d); setTimeout(() => d.remove(), 2600); play('click', { gain: .4 }); }
+function coopToast(html, ms = 3600) { const d = document.createElement('div'); d.className = 'ctoast'; d.innerHTML = html; ($('stage') || document.body).appendChild(d); setTimeout(() => d.classList.add('out'), ms); setTimeout(() => d.remove(), ms + 600); }
+// сцена началась: напарнику — где ты; своя смерть — напарнику тоже
+function coopScene(id) {
+  if (!COOP.on || !COOP.started) return;
+  if (/^over_/.test(id) && COOP.remoteGo !== id) coopSend({ t: 'go', id });
+  COOP.remoteGo = null;
+  coopSend({ t: 'st', s: /^over_/.test(id) ? '💀' : S.scenes[id] && S.scenes[id].time ? S.scenes[id].time : '' });
+}
+// выбор голосованием
+function coopChoice(th, vis, pick, my) {
+  const sc = sceneId + '#' + (COOP.visit[sceneId] = (COOP.visit[sceneId] || 0) + 1), me = COOP.host ? 'host' : 'guest', R = coopRng('w:' + sc), deadly = i => /^over_/.test(th.opts[i].go);
+  const V = COOP.votes[sc] = COOP.votes[sc] || {}; delete COOP.picks[sc + '#stale'];
+  const poss = COOP.poss === me, dl = vis.filter(([, i]) => deadly(i)).map(([, i]) => i);
+  // шёпот: одному из двоих (по сиду — у обоих одинаково решено, кому), в 2 из 3 выборов со смертельным вариантом; правда в 70 % случаев
+  const wTo = R() < .5 ? 'host' : 'guest', wOn = dl.length && vis.length > 1 && R() < .67, wTrue = R() < .7, wOpt = vis[Math.floor(R() * vis.length)][1];
+  let whisper = '';
+  if (wOn && wTo === me && !poss) { const says = wTrue ? deadly(wOpt) : !deadly(wOpt);
+    whisper = `<div class="cwhis"><b>${ct('ШЁПОТ')}</b> «${escH(th.opts[wOpt].t)}» — ${ct(says ? 'там смерть' : 'там безопасно')}<small>${ct('только ты это слышишь')}</small></div>`; }
+  const mark = i => poss && deadly(i) ? ' cdead' : '';
+  choiceEl.innerHTML = `<h2>${th.choice}</h2>${whisper}` + vis.map(([o, i], n) => `<button data-i="${i}" class="${mark(i)}"><b>${n + 1}</b>${o.t}<span class="cv"></span></button>`).join('')
+    + `<div class="cstat"></div>` + (th.timeout ? '<div id="timer"><i></i></div>' : '');
+  choiceEl.classList.remove('hide'); if (whisper) play('whisper', { gain: .7 }) || play('static', { gain: .3 });
+  const stat = choiceEl.querySelector('.cstat'), okC = freshTap(choiceEl);
+  let done = false, tug = null, t0 = 0;
+  const draw = () => { choiceEl.querySelectorAll('button[data-i]').forEach(b => { const i = +b.dataset.i; b.classList.toggle('cmine', V.me === i); b.querySelector('.cv').textContent = V.peer === i ? '👤 ' + (COOP.peer || ct('Напарник')) : ''; });
+    stat.textContent = V.me != null && V.peer == null ? ct('ждём напарника') + '…' : ''; };
+  const finish = i => { if (done || my !== gen) return; done = true; COOP.onVote = COOP.onPick = COOP.onTug = COOP.onTugN = COOP.onHere = COOP.onClock = null;
+    const p = COOP.picks[sc]; if (p && p.why) coopToast(p.why === 'same' ? ct('Решили вместе') : `${ct('Спор выиграл')}: <b>${escH(p.who)}</b>`, 2200);
+    pick(i); };
+  const resolve = (i, why, who) => { const m = { t: 'pick', sc, i, why, who }; COOP.picks[sc] = m; coopSend(m); finish(i); };
+  // хост решает: голоса совпали — сразу; разошлись — спор; время вышло — чей голос есть, иначе вариант по умолчанию
+  const hostCheck = () => { if (!COOP.host || done || tug) return; if (V.me != null && V.peer != null) { if (V.me === V.peer) return resolve(V.me, 'same'); startTug(); } };
+  const startTug = () => { const m = { t: 'tug0', sc, a: V.me, b: V.peer, until: Date.now() + 4000 }; coopSend(m); runTug(m); };
+  const runTug = m => { if (tug || done) return; tug = { n: 0, m }; const mine = COOP.host ? m.a : m.b;
+    stat.innerHTML = `<b class="ctug">${ct('СПОР! Жми свой вариант!')}</b> <span id="ctn">0</span>`; choiceEl.classList.add('ctugging'); play('scare', { gain: .25 });
+    choiceEl.querySelectorAll('button[data-i]').forEach(b => { const i = +b.dataset.i; b.disabled = i !== m.a && i !== m.b; b.onclick = e => { e.stopPropagation(); if (i !== mine) return; tug.n++; $('ctn').textContent = tug.n; play('click', { gain: .3 }); buzz(15); }; });
+    setTimeout(() => { if (done) return; if (!COOP.host) return coopSend({ t: 'tugN', sc, n: tug.n });
+      const end = () => { if (done) return; const pn = COOP.tugN[sc] ?? 0, mn = tug.n; const winHost = mn > pn || (mn === pn && R() < .5);
+        resolve(winHost ? m.a : m.b, 'tug', winHost ? COOP.name : COOP.peer); };
+      if (COOP.tugN[sc] != null) end(); else { COOP.onTugN = end; setTimeout(end, 2500); } }, Math.max(0, m.until - Date.now())); };
+  COOP.onVote = () => { draw(); hostCheck(); };
+  COOP.onPick = () => { const p = COOP.picks[sc]; if (p) finish(p.i); };
+  COOP.onTug = m => { if (m.sc === sc) runTug(m); };
+  COOP.onTugN = null;
+  if (COOP.picks[sc]) return COOP.onPick();   // напарник уже решил этот выбор (пришёл позже)
+  if (COOP.tug0 && COOP.tug0.sc === sc) { const m = COOP.tug0; COOP.tug0 = null; runTug(m); }
+  choiceEl.querySelectorAll('button[data-i]').forEach(b => b.onclick = e => { if (!okC(e) || tug || done) return; const i = +b.dataset.i; V.me = i; play('click'); coopSend({ t: 'vote', sc, i }); draw(); hostCheck(); });
+  draw(); hostCheck();
+  // таймер выбора — только когда оба дошли до него (хост узнаёт по «here» и шлёт «clock»); вдвоём времени в 1,6 раза больше — успеть договориться
+  coopSend({ t: 'here', sc });
+  const TT = (th.timeout || 0) * 1.6, bar = th.timeout && choiceEl.querySelector('#timer i');
+  const runClock = () => { if (!th.timeout || t0 < 0) return; t0 = -1; const t1 = now();
+    (function loop() { if (done || my !== gen) return; const left = TT - (now() - t1); bar.style.width = Math.max(0, left / TT * 100) + '%';
+      if (left <= 0 && COOP.host && !tug) { const i = V.me ?? V.peer ?? (th.def != null && flagOk(th.opts[th.def].if) ? th.def : vis[0][1]); return resolve(i, V.me != null && V.me === V.peer ? 'same' : ''); }
+      requestAnimationFrame(loop); })(); };
+  if (bar) bar.style.width = '100%';
+  COOP.onHere = () => { if (COOP.host && COOP.here[sc] && !done) { coopSend({ t: 'clock', sc, ms: 1 }); runClock(); } };
+  COOP.onClock = () => { if (!COOP.host && COOP.clock[sc]) runClock(); };
+  COOP.onHere(); COOP.onClock();
+}
+function coopEndNote(died) {   // на экране смерти/концовки: кто был одержим
+  if (!COOP.on || !COOP.started || COOP.poss === undefined || COOP.poss === false) return;
+  const who = COOP.poss == null ? null : COOP.poss === (COOP.host ? 'host' : 'guest') ? COOP.name : COOP.peer;
+  setTimeout(() => coopToast(who ? `${died ? ct('Одержимый победил') + ' — ' : ''}${ct('Одержимым был')}: <b>${escH(who)}</b>` : ct('Одержимого не было'), 9000), 1800);
+}
+function coopLeave() { if (COOP.evs) COOP.evs.close(); Object.assign(COOP, { on: false, room: '', started: false, peer: '', evs: null, votes: {}, picks: {}, tugN: {} }); coopUI(); }
+function coopLobby() {
+  const nm = LS.get('coopName', '') || '';
+  const draw = (body) => { uiEl.innerHTML = `<div class="screen sub coop"><button class="sx" id="mX">${ICON.x}</button><h1>${ct('Смена на двоих')}</h1>${body}<button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+    $('mBack').onclick = $('mX').onclick = () => { uiSnd('back'); if (!COOP.started) coopLeave(); menu(); }; };
+  const err = e => { const m = String(e && e.message); return ct(m === 'no_room' ? 'Нет такой комнаты' : m === 'full' ? 'Комната уже занята' : 'Нет связи с сервером'); };
+  const room = () => { COOP.lobby = true;
+    const body = `<div class="ccode"><small>${ct('Код комнаты')}</small><b>${COOP.room}</b><small>${ct('Скажи код напарнику')}</small></div>
+      <p class="cwho">${COOP.peer ? `${ct('Напарник')}: <b>${escH(COOP.peer)}</b> ${COOP.peerOn ? '🟢' : '⚪'}` : ct('Ждём напарника…')}</p>
+      ${COOP.host ? `<label class="cposs"><input type="checkbox" id="cPoss" ${LS.get('coopPoss', true) ? 'checked' : ''}> <span><b>${ct('Тайная роль «Одержимый»')}</b><small>${ct('Одному из вас может достаться тайная роль: он знает, где смерть, и хочет, чтобы смена не дожила до шести.')}</small></span></label>
+        <button class="btn" id="cGo" ${COOP.peer && COOP.peerOn ? '' : 'disabled'}>${ct('Начать смену вдвоём')}</button>` : `<p class="cwho"><small>${ct('Ждём, пока напарник начнёт смену…')}</small></p>`}
+      <button class="btn ghost" id="cLeave">${ct('Выйти из комнаты')}</button>`;
+    draw(body);
+    const go = $('cGo'); if (go) go.onclick = () => { const on = $('cPoss').checked; LS.set('coopPoss', on); const r = coopRng('poss')();
+      COOP.poss = !on ? false : r < .2 ? null : r < .6 ? 'host' : 'guest';   // 20 % — одержимого нет (а все подозревают друг друга)
+      COOP.started = true; COOP.visit = {}; COOP.votes = {}; COOP.picks = {}; coopSend({ t: 'start', poss: COOP.poss }); coopUI(); begin('intro').then(coopRole); };
+    $('cLeave').onclick = () => { coopLeave(); coopLobby(); }; };
+  COOP.redraw = () => { if (mode === 'menu' && COOP.lobby && !COOP.started && uiEl.querySelector('.screen.coop')) room(); };
+  if (COOP.on && COOP.room) return room();
+  draw(`<label class="cfield"><small>${ct('Твоё имя')}</small><input id="cName" maxlength="20" value="${escH(nm)}" placeholder="Guard"></label>
+    <button class="btn" id="cNew">${ct('Создать комнату')}</button>
+    <label class="cfield"><small>${ct('Код комнаты')}</small><input id="cCode" maxlength="5" autocapitalize="characters" placeholder="ABCDE"></label>
+    <button class="btn ghost" id="cJoin">${ct('Войти по коду')}</button><p class="cerr" id="cErr"></p>`);
+  const name = () => { const v = ($('cName').value || '').trim() || 'Guard'; LS.set('coopName', v); return v; };
+  const enter = j => { Object.assign(COOP, { on: true, room: j.room, id: j.id, seed: j.seed >>> 0, host: !!j.host, name: COOP.name, peer: (j.peers || [])[0] || '', peerOn: !!(j.peers || []).length, votes: {}, picks: {}, tugN: {}, visit: {}, here: {}, clock: {}, started: false });
+    coopListen(); room(); };
+  $('cNew').onclick = () => { COOP.name = name(); coopPost('/new', { name: COOP.name }).then(enter).catch(e => { $('cErr').textContent = err(e); }); };
+  $('cJoin').onclick = () => { COOP.name = name(); const c = ($('cCode').value || '').toUpperCase().trim(); if (c.length < 4) return;
+    coopPost('/join', { room: c, name: COOP.name }).then(enter).catch(e => { $('cErr').textContent = err(e); }); };
+}
 window.__ns = { back: () => menu(), startScene, ach: id => ach(id), get achGot() { return [...achGot]; }, get musicState() { return curMusicName + (curMusic ? (curMusic.next ? ' [играет: вступление + цикл]' : ' [играет]') : ' [не играет]') + (AC ? ' ' + AC.state : ' нет звука'); }, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get night() { return nightGet(); }, nightSet: p => { LS.set('night', Object.assign(nightGet(), p)); return nightGet(); }, nightRoll, shiftMsg: m => shiftMsg(m), tempoSet, get tempoK() { return tempoK; }, get spm() { return shf ? spmNow() : 0; }, epiLines, endScreen: th => endScreen(th), settings: () => settings(), get run() { return run; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
