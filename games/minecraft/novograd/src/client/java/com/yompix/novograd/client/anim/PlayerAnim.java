@@ -58,7 +58,8 @@ public final class PlayerAnim {
 
     public static void init() {
         emoteKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
-                new KeyBinding("key.novograd.emote", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "category.novograd"));
+                new KeyBinding("key.novograd.emote", InputUtil.Type.KEYSYM,
+                        com.yompix.novograd.client.VoiceKeys.installed() ? GLFW.GLFW_KEY_U : GLFW.GLFW_KEY_V, "category.novograd")); // V — говорить, если стоит мод голоса
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(PlayerAnim::tick);
     }
 

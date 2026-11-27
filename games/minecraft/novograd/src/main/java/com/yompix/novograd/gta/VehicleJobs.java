@@ -367,6 +367,10 @@ public final class VehicleJobs {
     /** Брандспойт: клиент держит ПКМ в пожарной машине — вода летит туда, куда смотрит игрок. */
     public static void hose(ServerPlayerEntity p, boolean on) {
         Job j = JOBS.get(p.getUuid());
+        if (j == null && Duty.isFire(p)) { // 0.9.10: пожарный на смене — брандспойт без подработки
+            Duty.hose(p, on);
+            return;
+        }
         if (j == null || j.kind != Kind.FIRE || !(p.getVehicle() instanceof CarEntity car) || kindOf(car) != Kind.FIRE) return;
         j.hose = on ? 8 : 0; // клиент повторяет пакет, пока кнопка зажата
     }

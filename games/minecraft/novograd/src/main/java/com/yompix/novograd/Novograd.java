@@ -51,7 +51,14 @@ public class Novograd implements ModInitializer {
         com.yompix.novograd.gta.Games.init();
         com.yompix.novograd.gta.Nightlife.init();
         com.yompix.novograd.gta.Sports.init();
-        com.yompix.novograd.world.HomeLife.init(); // 0.9.8: «Сити-Банк» — здание, люди, замена старой башни в старых мирах
+        com.yompix.novograd.world.HomeLife.init();
+        // 0.9.10 «Работа»: профессии со званиями, криминальная карьера и банды, служба игроков, свой бизнес
+        com.yompix.novograd.gta.Careers.init();
+        com.yompix.novograd.gta.CrimeCareer.init();
+        com.yompix.novograd.gta.Duty.init();
+        com.yompix.novograd.gta.Business.init();
+        com.yompix.novograd.gta.Duels.init(); // мини-игры против игрока
+        com.yompix.novograd.gta.Voice.init(); // голос (Simple Voice Chat, если стоит): звонки, рации службы и банды
         com.yompix.novograd.life.AgeGate.init(); // 0.9.7: проверка возраста (ответ клиента, requireAdult)
         com.yompix.novograd.perf.Perf.init(); // замер MSPT (только -Dnovograd.perf / автотест perf)
         LOG.info("Новоград загружен: город, сюжет, машины, оружие");

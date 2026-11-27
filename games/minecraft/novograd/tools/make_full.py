@@ -17,6 +17,9 @@ OUT = os.path.join(OUTDIR, f'Novograd-Full-{VER}.zip')
 LOADER = '0.17.2'  # не ниже 0.17: GeckoLib 4.8.4 внутри Новограда требует fabricloader >=0.17
 H = {'User-Agent': 'novograd-release'}
 
+# Голос: Simple Voice Chat (все права защищены — в архив не кладём, INSTALL.bat качает его с modrinth.com по хэшу)
+VOICE = 'dyhq1XyO'
+
 # id версии на Modrinth (те же, что в make_release.py), куда класть
 MODS = [
     ('Mys3P7lK', 'mods'),  # Fabric API
@@ -43,7 +46,7 @@ def get(url):
 
 
 def main():
-    ids = json.dumps([m[0] for m in MODS])
+    ids = json.dumps([m[0] for m in MODS] + [VOICE])
     vers = {v['id']: v for v in json.loads(get('https://api.modrinth.com/v2/versions?ids=' + urllib.parse.quote(ids)))}
     fabric = get(f'https://meta.fabricmc.net/v2/versions/loader/1.21.1/{LOADER}/profile/json')
     vid = json.loads(fabric)['id']
@@ -65,6 +68,9 @@ def main():
                 open(path, 'wb').write(get(f['url']))
             z.write(path, f'files/{folder}/{f["filename"]}')
             names.append(f['filename'])
+        vf = next((x for x in vers[VOICE]['files'] if x.get('primary')), vers[VOICE]['files'][0])
+        z.writestr('files/online.json', json.dumps([dict(file=vf['filename'], url=vf['url'], sha1=vf['hashes']['sha1'], sha512=vf['hashes']['sha512'],
+                                                         size=vf['size'], prefix='voicechat-', folder='mods', group='voice')], indent=1))
         z.writestr('ПРОЧТИ.txt', README.replace('@@VER@@', VER).encode('utf-8'))
     print('ok', OUT, round(os.path.getsize(OUT) / 1e6, 1), 'MB', len(names), 'files')
     # то же без установщика: папки mods и shaderpacks — скопировать в .minecraft руками
@@ -97,6 +103,9 @@ Prism Launcher / ElyPrism / другие на основе Prism: создай �
 
 Fabric API (fabric-api-*.jar) обязателен — он лежит в mods этого архива, не удаляй его.
 
+Голос (по желанию): скачай Simple Voice Chat для Fabric 1.21.1 с modrinth.com/mod/simple-voice-chat и положи в mods.
+Говорить — зажми V; телефон → «Рация».
+
 Шейдеры (по желанию): Настройки — Графика — Шейдеры — MakeUp. На слабом ноутбуке лучше без них.
 Вылетает — выдели игре 3–4 ГБ памяти (TLauncher: ползунок памяти; официальный лаунчер: профиль — Ещё — Аргументы JVM: -Xmx4G).
 
@@ -108,7 +117,8 @@ Fabric API (fabric-api-*.jar) обязателен — он лежит в mods �
 README = """Новоград @@VER@@ — полный архив для официального лаунчера Minecraft (Java Edition 1.21.1)
 
 Всё уже внутри: мод Новоград, Fabric, Sodium, Iris, моды ускорения, быстрые шейдеры MakeUp.
-Интернет нужен только лаунчеру — он сам скачает Minecraft 1.21.1 при первом запуске.
+Интернет нужен лаунчеру (он сам скачает Minecraft 1.21.1) и для голоса: INSTALL.bat скачает мод Simple Voice Chat
+с modrinth.com (его нельзя класть в архив). Говорить — зажми V; телефон → «Рация» — звонки и настройки микрофона.
 
 1. Распакуй архив в обычную папку (например, на рабочий стол).
 2. Закрой лаунчер Minecraft и запусти INSTALL.bat.

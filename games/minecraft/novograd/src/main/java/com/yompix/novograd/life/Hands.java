@@ -125,7 +125,10 @@ public final class Hands {
             }
             ACTIVE.remove(p.getUuid());
         }
-        if (k.blocking && (p.hasVehicle() || !p.isAlive())) return null;
+        if (k.blocking && (p.hasVehicle() || !p.isAlive())) {
+            if (Boolean.getBoolean("novograd.workfast")) Novograd.LOG.info("[руки] нельзя {}: машина {} жив {}", k, p.getVehicle(), p.isAlive());
+            return null;
+        }
         Vec3d a = anchor == null ? p.getPos() : new Vec3d(anchor.x, p.getY(), anchor.z);
         if (k.blocking && a.squaredDistanceTo(p.getPos()) > REACH * REACH) {
             p.sendMessage(Text.literal("Подойди ближе").formatted(Formatting.GRAY), true);
@@ -253,6 +256,9 @@ public final class Hands {
         ACTIVE.remove(p.getUuid());
         s.stoppedAt = (int) Math.max(0, p.getServerWorld().getTime() - s.t0);
         cancelCount++;
+        if (Boolean.getBoolean("novograd.workfast"))
+            Novograd.LOG.info("[руки] прервано {} на {} тике: сдвиг {} hp {}/{} в машине {}", s.kind, s.stoppedAt,
+                    s.anchor == null ? -1 : String.format("%.2f", Math.hypot(p.getX() - s.anchor.x, p.getZ() - s.anchor.z)), p.getHealth(), s.hp, p.hasVehicle());
         if (s.cancel != null) try {
             s.cancel.run();
         } catch (RuntimeException ex) {

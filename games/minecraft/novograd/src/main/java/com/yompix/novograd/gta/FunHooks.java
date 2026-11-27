@@ -43,8 +43,13 @@ public final class FunHooks {
             Skydive.onLeave(h.player);
             Arcade.onLeave(h.player);
             Games.onLeave(h.player); // 0.9.9
+            Duels.onLeave(h.player); // 0.9.10
+            Voice.onLeave(h.player);
             Sports.onLeave(h.player);
             com.yompix.novograd.life.Dating.onLeave(h.player);
+            Careers.onLeave(h.player); // 0.9.10
+            com.yompix.novograd.world.HomeLife.forget(h.player.getUuid());
+            Duty.onLeave(h.player);
         });
         // убитый игроком боец банды в чужом районе — объявление войны
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {

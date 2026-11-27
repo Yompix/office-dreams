@@ -109,19 +109,24 @@ public final class Games {
                 if (p.squaredDistanceTo(it) < 2 * 2) inside = i;
             }
             Integer was = AT.put(p.getUuid(), inside);
-            if (inside < 0 || was != null && was == inside || PLAYING.containsKey(p.getUuid())) continue;
+            if (inside < 0 || was != null && was == inside || PLAYING.containsKey(p.getUuid()) || Duels.busy(p.getUuid())) continue;
             open(p, (String) SPOTS[inside][1], (int) SPOTS[inside][2]);
         }
     }
 
     public static void open(ServerPlayerEntity p, String game, int bet) {
         LifeData d = Life.get(p);
-        if (d.money + d.cash < bet) {
+        if (d.money + d.cash < bet && com.yompix.novograd.life.Dating.partnerNear(p) == null) {
             FunUtil.hint(p, "Завсегдатай: «Без $" + bet + " не играю»", Formatting.GRAY);
             return;
         }
         int foe = foe(game, new java.util.Random(p.getRandom().nextLong()));
         String name = FunUtil.pick(p.getServerWorld(), "Кий-Саныч", "Лёха «Страйк»", "Марина Борт", "Тренер Палыч", "Дед Гольфист", "Зина «Трёшка»");
+        String partner = com.yompix.novograd.life.Dating.partnerNear(p); // 0.9.10: на свидании играешь с партнёром
+        if (partner != null) {
+            name = "♥ " + partner;
+            bet = 0;
+        }
         PLAYING.put(p.getUuid(), new Object[]{game, p.getServerWorld().getTime(), bet, foe, name});
         NbtCompound n = new NbtCompound();
         n.putString("game", game);
@@ -133,7 +138,12 @@ public final class Games {
     }
 
     /** Итог от клиента: время, предел, ставка. */
+    public static boolean playing(ServerPlayerEntity p) {
+        return PLAYING.containsKey(p.getUuid());
+    }
+
     public static void done(ServerPlayerEntity p, NbtCompound n) {
+        if (Duels.done(p, n)) return; // 0.9.10: партия против игрока
         Object[] g = PLAYING.remove(p.getUuid());
         if (g == null) return;
         String game = (String) g[0];
@@ -147,6 +157,11 @@ public final class Games {
         if (secs < minSec(game)) return; // слишком быстро — не засчитываем
         int mine = Math.max(0, Math.min(max(game), n.getInt("score")));
         boolean win = lowerWins(game) ? mine < foe : mine > foe, draw = mine == foe;
+        if (((String) g[4]).startsWith("♥ ")) { // партия с партнёром на свидании — без денег
+            FunUtil.title(p, draw ? "НИЧЬЯ" : win ? "ТЫ ВЫИГРАЛ(А)" : ((String) g[4]).substring(2) + " ВЫИГРАЛ(А)", title(game) + " · " + mine + " : " + foe + " · ♥");
+            com.yompix.novograd.life.Dating.afterGame(p, win);
+            return;
+        }
         if (draw) FunUtil.title(p, "НИЧЬЯ", title(game) + " · " + mine + " : " + foe);
         else if (win) {
             Life.earn(p, bet, "выигрыш: " + title(game).toLowerCase());

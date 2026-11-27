@@ -458,6 +458,491 @@ public final class HandShow {
 
     private static final int GLFW_ESC = 256;
 
+    // ================================================================== 0.9.10 «Работа»: смены, криминал, служба, бизнес
+    private static net.fabricmc.fabric.api.entity.FakePlayer bot;
+
+    static void workshow() {
+        cmd(5, "time set 6000");
+        cmd(5, "weather clear");
+        cmd(5, "gamerule doDaylightCycle false");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            var d = Life.get(p);
+            d.money = 50000;
+            d.storyStarted = true;
+            d.storyDone = true;
+            Life.sync(p);
+        });
+        run(100, c -> {
+            if (c.player != null && c.player.isDead()) c.player.requestRespawn(); // прошлый прогон мог оставить игрока мёртвым
+            if (c.currentScreen != null) c.setScreen(null);
+        });
+        run(40, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        server(2, s -> { pl(s).setHealth(20); pl(s).getHungerManager().setFoodLevel(20); });
+        run(5, ShowAutotest::rec);
+        // ---- курьер: три адреса
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 4)));
+        for (int k = 0; k < 3; k++) server(30, s -> {
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            if (t != null) p.teleport(p.getServerWorld(), t.x, safeY(p, t.x, t.z), t.z, 0, 0);
+        });
+        run(30, c -> shot(c, "work_courier"));
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        // ---- механик: к сломанной машине, присесть — чинит руками
+        server(5, s -> {
+            pl(s).stopRiding();
+            com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 3));
+        });
+        server(30, s -> {
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            if (t != null) p.teleport(p.getServerWorld(), t.x + 2, safeY(p, t.x + 2, t.z + 0.5), t.z + 0.5, 90, 20);
+        });
+        server(40, s -> { // машина могла встать в ещё не загруженном месте — подойти вплотную
+            var p = pl(s);
+            var car = nearestCar(p, -1, 12);
+            Novograd.LOG.info("[work] механик: машина рядом {}", car != null);
+            if (car != null) p.teleport(p.getServerWorld(), car.getX() + 2, car.getY(), car.getZ(), 90, 20); // рядом с машиной, не на крыше
+        });
+        run(60, c -> { // ремонт начинается сам, когда подошёл пешком (Shift прерывает руки — не жмём)
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+            shot(c, "work_mechanic");
+        });
+        run(160, c -> c.options.hudHidden = false);
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        // ---- журналист: к сюжету, снимок
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 6)));
+        server(20, s -> {
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            if (t != null) p.teleport(p.getServerWorld(), t.x + 5, safeY(p, t.x + 5, t.z + 5), t.z + 5, 0, 0);
+            com.yompix.novograd.gta.Careers.onPhoto(p);
+        });
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        // ---- охранник (ускоренно: -Dnovograd.workfast)
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 5)));
+        server(20, s -> {
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            if (t != null) p.teleport(p.getServerWorld(), t.x + 2, safeY(p, t.x + 2, t.z + 2), t.z + 2, 0, 0);
+        });
+        run(260, c -> shot(c, "work_guard"));
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        // ---- рыбак: 5 рыб у причала
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 2)));
+        server(10, s -> {
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            p.getInventory().insertStack(new net.minecraft.item.ItemStack(net.minecraft.item.Items.COD, 5));
+            if (t != null) p.teleport(p.getServerWorld(), t.x, safeY(p, t.x, t.z), t.z, 0, 0);
+        });
+        server(30, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        // ---- криминал: угон на заказ, банда, налёт вдвоём
+        server(5, s -> {
+            var p = pl(s);
+            com.yompix.novograd.gta.CrimeCareer.handle(p, "crime_order", new net.minecraft.nbt.NbtCompound());
+            int i = Life.get(p).city.getInt("order");
+            Vec3d chop = com.yompix.novograd.story.Story.place(p.getServerWorld(), "chop_shop");
+            int[] variants = {12, 9, 10, 13, 14, 7, 8, 16};
+            var car = com.yompix.novograd.gta.FunUtil.car(p.getServerWorld(), chop, 0, variants[i]);
+            p.teleport(p.getServerWorld(), chop.x, safeY(p, chop.x, chop.z), chop.z, 0, 0);
+            p.startRiding(car, true);
+            com.yompix.novograd.gta.CrimeCareer.handle(p, "crime_gang", nbtS("name", "Тестовые"));
+        });
+        server(60, s -> {
+            var p = pl(s);
+            p.stopRiding();
+            var w = p.getServerWorld();
+            bot = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("workbot".getBytes()), "Partner"));
+            bot.refreshPositionAndAngles(p.getX() + 2, p.getY(), p.getZ(), 0, 0);
+            bot.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PISTOL));
+            int before = Life.get(p).dirty;
+            boolean seen = w.getPlayers().contains(bot);
+            com.yompix.novograd.gta.CrimeCareer.robbery(p, 500);
+            Novograd.LOG.info("[work] налёт вдвоём: бот в мире {}, доля игрока {}, у бота {}", seen, Life.get(p).dirty - before, Life.get(bot).dirty);
+            com.yompix.novograd.gta.Wanted.clear(p);
+        });
+        // ---- служба: скорая лечит, полиция задерживает (бот)
+        server(10, s -> com.yompix.novograd.gta.Duty.handle(pl(s), "duty_on", nbt("role", 2)));
+        server(5, s -> {
+            if (bot == null) return;
+            bot.setHealth(4);
+            bot.refreshPositionAndAngles(pl(s).getX() + 1, pl(s).getY(), pl(s).getZ(), 0, 0);
+        });
+        server(80, s -> Novograd.LOG.info("[work] скорая: здоровье бота {}", bot == null ? -1 : bot.getHealth()));
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.city.WorkApps.Duty()));
+        run(20, c -> shot(c, "work_app_duty"));
+        run(2, c -> c.setScreen(null));
+        // ---- бизнес: кафе в центре, запас, персонал, день
+        server(5, s -> {
+            var p = pl(s);
+            com.yompix.novograd.gta.Duty.handle(p, "duty_off", new net.minecraft.nbt.NbtCompound());
+            var n = nbt("type", 0);
+            n.putString("place", "cafe_dt");
+            n.putString("name", "Тест-кофейня");
+            com.yompix.novograd.gta.Business.handle(p, "biz_open", n);
+            com.yompix.novograd.gta.Business.handle(p, "biz_buy", nbt("units", 200));
+            com.yompix.novograd.gta.Business.handle(p, "biz_staff", nbtD(0, 1));
+            com.yompix.novograd.gta.Business.handle(p, "biz_staff", nbtD(1, 1));
+        });
+        cmd(10, "time add 24000");
+        run(140, c -> {});
+        // ---- дальнобойщик: фура → в кабину → к разгрузке
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_start", nbt("i", 0)));
+        server(5, s -> {
+            var p = pl(s);
+            Vec3d wh = com.yompix.novograd.story.Story.place(p.getServerWorld(), "port_warehouse");
+            p.teleport(p.getServerWorld(), wh.x, safeY(p, wh.x, wh.z), wh.z, 0, 0);
+        });
+        server(40, s -> {
+            var p = pl(s);
+            Vec3d tr = workTarget(p);
+            if (tr != null) p.teleport(p.getServerWorld(), tr.x, safeY(p, tr.x, tr.z), tr.z, 0, 0);
+            var car = nearestCar(p, 11, 30);
+            if (car != null) {
+                p.teleport(p.getServerWorld(), car.getX(), safeY(p, car.getX(), car.getZ()), car.getZ(), 0, 0);
+                p.startRiding(car, true);
+            }
+        });
+        server(30, s -> { // к разгрузке: сначала игрок (грузится чанк), потом фура
+            var p = pl(s);
+            Vec3d t = workTarget(p);
+            var car = p.getVehicle();
+            Novograd.LOG.info("[work] фура: в кабине {}, разгрузка {}", car != null, t);
+            if (t != null && car != null) {
+                p.stopRiding();
+                p.teleport(p.getServerWorld(), t.x, safeY(p, t.x, t.z), t.z, 0, 0);
+                car.teleport(p.getServerWorld(), t.x + 1, safeY(p, t.x + 1, t.z), t.z, java.util.Set.of(), 0, 0);
+            }
+        });
+        server(40, s -> {
+            var p = pl(s);
+            var car = nearestCar(p, 11, 20);
+            if (car != null) p.startRiding(car, true);
+        });
+        run(60, c -> shot(c, "work_trucker"));
+        server(5, s -> com.yompix.novograd.gta.Careers.handle(pl(s), "career_stop", new net.minecraft.nbt.NbtCompound()));
+        for (String app : new String[]{"career", "crime", "biz"}) {
+            run(5, c -> c.setScreen(switch (app) {
+                case "career" -> new com.yompix.novograd.client.city.WorkApps.Career();
+                case "crime" -> new com.yompix.novograd.client.city.WorkApps.Crime();
+                default -> new com.yompix.novograd.client.city.WorkApps.Biz();
+            }));
+            run(25, c -> shot(c, "work_app_" + app));
+            run(2, c -> c.setScreen(null));
+        }
+        server(5, s -> {
+            var d = Life.get(pl(s));
+            StringBuilder sb = new StringBuilder();
+            for (String id : com.yompix.novograd.gta.Careers.IDS) sb.append(id).append('=').append(d.city.getInt("car_" + id)).append(' ');
+            Novograd.LOG.info("[work] опыт профессий: {}; авторитет {}; заказ {}", sb, d.city.getInt("crimeXp"), d.city.contains("order") ? "не сдан" : "сдан");
+            if (bot != null) bot.discard();
+        });
+        finish();
+    }
+
+    // ================================================================== 0.9.10: мебель, сцена, свидание вместе, Фотограм, дуэль
+    private static float[] STAGE_CAM;
+
+    static void propshow() {
+        cmd(5, "time set 6000");
+        cmd(5, "weather clear");
+        cmd(5, "gamerule doDaylightCycle false");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            var d = Life.get(p);
+            d.money = 50000;
+            d.storyStarted = true;
+            d.storyDone = true;
+            p.setHealth(20);
+            p.getAbilities().invulnerable = true; // банды и прохожие не мешают снимать
+            p.sendAbilitiesUpdate();
+            Life.sync(p);
+        });
+        run(100, c -> {
+            if (c.player != null && c.player.isDead()) c.player.requestRespawn();
+            if (c.currentScreen != null) c.setScreen(null);
+        });
+        run(5, ShowAutotest::rec);
+        // ---- мебель: купить, предпросмотр с поворотом, поставить (сервер — как ПКМ игрока), сесть
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            var l = com.yompix.novograd.world.Housing.listings().get(1);
+            com.yompix.novograd.world.Housing.state(s).owner(p.getUuid()).homes.put(l.id, new com.yompix.novograd.world.Housing.Holding());
+            p.teleport(p.getServerWorld(), l.inside.x, l.inside.y, l.inside.z, 0, 50);
+            for (var e : p.getServerWorld().getOtherEntities(p, p.getBoundingBox().expand(14), e -> !(e instanceof net.minecraft.entity.player.PlayerEntity))) e.discard();
+            p.getInventory().clear();
+            for (int i : new int[]{0, 1, 3, 12, 16, 14}) com.yompix.novograd.world.HomeLife.handle(p, "home_buy", nbt("i", i));
+            Novograd.LOG.info("[prop] дом {} ({}), в руках {}", l.name, l.inside, p.getInventory().getStack(0).getName().getString());
+        });
+        run(40, c -> {
+            c.player.getInventory().selectedSlot = 0;
+            c.options.setPerspective(Perspective.FIRST_PERSON);
+            com.yompix.novograd.client.FurniturePreview.rotate(1);
+        });
+        run(30, c -> shot(c, "prop_preview"));
+        int[][] spots = {{-2, 2}, {0, 2}, {2, 2}, {-2, 4}, {0, 4}, {2, 4}};
+        for (int k = 0; k < spots.length; k++) {
+            int kk = k;
+            server(4, s -> {
+                ServerPlayerEntity p = pl(s);
+                var w = p.getServerWorld();
+                var l = com.yompix.novograd.world.Housing.listings().get(1);
+                net.minecraft.util.math.BlockPos base = net.minecraft.util.math.BlockPos.ofFloored(l.inside);
+                net.minecraft.util.math.BlockPos at = base.add(spots[kk][0], 0, spots[kk][1]);
+                p.teleport(w, l.inside.x, l.inside.y, l.inside.z, 0, 30); // лицом на юг, к предметам
+                if (w.getBlockState(at).getBlock() instanceof com.yompix.novograd.block.FurnitureBlock) w.removeBlock(at, false); // прошлый прогон
+                p.getInventory().selectedSlot = kk;
+                var hit = new net.minecraft.util.hit.BlockHitResult(Vec3d.ofCenter(at.down()).add(0, 0.5, 0), net.minecraft.util.math.Direction.UP, at.down(), false);
+                var r = p.interactionManager.interactBlock(p, w, p.getMainHandStack(), net.minecraft.util.Hand.MAIN_HAND, hit);
+                Novograd.LOG.info("[prop] ставлю {} в {}: {}", p.getMainHandStack().isEmpty() ? "-" : p.getMainHandStack().getName().getString(), at, r);
+            });
+        }
+        server(10, s -> {
+            ServerPlayerEntity p = pl(s);
+            var l = com.yompix.novograd.world.Housing.listings().get(1);
+            StringBuilder sb = new StringBuilder();
+            for (var pos : net.minecraft.util.math.BlockPos.iterate(net.minecraft.util.math.BlockPos.ofFloored(l.inside).add(-6, -1, -4), net.minecraft.util.math.BlockPos.ofFloored(l.inside).add(6, 1, 6))) {
+                var st = p.getServerWorld().getBlockState(pos);
+                if (st.getBlock() instanceof com.yompix.novograd.block.FurnitureBlock)
+                    sb.append(net.minecraft.registry.Registries.BLOCK.getId(st.getBlock()).getPath()).append('=').append(st.get(net.minecraft.block.HorizontalFacingBlock.FACING)).append(' ');
+            }
+            Novograd.LOG.info("[prop] мебель поставлена: {} (всего {})", sb, com.yompix.novograd.world.HomeLife.placed(p));
+            p.teleport(p.getServerWorld(), l.inside.x - 0.5, l.inside.y + 1.2, l.inside.z + 7.5, 180, 30);
+        });
+        run(30, c -> {
+            c.options.hudHidden = true;
+            shot(c, "prop_furniture");
+            c.options.hudHidden = false;
+        });
+        server(5, s -> { // сесть на диван (через блок, как ПКМ)
+            ServerPlayerEntity p = pl(s);
+            var l = com.yompix.novograd.world.Housing.listings().get(1);
+            for (var pos : net.minecraft.util.math.BlockPos.iterate(net.minecraft.util.math.BlockPos.ofFloored(l.inside).add(-6, -1, -4), net.minecraft.util.math.BlockPos.ofFloored(l.inside).add(6, 1, 6)))
+                if (p.getServerWorld().getBlockState(pos).getBlock() instanceof com.yompix.novograd.block.FurnitureBlock f && f.seat >= 0) {
+                    p.getInventory().selectedSlot = 8;
+                    var hit = new net.minecraft.util.hit.BlockHitResult(Vec3d.ofCenter(pos), net.minecraft.util.math.Direction.UP, pos.toImmutable(), false);
+                    p.interactionManager.interactBlock(p, p.getServerWorld(), p.getMainHandStack(), net.minecraft.util.Hand.MAIN_HAND, hit);
+                    break;
+                }
+            Novograd.LOG.info("[prop] сидит на мебели: {}", p.hasVehicle());
+        });
+        run(30, c -> {
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+            shot(c, "prop_sofa");
+            c.options.hudHidden = false;
+        });
+        server(5, s -> pl(s).stopRiding());
+        // ---- свидание: партнёр садится за столик и ест вместе с тобой
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "cafe_dt");
+            p.teleport(p.getServerWorld(), at.x + 4, safeY(p, at.x + 4, at.z + 4), at.z + 4, 0, 10);
+            var c = com.yompix.novograd.gta.FunUtil.citizen(p.getServerWorld(), p.getPos().add(1.5, 0, 0), com.yompix.novograd.entity.CitizenEntity.Role.CITIZEN, null);
+            c.forceLook(0x5EEDL * 7919);
+            SPAWNED.add(c.getUuid());
+            p.setSneaking(true);
+            com.yompix.novograd.life.Dating.meet(p, c);
+            p.setSneaking(false);
+            var n = nbt("i", 0);
+            n.putInt("place", 0);
+            com.yompix.novograd.life.Dating.handle(p, "date_ask", n);
+            p.teleport(p.getServerWorld(), at.x + 1.5, safeY(p, at.x + 1.5, at.z + 2.5), at.z + 2.5, 0, 10);
+        });
+        server(40, s -> Novograd.LOG.info("[prop] свидание: {}", com.yompix.novograd.life.Dating.together(pl(s))));
+        server(5, s -> { // к партнёру; два стула рядом (для теста ставим свои, если у кафе нет) — садимся на один
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            var c = com.yompix.novograd.life.Dating.partner(p);
+            if (c != null) p.teleport(w, c.getX() + 1, c.getY(), c.getZ(), 90, 10);
+        });
+        server(30, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            var date = java.util.Collections.singletonList(com.yompix.novograd.life.Dating.partner(p));
+            net.minecraft.util.math.BlockPos a = p.getBlockPos().add(0, 0, 1), b = a.add(2, 0, 0);
+            for (var pos : new net.minecraft.util.math.BlockPos[]{a, b})
+                if (w.getBlockState(pos).isAir()) w.setBlockState(pos, com.yompix.novograd.ModContent.FURNITURE.get("chair").getDefaultState());
+            w.setBlockState(a.add(1, 0, 0), com.yompix.novograd.ModContent.FURNITURE.get("coffee_table").getDefaultState());
+            com.yompix.novograd.block.SeatBlockHelper.sit(w, a, p, 0.5);
+            Novograd.LOG.info("[prop] свидание: партнёр {}, сидит {}", date.size(), p.hasVehicle());
+        });
+        server(60, s -> Novograd.LOG.info("[prop] свидание, вместе: «{}»", com.yompix.novograd.life.Dating.together(pl(s))));
+        run(5, c -> {
+            CAM = null;
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+        });
+        run(80, c -> {
+            shot(c, "prop_date_cafe");
+            c.options.hudHidden = false;
+        });
+        server(5, s -> pl(s).stopRiding());
+        // второе свидание — клуб: танец и бильярд с партнёром
+        server(300, s -> {
+            ServerPlayerEntity p = pl(s);
+            var n = nbt("i", 0);
+            n.putInt("place", 1);
+            com.yompix.novograd.life.Dating.handle(p, "date_ask", n);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "club_neon");
+            p.teleport(p.getServerWorld(), at.x + 1, safeY(p, at.x + 1, at.z + 3), at.z + 3, 180, 5);
+        });
+        server(40, s -> { // к партнёру вплотную
+            ServerPlayerEntity p = pl(s);
+            var c = com.yompix.novograd.life.Dating.partner(p);
+            if (c != null) p.teleport(p.getServerWorld(), c.getX() + 1.5, c.getY(), c.getZ(), 90, 10);
+        });
+        server(60, s -> Novograd.LOG.info("[prop] клуб, вместе: «{}»", com.yompix.novograd.life.Dating.together(pl(s))));
+        run(5, c -> {
+            c.setScreen(null);
+            c.options.hudHidden = true;
+        });
+        run(70, c -> {
+            shot(c, "prop_date_dance");
+            c.options.hudHidden = false;
+        });
+        server(5, s -> com.yompix.novograd.gta.Games.open(pl(s), "billiards", 100));
+        run(30, c -> shot(c, "prop_date_billiards"));
+        run(2, c -> { if (c.currentScreen != null) c.currentScreen.keyPressed(GLFW_ESC, 0, 0); });
+        // ---- сцена концерта: обе площадки
+        cmd(5, "time set 13600");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), com.yompix.novograd.gta.Nightlife.todayVenue(p.getServerWorld()));
+            p.teleport(p.getServerWorld(), at.x, safeY(p, at.x, at.z + 12), at.z + 12, 180, 5);
+        });
+        run(100, c -> {
+            c.options.setPerspective(Perspective.FIRST_PERSON);
+            c.options.hudHidden = true;
+        });
+        server(2, s -> {
+            Vec3d at = com.yompix.novograd.story.Story.place(s.getOverworld(), com.yompix.novograd.gta.Nightlife.todayVenue(s.getOverworld()));
+            STAGE_CAM = new float[]{(float) at.x + 0.5f, (float) at.y + 5.5f, (float) at.z + 13, 180, 14};
+        });
+        run(10, c -> CAM = STAGE_CAM);
+        run(20, c -> shot(c, "prop_stage_a"));
+        run(2, c -> CAM = null);
+        server(2, s -> Novograd.LOG.info("[prop] сцена A ({}, концерт {}, время {}): блоков {}, на сцене и в толпе {}", com.yompix.novograd.gta.Nightlife.todayVenue(s.getOverworld()),
+                com.yompix.novograd.gta.Nightlife.concertNow(s.getOverworld()), s.getOverworld().getTimeOfDay(),
+                com.yompix.novograd.gta.ConcertStage.size(s), com.yompix.novograd.gta.Nightlife.spawned()));
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            String other = com.yompix.novograd.gta.Nightlife.todayVenue(w).equals("riv_strip") ? "downtown_plaza" : "riv_strip";
+            Vec3d at = com.yompix.novograd.story.Story.place(w, other);
+            p.teleport(w, at.x, safeY(p, at.x, at.z + 12), at.z + 12, 180, 5);
+            w.getChunk((int) Math.floor(at.x) >> 4, (int) Math.floor(at.z) >> 4);
+        });
+        server(60, s -> {
+            var w = s.getOverworld();
+            String other = com.yompix.novograd.gta.Nightlife.todayVenue(w).equals("riv_strip") ? "downtown_plaza" : "riv_strip";
+            int before = com.yompix.novograd.gta.ConcertStage.size(s);
+            com.yompix.novograd.gta.ConcertStage.clear(w);
+            Novograd.LOG.info("[prop] сцена A убрана: {} → {}", before, com.yompix.novograd.gta.ConcertStage.size(s));
+            com.yompix.novograd.gta.ConcertStage.build(w, com.yompix.novograd.story.Story.place(w, other));
+            Novograd.LOG.info("[prop] сцена B ({}): блоков {}", other, com.yompix.novograd.gta.ConcertStage.size(s));
+        });
+        server(2, s -> {
+            var w = s.getOverworld();
+            String other = com.yompix.novograd.gta.Nightlife.todayVenue(w).equals("riv_strip") ? "downtown_plaza" : "riv_strip";
+            Vec3d at = com.yompix.novograd.story.Story.place(w, other);
+            STAGE_CAM = new float[]{(float) at.x + 0.5f, (float) at.y + 5.5f, (float) at.z + 13, 180, 14};
+        });
+        run(10, c -> CAM = STAGE_CAM);
+        run(30, c -> shot(c, "prop_stage_b"));
+        run(2, c -> CAM = null);
+        cmd(5, "time set 6000");
+        server(60, s -> Novograd.LOG.info("[prop] после концерта блоков сцены: {}", com.yompix.novograd.gta.ConcertStage.size(s)));
+        run(5, c -> c.options.hudHidden = false);
+        // ---- Фотограм: снимок камерой → картинка в посте
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            Vec3d at = com.yompix.novograd.story.Story.place(p.getServerWorld(), "downtown_plaza");
+            p.teleport(p.getServerWorld(), at.x, safeY(p, at.x, at.z + 20) + 1, at.z + 20, 180, -5);
+            Life.get(p).city.putLong("photoAt", 0);
+        });
+        run(60, c -> com.yompix.novograd.client.NovogradClient.takePhoto());
+        server(40, s -> {
+            var feed = com.yompix.novograd.gta.Social.class;
+            Novograd.LOG.info("[prop] фотограм: картинка у поста {}", com.yompix.novograd.gta.Social.latestHasImage(s, "@" + pl(s).getName().getString()));
+        });
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.city.CityApps.Social()));
+        run(40, c -> shot(c, "prop_fotogram"));
+        run(5, c -> c.setScreen(null));
+        // ---- дуэль: бильярд против второго игрока (FakePlayer), ставка $100
+        int[] money = new int[2];
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            bot = net.fabricmc.fabric.api.entity.FakePlayer.get(p.getServerWorld(), new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("propbot".getBytes()), "Rival"));
+            Life.get(bot).money = 1000;
+            money[0] = Life.get(p).money + Life.get(p).cash;
+            com.yompix.novograd.gta.Duels.testStart(p, bot, "billiards", 100);
+        });
+        run(40, c -> shot(c, "prop_duel"));
+        server(2, s -> com.yompix.novograd.gta.Duels.live(bot, 3));
+        run(30, c -> shot(c, "prop_duel_live"));
+        server(440, s -> {
+            var n = nbtS("game", "billiards");
+            n.putInt("score", 3);
+            com.yompix.novograd.gta.Duels.done(bot, n);
+            n.putInt("score", 6);
+            com.yompix.novograd.gta.Duels.done(pl(s), n);
+            money[1] = Life.get(pl(s)).money + Life.get(pl(s)).cash;
+            Novograd.LOG.info("[prop] дуэль: деньги {} → {} (ставка $100, банк $200), у соперника ${}, матчей {}", money[0], money[1], Life.get(bot).money,
+                    com.yompix.novograd.gta.Duels.matches());
+        });
+        run(30, c -> shot(c, "prop_duel_result"));
+        run(2, c -> { if (c.currentScreen != null) c.currentScreen.keyPressed(GLFW_ESC, 0, 0); });
+        run(20, c -> c.setScreen(new com.yompix.novograd.client.city.WorkApps.VoiceApp()));
+        run(30, c -> shot(c, "prop_voice_app"));
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            Novograd.LOG.info("[prop] голос: мод {}, на сервере {}", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("voicechat"), com.yompix.novograd.gta.Voice.backend != null);
+            if (bot != null) bot.discard();
+        });
+        finish();
+    }
+
+    /** Высота земли (телепорт в автотесте — не в стену). */
+    private static double safeY(ServerPlayerEntity p, double x, double z) {
+        p.getServerWorld().getChunk((int) Math.floor(x) >> 4, (int) Math.floor(z) >> 4);
+        return com.yompix.novograd.story.Story.topY(p.getServerWorld(), (int) Math.floor(x), (int) Math.floor(z)) + 1;
+    }
+
+    private static net.minecraft.nbt.NbtCompound nbt(String k, int v) {
+        var n = new net.minecraft.nbt.NbtCompound();
+        n.putInt(k, v);
+        return n;
+    }
+
+    private static net.minecraft.nbt.NbtCompound nbtS(String k, String v) {
+        var n = new net.minecraft.nbt.NbtCompound();
+        n.putString(k, v);
+        return n;
+    }
+
+    private static net.minecraft.nbt.NbtCompound nbtD(int i, int d) {
+        var n = nbt("i", i);
+        n.putInt("d", d);
+        return n;
+    }
+
+    private static Vec3d workTarget(ServerPlayerEntity p) {
+        return com.yompix.novograd.gta.Careers.target(p);
+    }
+
+    private static com.yompix.novograd.entity.CarEntity nearestCar(ServerPlayerEntity p, int variant, double r) {
+        com.yompix.novograd.entity.CarEntity best = null;
+        for (var c : p.getServerWorld().getEntitiesByClass(com.yompix.novograd.entity.CarEntity.class, p.getBoundingBox().expand(r), c -> variant < 0 || c.getVariant() == variant))
+            if (best == null || c.squaredDistanceTo(p) < best.squaredDistanceTo(p)) best = c;
+        return best;
+    }
+
     // ================================================================== «Сити-Банк»: снимки снаружи и внутри
     static void bankshow() {
         cmd(5, "time set 6000");

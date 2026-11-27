@@ -67,6 +67,32 @@ if ($miss.Count -gt 0) {
     Write-Host 'Закрой лаунчер и игру и запусти INSTALL.bat ещё раз.' -ForegroundColor Red
     exit 1
 }
+# голос (Simple Voice Chat): его лицензия не разрешает класть мод в архив — качаем с modrinth.com и проверяем хэш
+$net = Join-Path $SRC 'online.json'
+if (Test-Path $net) {
+    try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
+    $ProgressPreference = 'SilentlyContinue'
+    foreach ($m in (Get-Content $net -Raw -Encoding UTF8 | ConvertFrom-Json)) {
+        $dst = Join-Path (Join-Path $GD 'mods') $m.file
+        if ((Test-Path -LiteralPath $dst) -and ((Get-FileHash -Algorithm SHA512 -LiteralPath $dst).Hash.ToLower() -eq $m.sha512)) { Write-Host ('    ' + $m.file); continue }
+        $tmp = $dst + '.part'
+        $ok = $false
+        for ($try = 1; $try -le 3 -and -not $ok; $try++) {
+            try {
+                Invoke-WebRequest -UseBasicParsing -Uri $m.url -OutFile $tmp -TimeoutSec 180
+                if ((Get-FileHash -Algorithm SHA512 -LiteralPath $tmp).Hash.ToLower() -eq $m.sha512) { $ok = $true }
+            } catch {}
+        }
+        if ($ok) {
+            foreach ($j in Get-ChildItem (Join-Path $GD 'mods') -Filter ($m.prefix + '*.jar') -ErrorAction SilentlyContinue) { Remove-Item -LiteralPath $j.FullName -Force }
+            Move-Item -LiteralPath $tmp $dst -Force
+            Write-Host ('    ' + $m.file + ' (голос)')
+        } else {
+            if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force }
+            Write-Host ('    не скачался ' + $m.file + ': игра запустится, но без голоса. Запусти INSTALL.bat ещё раз, когда будет интернет.') -ForegroundColor Yellow
+        }
+    }
+}
 $shader = Get-ChildItem (Join-Path $SRC 'shaderpacks') | Select-Object -First 1
 Copy-Item $shader.FullName (Join-Path $GD 'shaderpacks') -Force
 $enable = if ($lite) { 'false' } else { 'true' }

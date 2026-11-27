@@ -72,6 +72,7 @@ public final class Nightlife {
         }
         if (!concertNow(w)) {
             clear(w);
+            ConcertStage.clear(w);
             WATCH.clear();
             return;
         }
@@ -83,7 +84,11 @@ public final class Nightlife {
             clear(w);
             return;
         }
-        if (SPAWNED.isEmpty()) spawn(w, at, day);
+        if (SPAWNED.isEmpty()) {
+            ConcertStage.build(w, at); // 0.9.10: настоящая сцена — подиум, свет, колонки, пульт
+            spawn(w, at, day);
+            com.yompix.novograd.Novograd.LOG.info("[ночь] концерт {}: сцена {} блоков, людей {}", VENUES[venue(day)], ConcertStage.size(s), SPAWNED.size());
+        }
         // музыка (каждые 4 с — свой инструмент; клиент слышит позиционно)
         if (s.getTicks() % 80 == 13) {
             var ev = switch ((int) ((s.getTicks() / 80) % 3)) {
@@ -108,9 +113,12 @@ public final class Nightlife {
     }
 
     private static void spawn(ServerWorld w, Vec3d at, long day) {
-        CitizenEntity.Activity[] band = {CitizenEntity.Activity.GUITAR, CitizenEntity.Activity.SAX, CitizenEntity.Activity.BREAKDANCE};
-        for (int i = 0; i < 3; i++) {
-            CitizenEntity c = FunUtil.citizen(w, at.add(-2 + i * 2, 0, -3), CitizenEntity.Role.CITIZEN, i == 0 ? band(day) : null);
+        // на сцене: гитара и саксофон впереди, танцор в центре, диджей за пультом
+        Vec3d o = Vec3d.ofBottomCenter(net.minecraft.util.math.BlockPos.ofFloored(at));
+        Vec3d[] spots = {o.add(-3, ConcertStage.RISE, -4), o.add(3, ConcertStage.RISE, -4), o.add(0, ConcertStage.RISE, -3), o.add(-0.5, ConcertStage.RISE, -7)};
+        CitizenEntity.Activity[] band = {CitizenEntity.Activity.GUITAR, CitizenEntity.Activity.SAX, CitizenEntity.Activity.BREAKDANCE, CitizenEntity.Activity.DANCE2};
+        for (int i = 0; i < spots.length; i++) {
+            CitizenEntity c = FunUtil.citizen(w, spots[i], CitizenEntity.Role.CITIZEN, i == 0 ? band(day) : i == 3 ? "DJ" : null);
             c.setStationary(true);
             c.setYaw(0);
             c.setBodyYaw(0);

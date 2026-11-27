@@ -239,6 +239,11 @@ public class CarEntity extends Entity {
         return dataTracker.get(HEALTH);
     }
 
+    /** 0.9.10: поломка (задание механика): здоровье 1..100. */
+    public void setHealthPct(int h) {
+        dataTracker.set(HEALTH, Math.max(1, Math.min(100, h)));
+    }
+
     public void repair() {
         dataTracker.set(HEALTH, 100);
         dataTracker.set(FLAT, false);

@@ -51,6 +51,13 @@ public final class Fires {
 
     static final List<Spot> SPOTS = new ArrayList<>();
 
+    /** 0.9.10: где горит (для пожарных на смене). */
+    public static java.util.List<Vec3d> spots() {
+        java.util.List<Vec3d> l = new ArrayList<>();
+        for (Spot s : SPOTS) l.add(s.at);
+        return l;
+    }
+
     public static int count() {
         return SPOTS.size();
     }
@@ -132,6 +139,7 @@ public final class Fires {
             out++;
             if (p != null) {
                 Life.earn(p, 15, "потушен пожар на улице");
+                com.yompix.novograd.gta.Duty.onDouse(p); // 0.9.10: пожарный на смене — премия и ранг
                 p.sendMessage(Text.literal("Огонь потушен").formatted(Formatting.AQUA), true);
             }
         }

@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/f_sofa"
+  },
+  "facing=east": {
+   "model": "novograd:block/f_sofa",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/f_sofa",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/f_sofa",
+   "y": 270
+  }
+ }
+}

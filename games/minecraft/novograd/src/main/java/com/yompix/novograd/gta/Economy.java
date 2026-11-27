@@ -33,6 +33,7 @@ public final class Economy {
     // ------------------------------------------------------------------ грязные деньги
     public static void dirty(ServerPlayerEntity p, int amount, String why) {
         LifeData d = Life.get(p);
+        amount = CrimeCareer.onDirty(p, amount); // 0.9.10: опыт и надбавка за авторитет
         d.dirty += amount;
         p.sendMessage(Text.literal("+$" + amount + " грязными  " + why + "  (отмыть: свой бизнес или Рэй на пристани)").formatted(Formatting.RED), true);
         Life.sync(p);

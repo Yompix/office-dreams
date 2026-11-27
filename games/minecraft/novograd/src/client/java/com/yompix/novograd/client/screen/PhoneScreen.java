@@ -51,6 +51,9 @@ public class PhoneScreen extends LifeScreen {
             // 0.9.9 «Город»: ночь, свидания, спорт, соцсеть, квартира
             new App("night", "Ночь", 0xFFAB47BC), new App("dating", "Встречи", 0xFFE91E63), new App("sport", "Спорт", 0xFFFF7043),
             new App("social", "Фотограм", 0xFFEC407A), new App("cozy", "Уют", 0xFF8D6E63),
+            // 0.9.10 «Работа»: профессии, криминал, служба, свой бизнес
+            new App("career", "Карьера", 0xFF5A6ACF), new App("crime", "Криминал", 0xFF8E1B3A), new App("duty", "Служба", 0xFF3F7FC0),
+            new App("biz", "Бизнес", 0xFF2E7D32), new App("voice", "Рация", 0xFF26A69A), // голос: звонки, рация службы и банды
             new App("contacts", "Контакты", 0xFF4FA886), // звонки героев и дружба (story/Calls)
             new App("dark", "Дела", 0xFF8A1020),
             new App("progress", "Прогресс", 0xFFFFB300), new App("empire", "Империя", 0xFFB8860B), new App("grid", "Сеть", 0xFF00838F)); // 0.9
@@ -286,6 +289,11 @@ public class PhoneScreen extends LifeScreen {
             case "sport" -> mc().setScreen(new com.yompix.novograd.client.city.CityApps.Sport());
             case "social" -> mc().setScreen(new com.yompix.novograd.client.city.CityApps.Social());
             case "cozy" -> mc().setScreen(new com.yompix.novograd.client.city.CityApps.Home());
+            case "career" -> mc().setScreen(new com.yompix.novograd.client.city.WorkApps.Career());
+            case "crime" -> mc().setScreen(new com.yompix.novograd.client.city.WorkApps.Crime());
+            case "duty" -> mc().setScreen(new com.yompix.novograd.client.city.WorkApps.Duty());
+            case "biz" -> mc().setScreen(new com.yompix.novograd.client.city.WorkApps.Biz());
+            case "voice" -> mc().setScreen(new com.yompix.novograd.client.city.WorkApps.VoiceApp());
             case "news" -> mc().setScreen(new NewsScreen());
             case "collect" -> mc().setScreen(new CollectionsScreen());
             case "cnr" -> { // «Полицейские и воры» по сети (gta/CopsAndRobbers)

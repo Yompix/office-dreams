@@ -46,6 +46,8 @@ MODS = [
     ('yyYvYfZI', 'CustomSkinLoader_', 'skins'),
     ('lvRKajvV', 'skinrestorer-', 'skins'),
     ('DKvQ3lQq', 'replaymod-', 'replay'),
+    # голос между игроками (0.9.10): все права защищены — только ссылкой, установщик качает и проверяет хэш
+    ('dyhq1XyO', 'voicechat-', 'voice'),
 ]
 
 
@@ -105,8 +107,9 @@ def versions():
 README = r"""Новоград: Кино @@VER@@ — для TLauncher и лаунчеров на основе Prism (Prism Launcher, ElyPrism и др.)
 
 Главное уже внутри архива: Новоград, Fabric API, Sodium, Iris, моды ускорения, шейдер MakeUp.
-Интернет нужен только для необязательного (Flashback, звуки природы, скины, шейдер Complementary, Camera Utils);
-если оно не скачается — игра всё равно запустится.
+Интернет нужен для голоса (Simple Voice Chat — его нельзя класть в архив, установщик скачает и проверит) и для
+необязательного (Flashback, звуки природы, скины, шейдер Complementary, Camera Utils); если не скачается — игра всё равно запустится.
+Голос: зажми V — говорить; телефон → «Рация» — звонки, рация службы и банды, настройки микрофона.
 
 Нужен Fabric Loader 0.17 или новее (на 0.16 игра скажет «GeckoLib требует fabricloader 0.17»).
 
@@ -170,9 +173,9 @@ def main():
     for m in mods:
         if m['bundle'] and m['group'] in ('base', 'shader'):
             continue
-        server = 'optional' if m['prefix'] == 'skinrestorer-' else 'unsupported'
+        server = 'optional' if m['prefix'] == 'skinrestorer-' else 'required' if m['group'] == 'voice' else 'unsupported'
         files.append({'path': m['folder'] + '/' + m['file'], 'hashes': {'sha1': m['sha1'], 'sha512': m['sha512']},
-                      'env': {'client': 'optional', 'server': server}, 'downloads': [m['url']], 'fileSize': m['size']})
+                      'env': {'client': 'required' if m['group'] == 'voice' else 'optional', 'server': server}, 'downloads': [m['url']], 'fileSize': m['size']})
     index = {'formatVersion': 1, 'game': 'minecraft', 'versionId': VER, 'name': 'Новоград: Кино',
              'summary': 'Новоград + Fabric API, быстрые шейдеры MakeUp, Sodium, Lithium, ImmediatelyFast; по желанию Complementary, Flashback, свои скины, живые звуки',
              'files': files, 'dependencies': {'minecraft': '1.21.1', 'fabric-loader': LOADER}}

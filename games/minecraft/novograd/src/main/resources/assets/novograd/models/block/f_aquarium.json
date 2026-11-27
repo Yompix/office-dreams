@@ -1,0 +1,312 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "black": "minecraft:block/black_concrete",
+  "dark": "minecraft:block/dark_oak_planks",
+  "glass": "minecraft:block/light_blue_stained_glass",
+  "water": "minecraft:block/water_still",
+  "particle": "minecraft:block/black_concrete"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    4
+   ],
+   "to": [
+    16,
+    8,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      8,
+      16.0,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#dark",
+     "uv": [
+      4,
+      8,
+      12,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#dark",
+     "uv": [
+      4,
+      8,
+      12,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    },
+    "down": {
+     "texture": "#dark",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    8,
+    4
+   ],
+   "to": [
+    16,
+    18,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#glass",
+     "uv": [
+      0,
+      6,
+      16.0,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#glass",
+     "uv": [
+      0,
+      6,
+      16.0,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#glass",
+     "uv": [
+      4,
+      6,
+      12,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#glass",
+     "uv": [
+      4,
+      6,
+      12,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#glass",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    },
+    "down": {
+     "texture": "#glass",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    1,
+    9,
+    5
+   ],
+   "to": [
+    15,
+    16,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#water",
+     "uv": [
+      1,
+      0,
+      15,
+      7
+     ]
+    },
+    "south": {
+     "texture": "#water",
+     "uv": [
+      1,
+      0,
+      15,
+      7
+     ]
+    },
+    "east": {
+     "texture": "#water",
+     "uv": [
+      5,
+      0,
+      11,
+      7
+     ]
+    },
+    "west": {
+     "texture": "#water",
+     "uv": [
+      5,
+      0,
+      11,
+      7
+     ]
+    },
+    "up": {
+     "texture": "#water",
+     "uv": [
+      1,
+      5,
+      15,
+      11
+     ]
+    },
+    "down": {
+     "texture": "#water",
+     "uv": [
+      1,
+      5,
+      15,
+      11
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    18,
+    4
+   ],
+   "to": [
+    16,
+    19,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#black",
+     "uv": [
+      0,
+      13,
+      16.0,
+      14
+     ]
+    },
+    "south": {
+     "texture": "#black",
+     "uv": [
+      0,
+      13,
+      16.0,
+      14
+     ]
+    },
+    "east": {
+     "texture": "#black",
+     "uv": [
+      4,
+      13,
+      12,
+      14
+     ]
+    },
+    "west": {
+     "texture": "#black",
+     "uv": [
+      4,
+      13,
+      12,
+      14
+     ]
+    },
+    "up": {
+     "texture": "#black",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    },
+    "down": {
+     "texture": "#black",
+     "uv": [
+      0,
+      4,
+      16.0,
+      12
+     ]
+    }
+   }
+  }
+ ],
+ "display": {
+  "gui": {
+   "rotation": [
+    30,
+    225,
+    0
+   ],
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "fixed": {
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "ground": {
+   "scale": [
+    0.25,
+    0.25,
+    0.25
+   ]
+  }
+ }
+}

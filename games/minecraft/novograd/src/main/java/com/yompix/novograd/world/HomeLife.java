@@ -61,8 +61,17 @@ import java.util.UUID;
 public final class HomeLife {
     private HomeLife() {}
 
-    /** Каталог: id блока, название, цена. */
+    /** Каталог (0.9.10): объёмная мебель novograd:f_* (поворот Z/X с предпросмотром), id блока, название, цена. */
     public static final Object[][] FURNITURE = {
+            {"novograd:f_sofa", "Диван", 220}, {"novograd:f_armchair", "Кресло", 120}, {"novograd:f_chair", "Стул", 40},
+            {"novograd:f_dining_table", "Обеденный стол", 90}, {"novograd:f_coffee_table", "Журнальный столик", 70}, {"novograd:f_desk", "Письменный стол", 110},
+            {"novograd:f_bed", "Кровать", 260}, {"novograd:f_nightstand", "Тумбочка", 45}, {"novograd:f_wardrobe", "Шкаф", 160},
+            {"novograd:f_bookshelf", "Книжный шкаф", 130}, {"novograd:f_kitchen", "Кухонная тумба", 140}, {"novograd:f_fridge", "Холодильник", 300},
+            {"novograd:f_floor_lamp", "Торшер", 75}, {"novograd:f_table_lamp", "Настольная лампа", 35}, {"novograd:f_plant", "Большое растение", 55},
+            {"novograd:f_rug", "Ковёр", 30}, {"novograd:f_aquarium", "Аквариум", 240}, {"novograd:f_tv_stand", "Тумба под ТВ", 90},
+            {"novograd:f_speaker", "Колонка", 180}, {"novograd:f_fireplace", "Камин", 420}, {"novograd:tv", "Телевизор", 350}};
+    /** До 0.9.10 мебель была ванильными блоками: уже поставленная остаётся, по удару возвращается в карман. */
+    public static final Object[][] LEGACY = {
             {"minecraft:dark_oak_stairs", "Кресло", 60}, {"minecraft:white_wool", "Диванная подушка", 25}, {"minecraft:spruce_stairs", "Стул", 40},
             {"minecraft:smooth_quartz_slab", "Столешница", 35}, {"minecraft:spruce_fence", "Ножка стола", 10}, {"minecraft:bookshelf", "Книжная полка", 80},
             {"minecraft:lantern", "Лампа", 30}, {"minecraft:sea_lantern", "Светильник", 50}, {"minecraft:flowering_azalea", "Цветущий куст", 20},
@@ -124,6 +133,9 @@ public final class HomeLife {
             }
             ActionResult r = bi.place(ctx);
             if (r.isAccepted()) {
+                var placed = world.getBlockState(at);
+                if (placed.contains(net.minecraft.block.HorizontalFacingBlock.FACING))
+                    world.setBlockState(at, placed.with(net.minecraft.block.HorizontalFacingBlock.FACING, facing(p.getHorizontalFacing(), ROT.getOrDefault(p.getUuid(), 0))));
                 state(p.getServer()).placed.computeIfAbsent(p.getUuid(), k -> new HashSet<>()).add(at.asLong());
                 state(p.getServer()).markDirty();
             }
@@ -161,6 +173,20 @@ public final class HomeLife {
         Achievements.ALL.putIfAbsent("decor", new String[]{"Уют", "Поставить 10 предметов мебели"});
     }
 
+    /** Поворот мебели игрока (0..3 четверти по часовой) — из предпросмотра на клиенте (Z/X). */
+    static final Map<UUID, Integer> ROT = new HashMap<>();
+
+    /** Куда смотрит поставленная мебель: к игроку, затем rot четвертей по часовой (та же формула — в клиентском предпросмотре). */
+    public static net.minecraft.util.math.Direction facing(net.minecraft.util.math.Direction player, int rot) {
+        net.minecraft.util.math.Direction d = player.getOpposite();
+        for (int i = 0; i < Math.floorMod(rot, 4); i++) d = d.rotateYClockwise();
+        return d;
+    }
+
+    public static void forget(UUID id) {
+        ROT.remove(id);
+    }
+
     /** Для автотеста: сколько мебели поставил игрок. */
     public static int placed(ServerPlayerEntity p) {
         Set<Long> s = state(p.getServer()).placed.get(p.getUuid());
@@ -180,7 +206,8 @@ public final class HomeLife {
 
     /** Предмет мебели (или пусто, если блока нет в каталоге). */
     static ItemStack furniture(String blockId, String name) {
-        for (Object[] f : FURNITURE)
+        for (Object[][] cat : new Object[][][]{FURNITURE, LEGACY})
+        for (Object[] f : cat)
             if (f[0].equals(blockId)) {
                 var item = net.minecraft.registry.Registries.ITEM.get(net.minecraft.util.Identifier.of(blockId));
                 if (item == net.minecraft.item.Items.AIR) return ItemStack.EMPTY;
@@ -198,6 +225,7 @@ public final class HomeLife {
     public static boolean handle(ServerPlayerEntity p, String type, NbtCompound n) {
         switch (type) {
             case "home_state" -> send(p);
+            case "home_rot" -> ROT.put(p.getUuid(), Math.floorMod(n.getInt("r"), 4));
             case "home_buy" -> buy(p, n.getInt("i"));
             case "home_party" -> party(p);
             case "home_pet" -> pet(p, n.getString("kind"));

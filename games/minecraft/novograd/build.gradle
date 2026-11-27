@@ -9,6 +9,7 @@ base { archivesName = project.archives_base_name }
 
 repositories {
     maven { name = 'GeckoLib'; url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+    maven { name = 'henkelmax'; url = 'https://maven.maxhenkel.de/repository/public' }
 }
 
 loom {
@@ -29,6 +30,8 @@ dependencies {
     // GeckoLib (MIT): модели и покадровая анимация жителей; вшита в мод — ставить отдельно не нужно
     modImplementation "software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4"
     include "software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4"
+    // 0.9.10: Simple Voice Chat — мягкая зависимость (только API для компиляции; сам мод ставит установщик с modrinth.com)
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:2.5.0"
 }
 
 processResources {
@@ -78,5 +81,14 @@ tasks.register('loanTest', JavaExec) {
     dependsOn 'classes'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.yompix.novograd.gta.LoanSim'
+    jvmArgs '-Dstdout.encoding=UTF-8', '-Dfile.encoding=UTF-8'
+}
+
+// 0.9.10: свой бизнес — 30 дней (gta/BusinessSim)
+tasks.register('bizTest', JavaExec) {
+    group = 'verification'
+    dependsOn 'classes'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.yompix.novograd.gta.BusinessSim'
     jvmArgs '-Dstdout.encoding=UTF-8', '-Dfile.encoding=UTF-8'
 }

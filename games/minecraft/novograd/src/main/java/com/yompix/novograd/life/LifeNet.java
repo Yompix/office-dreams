@@ -150,7 +150,9 @@ public final class LifeNet {
                 com.yompix.novograd.gta.Collectibles.onPhoto(p); // фото-точки коллекции
                 com.yompix.novograd.gta.Underworld.onPhoto(p); // разведка большого ограбления
                 com.yompix.novograd.gta.Social.onPhoto(p); // 0.9.9: пост в «Фотограм»
+                com.yompix.novograd.gta.Careers.onPhoto(p); // 0.9.10: журналист — снимок сюжета
             }
+            case "photo_img" -> com.yompix.novograd.gta.Social.onImage(p, d); // 0.9.10: картинка к посту
             case "slots" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.spin(p, d.getInt("bet")); }
             case "roulette" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number")); }
             case "side_list" -> com.yompix.novograd.story.SideMissions.sendList(p);
@@ -185,6 +187,13 @@ public final class LifeNet {
                 if (type.startsWith("sport_") && com.yompix.novograd.gta.Sports.handle(p, type, d)) return;
                 if (type.startsWith("night_") && com.yompix.novograd.gta.Nightlife.handle(p, type, d)) return;
                 if (type.startsWith("home_") && com.yompix.novograd.world.HomeLife.handle(p, type, d)) return;
+                // 0.9.10 «Работа»: профессии, криминал, служба, бизнес
+                if (type.startsWith("career_") && com.yompix.novograd.gta.Careers.handle(p, type, d)) return;
+                if (type.startsWith("crime_") && com.yompix.novograd.gta.CrimeCareer.handle(p, type, d)) return;
+                if (type.startsWith("duty_") && com.yompix.novograd.gta.Duty.handle(p, type, d)) return;
+                if (type.startsWith("biz_") && com.yompix.novograd.gta.Business.handle(p, type, d)) return;
+                if (type.startsWith("voice_") && com.yompix.novograd.gta.Voice.handle(p, type, d)) return; // голос: звонки, рации
+                if (type.startsWith("duel_") && com.yompix.novograd.gta.Duels.handle(p, type, d)) return; // мини-игры против игрока
                 if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
                 if (type.startsWith("city_") && com.yompix.novograd.gta.CityServices.handle(p, type, d)) return; // автобусы, службы города
                 if (type.startsWith("call_") && com.yompix.novograd.story.Calls.handle(p, type, d)) return; // звонки героев, «Контакты»

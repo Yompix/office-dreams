@@ -103,7 +103,9 @@ public class NovogradClient implements ClientModInitializer {
         gradeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.grade", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "category.novograd"));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> com.yompix.novograd.client.render.ColorGrade.render(c.tickCounter().getTickDelta(false)));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> camLog());
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(FurniturePreview::render); // 0.9.10
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> tickLog());
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(VoiceKeys::setupOnce); // 0.9.10
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.novograd"));
         jobKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.job", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "category.novograd"));
         cinemaKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.cinema", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.novograd"));
@@ -349,7 +351,9 @@ public class NovogradClient implements ClientModInitializer {
                 if (type.equals("open_loan")) { client.setScreen(new com.yompix.novograd.client.screen.LoanScreen()); return; }
                 // 0.9.9 «Город»
                 if (com.yompix.novograd.client.city.CityApps.receive(type, n)) return;
+                if (com.yompix.novograd.client.city.WorkApps.receive(type, n)) return; // 0.9.10 «Работа»
                 if (type.equals("open_game")) { com.yompix.novograd.client.games.MiniGames.open(n); return; }
+                if (type.startsWith("duel_")) { com.yompix.novograd.client.games.MiniGames.receive(type, n); return; } // 0.9.10
                 if (type.equals("sport_hud")) { com.yompix.novograd.client.city.SportHud.set(n); return; }
                 if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
                 if (type.startsWith("call_") && com.yompix.novograd.client.story.CallClient.receive(client, type, n)) return; // звонки героев
@@ -405,6 +409,8 @@ public class NovogradClient implements ClientModInitializer {
                     NbtCompound n = new NbtCompound();
                     n.putInt("bit", k[1]);
                     send("car_light", n);
+                } else if ((k[0] == 1 || k[0] == 2) && com.yompix.novograd.client.FurniturePreview.holding(client)) {
+                    com.yompix.novograd.client.FurniturePreview.rotate(k[0] == 1 ? -1 : 1); // 0.9.10: Z/X — повернуть мебель
                 }
             }
         while (gradeKey.wasPressed()) {
@@ -426,6 +432,7 @@ public class NovogradClient implements ClientModInitializer {
         while (mapKey.wasPressed()) if (client.currentScreen == null) client.setScreen(new com.yompix.novograd.client.screen.MapScreen());
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {
+            com.yompix.novograd.client.city.FeedImages.capture(client); // 0.9.10: картинка к посту в «Фотограм»
             ScreenshotRecorder.saveScreenshot(client.runDirectory, client.getFramebuffer(),
                     t -> client.execute(() -> client.player.sendMessage(net.minecraft.text.Text.literal("Фото сохранено в папку screenshots"), false)));
             client.options.hudHidden = hudWasHidden;

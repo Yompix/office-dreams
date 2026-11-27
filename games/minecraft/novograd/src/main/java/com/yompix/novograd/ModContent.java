@@ -100,6 +100,43 @@ public final class ModContent {
             .sounds(BlockSoundGroup.GLASS).luminance(s -> s.get(com.yompix.novograd.block.NeonBlock.LIT) ? 14 : 0), box(0, 0, 4, 16, 1, 12)));
     public static final Block CLUE = block("clue", new com.yompix.novograd.block.ClueBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).noCollision().nonOpaque().luminance(s -> 10).dropsNothing()));
 
+
+    // 0.9.10: мебель квартиры — объёмные модели (tools/gen_furniture.py), каталог в world/HomeLife
+    public static final java.util.Map<String, Block> FURNITURE = new java.util.LinkedHashMap<>();
+    static {
+        furn("sofa", VoxelShapes.union(box(0, 0, 2, 16, 3, 14), box(0, 3, 2, 16, 7, 13), box(0, 7, 10, 16, 15, 14), box(0, 3, 2, 2, 10, 14), box(14, 3, 2, 16, 10, 14)), 0.45, 0);
+        furn("armchair", VoxelShapes.union(box(2, 0, 2, 14, 3, 14), box(2, 3, 2, 14, 7, 13), box(2, 7, 10, 14, 15, 14), box(1, 3, 2, 3, 11, 14), box(13, 3, 2, 15, 11, 14)), 0.45, 0);
+        furn("chair", VoxelShapes.union(box(3, 0, 3, 13, 8, 13), box(3, 8, 12, 13, 16, 13)), 0.5, 0);
+        furn("coffee_table", box(0, 0, 2, 16, 6, 14), -1, 0);
+        furn("dining_table", VoxelShapes.union(box(1, 0, 1, 3, 14, 3), box(13, 0, 1, 15, 14, 3), box(1, 0, 13, 3, 14, 15), box(13, 0, 13, 15, 14, 15), box(0, 14, 0, 16, 16, 16)), -1, 0);
+        furn("bookshelf", box(0, 0, 8, 16, 16, 16), -1, 0);
+        furn("floor_lamp", VoxelShapes.union(box(5, 0, 5, 11, 1, 11), box(7, 1, 7, 9, 16, 9)), -1, 15);
+        furn("table_lamp", box(4, 0, 4, 12, 11, 12), -1, 12);
+        furn("plant", VoxelShapes.union(box(4, 0, 4, 12, 8, 12), box(2, 8, 2, 14, 16, 14)), -1, 0);
+        furn("rug", box(0, 0, 0, 16, 1, 16), -1, 0);
+        furn("aquarium", box(0, 0, 4, 16, 16, 12), -1, 6);
+        furn("wardrobe", box(0, 0, 6, 16, 16, 16), -1, 0);
+        furn("bed", VoxelShapes.union(box(0, 0, 0, 16, 7, 16), box(0, 0, 14, 16, 14, 16)), 0.45, 0);
+        furn("kitchen", VoxelShapes.union(box(0, 0, 2, 16, 14, 16), box(0, 14, 0, 16, 16, 16)), -1, 0);
+        furn("fridge", box(1, 0, 2, 15, 16, 16), -1, 0);
+        furn("desk", VoxelShapes.union(box(0, 0, 4, 2, 14, 16), box(14, 0, 4, 16, 14, 16), box(0, 14, 4, 16, 16, 16), box(2, 8, 15, 14, 14, 16)), -1, 0);
+        furn("nightstand", box(3, 0, 4, 13, 10, 14), -1, 0);
+        furn("speaker", box(3, 0, 4, 13, 16, 13), -1, 0);
+        furn("tv_stand", VoxelShapes.union(box(0, 0, 4, 16, 7, 14), box(2, 7, 8, 14, 16, 10)), -1, 0);
+        furn("fireplace", VoxelShapes.union(box(0, 0, 8, 16, 16, 16), box(3, 0, 7, 13, 9, 8)), -1, 13);
+    }
+
+    private static void furn(String name, net.minecraft.util.shape.VoxelShape shape, double seat, int light) {
+        BlockSoundGroup snd = switch (name) {
+            case "plant" -> BlockSoundGroup.AZALEA_LEAVES;
+            case "rug", "sofa", "armchair", "bed" -> BlockSoundGroup.WOOL;
+            case "fridge", "speaker", "floor_lamp" -> BlockSoundGroup.METAL;
+            default -> BlockSoundGroup.WOOD;
+        };
+        AbstractBlock.Settings s = wood().nonOpaque().strength(0.8f).dropsNothing().sounds(snd).luminance(st -> light);
+        FURNITURE.put(name, block("f_" + name, new com.yompix.novograd.block.FurnitureBlock(s, shape, seat)));
+    }
+
     // ---------- предметы ----------
     public static final Item PHONE = item("phone", new PhoneItem(new Item.Settings().maxCount(1)));
     public static final Item BANKNOTE = item("banknote", new Item(new Item.Settings()));
