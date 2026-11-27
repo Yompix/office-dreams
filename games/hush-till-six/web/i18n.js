@@ -7,13 +7,14 @@
 const LANGS = ['en', 'de', 'es', 'fr', 'it', 'pl', 'pt', 'tr', 'ru', 'uk', 'zh', 'ja', 'ko'];   // 24 ноя (владелец): в настройках English первым, дальше по алфавиту (латиница → кириллица → CJK)
 const VOICE = { ru: 'ru', en: 'en', es: 'es', pt: 'pt', de: 'de', fr: 'en', it: 'en', pl: 'en', tr: 'en', uk: 'en', zh: 'en', ja: 'ja', ko: 'en' };   // чьими записями озвучен язык: свой голос (es) или английские записи с субтитрами на языке игры
 const q = /[?&]lang=(ru|en|es|pt|de|fr|it|pl|tr|uk|zh|ja|ko)\b/.exec(location.search);
-// 24 ноя (владелец): игрокам из Украины русский язык не показываем (ни в списке, ни по умолчанию) — по часовому поясу Киева или украинскому в языках системы (без IP и сторонних сервисов); ?lang= для проверки — как есть
-const UA = (() => { try { if (/^Europe\/(Kyiv|Kiev|Uzhgorod|Zaporozhye)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) return true; } catch {}
-  return (navigator.languages || [navigator.language]).some(l => /^uk\b/i.test(l || '')); })();
+// 27 ноя (владелец: «давай лучше по интерфейсу»): русский язык есть в игре, только если язык системы (телефона/ПК) русский (или белорусский/казахский).
+// Иначе русского нет ни в списке, ни по умолчанию (сохранённый ранее «ru» меняется на язык системы). Часовой пояс больше не смотрим. ?lang= для проверки — как есть
+const SYS = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]).map(l => (l || '').toLowerCase());
+const UA = !SYS.some(l => /^(ru|be|kk)\b/.test(l));   // UA — «русский скрыт» (имя оставлено: оно же в ON ниже)
 const LANG00 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
   const n = (navigator.language || '').toLowerCase();
   const m = /^(uk|es|pt|de|fr|it|pl|tr|zh|ja|ko)/.exec(n); return /^(ru|be|kk)/.test(n) ? 'ru' : m && LANGS.includes(m[1]) ? m[1] : 'en'; })();
-const LANG0 = UA && !q && LANG00 === 'ru' ? 'uk' : LANG00;   // язык системы; пока у языка нет словаря, READY ниже даст английский
+const LANG0 = UA && !q && LANG00 === 'ru' ? (() => { const m = /^(uk|es|pt|de|fr|it|pl|tr|zh|ja|ko)/.exec(SYS[0] || ''); return m ? m[1] : SYS.some(l => /^uk\b/.test(l)) ? 'uk' : 'en'; })() : LANG00;   // язык системы; пока у языка нет словаря, READY ниже даст английский
 const EN = {
   'Применить': 'Apply',
   'Язык, графика и разрешение применятся, когда выйдешь из настроек.': 'Language, graphics and resolution will apply when you leave settings.',
