@@ -43,7 +43,7 @@ public final class ShowAutotest {
         String mode = System.getProperty("novograd.autotest");
         if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife")
                 || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
-                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow"))) return;
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow") || mode.equals("townshow"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -76,6 +76,7 @@ public final class ShowAutotest {
         else if (mode.equals("handshow")) HandShow.handshow(); // 0.9.8: «Руки»
         else if (mode.equals("bankshow")) HandShow.bankshow(); // 0.9.8: «Сити-Банк» до/после
         else if (mode.equals("gaitshow")) HandShow.gaitshow(); // 0.9.8: походка до/после
+        else if (mode.equals("townshow")) HandShow.cityshow(); // 0.9.9: «Город»
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }

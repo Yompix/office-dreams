@@ -50,7 +50,7 @@ public final class DevAutotest {
         if (mode.startsWith("cops")) return; // погоня, маски, колония, «Полицейские и воры» — client/cops/CopsAutotest
         if (mode.startsWith("heist")) return; // тёмные дела — HeistAutotest
         if (mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife") || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
-                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow")) return; // 0.8: ролики — ShowAutotest
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow") || mode.equals("townshow")) return; // 0.8: ролики — ShowAutotest
         if (mode.startsWith("perf") || mode.startsWith("cine") || mode.equals("camaudit") || mode.startsWith("loadaudit") || mode.startsWith("shotexport") || mode.startsWith("fpshunt") || mode.startsWith("uishots") || mode.equals("uiinv") || mode.equals("uiaudit")) return; // замер и запись — PerfAutotest / CineAutotest
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки

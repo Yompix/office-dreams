@@ -42,6 +42,9 @@ public final class FunHooks {
             Territories.onLeave(h.player);
             Skydive.onLeave(h.player);
             Arcade.onLeave(h.player);
+            Games.onLeave(h.player); // 0.9.9
+            Sports.onLeave(h.player);
+            com.yompix.novograd.life.Dating.onLeave(h.player);
         });
         // убитый игроком боец банды в чужом районе — объявление войны
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
@@ -89,6 +92,7 @@ public final class FunHooks {
             case "chute_open" -> Skydive.open(p);
             case "hose" -> VehicleJobs.hose(p, d.getBoolean("on"));
             case "arcade_done" -> Arcade.done(p, d);
+            case "game_done" -> Games.done(p, d); // 0.9.9: бильярд, боулинг, баскетбол, гольф
             case "arcade_again" -> Arcade.open(p, "arcade", 0);
             case "turf_please" -> Territories.send(p);
             default -> { return false; }

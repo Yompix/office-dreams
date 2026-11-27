@@ -222,6 +222,7 @@ public final class Money {
         boolean first = d.billDay < 0;
         d.billDay = day;
         Loans.morning(p, d, day); // 0.9.8: кредит — платёж, просрочка, изъятие; доход за день в историю
+        com.yompix.novograd.life.Dating.morning(p, d, day); // 0.9.9: без внимания симпатия падает
         if (first) return; // первый день после обновления — без счетов
         var hs = com.yompix.novograd.world.Housing.state(p.getServer()).owner(p.getUuid());
         double owned = 0;

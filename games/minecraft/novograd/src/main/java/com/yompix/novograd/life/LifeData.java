@@ -77,6 +77,8 @@ public class LifeData {
     public java.util.Map<String, Integer> skills = new java.util.HashMap<>();
     /** 0.9.8: кредит и кредитная история (gta/Loans): score, principal, pay, left, next, rate, missed, stage, hist, earn7… Пусто — кредита не было. */
     public NbtCompound loan = new NbtCompound();
+    /** 0.9.9 «Город»: знакомства и отношения, слава и подписчики, питомцы, спорт (life/Dating, gta/Social, world/HomeLife, gta/Sports). */
+    public NbtCompound city = new NbtCompound();
 
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
@@ -195,6 +197,7 @@ public class LifeData {
         skills.forEach(sk::putInt);
         n.put("skills", sk);
         n.put("loan", loan.copy());
+        n.put("city", city.copy());
         return n;
     }
 
@@ -268,6 +271,7 @@ public class LifeData {
         NbtCompound sk = n.getCompound("skills");
         for (String k : sk.getKeys()) d.skills.put(k, sk.getInt(k));
         d.loan = n.getCompound("loan").copy();
+        d.city = n.getCompound("city").copy();
         return d;
     }
 }
