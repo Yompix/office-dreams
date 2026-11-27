@@ -51,7 +51,7 @@ public final class UiAudit {
             pre(2, c -> scale(c, s));
             pre(30, c -> shot(c, "menu_main", s));
         }
-        for (int t = 0; t < 3; t++) {
+        for (int t = 0; t < 4; t++) {
             final int tt = t;
             for (int s : scales) {
                 pre(2, c -> {
@@ -101,7 +101,7 @@ public final class UiAudit {
         run(120, c -> { if (c.currentScreen != null) c.setScreen(null); });
         // экраны: имя → как открыть
         screen("pause", c -> new com.yompix.novograd.client.menu.LifePauseScreen());
-        for (int t = 0; t < 3; t++) {
+        for (int t = 0; t < 4; t++) {
             final int tt = t;
             screen("settings_tab" + t, c -> {
                 var s = new com.yompix.novograd.client.menu.SettingsScreen(null);
@@ -118,6 +118,14 @@ public final class UiAudit {
         screen("shop", c -> new com.yompix.novograd.client.screen.ShopScreen(true));
         screen("shop_guns", c -> new com.yompix.novograd.client.screen.ShopScreen(true, true));
         screen("atm", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400));
+        screen("atm_physical", c -> new com.yompix.novograd.client.screen.AtmScreen(1_284_350, 93_400).physical(true)); // 0.9.8: у банкомата, мир виден
+        screen("loan", c -> { // 0.9.8: кредит — предложение
+            var n = new net.minecraft.nbt.NbtCompound();
+            n.putInt("score", 684); n.putString("band", "хороший"); n.putInt("income", 1240); n.putInt("limit", 18_500);
+            n.putDouble("rateMonth", 4.9); n.putDouble("periodRate", 0.0049); n.putInt("period", 3); n.putLong("day", 12);
+            com.yompix.novograd.client.screen.LoanScreen.state = n;
+            return new com.yompix.novograd.client.screen.LoanScreen();
+        });
         screen("finance", c -> new com.yompix.novograd.client.screen.FinanceScreen());
         screen("news", c -> new com.yompix.novograd.client.screen.NewsScreen());
         screen("collections", c -> new com.yompix.novograd.client.screen.CollectionsScreen());
@@ -132,6 +140,22 @@ public final class UiAudit {
         screen("skills", c -> new com.yompix.novograd.client.screen.SkillsScreen());
         screen("outdoor", c -> new com.yompix.novograd.client.screen.OutdoorScreen(""));
         screen("style", c -> new com.yompix.novograd.client.style.StyleAppScreen(false));
+        // 0.9.6: редактор внешности — все вкладки (и первый вход)
+        for (int t = 0; t < com.yompix.novograd.client.style.CreatorScreen.TABS.length; t++) {
+            final int tt = t;
+            screen("creator_tab" + t, c -> {
+                var s = new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.PHONE);
+                s.autotest(tt, null);
+                return s;
+            });
+        }
+        screen("creator_first", c -> new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.FIRST));
+        screen("creator_shop", c -> new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.CHEAP));
+        screen("guide", c -> new com.yompix.novograd.client.guide.GuideScreen());
+        screen("mycars", c -> new com.yompix.novograd.client.city.MyCarsScreen());
+        screen("stash", c -> new com.yompix.novograd.client.city.StashScreen());
+        screen("age_gate", c -> new com.yompix.novograd.client.menu.AgeGateScreen(null));
+        screen("age_gate_typed", c -> new com.yompix.novograd.client.menu.AgeGateScreen(null).typed("2403199"));
         screen("casino_lobby", c -> new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
         screen("online_casino", c -> new com.yompix.novograd.client.screen.OnlineCasinoScreen());
         screen("gun_tune", c -> new com.yompix.novograd.client.screen.GunTuneScreen());

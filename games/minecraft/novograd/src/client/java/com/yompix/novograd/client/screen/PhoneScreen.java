@@ -43,7 +43,7 @@ public class PhoneScreen extends LifeScreen {
             new App("weather", "Погода", 0xFF5B8FB0), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
             new App("taxi", "Такси", 0xFFE0B020), new App("friends", "Друзья", 0xFF6A5F80), new App("missions", "Задания", 0xFFD32F2F),
-            new App("style", "Стиль", 0xFFD42A3A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
+            new App("style", "Стиль", 0xFFD42A3A), new App("looks", "Внешность", 0xFFB96890), new App("guide", "Гид", 0xFFFFC428), new App("mycars", "Мои машины", 0xFF00897B), new App("stash", "Тайник", 0xFFA0785A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
             new App("auto", "Авто", 0xFF00897B),
             new App("collect", "Коллекции", 0xFFC2405A),
             new App("skills", "Навыки", 0xFF3FB8B0), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
@@ -270,6 +270,13 @@ public class PhoneScreen extends LifeScreen {
             case "shop" -> mc().setScreen(new ShopScreen(true));
             case "camera" -> NovogradClient.takePhoto();
             case "style" -> com.yompix.novograd.client.style.StyleClient.phone();
+            case "looks" -> com.yompix.novograd.client.style.StyleClient.creator();
+            case "guide" -> mc().setScreen(new com.yompix.novograd.client.guide.GuideScreen());
+            case "mycars" -> mc().setScreen(new com.yompix.novograd.client.city.MyCarsScreen());
+            case "stash" -> { // 0.9.8: дома — к сейфу руками (код, дверца), потом экран
+                mc().setScreen(null);
+                NovogradClient.send("stash_open");
+            }
             case "finance" -> mc().setScreen(new FinanceScreen());
             case "news" -> mc().setScreen(new NewsScreen());
             case "collect" -> mc().setScreen(new CollectionsScreen());
@@ -288,7 +295,7 @@ public class PhoneScreen extends LifeScreen {
             case "empire" -> mc().setScreen(new com.yompix.novograd.client.city.EmpireScreen());
             case "grid" -> mc().setScreen(new com.yompix.novograd.client.city.GridScreen());
             case "casino" -> {
-                if (NovogradClient.data.adult()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
+                if (NovogradClient.data.adult() && com.yompix.novograd.client.NovogradConfig.casino()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
                 else openApp("casino");
             }
             default -> openApp(id);
@@ -305,8 +312,11 @@ public class PhoneScreen extends LifeScreen {
         ctx.drawText(textRenderer, "Заработано: $" + d.earned, sx + 8, ly, 0xFFE7E5DE, false);
         ctx.drawText(textRenderer, "Потрачено: $" + d.spent, sx + 8, ly + 10, 0xFFE7E5DE, false);
         if (d.casinoWon + d.casinoLost > 0) ctx.drawText(textRenderer, "Казино: +" + d.casinoWon + " / −" + d.casinoLost, sx + 8, ly + 20, 0xFFFF5A7A, false);
-        button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, "Снять $50", 0xFF3A7BD5, d.money >= 50, () -> atm("withdraw", 50));
-        button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Внести", 0xFF3A7BD5, true, () -> atm("deposit", 0));
+        // 0.9.8: наличные — только у банкомата (руками); здесь — кредит и финансы
+        boolean hasLoan = d.loan.getInt("left") > 0 || d.loan.getInt("overdue") > 0;
+        button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, hasLoan ? "Кредит · $" + d.loan.getInt("pay") : "Кредит", hasLoan && d.loan.getInt("overdue") > 0 ? 0xFFC62828 : 0xFF2FA84F, true,
+                () -> mc().setScreen(new LoanScreen()));
+        button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Финансы", 0xFF3A7BD5, true, () -> mc().setScreen(new FinanceScreen()));
         ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 89, 0xFFB9B7B1, false);
         button(ctx, sx + 8, y + 150, sw - 16, 14, "Перевести", 0xFF2FA84F, !toField.getText().isEmpty() && !amountField.getText().isEmpty(), () -> {
             NbtCompound n = new NbtCompound();
@@ -452,7 +462,8 @@ public class PhoneScreen extends LifeScreen {
 
     private void casino(DrawContext ctx, int y) {
         center(ctx, "18+", sx + sw / 2, y + 10, 0xFFE53935);
-        wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
+        wrap(ctx, com.yompix.novograd.client.NovogradConfig.casino() ? "Казино «Фортуна» сейчас закрыто — загляни позже."
+                : "Казино недоступно: взрослый контент выключен.", sx + 8, y + 26, sw - 16, 0xFFD1CFC9);
     }
 
     /** «Радио»: станции Новограда в наушниках — слушай пешком; в машине играет та же станция. */
@@ -658,6 +669,15 @@ public class PhoneScreen extends LifeScreen {
         }
         if (!o.contains("mission")) {
             wrap(ctx, "Сюжет начнётся в мире «Новоград: Город».", sx + 8, y + 10, sw - 16, 0xFFD1CFC9);
+            return;
+        }
+        if (o.getString("type").equals("free")) {
+            // 0.9.7: свободная игра — миссия ждёт на метке связного; можно гулять сколько угодно
+            ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFFFFC428, false);
+            ctx.drawText(textRenderer, "Свободная игра", sx + 8, y + 14, 0xFFFFFFFF, false);
+            int hh = wrap(ctx, "Доступна миссия «" + o.getString("mission") + "»" + (o.getString("contact").isEmpty() ? "" : " — " + o.getString("contact"))
+                    + ". Метка «" + o.getString("letter") + "» на карте. Подойди, когда захочешь.", sx + 8, y + 28, sw - 16, 0xFFD1CFC9);
+            wrap(ctx, "Все задания — телефон → «Задания».", sx + 8, y + 34 + hh, sw - 16, 0xFF8F8E8A);
             return;
         }
         ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFFFFC428, false);

@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * «НАСТРОЙКИ» Новограда: вкладки ЗВУК / ГРАФИКА / ИНТЕРФЕЙС, строки «название — значение» как в криминальных играх.
+ * «НАСТРОЙКИ» Новограда: вкладки ЗВУК / ГРАФИКА / ИНТЕРФЕЙС / 18+ (0.9.7: взрослый контент по отдельности), строки «название — значение» как в криминальных играх.
  * ← → или клик меняют значение, ползунки тянутся мышью. Всё сохраняется сразу (config/novograd.json + options.txt).
  */
 public class SettingsScreen extends Screen {
@@ -31,7 +31,7 @@ public class SettingsScreen extends Screen {
     private record Row(String label, String desc, Supplier<String> value, @Nullable Supplier<Float> slider, @Nullable Consumer<Float> set,
                        @Nullable Consumer<Integer> step, @Nullable Runnable open) {}
 
-    private static final String[] TABS = {"ЗВУК", "ГРАФИКА", "ИНТЕРФЕЙС"};
+    private static final String[] TABS = {"ЗВУК", "ГРАФИКА", "ИНТЕРФЕЙС", "18+"};
     private static int tab;
 
     private final Screen parent;
@@ -109,6 +109,30 @@ public class SettingsScreen extends Screen {
                         null, null, d -> o.getViewDistance().setValue(MathHelper.clamp(o.getViewDistance().getValue() + d * 2, 2, 32)), null));
                 rows.add(new Row("Графика Minecraft", "", () -> "›", null, null, null,
                         () -> mc.setScreen(new VideoOptionsScreen(this, mc, o))));
+            }
+            case 3 -> {
+                // 0.9.7: взрослый контент — только у 18+ (проверка возраста при первом запуске)
+                if (!NovogradConfig.adultContent()) {
+                    rows.add(new Row("Взрослый контент", "Младше 18 — выключен. Размер груди, физика тела, кровь, алкоголь, казино.",
+                            () -> "НЕДОСТУПЕН", null, null, null, null));
+                } else {
+                    rows.add(new Row("Размер груди", "Свой у героинь. ВЫКЛ — у всех средний.", () -> onOff(cfg().adultBody), null, null,
+                            d -> cfg().adultBody = !cfg().adultBody, null));
+                    rows.add(new Row("Физика тела", "Лёгкое движение при шаге, беге, прыжке.", () -> onOff(cfg().bodyPhysics), null, null,
+                            d -> cfg().bodyPhysics = !cfg().bodyPhysics, null));
+                    rows.add(new Row("Сила физики", "50–100%.", () -> NovogradConfig.get().bodyPhysicsPct + "%",
+                            () -> (MathHelper.clamp(cfg().bodyPhysicsPct, 50, 100) - 50) / 50f,
+                            v -> cfg().bodyPhysicsPct = 50 + Math.round(MathHelper.clamp(v, 0, 1) * 10) * 5, null, null));
+                    rows.add(new Row("Кровь", "МЯГКО — почти без крови.", () -> cfg().adultGore ? "ОБЫЧНО" : "МЯГКО", null, null,
+                            d -> cfg().adultGore = !cfg().adultGore, null));
+                    rows.add(new Row("Алкоголь", "Выпивка в барах и у героев.", () -> onOff(cfg().adultAlcohol), null, null,
+                            d -> cfg().adultAlcohol = !cfg().adultAlcohol, null));
+                    rows.add(new Row("Казино", "Автоматы, рулетка, онлайн-игры.", () -> onOff(cfg().adultCasino), null, null,
+                            d -> cfg().adultCasino = !cfg().adultCasino, null));
+                }
+                String on = cfg().ageCheckedOn == null || cfg().ageCheckedOn.isEmpty() ? "—" : cfg().ageCheckedOn;
+                rows.add(new Row("Проверка возраста", "Пройдена " + on + ". Дату рождения не храним.",
+                        () -> NovogradConfig.adultContent() ? "18+" : "ДО 18", null, null, null, null));
             }
             default -> {
                 rows.add(new Row("Субтитры", "", () -> onOff(cfg().subtitles), null, null,

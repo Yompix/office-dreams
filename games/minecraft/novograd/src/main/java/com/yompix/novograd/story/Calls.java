@@ -56,6 +56,18 @@ public final class Calls {
         UUID car;
         boolean penthouse, hadHeat, dead;
         int sec;
+        /** 0.9.7: когда последний раз звонили сами (сек) — не чаще раза в {@link #MIN_GAP}. */
+        int lastRing = -100000;
+        /** 0.9.7: предложение пришло СМС — ответить можно, набрав героя (кто → id звонка). */
+        final Map<String, String> offers = new HashMap<>();
+    }
+
+    /** 0.9.7: входящие звонки не чаще раза в 10 минут (и не в миссии, погоне, кат-сцене; «Не беспокоить» — никогда). */
+    static final int MIN_GAP = 600;
+
+    /** «Не беспокоить» в телефоне (хранится у игрока). */
+    public static boolean dnd(LifeData d) {
+        return d.flags.contains("dnd");
     }
 
     private static final Map<UUID, Run> RUNS = new HashMap<>();
@@ -281,10 +293,11 @@ public final class Calls {
             if (++r.activeSec > 120) r.active = ""; // клиент пропал посреди разговора
             return;
         }
-        if (!free(p, d)) return;
+        if (!free(p, d) || Story.midMission(d)) return;
         r.roam++;
+        if (dnd(d) || r.sec - r.lastRing < MIN_GAP) return; // 0.9.7: «Не беспокоить» и не чаще раза в 10 минут
         if (r.need < 0) r.need = Boolean.getBoolean("novograd.calls.fast") ? 6 : 180 + R.nextInt(180); // первый звонок за сессию — через 3–6 минут
-        boolean react = r.roam >= 90 && freshEvent(p);
+        boolean react = r.roam >= 240 && freshEvent(p);
         if (r.roam < r.need && !react) return;
         JsonObject c = pick(p, null);
         r.roam = 0;
@@ -382,7 +395,10 @@ public final class Calls {
         perk.putLong("rosa", day);
         state(p.getServer()).markDirty();
         Actions.run(p, d, heal());
-        Life.message(p, name("rosa"), friend(p, "rosa") >= 6 ? "Твой столик ждёт. Двойной фирменный — за счёт заведения." : "Садись, налью за счёт заведения. Выглядишь уставшим.");
+        // 0.9.7: без «взрослого контента» — лимонад вместо выпивки (бонус тот же)
+        if (!com.yompix.novograd.life.AgeGate.alcohol(p))
+            Life.message(p, name("rosa"), "Садись, налью лимонада за счёт заведения. Выглядишь уставшим.");
+        else Life.message(p, name("rosa"), friend(p, "rosa") >= 6 ? "Твой столик ждёт. Двойной фирменный — за счёт заведения." : "Садись, налью за счёт заведения. Выглядишь уставшим.");
     }
 
     private static JsonArray heal() {
@@ -404,6 +420,16 @@ public final class Calls {
             done(p, c);
             return;
         }
+        // 0.9.7: предложения (гонка, дело, просьба) приходят СМС, а не звонком: ответить — набрать героя в «Контактах»
+        if (c.has("offer")) {
+            JsonArray ls = c.getAsJsonArray("lines");
+            if (!ls.isEmpty()) Life.message(p, name(who), Story.str(ls.get(0).getAsJsonObject(), "text", ""));
+            Life.message(p, name(who), Story.str(c.getAsJsonObject("offer"), "q", "Есть дело.") + " (Перезвони: телефон → Контакты)");
+            r.offers.put(who, id);
+            r.lastRing = r.sec;
+            return;
+        }
+        r.lastRing = r.sec;
         r.ringing = id;
         r.ringSec = 0;
         LifeNet.send(p, "call_ring", packet(c));
@@ -508,6 +534,12 @@ public final class Calls {
             case "call_contacts" -> sendContacts(p);
             case "call_dial" -> dial(p, n.getString("who"));
             case "call_perk" -> perk(p, n.getString("who"));
+            case "call_dnd" -> { // 0.9.7: «Не беспокоить»
+                LifeData d = Life.get(p);
+                if (n.getBoolean("on")) d.flags.add("dnd");
+                else d.flags.remove("dnd");
+                Life.sync(p);
+            }
             default -> {
                 return false;
             }
@@ -545,11 +577,11 @@ public final class Calls {
         Life.sync(p);
     }
 
+    /** 0.9.7: согласился — задание не начинается само, а появляется в «Заданиях» (начать, когда захочешь). */
     private static void startSide(ServerPlayerEntity p, LifeData d, String who, String id) {
-        if (!d.side.isEmpty() || !FunUtil.freeRoam(p) || FunUtil.busy(p)) {
-            Life.message(p, name(who), "Сначала закончи то, чем занят. Я подожду.");
-            run(p).prefer = who;
-        } else SideMissions.start(p, id);
+        if (SideMissions.get(id) == null) return;
+        d.flags.add("offered:" + id);
+        Life.message(p, name(who), "Договорились. Как будешь готов — телефон → «Задания».");
     }
 
     /** Просьба героя выполнена (SideMissions, скрытая миссия call_*). */
@@ -570,7 +602,8 @@ public final class Calls {
             toast(p, name(who) + " сейчас не может говорить");
             return;
         }
-        JsonObject c = pick(p, who);
+        String offered = r.offers.remove(who);
+        JsonObject c = offered != null ? call(offered) : pick(p, who); // 0.9.7: перезвонил по СМС-предложению
         if (c == null) {
             toast(p, name(who) + " не берёт трубку. Перезвонит позже.");
             r.prefer = who;

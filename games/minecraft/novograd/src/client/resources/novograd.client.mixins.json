@@ -7,7 +7,12 @@
     "ArsenalFovMixin",
     "PlayerSkinMixin",
     "PlayerStyleScaleMixin",
+    "PlayerModelScaleMixin",
+    "PreviewWalkMixin",
+    "ChatLiftMixin",
     "GunHeldItemMixin",
+    "HandsFirstPersonMixin",
+    "ShowCameraMixin",
     "GunCooldownMixin",
     "GunCameraMixin",
     "GunPoseMixin",
@@ -38,7 +43,8 @@
     "PlayerAnimMixin",
     "HandOnlyBobMixin",
     "DisplayTickBiomeMixin",
-    "BlackoutLightMixin"
+    "BlackoutLightMixin",
+    "BloodMildMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -39,6 +39,13 @@ public class Novograd implements ModInitializer {
         com.yompix.novograd.gta.Outdoors.init(); // навыки SA, охота и рыбалка, времена года и праздники
         com.yompix.novograd.gta.CopsNet.init(); // умная погоня, маски, тюрьма, «Полицейские и воры»
         com.yompix.novograd.story.Stage.init(); // 1.0: кат-сцена готовится заранее, пока игрок подходит к метке
+        com.yompix.novograd.gta.MyCars.init(); // 0.9.6: «Мои машины», метки, «подогнать», передача прав
+        com.yompix.novograd.gta.Money.init(); // 0.9.6: наличные и карта, тайник, счета, инфляция
+        com.yompix.novograd.life.Admin.init(); // 0.9.6: /novograd — админ-команды и настройки сервера
+        com.yompix.novograd.life.Hands.init(); // 0.9.8: «Руки» — взаимодействия с анимацией (банкомат, автоматы, колонка…)
+        com.yompix.novograd.gta.Loans.init(); // 0.9.8: кредит, коллекторы, изъятие
+        com.yompix.novograd.world.BankBuilding.init(); // 0.9.8: «Сити-Банк» — здание, люди, замена старой башни в старых мирах
+        com.yompix.novograd.life.AgeGate.init(); // 0.9.7: проверка возраста (ответ клиента, requireAdult)
         com.yompix.novograd.perf.Perf.init(); // замер MSPT (только -Dnovograd.perf / автотест perf)
         LOG.info("Новоград загружен: город, сюжет, машины, оружие");
     }

@@ -96,6 +96,19 @@ public final class CallClient {
 
     // ---------------------------------------------------------------- клавиши Y / N (только пока звонит или ждёт ответа)
     private static void keys(MinecraftClient mc) {
+        // 0.9.7: разговор можно пропустить одной клавишей (N или Backspace)
+        if (mc.player != null && mc.currentScreen == null && (phase == Phase.TALK || phase == Phase.REPLY)) {
+            long win = mc.getWindow().getHandle();
+            boolean n = InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_N) || InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_BACKSPACE);
+            if (n && !prevN) {
+                prevN = true;
+                choice = phase == Phase.REPLY ? choice : 1;
+                hangUp();
+                return;
+            }
+            prevN = n;
+            return;
+        }
         if (mc.player == null || phase != Phase.RING && phase != Phase.ASK) {
             prevY = prevN = false;
             return;
@@ -252,6 +265,8 @@ public final class CallClient {
             int bx = tx, by = y + 31;
             bx = key(ctx, tr, "Y", "принять", bx, by, Ui.MONEY, out);
             key(ctx, tr, "N", "сбросить", bx + 6, by, Ui.RED, out);
+        } else if (phase == Phase.TALK || phase == Phase.REPLY) {
+            key(ctx, tr, "N", "пропустить", tx, y + 31, 0xFF8A8985, out); // 0.9.7
         } else if (phase == Phase.ASK) {
             NbtCompound o = call.getCompound("offer");
             List<OrderedText> q = tr.wrapLines(Text.literal(o.getString("q")), w - 16);

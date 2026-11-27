@@ -3951,5 +3951,269 @@
         "stream": true
       }
     ]
+  },
+  "hands.card_in": {
+    "sounds": [
+      {
+        "name": "novograd:hands/card_in"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.card_out": {
+    "sounds": [
+      {
+        "name": "novograd:hands/card_out"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.key": {
+    "sounds": [
+      {
+        "name": "novograd:hands/key"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.atm_whirr": {
+    "sounds": [
+      {
+        "name": "novograd:hands/atm_whirr"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.cash": {
+    "sounds": [
+      {
+        "name": "novograd:hands/cash"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.coin": {
+    "sounds": [
+      {
+        "name": "novograd:hands/coin"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.button": {
+    "sounds": [
+      {
+        "name": "novograd:hands/button"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.can_drop": {
+    "sounds": [
+      {
+        "name": "novograd:hands/can_drop"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.can_open": {
+    "sounds": [
+      {
+        "name": "novograd:hands/can_open"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.gulp": {
+    "sounds": [
+      {
+        "name": "novograd:hands/gulp"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.crunch": {
+    "sounds": [
+      {
+        "name": "novograd:hands/crunch"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.bag_tear": {
+    "sounds": [
+      {
+        "name": "novograd:hands/bag_tear"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.wrapper": {
+    "sounds": [
+      {
+        "name": "novograd:hands/wrapper"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.scan": {
+    "sounds": [
+      {
+        "name": "novograd:hands/scan"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.tap": {
+    "sounds": [
+      {
+        "name": "novograd:hands/tap"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.receipt": {
+    "sounds": [
+      {
+        "name": "novograd:hands/receipt"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.bite": {
+    "sounds": [
+      {
+        "name": "novograd:hands/bite"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.door_handle": {
+    "sounds": [
+      {
+        "name": "novograd:hands/door_handle"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.nozzle": {
+    "sounds": [
+      {
+        "name": "novograd:hands/nozzle"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.fuel_flow": {
+    "sounds": [
+      {
+        "name": "novograd:hands/fuel_flow"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.ratchet": {
+    "sounds": [
+      {
+        "name": "novograd:hands/ratchet"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.dial": {
+    "sounds": [
+      {
+        "name": "novograd:hands/dial"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.safe_open": {
+    "sounds": [
+      {
+        "name": "novograd:hands/safe_open"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.car_door_open": {
+    "sounds": [
+      {
+        "name": "novograd:hands/car_door_open"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.car_door_close": {
+    "sounds": [
+      {
+        "name": "novograd:hands/car_door_close"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.belt": {
+    "sounds": [
+      {
+        "name": "novograd:hands/belt"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.lighter": {
+    "sounds": [
+      {
+        "name": "novograd:hands/lighter"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.exhale": {
+    "sounds": [
+      {
+        "name": "novograd:hands/exhale"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.bottle": {
+    "sounds": [
+      {
+        "name": "novograd:hands/bottle"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.holster": {
+    "sounds": [
+      {
+        "name": "novograd:hands/holster"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.whoosh_bat": {
+    "sounds": [
+      {
+        "name": "novograd:hands/whoosh_bat"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.whoosh_knife": {
+    "sounds": [
+      {
+        "name": "novograd:hands/whoosh_knife"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
+  },
+  "hands.whoosh_fist": {
+    "sounds": [
+      {
+        "name": "novograd:hands/whoosh_fist"
+      }
+    ],
+    "subtitle": "subtitles.novograd.hands"
   }
 }

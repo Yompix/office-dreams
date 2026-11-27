@@ -138,6 +138,10 @@ final class Buildings {
         Spec sp = new Spec(px, pz, half, n, frame, glass, st(Blocks.YELLOW_STAINED_GLASS), use, roof,
                 CARPETS[(int) (hash(px, pz, 26) * CARPETS.length)], PLANKS[(int) (hash(px, pz, 27) * PLANKS.length)]);
         int ax = Math.abs(lx), az = Math.abs(lz);
+        if (BankBuilding.lot(px, pz)) { // 0.9.8: «Сити-Банк» вместо безымянной башни
+            BankBuilding.column(lx, lz, s, c);
+            return;
+        }
         if (hash(px, pz, 28) < 0.07 && !Island.placeInLot(px, pz)) {
             construction(lx, lz, px, pz, s, c);
             return;

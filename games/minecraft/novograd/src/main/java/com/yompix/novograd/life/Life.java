@@ -37,6 +37,9 @@ public final class Life {
     /** Заработок. Показывает зелёную сумму над хотбаром и звенит кассой. */
     public static void earn(ServerPlayerEntity p, int amount, String why) {
         LifeData d = get(p);
+        // 0.9.6: заработок индексируется вместе с ценами; 0.9.7: и с индексом зарплат (безработица)
+        amount = (int) Math.round(com.yompix.novograd.gta.Money.indexed(amount) * com.yompix.novograd.gta.Macro.wage() * Admin.cfg.earnMul);
+        com.yompix.novograd.gta.Money.earned(amount);
         d.money += amount;
         d.earned += amount;
         p.sendMessage(Text.literal("+$" + amount + "  " + why).formatted(Formatting.GREEN), true);
@@ -46,13 +49,19 @@ public final class Life {
 
     /** Списать деньги. false — не хватает. */
     public static boolean pay(ServerPlayerEntity p, int amount, String why) {
+        // 0.9.6: цены с инфляцией (индекс в «Финансах»); 0.9.7: и с рынком категории (бензин, жильё, оружие…)
+        return payRaw(p, com.yompix.novograd.gta.Macro.price(com.yompix.novograd.gta.Money.price(amount), why), why);
+    }
+
+    /** Платёж ровно amount (переводы между игроками, банкомат) — без индекса цен. */
+    public static boolean payRaw(ServerPlayerEntity p, int amount, String why) {
         LifeData d = get(p);
-        if (d.money < amount) {
-            p.sendMessage(Text.literal("Не хватает денег: нужно $" + amount + ", у тебя $" + d.money).formatted(Formatting.RED), true);
+        if (!com.yompix.novograd.gta.Money.pay(d, amount)) { // сначала наличными, потом картой
+            p.sendMessage(Text.literal("Не хватает денег: нужно $" + amount + ", у тебя $" + (d.cash + Math.max(0, d.money))).formatted(Formatting.RED), true);
             sound(p, ModContent.ANSWER_WRONG, 1f);
             return false;
         }
-        d.money -= amount;
+        com.yompix.novograd.gta.Money.spent(amount);
         d.spent += amount;
         if (!why.isEmpty()) p.sendMessage(Text.literal("−$" + amount + "  " + why).formatted(Formatting.GOLD), true);
         sync(p);

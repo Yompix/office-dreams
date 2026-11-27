@@ -79,6 +79,8 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.entity.CitizenEntity.STRIDE = com.yompix.novograd.client.story.StoryLife::stride;
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.story.StoryLife::tick);
         com.yompix.novograd.client.anim.PlayerAnim.init();
+        com.yompix.novograd.client.anim.HandsClient.init(); // 0.9.8: «Руки»
+        com.yompix.novograd.client.anim.GunThird.init(); // 0.9.8: оружие от третьего лица
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(com.yompix.novograd.client.city.CityFx::tick);
         // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
         net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
@@ -151,14 +153,18 @@ public class NovogradClient implements ClientModInitializer {
             data = new LifeData();
             com.yompix.novograd.client.story.ClientStory.objective = new NbtCompound();
             send("hello", new NbtCompound());
+            NovogradConfig.sendAge(); // 0.9.7: проверка возраста — ответ серверу (казино, выпивка, requireAdult)
         });
         ClientTickEvents.END_CLIENT_TICK.register(NovogradClient::tick);
         ClientTickEvents.END_CLIENT_TICK.register(c -> { if (c.player == null) CarRadio.tick(c); }); // радио в главном меню
         // заставка студии при запуске, своё главное меню и пауза вместо ванильных
         ClientTickEvents.END_CLIENT_TICK.register(c -> {
             if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
-                c.setScreen(com.yompix.novograd.client.story.YompixSplash.shown() ? new com.yompix.novograd.client.menu.LifeMenuScreen()
-                        : new com.yompix.novograd.client.story.YompixSplash(new com.yompix.novograd.client.menu.LifeMenuScreen()));
+                net.minecraft.client.gui.screen.Screen next = com.yompix.novograd.client.story.YompixSplash.shown() ? new com.yompix.novograd.client.menu.LifeMenuScreen()
+                        : new com.yompix.novograd.client.story.YompixSplash(new com.yompix.novograd.client.menu.LifeMenuScreen());
+                // 0.9.7: «Подтверди возраст» — один раз на установку (в автотестах не показываем)
+                boolean asked = NovogradConfig.get().ageChecked || System.getProperty("novograd.autotest") != null;
+                c.setScreen(asked ? next : new com.yompix.novograd.client.menu.AgeGateScreen(next));
             } else if (c.currentScreen instanceof net.minecraft.client.gui.screen.GameMenuScreen g && g.shouldShowMenu()) {
                 c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen());
             }
@@ -209,7 +215,8 @@ public class NovogradClient implements ClientModInitializer {
         CineAutotest.init(); // -Dnovograd.autotest=cine:гл:мис:шаг (запись кат-сцены), camaudit (пути камеры всех сцен)
         FpsHunt.init(); // 1.0: -Dnovograd.autotest=fpshunt — где падает FPS (сценарии, рывки, GC)
         ShowAutotest.init(); // 0.8: -Dnovograd.autotest=animshow / lookshow — ролики анимаций игрока и «нет двойников»
-        UiAudit.init(); // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
+        UiAudit.init();
+        com.yompix.novograd.client.guide.GuideHints.init(); // 0.9.6: подсказки у мест, где есть чем заняться // -Dnovograd.autotest=uiaudit: все экраны при разных масштабах (проверка «ничего не вылезает»)
         UiInvAutotest.init(); // -Dnovograd.autotest=uiinv: инвентарь «как в GTA», сундук, экран смерти
         DevAutotest.init();
         LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
@@ -247,6 +254,9 @@ public class NovogradClient implements ClientModInitializer {
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "emote" -> com.yompix.novograd.client.anim.PlayerAnim.receive(n); // 0.8: жест другого игрока
+            case "mycars" -> com.yompix.novograd.client.city.MyCarsScreen.state = n; // 0.9.6
+            case "car_offer" -> MinecraftClient.getInstance().setScreen(new com.yompix.novograd.client.city.CarOfferScreen(n));
+            case "stash" -> com.yompix.novograd.client.city.StashScreen.state = n;
             // 0.9: прогресс, «Империя», «Сеть», значки карты, события города
             case "progress_state" -> com.yompix.novograd.client.city.ProgressScreen.state = n;
             case "empire_state" -> com.yompix.novograd.client.city.EmpireScreen.state = n;
@@ -309,7 +319,7 @@ public class NovogradClient implements ClientModInitializer {
                 wantedSeen = n.getBoolean("seen");
             }
             case "gta_title" -> com.yompix.novograd.client.story.StoryHud.gtaTitle(n.getString("title"), n.getString("sub"));
-            case "open_atm" -> client.setScreen(new com.yompix.novograd.client.screen.AtmScreen(n.getInt("balance"), n.getInt("cash")));
+            case "open_atm" -> client.setScreen(new com.yompix.novograd.client.screen.AtmScreen(n.getInt("balance"), n.getInt("cash")).physical(n.getBoolean("physical")));
             case "atm_result" -> {
                 if (client.currentScreen instanceof com.yompix.novograd.client.screen.AtmScreen s) s.result(n);
             }
@@ -333,6 +343,9 @@ public class NovogradClient implements ClientModInitializer {
                 if (client.currentScreen instanceof RouletteScreen s) s.result(n);
             }
             default -> {
+                if (type.startsWith("hand_") || type.equals("stash_screen")) if (com.yompix.novograd.client.anim.HandsClient.receive(client, type, n)) return; // 0.9.8
+                if (type.equals("loan")) { com.yompix.novograd.client.screen.LoanScreen.state = n; return; } // 0.9.8: кредит
+                if (type.equals("open_loan")) { client.setScreen(new com.yompix.novograd.client.screen.LoanScreen()); return; }
                 if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
                 if (type.startsWith("call_") && com.yompix.novograd.client.story.CallClient.receive(client, type, n)) return; // звонки героев
                 if (type.startsWith("uw_") && UnderworldClient.receive(client, type, n)) return; // тёмные дела

@@ -49,7 +49,8 @@ public final class DevAutotest {
         if (mode.startsWith("calls")) return; // звонки героев — CallsAutotest (CallClient.init)
         if (mode.startsWith("cops")) return; // погоня, маски, колония, «Полицейские и воры» — client/cops/CopsAutotest
         if (mode.startsWith("heist")) return; // тёмные дела — HeistAutotest
-        if (mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife")) return; // 0.8: ролики — ShowAutotest
+        if (mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife") || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow")) return; // 0.8: ролики — ShowAutotest
         if (mode.startsWith("perf") || mode.startsWith("cine") || mode.equals("camaudit") || mode.startsWith("loadaudit") || mode.startsWith("shotexport") || mode.startsWith("fpshunt") || mode.startsWith("uishots") || mode.equals("uiinv") || mode.equals("uiaudit")) return; // замер и запись — PerfAutotest / CineAutotest
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
@@ -610,12 +611,35 @@ public final class DevAutotest {
                             d.chapter = fc;
                             d.mission = fm;
                             d.step = fs;
+                            // 0.9.7: миссии — по желанию: первый шаг начинается только с метки (кроме вступления)
+                            if (fs == 0) d.flags.remove("started:" + fc + ":" + fm);
+                            else d.flags.add("started:" + fc + ":" + fm);
                             try {
                                 Story.reenter(p);
                             } catch (Throwable e) {
                                 com.yompix.novograd.Novograd.LOG.error("[mcheck] {} {} {} ОШИБКА входа: {}", mid, fs, type, e.toString());
                             }
                         });
+                        if (fs == 0 && !(fc == 0 && fm == 0)) {
+                            // свободная игра: на экране цели нет, миссия ждёт на метке; идём в метку — миссия начинается
+                            server(10, s -> {
+                                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                                var d = Life.get(p);
+                                boolean idle = Story.idle(d);
+                                var at = Story.missionStart(p, d);
+                                if (at != null) {
+                                    var w = p.getServerWorld();
+                                    w.getChunk((int) at.x >> 4, (int) at.z >> 4);
+                                    p.teleport(w, at.x, at.y, at.z, p.getYaw(), 0);
+                                }
+                                com.yompix.novograd.Novograd.LOG.info("[mcheck] {} метка: ждёт={} место={}", mid, idle, at == null ? "НЕТ" : (int) at.x + "," + (int) at.z);
+                            });
+                            server(30, s -> {
+                                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                                boolean started = d.flags.contains("started:" + fc + ":" + fm);
+                                com.yompix.novograd.Novograd.LOG.info("[mcheck] {} старт с метки — {}", mid, started ? "ок" : "НЕ НАЧАЛАСЬ");
+                            });
+                        }
                         server(25, s -> {
                             ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                             if (p.hasVehicle()) p.stopRiding();
@@ -644,6 +668,80 @@ public final class DevAutotest {
                     }
                 }
             }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("story2p")) {
+            // 0.9.7: два игрока (FakePlayer) на разных местах сюжета + сам игрок: один начинает миссию и проходит шаг —
+            // у других ничего не меняется (раньше шаг одного тянул за собой всех), герои у каждого свои
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            cmd(5, "gamemode creative " + P);
+            final java.util.List<net.fabricmc.fabric.api.entity.FakePlayer> bots = new java.util.ArrayList<>();
+            server(10, s -> {
+                var w = s.getOverworld();
+                ServerPlayerEntity me = s.getPlayerManager().getPlayer(P);
+                int[][] at = {{1, 2, 0}, {2, 4, 2}};
+                for (int i = 0; i < 2; i++) {
+                    var fp = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(("story" + i).getBytes()), "Story" + i));
+                    fp.refreshPositionAndAngles(me.getX() + 3 + i, me.getY(), me.getZ(), 0, 0);
+                    var d = Life.get(fp);
+                    d.storyStarted = true;
+                    d.storyDone = false;
+                    d.chapter = at[i][0];
+                    d.mission = at[i][1];
+                    d.step = at[i][2];
+                    if (at[i][2] > 0) d.flags.add("started:" + at[i][0] + ":" + at[i][1]);
+                    bots.add(fp);
+                }
+                var dm = Life.get(me);
+                dm.storyStarted = true;
+                dm.storyDone = false;
+                dm.chapter = 1;
+                dm.mission = 0;
+                dm.step = 0;
+                dm.flags.remove("started:1:0");
+                Story.reenter(me);
+            });
+            server(20, s -> {
+                ServerPlayerEntity me = s.getPlayerManager().getPlayer(P);
+                var a = bots.get(0);
+                var da = Life.get(a);
+                String before = Story.stepKey(Life.get(bots.get(1))) + "/" + Story.stepKey(Life.get(me));
+                int bad = 0;
+                String prev = com.yompix.novograd.story.Npcs.push(a);
+                try {
+                    Story.startMission(a, da); // A входит в метку
+                    Story.advance(a); // и проходит шаг
+                    Story.advance(a);
+                    com.yompix.novograd.story.Npcs.spawn(a, "kirpich", "@" + (int) me.getX() + "," + ((int) me.getZ() + 4)); // герой в сюжете A (рядом, район загружен)
+                } finally {
+                    com.yompix.novograd.story.Npcs.pop(prev);
+                }
+                var hisKirpich = com.yompix.novograd.story.Npcs.find(a.getServerWorld(), "kirpich"); // без сюжета — герой хозяина мира
+                String pm = com.yompix.novograd.story.Npcs.push(a);
+                var aKirpich = com.yompix.novograd.story.Npcs.find(a.getServerWorld(), "kirpich");
+                com.yompix.novograd.story.Npcs.pop(pm);
+                boolean sep = aKirpich != null && aKirpich != hisKirpich && aKirpich.getStoryOwner().equals(a.getUuidAsString()) && !aKirpich.visibleTo(me.getUuid());
+                com.yompix.novograd.Novograd.LOG.info("[story2p] герой «kirpich» у A свой: {} (у A {}, у хозяина {})", sep ? "да" : "НЕТ",
+                        aKirpich == null ? "нет" : aKirpich.getUuid(), hisKirpich == null ? "нет" : hisKirpich.getUuid());
+                if (!sep) bad++;
+                String after = Story.stepKey(Life.get(bots.get(1))) + "/" + Story.stepKey(Life.get(me));
+                if (!before.equals(after)) bad++;
+                if (!Story.idle(Life.get(me))) bad++; // у игрока миссия так и ждёт на метке
+                // герои у A — свои (ключ «id@uuid», владелец A), игрок их не видит
+                int own = 0, foreign = 0;
+                for (var c : a.getServerWorld().getEntitiesByClass(com.yompix.novograd.entity.CitizenEntity.class, a.getBoundingBox().expand(400, 128, 400), x -> !x.getStoryId().isEmpty())) {
+                    if (c.getStoryOwner().equals(a.getUuidAsString())) {
+                        own++;
+                        if (c.visibleTo(me.getUuid())) foreign++;
+                    }
+                }
+                com.yompix.novograd.Novograd.LOG.info("[story2p] A: {} → шаг {}; B и игрок до {} после {}; героев A {} (видны игроку {}); помех {}",
+                        "1/2", Story.stepKey(da), before, after, own, foreign, bad + foreign);
+                com.yompix.novograd.Novograd.LOG.info("[story2p] {}", bad + foreign == 0 ? "PASS" : "FAIL");
+            });
             run(20, MinecraftClient::scheduleStop);
             return;
         }

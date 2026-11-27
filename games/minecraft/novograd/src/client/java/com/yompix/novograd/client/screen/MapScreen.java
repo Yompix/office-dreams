@@ -200,6 +200,13 @@ public class MapScreen extends LifeScreen {
         var d = NovogradClient.data;
         if (d.taskPos != null && !d.taskKind.isEmpty()) marker(ctx, Vec3d.ofCenter(d.taskPos), 0xFF4CAF50, "Задание", now);
         if (ClientStory.waypoint != null) marker(ctx, ClientStory.waypoint, 0xFFAB47BC, "Метка", now);
+        // 0.9.6: свои машины
+        for (var e : com.yompix.novograd.client.city.MyCarsScreen.state.getList("list", 10)) {
+            var c = (NbtCompound) e;
+            if (!c.contains("x")) continue;
+            boolean imp = c.getString("where").equals("impound");
+            marker(ctx, new Vec3d(c.getDouble("x"), 64, c.getDouble("z")), imp ? 0xFFFFC428 : 0xFF00C8A0, imp ? "Штрафстоянка $" + c.getInt("fee") : c.getString("name"), now);
+        }
         // игроки
         for (PlayerEntity p : mc().world.getPlayers()) {
             int x = sx(p.getX()), y = sy(p.getZ());

@@ -59,9 +59,10 @@ public final class LifeHud {
         long now = System.currentTimeMillis();
         int w = ctx.getScaledWindowWidth();
         // деньги «докручиваются» к новому значению
-        if (shownMoney < 0) shownMoney = d.money;
-        if (shownMoney != d.money) {
-            int diff = d.money - shownMoney;
+        int total = d.money + d.cash; // 0.9.6: карта + наличные; наличные — строкой ниже
+        if (shownMoney < 0) shownMoney = total;
+        if (shownMoney != total) {
+            int diff = total - shownMoney;
             if (now > flashUntil - 300) lastDiff = diff;
             shownMoney += Math.signum(diff) * Math.max(1, Math.abs(diff) / 8);
             flashUntil = now + 1400;
@@ -85,6 +86,10 @@ public final class LifeHud {
         long tod = mc.world.getTimeOfDay() % 24000;
         String time = clock(tod) + "  ДЕНЬ " + (mc.world.getTimeOfDay() / 24000 + 1);
         int ty = flash && lastDiff != 0 ? 50 : 38;
+        if (d.cash > 0) { // 0.9.6: наличные в кошельке
+            Ui.small(ctx, tr, "наличные $" + money(d.cash), r, ty, 0.85f, 0xFFFFE08A, 2);
+            ty += 10;
+        }
         if (d.dirty > 0) { // грязные наличные — красным под деньгами
             Ui.small(ctx, tr, "грязные $" + money(d.dirty), r, ty, 0.85f, 0xFFFF5252, 2);
             ty += 10;

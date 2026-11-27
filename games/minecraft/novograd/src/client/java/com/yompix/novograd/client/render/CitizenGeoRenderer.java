@@ -71,6 +71,18 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                                VertexConsumerProvider buffers, VertexConsumer buffer, float partialTick, int light, int overlay) {
                 if (!has[0] && !has[1] && !has[2]) return;
                 HairFeature.Compiled c = hair.compiled(e);
+                // 0.9.7: форма груди у жительниц (и рельеф у спортивных) — из того же скина; висящее на груди — вперёд
+                var gen = com.yompix.novograd.client.style.CitizenLooks.get(e);
+                HairFeature.bustPush = gen != null ? com.yompix.novograd.client.style.BodyShape.depth(gen.look()) : 0;
+                if (gen != null && has[1]) {
+                    var tex = com.yompix.novograd.client.style.SkinComposer.peek(gen.key());
+                    if (tex != null) {
+                        tmp.peek().getPositionMatrix().set(pos[1]);
+                        tmp.peek().getNormalMatrix().set(nrm[1]);
+                        com.yompix.novograd.client.style.BodyShape.render(tmp, buffers, tex, light, overlay, gen.look(), e.getId(), e,
+                                e.limbAnimator.getPos(partialTick), e.limbAnimator.getSpeed(partialTick), partialTick);
+                    }
+                }
                 if (c != null) {
                     boolean blink = HairFeature.blink(e.getId(), e.age), talk = HairFeature.talking(e), asleep = e.asleep();
                     for (int pass = 0; pass < 3; pass++) {
@@ -85,6 +97,7 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                         }
                     }
                 }
+                HairFeature.bustPush = 0;
                 has[0] = has[1] = has[2] = false;
             }
         });
@@ -112,7 +125,19 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
     @Override
     public void render(CitizenEntity e, float yaw, float tickDelta, MatrixStack m, VertexConsumerProvider buffers, int light) {
         if (e.isInvisible()) return; // ушёл к себе в комнату
-        super.render(e, yaw, tickDelta, m, buffers, light);
+        // 0.9.6: телосложение и рост из генератора (только картинка — хитбокс прежний); голову не растягиваем
+        var look = com.yompix.novograd.client.style.CitizenLooks.get(e);
+        if (look != null && (look.width() != 1f || look.height() != 1f)) {
+            m.push();
+            m.scale(look.width(), look.height(), look.width());
+            BODY_W.set(look.width());
+            super.render(e, yaw, tickDelta, m, buffers, light);
+            BODY_W.set(1f);
+            m.pop();
+        } else {
+            BODY_W.set(1f);
+            super.render(e, yaw, tickDelta, m, buffers, light);
+        }
         if (e.asleep()) {
             // «Z z z» поднимаются над спящим
             var tr = getTextRenderer();
@@ -173,10 +198,16 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
     /** 1.0: дальних жителей не рисуем вовсе (граница — от «Производительности»), актёров кат-сцены — всегда. */
     @Override
     public boolean shouldRender(CitizenEntity e, net.minecraft.client.render.Frustum frustum, double x, double y, double z) {
+        // 0.9.7: герои и массовка чужого сюжета (мультиплеер) — не видны
+        var me = net.minecraft.client.MinecraftClient.getInstance().player;
+        if (me != null && !e.visibleTo(me.getUuid())) return false;
         float lim = com.yompix.novograd.client.NovogradConfig.citizenDist();
         if (e.squaredDistanceTo(x, y, z) > lim * lim && !com.yompix.novograd.client.story.CutsceneScreen.ACTORS.containsValue(e.getId())) return false;
         return super.shouldRender(e, frustum, x, y, z);
     }
+
+    /** Ширина тела текущего жителя (голову масштабируем обратно, чтобы не «плыла»). */
+    static final ThreadLocal<Float> BODY_W = ThreadLocal.withInitial(() -> 1f);
 
     static class Model extends GeoModel<CitizenEntity> {
         @Override
@@ -186,7 +217,9 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
 
         @Override
         public Identifier getTextureResource(CitizenEntity e) {
-            return SKINS[e.getSkin()];
+            // 0.9.6: внешность из генератора — свой скин (собирается один раз на зерно)
+            Identifier gen = com.yompix.novograd.client.style.CitizenLooks.texture(e);
+            return gen != null ? gen : SKINS[e.getSkin()];
         }
 
         @Override
@@ -204,6 +237,12 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         public void setCustomAnimations(CitizenEntity e, long instanceId, AnimationState<CitizenEntity> state) {
             var head = getAnimationProcessor().getBone("neck");
             var data = state.getData(DataTickets.ENTITY_MODEL_DATA);
+            var headBone = getAnimationProcessor().getBone("head");
+            if (headBone != null) {
+                float inv = 1f / BODY_W.get();
+                headBone.setScaleX(inv);
+                headBone.setScaleZ(inv);
+            }
             if (head != null && (e.asleep() || e.knockPhase() != CitizenEntity.KO_NONE)) { head.setRotX(0); head.setRotY(0); head.setRotZ(0); return; }
             if (head != null && data != null) {
                 // ставим, а не прибавляем: иначе поворот копится каждый кадр и голову «колбасит»
@@ -236,6 +275,8 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                     chest.setRotY(chest.getRotY() + MathHelper.cos(ph) * sway * 0.6f * MathHelper.RADIANS_PER_DEGREE);
                 }
             }
+            // 0.9.8: живой слой — характер, наклон в поворот, ступеньки, дыхание и вес с ноги на ногу
+            com.yompix.novograd.client.anim.CitizenLife.apply(e, n -> getAnimationProcessor().getBone(n), state.getPartialTick());
         }
     }
 }

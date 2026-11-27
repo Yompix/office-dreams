@@ -43,6 +43,7 @@ public final class Population {
             boolean seen = false;
             for (ServerPlayerEntity p : w.getPlayers()) if (p.squaredDistanceTo(x, y, z) < 30 * 30) seen = true;
             if (seen) continue;
+            if (role == CitizenEntity.Role.CITIZEN && !com.yompix.novograd.world.Crowd.room(w, new net.minecraft.util.math.Vec3d(x + 0.5, y, z + 0.5))) continue; // 0.9.7
             CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
             int skin = role == CitizenEntity.Role.GANG ? CitizenEntity.RANDOM_FROM + 1 + 2 * r.nextInt(CitizenEntity.RANDOM_COUNT / 2) : CitizenEntity.randomSkin(r);
             c.setup(skin, role, false, role == CitizenEntity.Role.GANG ? "Ящер " + Names.random(r, false) : Names.random(r, CitizenEntity.isSlim(skin)));

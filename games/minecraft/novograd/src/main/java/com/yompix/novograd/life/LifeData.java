@@ -20,6 +20,15 @@ public class LifeData {
     public int money = 50;
     /** Грязные наличные (с ограблений): тратятся у оружейника, отмываются через бизнесы или у Рэя. */
     public int dirty;
+    /** 0.9.6: наличные в кошельке (чистые); money — карта/счёт. Старые сохранения: всё на карте. */
+    public int cash;
+    /** 0.9.6: день последних счетов, сами счета и проценты за тот день; был ли розыск 4★+ (обыск тайника). */
+    public long billDay = -1;
+    public int lastBills, lastInterest;
+    public boolean raidRisk;
+    /** 0.9.6: жир 0–100 (еда — плюс, спорт и ходьба — минус), видно на теле; класс тела, выставленный автоматически. */
+    public float fat = 30;
+    public int bodyClass = -1;
     /** Акции: тикер → количество. */
     public java.util.Map<String, Integer> shares = new java.util.HashMap<>();
     public int edu = 16;           // 1–11 класс школы, 12–15 курс университета, 16 — выпускник
@@ -60,10 +69,14 @@ public class LifeData {
     /** Стиль в духе SA: внешность, гардероб (купленные вещи «id#цвет»), спортзал — сила и выносливость 0–100. */
     public Appearance look = new Appearance();
     public java.util.Set<String> wardrobe = new java.util.HashSet<>();
+    /** 0.9.6: сохранённые образы редактора внешности (до 6). */
+    public java.util.List<Appearance> presets = new java.util.ArrayList<>();
     public int strength, stamina, gymStrToday, gymStaToday;
     public long gymDay = -1;
     /** Навыки как в SA (gta/Skills): id → очки 0..1000 (вождение, мотоцикл, полёт, стрельба по классам, плавание, скрытность…). */
     public java.util.Map<String, Integer> skills = new java.util.HashMap<>();
+    /** 0.9.8: кредит и кредитная история (gta/Loans): score, principal, pay, left, next, rate, missed, stage, hist, earn7… Пусто — кредита не было. */
+    public NbtCompound loan = new NbtCompound();
 
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
@@ -161,8 +174,18 @@ public class LifeData {
         n.putInt("fines", fines);
         n.putString("today", today);
         n.put("achievements", strings(achievements));
+        n.putInt("cash", cash);
+        n.putLong("billDay", billDay);
+        n.putInt("lastBills", lastBills);
+        n.putInt("lastInterest", lastInterest);
+        n.putBoolean("raidRisk", raidRisk);
+        n.putFloat("fat", fat);
+        n.putInt("bodyClass", bodyClass);
         n.put("look", look.toNbt());
         n.put("wardrobe", strings(wardrobe));
+        NbtList pl = new NbtList();
+        for (Appearance a : presets) pl.add(a.toNbt());
+        n.put("presets", pl);
         n.putInt("strength", strength);
         n.putInt("stamina", stamina);
         n.putInt("gymStrToday", gymStrToday);
@@ -171,6 +194,7 @@ public class LifeData {
         NbtCompound sk = new NbtCompound();
         skills.forEach(sk::putInt);
         n.put("skills", sk);
+        n.put("loan", loan.copy());
         return n;
     }
 
@@ -226,8 +250,16 @@ public class LifeData {
         d.fines = n.getInt("fines");
         d.today = n.getString("today");
         for (NbtElement e : n.getList("achievements", NbtElement.STRING_TYPE)) d.achievements.add(e.asString());
+        d.cash = n.getInt("cash");
+        d.billDay = n.contains("billDay") ? n.getLong("billDay") : -1;
+        d.lastBills = n.getInt("lastBills");
+        d.lastInterest = n.getInt("lastInterest");
+        d.raidRisk = n.getBoolean("raidRisk");
+        if (n.contains("fat")) d.fat = n.getFloat("fat");
+        d.bodyClass = n.contains("bodyClass") ? n.getInt("bodyClass") : -1;
         d.look = Appearance.fromNbt(n.getCompound("look"));
         for (NbtElement e : n.getList("wardrobe", NbtElement.STRING_TYPE)) d.wardrobe.add(e.asString());
+        for (NbtElement e : n.getList("presets", NbtElement.COMPOUND_TYPE)) d.presets.add(Appearance.fromNbt((net.minecraft.nbt.NbtCompound) e));
         d.strength = n.getInt("strength");
         d.stamina = n.getInt("stamina");
         d.gymStrToday = n.getInt("gymStrToday");
@@ -235,6 +267,7 @@ public class LifeData {
         d.gymDay = n.contains("gymDay") ? n.getLong("gymDay") : -1;
         NbtCompound sk = n.getCompound("skills");
         for (String k : sk.getKeys()) d.skills.put(k, sk.getInt(k));
+        d.loan = n.getCompound("loan").copy();
         return d;
     }
 }

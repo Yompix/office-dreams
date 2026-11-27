@@ -52,8 +52,14 @@ public final class Economy {
         return true;
     }
 
-    /** Погиб или задержан: грязные наличные теряются. */
+    /** 0.9.6: цена с инфляцией (см. Money). */
+    public static int price(int base) {
+        return Money.price(base);
+    }
+
+    /** Погиб или задержан: грязные наличные теряются (и часть чистых наличных — Money.onDownfall). */
     public static void onDownfall(ServerPlayerEntity p, boolean busted) {
+        Money.onDownfall(p, busted);
         LifeData d = Life.get(p);
         if (d.dirty <= 0) return;
         int lost = busted ? d.dirty : d.dirty / 2;
@@ -158,7 +164,7 @@ public final class Economy {
         for (String[] st : STOCKS) {
             double p = m.price.get(st[0]);
             double base = Double.parseDouble(st[2]);
-            double drift = (base - p) / base * 0.02 + 0.002;              // тянет к «справедливой» цене и чуть вверх
+            double drift = (base - p) / base * 0.02 + 0.002 + Macro.stockDrift(st[0]); // к «справедливой» цене, чуть вверх; 0.9.7: и за сектором
             p = Math.max(1, p * (1 + drift + r.nextGaussian() * 0.025));
             m.price.put(st[0], p);
             Deque<Double> h = m.history.get(st[0]);
@@ -210,6 +216,7 @@ public final class Economy {
         }
         n.put("stocks", st);
         n.put("biz", Heists.businessState(p));
+        Money.fill(n, p);
         LifeNet.send(p, "eco_state", n);
     }
 }

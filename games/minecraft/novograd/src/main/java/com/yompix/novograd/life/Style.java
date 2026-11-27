@@ -66,12 +66,14 @@ public final class Style {
     private static final Map<UUID, Session> SESSION = new HashMap<>();
     private static final Map<UUID, Long> GYM_START = new HashMap<>(), GYM_LAST = new HashMap<>(), GYM_REAL = new HashMap<>();
     private static final Map<UUID, Boolean> SPRINT = new HashMap<>();
+    private static final Map<UUID, Integer> FOOD = new HashMap<>();
     private static final Identifier STR_ID = Novograd.id("gym_strength"), STA_ID = Novograd.id("gym_stamina"), FALL_ID = Novograd.id("gym_fall");
 
     public static void init() {
         PayloadTypeRegistry.playS2C().register(S2C.ID, S2C.CODEC);
         PayloadTypeRegistry.playC2S().register(C2S.ID, C2S.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(C2S.ID, (payload, ctx) -> {
+            if (!Admin.allow(ctx.player())) return;
             try {
                 handle(ctx.player(), payload.type(), payload.data());
             } catch (RuntimeException e) {
@@ -106,6 +108,13 @@ public final class Style {
         broadcast(p);
         apply(p, true);
         Life.sync(p);
+        if (d.flags.contains("creator:pending")) send(p, "creator", new NbtCompound());
+    }
+
+    /** Показывать ли новичку редактор внешности (в автотестах — только в своём сценарии). */
+    public static boolean creatorOnJoin() {
+        String t = System.getProperty("novograd.autotest");
+        return t == null || t.startsWith("creator");
     }
 
     private static NbtCompound entry(ServerPlayerEntity p) {
@@ -114,6 +123,7 @@ public final class Style {
         e.putUuid("id", p.getUuid());
         e.put("look", d.look.toNbt());
         e.putInt("str", d.strength);
+        e.putFloat("fat", d.fat);
         return e;
     }
 
@@ -182,6 +192,29 @@ public final class Style {
                 Life.sync(p);
                 broadcast(p);
             }
+            case "creator_apply" -> creatorApply(p, Appearance.fromNbt(d.getCompound("look")), d.getString("mode"));
+            case "creator_skip" -> {
+                LifeData ld = Life.get(p);
+                if (ld.flags.remove("creator:pending")) {
+                    ld.flags.add("creator:done");
+                    Life.sync(p);
+                }
+            }
+            case "preset_save" -> {
+                LifeData ld = Life.get(p);
+                Appearance a = Appearance.fromNbt(d.getCompound("look"));
+                int i = d.getInt("slot");
+                if (i < 0 || i >= PRESETS) return;
+                while (ld.presets.size() <= i) ld.presets.add(ld.look.copy());
+                ld.presets.set(i, a);
+                Life.sync(p);
+            }
+            case "preset_del" -> {
+                LifeData ld = Life.get(p);
+                int i = d.getInt("slot");
+                if (i >= 0 && i < ld.presets.size()) ld.presets.remove(i);
+                Life.sync(p);
+            }
             case "gym_start" -> gymStart(p, d.getString("ex"));
             case "gym" -> gymResult(p, d.getString("ex"), d.getInt("score"));
             default -> {}
@@ -221,8 +254,11 @@ public final class Style {
         }
         LifeData d = Life.get(p);
         if (ref.isEmpty()) {
-            if (slot != StyleCatalog.Slot.HAT && slot != StyleCatalog.Slot.GLASSES) return; // без штанов по Новограду не ходят
-        } else if (!d.wardrobe.contains(ref)) return;
+            if (!slot.optional()) return; // без штанов по Новограду не ходят
+        } else {
+            var w = StyleCatalog.wear(Appearance.id(ref));
+            if (!d.wardrobe.contains(ref) || w == null || w.slot() != slot) return;
+        }
         d.look.set(slot, ref);
         p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER.value(), SoundCategory.PLAYERS, 0.7f, 1f);
         changed(p);
@@ -267,6 +303,104 @@ public final class Style {
         changed(p);
     }
 
+    // ------------------------------------------------------------------ 0.9.6: редактор внешности
+    public static final int PRESETS = 6;
+
+    /** Сколько стоит смена тела/лица/причёски: первый раз — даром; в цирюльне — только изменённые услуги, если меняли одни волосы. */
+    public static int bodyCost(Appearance cur, Appearance next, boolean barber) {
+        if (cur.sameBody(next)) return 0;
+        if (!cur.skinChosen) return 0;
+        if (barber) {
+            Appearance x = next.copy();
+            x.hair = cur.hair;
+            x.hairColor = cur.hairColor;
+            x.beard = cur.beard;
+            x.highlight = cur.highlight;
+            x.hairLen = cur.hairLen;
+            x.fringe = cur.fringe;
+            if (cur.sameBody(x)) {
+                int sum = 0;
+                if (!next.hair.equals(cur.hair) || next.hairLen != cur.hairLen || next.fringe != cur.fringe) {
+                    var o = StyleCatalog.find(StyleCatalog.HAIR, next.hair);
+                    sum += o == null ? 0 : o.price();
+                }
+                if (next.hairColor != cur.hairColor || next.highlight != cur.highlight) sum += StyleCatalog.HAIR_COLORS.get(next.hairColor).price();
+                if (!next.beard.equals(cur.beard)) {
+                    var o = StyleCatalog.find(StyleCatalog.BEARDS, next.beard);
+                    sum += o == null ? 0 : o.price();
+                }
+                return sum;
+            }
+        }
+        return StyleCatalog.LOOK_PRICE;
+    }
+
+    /**
+     * Применить внешность из редактора. mode: first — новый персонаж (всё бесплатно, надетое — в гардероб);
+     * barber — в цирюльне; cheap/lux — в магазине (новые вещи своего магазина можно купить); phone — с телефона
+     * (тело и лицо — за $300, переодеться — только дома или в магазине).
+     */
+    private static void creatorApply(ServerPlayerEntity p, Appearance next, String mode) {
+        LifeData d = Life.get(p);
+        Appearance cur = d.look;
+        next.sanitize();
+        next.custom = true;
+        var age = AgeGate.of(p);
+        if (age != null && !age.adult()) next.chest = Appearance.MID_CHEST; // 0.9.7: не 18+ — средний размер
+        boolean first = mode.equals("first") && d.flags.contains("creator:pending");
+        if (first) {
+            next.skinChosen = true;
+            d.fat = fatFor(next.build);
+            d.bodyClass = next.build;
+            d.look = next;
+            for (StyleCatalog.Slot s : StyleCatalog.Slot.values()) if (!next.get(s).isEmpty()) d.wardrobe.add(next.get(s));
+            d.flags.remove("creator:pending");
+            d.flags.add("creator:done");
+            p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER.value(), SoundCategory.PLAYERS, 0.8f, 1f);
+            changed(p);
+            return;
+        }
+        boolean shopCheap = at(p, "cheap"), shopLux = at(p, "lux"), barberHere = at(p, "barber");
+        boolean dressHere = shopCheap || shopLux || wardrobeHere(p) || at(p, "wardrobe");
+        // ---- одежда
+        int clothes = 0;
+        java.util.List<String> buy = new java.util.ArrayList<>();
+        boolean clothesChanged = false;
+        for (StyleCatalog.Slot s : StyleCatalog.Slot.values()) {
+            String a = cur.get(s), b = next.get(s);
+            if (a.equals(b)) continue;
+            clothesChanged = true;
+            if (b.isEmpty() || d.wardrobe.contains(b)) continue;
+            var w = StyleCatalog.wear(Appearance.id(b));
+            if (w == null) return;
+            if (!(w.tier() == 0 ? shopCheap : shopLux)) {
+                p.sendMessage(Text.literal("«" + w.name() + "» продают в «" + (w.tier() == 0 ? StyleCatalog.CHEAP_NAME : StyleCatalog.LUX_NAME) + "»").formatted(Formatting.YELLOW), true);
+                return;
+            }
+            clothes += w.price();
+            buy.add(b);
+        }
+        clothesChanged |= cur.tuck != next.tuck || cur.rolled != next.rolled || cur.open != next.open || cur.pattern != next.pattern || cur.grime != next.grime;
+        if (clothesChanged && !dressHere) {
+            p.sendMessage(Text.literal("Переодеться можно дома или в магазине одежды").formatted(Formatting.YELLOW), true);
+            return;
+        }
+        int body = bodyCost(cur, next, barberHere);
+        int total = clothes + body;
+        if (total > 0 && !Life.pay(p, total, body > 0 && clothes > 0 ? "новый образ" : body > 0 ? "новая внешность" : "одежда")) return;
+        d.wardrobe.addAll(buy);
+        if (d.wardrobe.size() >= 12) Achievements.give(p, "fashion");
+        next.skinChosen = true;
+        if (next.build != cur.build) {
+            d.fat = fatFor(next.build);
+            d.bodyClass = next.build;
+        }
+        d.look = next;
+        d.flags.remove("creator:pending");
+        p.getServerWorld().playSound(null, p.getBlockPos(), total > 0 ? ModContent.CASH : SoundEvents.ITEM_ARMOR_EQUIP_LEATHER.value(), SoundCategory.PLAYERS, 0.8f, 1f);
+        changed(p);
+    }
+
     // ------------------------------------------------------------------ спортзал
     private static void newDay(ServerPlayerEntity p, LifeData d) {
         long day = Life.day(p);
@@ -277,14 +411,19 @@ public final class Style {
         }
     }
 
+    /** 0.9.6: упражнения: на силу — гантели, жим лёжа, подтягивания, груша, отжимания; на выносливость — дорожка, приседания, йога. */
+    public static final java.util.Set<String> STR_EX = java.util.Set.of("curl", "bench", "pullup", "bag", "pushup"),
+            ALL_EX = java.util.Set.of("curl", "bench", "pullup", "bag", "pushup", "run", "squat", "yoga");
+
     private static void gymStart(ServerPlayerEntity p, String ex) {
+        if (!ALL_EX.contains(ex)) return;
         if (!at(p, "gym")) return;
         LifeData d = Life.get(p);
         newDay(p, d);
         long now = p.getServerWorld().getTime();
         NbtCompound n = new NbtCompound();
         n.putString("ex", ex);
-        boolean str = ex.equals("bench");
+        boolean str = STR_EX.contains(ex);
         int left = StyleCatalog.GYM_DAILY - (str ? d.gymStrToday : d.gymStaToday);
         int stat = str ? d.strength : d.stamina;
         String why = stat >= StyleCatalog.STAT_MAX ? "Ты на пике формы — больше не накачать"
@@ -307,7 +446,7 @@ public final class Style {
         GYM_LAST.put(p.getUuid(), now);
         LifeData d = Life.get(p);
         newDay(p, d);
-        boolean str = ex.equals("bench");
+        boolean str = STR_EX.contains(ex);
         int gain;
         if (str) {
             score = Math.max(0, Math.min(15, score)); // повторы
@@ -323,6 +462,7 @@ public final class Style {
             d.gymStaToday += Math.max(0, gain);
         }
         d.energy = Math.max(0, d.energy - 6);
+        d.fat = Math.max(0, d.fat - (0.6f + Math.max(0, gain) * 0.5f) * (str ? 0.8f : 1.3f)); // 0.9.6: спорт сжигает жир
         d.mood = Math.min(100, d.mood + 3);
         NbtCompound n = new NbtCompound();
         n.putString("ex", ex);
@@ -339,9 +479,48 @@ public final class Style {
     }
 
     // ------------------------------------------------------------------ польза от зала
+    /** 0.9.6: класс тела по жиру и силе: 0 худое, 1 среднее, 2 спортивное, 3 плотное. */
+    public static int bodyClass(float fat, int strength) {
+        if (fat >= 62) return 3;
+        if (strength >= 45 && fat < 40) return 2;
+        if (fat <= 14) return 0;
+        return 1;
+    }
+
+    /** Жир в середине класса (редактор: выбрал телосложение — тело «встаёт» в него). */
+    public static float fatFor(int build) {
+        return switch (build) {
+            case 0 -> 9;
+            case 2 -> 24;
+            case 3 -> 72;
+            default -> 32;
+        };
+    }
+
     private static void tick(MinecraftServer server) {
+        if (server.getTicks() % 100 == 37) for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            LifeData d = Life.get(p);
+            int cls = bodyClass(d.fat, d.strength);
+            if (d.bodyClass != cls) {
+                boolean show = d.bodyClass >= 0 && d.look.custom && d.look.build != cls;
+                d.bodyClass = cls;
+                if (show) {
+                    d.look.build = cls;
+                    p.sendMessage(Text.literal("Телосложение: " + StyleCatalog.BUILDS[cls].toLowerCase()).formatted(Formatting.GOLD), true);
+                }
+                Life.sync(p);
+                broadcast(p);
+            } else if (server.getTicks() % 1200 == 37) broadcast(p); // плавное изменение тела видно друзьям
+        }
         if (server.getTicks() % 4 != 0) return;
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) apply(p, server.getTicks() % 100 == 0);
+        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            apply(p, server.getTicks() % 100 == 0);
+            // 0.9.6: поел (сытость выросла) — жир чуть прибавился; раз в секунду — шаги жгут жир
+            int food = p.getHungerManager().getFoodLevel();
+            Integer was = FOOD.put(p.getUuid(), food);
+            if (was != null && food > was && !p.isCreative()) Fitness.ate(p, (food - was) * 0.12f);
+            if (server.getTicks() % 20 == 0) Fitness.tick(p);
+        }
     }
 
     /**

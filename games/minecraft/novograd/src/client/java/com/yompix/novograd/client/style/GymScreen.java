@@ -57,13 +57,15 @@ public class GymScreen extends LifeScreen {
             lift = 0;
             speed = inBand = belt = 0;
             finished = false;
-            state = ex.equals("bench") ? State.BENCH : State.RUN;
+            state = com.yompix.novograd.life.Style.STR_EX.contains(ex) ? State.BENCH : State.RUN;
+            com.yompix.novograd.client.anim.PlayerAnim.play("gym_" + ex); // 0.9.6: герой делает упражнение (видят и друзья)
         } else {
             gain = n.getInt("gain");
             value = n.getInt("value");
             resultAt = System.currentTimeMillis();
             sentAt = 0;
             state = State.RESULT;
+            com.yompix.novograd.client.anim.PlayerAnim.play("none");
         }
     }
 
@@ -92,7 +94,7 @@ public class GymScreen extends LifeScreen {
         float a = openAnim();
         int top = 10 + (int) ((1 - a) * -20);
         title(ctx, StyleCatalog.GYM_NAME, 12, top, Ui.GOLD);
-        Ui.small(ctx, textRenderer, "тренер Борис: «Без веса и диет — только сила и дыхалка»", 14, top + 28, 0.8f, 0xFFD9D7D0, 0);
+        Ui.small(ctx, textRenderer, "сила · выносливость · тело", 14, top + 28, 0.8f, 0xFFD9D7D0, 0);
         long now = System.currentTimeMillis();
         float dt = Math.min(0.1f, (now - lastFrame) / 1000f);
         lastFrame = now;
@@ -112,20 +114,54 @@ public class GymScreen extends LifeScreen {
         Ui.small(ctx, textRenderer, hint, 10, height - 13, 0.85f, 0xC0FFFFFF, 0);
     }
 
+    /** 0.9.6: восемь упражнений: id, название, на силу ли. */
+    static final String[][] EXS = {{"curl", "ГАНТЕЛИ"}, {"bench", "ЖИМ ЛЁЖА"}, {"pullup", "ТУРНИК"}, {"bag", "ГРУША"}, {"pushup", "ОТЖИМАНИЯ"},
+            {"run", "ДОРОЖКА"}, {"squat", "ПРИСЕДАНИЯ"}, {"yoga", "ЙОГА"}};
+
     private void menu(DrawContext ctx, int y) {
         LifeData d = NovogradClient.data;
         boolean today = d.gymDay == (mc().world == null ? -1 : mc().world.getTimeOfDay() / 24000L + 1);
-        int cw = Math.min(200, (width - 40) / 2), ch = Math.min(150, height - y - 30);
-        int x1 = width / 2 - cw - 6, x2 = width / 2 + 6;
-        card(ctx, x1, y, cw, ch, "ШТАНГА", "Сила", d.strength, today ? d.gymStrToday : 0, Ui.RED,
-                "Жми, когда метка в зелёной зоне. Чем больше повторов — тем больше силы.", "bench");
-        card(ctx, x2, y, cw, ch, "БЕГОВАЯ ДОРОЖКА", "Выносливость", d.stamina, today ? d.gymStaToday : 0, Ui.CYAN,
-                "Чередуй ← и →, держи темп в зелёной полосе 20 секунд.", "run");
+        int bw = Math.min(420, width - 24), x0 = width / 2 - bw / 2;
+        // навыки и тело
+        int half = bw / 2 - 4;
+        stat(ctx, x0, y, half, "СИЛА", d.strength, today ? d.gymStrToday : 0, Ui.RED);
+        stat(ctx, x0 + half + 8, y, half, "ВЫНОСЛИВОСТЬ", d.stamina, today ? d.gymStaToday : 0, Ui.CYAN);
+        int cls = com.yompix.novograd.life.Style.bodyClass(d.fat, d.strength);
+        Ui.small(ctx, textRenderer, "ТЕЛО: " + StyleCatalog.BUILDS[cls].toUpperCase() + "  ·  ЖИР " + Math.round(d.fat) + "%", x0, y + 24, 0.8f, Ui.GOLD, 0);
+        Ui.bar(ctx, x0 + 150, y + 25, bw - 150, 4, d.fat / 100f, 0xFFE0A040);
+        // упражнения 4×2
+        int gy = y + 36, cols = 4, gap = 4, cw = (bw - gap * (cols - 1)) / cols, ch = Math.max(30, Math.min(52, (height - gy - 30) / 2 - gap));
+        for (int i = 0; i < EXS.length; i++) {
+            String id = EXS[i][0];
+            boolean str = com.yompix.novograd.life.Style.STR_EX.contains(id);
+            int cx = x0 + (i % cols) * (cw + gap), cy = gy + (i / cols) * (ch + gap);
+            int col = str ? Ui.RED : Ui.CYAN;
+            boolean waiting = state == State.WAIT && ex.equals(id);
+            button(ctx, cx, cy, cw, ch, waiting ? "…" : EXS[i][1], col, state == State.MENU, () -> start(id));
+            Ui.small(ctx, textRenderer, str ? "сила" : "выносливость", cx + cw / 2f, cy + ch - 9, 0.7f, 0xC0FFFFFF, 1);
+        }
         if (!deny.isEmpty() && System.currentTimeMillis() - denyAt < 4000) {
             int w = textRenderer.getWidth(deny) + 20;
-            Ui.slant(ctx, width / 2 - w / 2, y + ch + 4, w, 14, 4, 0xE0301018);
-            center(ctx, deny, width / 2, y + ch + 7, Ui.GOLD);
+            int dy = gy + 2 * (ch + gap);
+            Ui.slant(ctx, width / 2 - w / 2, dy, w, 14, 4, 0xE0301018);
+            center(ctx, deny, width / 2, dy + 3, Ui.GOLD);
         }
+    }
+
+    private void stat(DrawContext ctx, int x, int y, int w, String name, int value, int today, int color) {
+        ctx.drawText(textRenderer, name, x, y, color, true);
+        String v = value + "/" + StyleCatalog.STAT_MAX + "  +" + today + "/" + StyleCatalog.GYM_DAILY;
+        Ui.small(ctx, textRenderer, v, x + w, y + 1, 0.8f, Ui.WHITE, 2);
+        Ui.bar(ctx, x, y + 11, w, 4, value / (float) StyleCatalog.STAT_MAX, color);
+    }
+
+    /** Герой на панели упражнения: делает подход (жест gym_* у себя). */
+    private void heroAt(DrawContext ctx, int x, int y, int w, int h) {
+        ctx.enableScissor(x, y, x + w, y + h);
+        boolean lying = ex.equals("bench") || ex.equals("pushup");
+        float size = Math.min(h * (lying ? 0.32f : 0.36f), w * 0.5f);
+        StyleShopScreen.hero(ctx, x + w / 2f, y + h - 6 - (lying ? size * 0.2f : 0), size, lying ? 120 : 205);
+        ctx.disableScissor();
     }
 
     private void card(DrawContext ctx, int x, int y, int w, int h, String title, String stat, int value, int today, int color, String desc, String id) {
@@ -181,25 +217,10 @@ public class GymScreen extends LifeScreen {
         ctx.fill(gx - 7, my - 1, gx + 27, my + 2, Ui.WHITE);
         ctx.fill(gx - 9, my - 3, gx - 5, my + 4, Ui.GOLD);
         Ui.small(ctx, textRenderer, "ЖМИ!", gx + 10, gy + gh + 4, 0.8f, Ui.GOLD, 1);
-        // скамья, атлет и штанга
-        int cx = px + pw / 2 - 30, floor = y + ph - 22;
-        ctx.fill(cx - 70, floor, cx + 70, floor + 3, 0xFF393836);                 // пол
-        ctx.fill(cx - 50, floor - 22, cx + 40, floor - 16, 0xFF272726);           // скамья
-        ctx.fill(cx - 44, floor - 16, cx - 38, floor, 0xFF494846);
-        ctx.fill(cx + 28, floor - 16, cx + 34, floor, 0xFF494846);
-        ctx.fill(cx - 46, floor - 30, cx + 16, floor - 22, Ui.PINK);              // торс лёжа
-        ctx.fill(cx + 16, floor - 32, cx + 28, floor - 22, 0xFFE0B48F);           // голова
-        ctx.fill(cx - 66, floor - 26, cx - 46, floor - 20, 0xFF2F4A7A);           // ноги
-        ctx.fill(cx - 70, floor - 20, cx - 64, floor, 0xFF2F4A7A);
-        int barY = floor - 52 - (int) (lift * 26);
-        ctx.fill(cx - 22, barY + 2, cx - 18, floor - 28, 0xFFE0B48F);             // руки
-        ctx.fill(cx + 2, barY + 2, cx + 6, floor - 28, 0xFFE0B48F);
-        ctx.fill(cx - 64, barY, cx + 52, barY + 3, 0xFFD0D0D8);                   // гриф
-        for (int s : new int[]{-1, 1}) {
-            int bx = s < 0 ? cx - 62 : cx + 42;
-            ctx.fill(bx, barY - 13, bx + 8, barY + 16, 0xFF202028);
-            ctx.fill(bx + (s < 0 ? -7 : 8), barY - 10, bx + (s < 0 ? 0 : 15), barY + 13, Ui.RED);
-        }
+        // 0.9.6: сам герой на скамье со штангой
+        int cx = px + pw / 2 - 30;
+        heroAt(ctx, px + 70, y + 50, pw - 140, ph - 54);
+        int barY = y + 70 - (int) (lift * 10);
         float hitFlash = (System.currentTimeMillis() - lastHitAt) / 300f, missFlash = (System.currentTimeMillis() - lastMissAt) / 400f;
         if (hitFlash < 1) Ui.big(ctx, textRenderer, "+1", cx, barY - 30 - hitFlash * 10, 1.8f, Ui.alpha(Ui.MONEY, 1 - hitFlash), 1);
         if (missFlash < 1) Ui.big(ctx, textRenderer, "МИМО", cx, barY - 30, 1.5f, Ui.alpha(Ui.RED, 1 - missFlash), 1);
@@ -271,28 +292,9 @@ public class GymScreen extends LifeScreen {
         ctx.fill(x + (int) ((bandC - bandH) * w), gy, x + (int) ((bandC + bandH) * w), gy + 14, 0xE03CD070);
         int sx = x + (int) (MathHelper.clamp(speed, 0, 1) * w);
         ctx.fill(sx - 1, gy - 5, sx + 2, gy + 19, Ui.WHITE);
-        // дорожка и бегун
-        int lh = 14, ly = y + ph - 34;
-        int lx0 = px + pw / 2 - 90, lw = 180;
-        ctx.fill(lx0 + lw - 10, ly - 70, lx0 + lw - 4, ly, 0xFF606070);              // стойка с пультом
-        ctx.fill(lx0 + lw - 24, ly - 74, lx0 + lw + 2, ly - 66, 0xFF404050);
-        ctx.fill(lx0 + lw - 20, ly - 72, lx0 + lw - 6, ly - 68, Ui.alpha(Ui.CYAN, 0.8f));
-        ctx.fill(lx0, ly, lx0 + lw, ly + lh, 0xFF202028);
-        for (int i = -1; i < lw / 14 + 2; i++) {
-            int lx = lx0 + (int) (i * 14 - (belt % 14));
-            if (lx < lx0 || lx + 3 > lx0 + lw) continue;
-            ctx.fill(lx, ly + 2, lx + 3, ly + lh - 2, 0xFF3A3A48);
-        }
-        ctx.fill(lx0, ly + lh, lx0 + lw, ly + lh + 3, Ui.CYAN);
-        float step = MathHelper.sin(belt * 0.08f);
-        int rx = lx0 + lw / 2, ry = ly;
-        int bob = (int) (Math.abs(step) * 2);
-        ctx.fill(rx - 5, ry - 58 - bob, rx + 5, ry - 48 - bob, 0xFFE0B48F);          // голова
-        ctx.fill(rx - 7, ry - 48 - bob, rx + 7, ry - 26 - bob, Ui.PINK);             // торс
-        ctx.fill(rx - 3 + (int) (step * 9), ry - 46 - bob, rx + 2 + (int) (step * 9), ry - 32 - bob, 0xFFE0B48F); // руки
-        ctx.fill(rx - 3 - (int) (step * 9), ry - 46 - bob, rx + 2 - (int) (step * 9), ry - 32 - bob, 0xFFC09070);
-        ctx.fill(rx - 5 + (int) (step * 8), ry - 26, rx + (int) (step * 8), ry, 0xFF2F4A7A); // ноги
-        ctx.fill(rx - (int) (step * 8), ry - 26, rx + 5 - (int) (step * 8), ry, 0xFF233A62);
+        belt += 0;
+        // 0.9.6: сам герой на дорожке / приседает / в позе йоги
+        heroAt(ctx, px + 12, gy + 20, pw - 24, ph - (gy - y) - 22);
         if (finished) center(ctx, "Финиш! Считаем…", width / 2, y + ph + 4, Ui.GOLD);
         waitCheck();
     }
@@ -316,7 +318,7 @@ public class GymScreen extends LifeScreen {
 
     // ------------------------------------------------------------------ итог
     private void result(DrawContext ctx, int y) {
-        boolean str = ex.equals("bench");
+        boolean str = com.yompix.novograd.life.Style.STR_EX.contains(ex);
         int w = Math.min(260, width - 40), x = width / 2 - w / 2, h = 110;
         ctx.fill(x, y, x + w, y + h, 0xF0070707);
         Ui.panel(ctx, x, y, w, h, str ? Ui.RED : Ui.CYAN);
@@ -378,5 +380,16 @@ public class GymScreen extends LifeScreen {
 
     public void autostart(String which) {
         if (state == State.MENU) start(which);
+    }
+
+    @Override
+    public void removed() {
+        com.yompix.novograd.client.anim.PlayerAnim.play("none");
+        super.removed();
+    }
+
+    /** Для автотеста: начать упражнение. */
+    public void autotest(String which) {
+        start(which);
     }
 }

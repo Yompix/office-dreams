@@ -396,6 +396,8 @@ public final class Housing {
         Garage.init();
         Residents.init();
         LifeAi.init(); // мозг прохожих: нужды, характер, реакции, разговоры
+        Crowd.init(); // 0.9.7: плотность людей по районам, без толп у точек появления
+        Attention.init(); // 0.9.7: прохожие смотрят на быстрые машины и отскакивают с пути машины игрока
         Leisure.init(); // пляжи, ларьки с очередью, собачники, стройки, порт, патруль, клуб
         com.yompix.novograd.gta.StreetPerformers.init();
     }
@@ -522,6 +524,16 @@ public final class Housing {
         Life.message(p, "Риелтор", rented ? "Вы съехали: " + l.name + ". Машины из гаража — на штрафстоянке (телефон → «Дом»)."
                 : "Продано: " + l.name + " за $" + back + ". Машины из гаража — на штрафстоянке.");
         for (ServerPlayerEntity o : p.getServer().getPlayerManager().getPlayerList()) pins(o);
+    }
+
+    /** 0.9.8: изъятие банком в счёт кредита (gta/Loans): дом уходит, машины из гаража — на штрафстоянку. */
+    public static void repossess(MinecraftServer server, UUID who, String id) {
+        Listing l = BY_ID.get(id);
+        if (l == null) return;
+        ServerPlayerEntity p = server.getPlayerManager().getPlayer(who);
+        if (p != null && l.flag != null) Life.get(p).flags.remove(l.flag);
+        evict(server, who, l);
+        for (ServerPlayerEntity o : server.getPlayerManager().getPlayerList()) pins(o);
     }
 
     private static void evict(MinecraftServer server, UUID who, Listing l) {

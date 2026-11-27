@@ -29,7 +29,12 @@ public final class ChatStyle {
     private static final Map<String, Long> RECENT = new HashMap<>();
     private static final int[] NAME_COLORS = {0xFF6BD3FF, 0xFFFFC85A, 0xFF8BE36B, 0xFFFF7A8A, 0xFFC59BFF, 0xFF5AE0C8, 0xFFFFA25A};
 
+    /** Когда игрок последний раз отправил что-то из чата (команда — ответ на неё остаётся в чате). */
+    public static volatile long typedAt = -1;
+
     public static void init() {
+        net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.COMMAND.register(cmd -> typedAt = System.currentTimeMillis());
+        net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(m -> typedAt = System.currentTimeMillis());
         // когда в чате последний раз была строка (Quiet уводит строку статуса и цель вправо от чата, пока он виден);
         // отмечаем в ALLOW_* — свои строки мод перехватывает там же, и событие GAME/CHAT после этого не приходит
         ClientReceiveMessageEvents.ALLOW_GAME.register((msg, overlay) -> {
@@ -50,6 +55,17 @@ public final class ChatStyle {
             if (RECENT.size() > 200) RECENT.entrySet().removeIf(e -> now - e.getValue() > 60_000);
             if (last != null && now - last < 30_000) {
                 Quiet.LOG.addLast("чат, повтор: " + s);
+                return false;
+            }
+            // 0.9.6: чат — для игроков. Сообщения мода уходят во всплывашку и журнал; в чате — только ответ на свою команду
+            // (или если в настройках включено «Сообщения мода в чат»)
+            boolean typed = System.currentTimeMillis() - typedAt < 4000;
+            if (!typed && !NovogradConfig.get().modChat) {
+                var st0 = msg.getStyle().getColor() != null ? msg.getStyle() : msg.getSiblings().isEmpty() ? msg.getStyle() : msg.getSiblings().get(0).getStyle();
+                int col = st0.getColor() == null ? 0xFFFFFFFF : 0xFF000000 | st0.getColor().getRgb();
+                Quiet.LOG.addLast("сообщение: " + s);
+                while (Quiet.LOG.size() > 60) Quiet.LOG.pollFirst();
+                Quiet.notify(shorten(s, MAX), "", col);
                 return false;
             }
             if (s.length() <= MAX && s.startsWith("•")) return true;

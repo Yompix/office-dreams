@@ -96,7 +96,7 @@ final class GtaSteps {
         r.rivalIndex = 0;
         // игра с друзьями: если напарник на том же шаге уже вызвал соперника/банду/машину — делим их, а не спавним второй раз
         String type = Story.str(s, "type", "");
-        if (java.util.Set.of("steal", "clear", "chase", "carrace").contains(type)) {
+        if (Story.COOP && java.util.Set.of("steal", "clear", "chase", "carrace").contains(type)) {
             for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
                 if (q == p || !Story.active(q) || Story.stepKey(Life.get(q)) != Story.stepKey(d)) continue;
                 List<UUID> theirs = SPAWNED.get(q.getUuid());

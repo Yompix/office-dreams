@@ -83,6 +83,14 @@ public final class Minimap {
         pending = null;
     }
 
+    /** 0.9.6: на сколько поднять чат, чтобы он был над радаром (0 — радара нет). Низ чата в Minecraft — на 40 от низа экрана. */
+    public static int chatLift(DrawContext ctx) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.player == null || mc.options.hudHidden || !NovogradConfig.get().minimap || LifeHud.cinematic(mc)) return 0;
+        float K = NovogradConfig.hud();
+        return Math.max(0, (int) Math.ceil((96 + 22 + 8) * K) - 40 + 4);
+    }
+
     public static void render(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.world == null || mc.options.hudHidden || !NovogradConfig.get().minimap || LifeHud.cinematic(mc)) return;
@@ -188,10 +196,11 @@ public final class Minimap {
             int bx = (int) (cx + sxp * k), by = (int) (cy + syp * k);
             boolean pulse = (System.currentTimeMillis() / 400) % 2 == 0;
             if (o.getString("type").equals("free")) {
-                // метка новой миссии — жёлтая «М», как контакт в GTA
+                // метка новой миссии — жёлтая буква связного, как контакт в GTA (0.9.7: Д — Джейк, Б — Брик…)
+                String letter = o.getString("letter").isEmpty() ? "M" : o.getString("letter");
                 ctx.fill(bx - 5, by - 5, bx + 5, by + 5, 0xFF000000);
                 ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFFFFD000);
-                ctx.drawText(mc.textRenderer, "M", bx - 2, by - 3, 0xFF000000, false);
+                ctx.drawText(mc.textRenderer, letter, bx - mc.textRenderer.getWidth(letter) / 2, by - 3, 0xFF000000, false);
             } else {
                 ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFF000000);
                 ctx.fill(bx - 3, by - 3, bx + 3, by + 3, pulse ? 0xFFFFD000 : 0xFFFFE860);
@@ -205,6 +214,13 @@ public final class Minimap {
             }
         }
         if (!actLabel.isEmpty()) blip(ctx, mc, px, pz, actX, actZ, yaw, cx, cy, x, y, W, H, 0xFF3FD8FF, actLabel);
+        // 0.9.6: свои машины — всегда (последнее известное место; штрафстоянка — её место)
+        for (var e : com.yompix.novograd.client.city.MyCarsScreen.state.getList("list", 10)) {
+            var c = (net.minecraft.nbt.NbtCompound) e;
+            if (!c.contains("x")) continue;
+            String wh = c.getString("where");
+            blip(ctx, mc, px, pz, c.getDouble("x"), c.getDouble("z"), yaw, cx, cy, x, y, W, H, wh.equals("impound") ? 0xFFFFC428 : 0xFF00C8A0, "");
+        }
         if (actTimer >= 0) {
             String ts = String.format("%d:%02d", actTimer / 60, actTimer % 60);
             ctx.drawText(mc.textRenderer, ts, x + W - mc.textRenderer.getWidth(ts) - 3, y + 3, actTimer < 15 ? 0xFFFF5050 : 0xFFFFFFFF, true);

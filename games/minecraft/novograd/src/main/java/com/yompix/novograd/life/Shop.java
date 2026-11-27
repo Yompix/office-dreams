@@ -176,7 +176,9 @@ public final class Shop {
         }
         int cost = price(e, delivery, CityLife.event(p.getServerWorld()));
         // у оружейника берут и грязные наличные (чёрный рынок), в остальных магазинах — только чистые с карты
+        boolean cashPay = HandUses.paysCash(p, cost);
         if (gunCategory(e.category()) ? !com.yompix.novograd.gta.Economy.payBlack(p, cost, e.name()) : !Life.pay(p, cost, e.name())) return;
+        if (!delivery) HandUses.checkout(p, cashPay || gunCategory(e.category()), null); // 0.9.8: на кассе — карта или наличные
         if (e.category().equals("Питомцы")) {
             pet(p, e.name());
             return;

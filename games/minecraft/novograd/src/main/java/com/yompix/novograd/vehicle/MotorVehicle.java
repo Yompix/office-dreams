@@ -132,11 +132,12 @@ public abstract class MotorVehicle extends CarEntity {
                 if (pendingCrash > 0) {
                     if (h < 0.3 && d.y > -0.15) crash(pendingCrash);
                     pendingCrash = 0;
-                } else if (lastH > crashSpeed() && h < lastH * 0.35) pendingCrash = (float) (lastH - h) * crashDamage();
-                else if (lastVy < -0.55 && d.y > -0.08 && landed) pendingCrash = (float) -lastVy * crashDamage();
+                } else if (lastH > crashSpeed() && h < lastH * 0.35 && obstacleAhead(lastDir)) pendingCrash = (float) (lastH - h) * crashDamage();
+                else if (lastVy < -0.55 && d.y > -0.08 && landed && obstacleAhead(new Vec3d(0, -1, 0))) pendingCrash = (float) -lastVy * crashDamage();
             }
             lastH = h;
             lastVy = d.y;
+            if (h > 0.05) lastDir = new Vec3d(d.x, 0, d.z).normalize();
         }
         lastPos = pos;
         if (wrecked()) {
@@ -146,6 +147,27 @@ public abstract class MotorVehicle extends CarEntity {
             }
         }
         serverTick();
+    }
+
+    private Vec3d lastDir = Vec3d.ZERO;
+
+    /**
+     * 0.9.6: удар засчитываем, только если впереди по ходу правда что-то твёрдое. Раньше вертолёт взрывался «сам»:
+     * у машины игрока позицию шлёт клиент, и любая заминка клиента (вид от третьего лица, подгрузка мира на скорости)
+     * выглядела для сервера как остановка на полном ходу — удар на 60–140 урона. Листва (задел крону) — не удар.
+     */
+    protected boolean obstacleAhead(Vec3d dir) {
+        if (dir.lengthSquared() < 1e-4) return false;
+        var w = getWorld();
+        net.minecraft.util.math.Box b = getBoundingBox().offset(dir.multiply(0.6)).contract(0.05, 0.1, 0.05).offset(0, 0.1, 0);
+        for (var bp : net.minecraft.util.math.BlockPos.iterate(net.minecraft.util.math.BlockPos.ofFloored(b.minX, b.minY, b.minZ),
+                net.minecraft.util.math.BlockPos.ofFloored(b.maxX, b.maxY, b.maxZ))) {
+            var st = w.getBlockState(bp);
+            if (st.isAir() || st.isIn(net.minecraft.registry.tag.BlockTags.LEAVES) || st.getCollisionShape(w, bp).isEmpty()) continue;
+            return true;
+        }
+        // врезался в другую машину
+        return !w.getOtherEntities(this, b, e -> e instanceof CarEntity && !hasPassenger(e)).isEmpty();
     }
 
     protected double crashSpeed() {

@@ -36,12 +36,14 @@ public final class ShowAutotest {
     private static final List<Step> STEPS = new ArrayList<>();
     private static int index = -1, timer;
     private static final String P = "Dev";
-    private static Vec3d base;
-    private static Runnable perTick;
+    static Vec3d base;
+    static Runnable perTick;
 
     public static void init() {
         String mode = System.getProperty("novograd.autotest");
-        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife"))) return;
+        if (mode == null || !(mode.equals("animshow") || mode.equals("lookshow") || mode.equals("gridshow") || mode.equals("ailife")
+                || mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow") || mode.equals("bankshow") || mode.equals("gaitshow"))) return;
         com.yompix.novograd.client.story.YompixSplash.markShown();
         com.yompix.novograd.client.story.CineRec.armed = false;
         run(60, ShowAutotest::openWorld);
@@ -53,15 +55,33 @@ public final class ShowAutotest {
         cmd(5, "gamerule doMobSpawning false");
         cmd(5, "clear " + P);
         cmd(5, "effect clear " + P);
+        if (mode.equals("lookgrid") || mode.equals("crowd") || mode.equals("creatorshow") || mode.equals("mpload") || mode.equals("gymshow")
+                || mode.equals("bodyshow") || mode.equals("agetest") || mode.equals("spawnmap") || mode.equals("handshow")) server(5, s -> {
+            var d = com.yompix.novograd.life.Life.get(pl(s));
+            d.storyStarted = true;
+            d.storyDone = true;
+            com.yompix.novograd.life.Life.sync(pl(s));
+        });
         if (mode.equals("animshow")) animshow();
         else if (mode.equals("gridshow")) cityshow();
         else if (mode.equals("ailife")) ailife();
+        else if (mode.equals("lookgrid")) lookgrid();
+        else if (mode.equals("crowd")) crowd();
+        else if (mode.equals("creatorshow")) creatorshow();
+        else if (mode.equals("mpload")) mpload();
+        else if (mode.equals("gymshow")) gymshow();
+        else if (mode.equals("bodyshow")) BodyShow.bodyshow();
+        else if (mode.equals("agetest")) BodyShow.agetest();
+        else if (mode.equals("spawnmap")) BodyShow.spawnmap();
+        else if (mode.equals("handshow")) HandShow.handshow(); // 0.9.8: «Руки»
+        else if (mode.equals("bankshow")) HandShow.bankshow(); // 0.9.8: «Сити-Банк» до/после
+        else if (mode.equals("gaitshow")) HandShow.gaitshow(); // 0.9.8: походка до/после
         else lookshow();
         ClientTickEvents.END_CLIENT_TICK.register(ShowAutotest::tick);
     }
 
     // ===================================================================== анимации игрока
-    private static void key(MinecraftClient c, net.minecraft.client.option.KeyBinding k, boolean on) {
+    static void key(MinecraftClient c, net.minecraft.client.option.KeyBinding k, boolean on) {
         k.setPressed(on);
     }
 
@@ -173,7 +193,7 @@ public final class ShowAutotest {
         label(1, what);
     }
 
-    private static void tp(String place, double dx, double dz, float yaw, float pitch) {
+    static void tp(String place, double dx, double dz, float yaw, float pitch) {
         server(1, s -> {
             ServerPlayerEntity p = pl(s);
             var w = p.getServerWorld();
@@ -265,6 +285,7 @@ public final class ShowAutotest {
     private static final java.util.Set<String> AI_ALL = new java.util.TreeSet<>();
     private static final java.util.Map<java.util.UUID, Object[]> AI_CARS = new java.util.HashMap<>(); // машина → {позиция, с какого тика стоит}
     private static int aiStuck;
+    private static final java.util.Map<String, Integer> AI_IDLE_KIND = new java.util.TreeMap<>(), AI_ALL_KIND = new java.util.TreeMap<>();
     private static double aiMspt;
     private static int aiMsptN;
 
@@ -276,7 +297,17 @@ public final class ShowAutotest {
             boolean idle = c.getActivity() == CitizenEntity.Activity.IDLE && c.directTo == null && !c.hasVehicle() && c.getNavigation().isIdle();
             int[] k = AI_SAMPLES.computeIfAbsent(c.getId(), x -> new int[2]);
             k[0]++;
-            if (idle) k[1]++;
+            if (idle) {
+                k[1]++;
+                // 0.9.7: кто именно «без дела» — чтобы понять, откуда процент
+                String kind = c.getRole() != CitizenEntity.Role.CITIZEN ? c.getRole().name() : !c.getStoryId().isEmpty() ? "герой"
+                        : c.getCommandTags().contains(com.yompix.novograd.world.Residents.TAG) ? "жилец" : c.isStationary() ? "стоит_на_месте(персонал)"
+                        : c.isAmbient() ? "прохожий" : "прочие";
+                AI_IDLE_KIND.merge(kind, 1, Integer::sum);
+            }
+            AI_ALL_KIND.merge(c.getRole() != CitizenEntity.Role.CITIZEN ? c.getRole().name() : !c.getStoryId().isEmpty() ? "герой"
+                    : c.getCommandTags().contains(com.yompix.novograd.world.Residents.TAG) ? "жилец" : c.isStationary() ? "стоит_на_месте(персонал)"
+                    : c.isAmbient() ? "прохожий" : "прочие", 1, Integer::sum);
             if (!idle) {
                 AI_ACTS.computeIfAbsent(c.getId(), x -> new java.util.HashSet<>()).add(a);
                 AI_ALL.add(a);
@@ -344,6 +375,8 @@ public final class ShowAutotest {
             int active = (int) AI_ACTS.values().stream().filter(x -> x.size() >= 2).count();
             Novograd.LOG.info("[ailife] горожан {} (долго в кадре), занятий всего {}: {}", n, AI_ALL.size(), AI_ALL);
             Novograd.LOG.info("[ailife] без дела: в среднем {}%, худший {}%; с ≥2 занятиями {}", n == 0 ? 0 : (int) (sum / n), worst, active);
+            Novograd.LOG.info("[ailife] без дела по видам (замеров): {} из {}; отскоков {}, засмотрелись {}", AI_IDLE_KIND, AI_ALL_KIND,
+                    com.yompix.novograd.world.Attention.dodges, com.yompix.novograd.world.Attention.gazes);
             Novograd.LOG.info("[ailife] поездки на своей машине: начато {} доехало {}; машин стояло >30 с: {}", com.yompix.novograd.world.Residents.tripsStarted,
                     com.yompix.novograd.world.Residents.tripsArrived, aiStuck);
             Novograd.LOG.info("[ailife] полиция без вызова: штрафов {} разговоров {} кофе {} обходов {}; mspt в среднем {}", com.yompix.novograd.gta.PoliceLife.tickets,
@@ -436,19 +469,372 @@ public final class ShowAutotest {
         SPAWNED.add(c.getUuid());
     }
 
-    private static final List<java.util.UUID> SPAWNED = new ArrayList<>();
+    static final List<java.util.UUID> SPAWNED = new ArrayList<>();
+
+    // ===================================================================== 0.9.6: редактор внешности и разнообразие жителей
+    /** Зерно жителя из генератора с нужным полом и тоном кожи (для витрины «все тона»). */
+    static long seedFor(boolean female, int tone, int profile, long from) {
+        for (long k = from; k < from + 20000; k++) {
+            long sd = com.yompix.novograd.life.LookGen.citizenSeed(k * 1_000_003L, female, profile);
+            var a = com.yompix.novograd.life.LookGen.citizen(sd);
+            if (a.skin == tone && !com.yompix.novograd.life.LookGen.heroLike(a)) return sd;
+        }
+        return com.yompix.novograd.life.LookGen.citizenSeed(from, female, profile);
+    }
+
+    static CitizenEntity genCitizen(net.minecraft.server.world.ServerWorld w, long seed) {
+        CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
+        boolean f = com.yompix.novograd.life.LookGen.female(seed);
+        int skin = Looks.RANDOM_FROM + (f ? 0 : 1) + 2 * w.getRandom().nextInt(Looks.RANDOM_COUNT / 2 - 4);
+        c.setup(skin, CitizenEntity.Role.CITIZEN, true, com.yompix.novograd.life.Names.random(w.getRandom(), f));
+        return c;
+    }
+
+    /** Лист: 3 снимка по 8 жителей (24: мужчины и женщины, все 10 тонов кожи, разные профили) — склеивает tools/contact_sheet.py. */
+    /** Студия над городом: белый пол и фон (без мусора улиц на снимках). */
+    static Vec3d studio(ServerPlayerEntity p) {
+        var w = p.getServerWorld();
+        int x0 = (int) Math.floor(p.getX()) & ~15, z0 = (int) Math.floor(p.getZ()) & ~15, y0 = 200;
+        var cs = w.getServer().getCommandManager();
+        var src = w.getServer().getCommandSource().withSilent();
+        cs.executeWithPrefix(src, String.format("fill %d %d %d %d %d %d minecraft:smooth_quartz", x0 - 16, y0, z0 - 6, x0 + 16, y0, z0 + 14));
+        cs.executeWithPrefix(src, String.format("fill %d %d %d %d %d %d minecraft:light_gray_concrete", x0 - 16, y0 + 1, z0 - 6, x0 + 16, y0 + 8, z0 - 6));
+        cs.executeWithPrefix(src, String.format("fill %d %d %d %d %d %d minecraft:air", x0 - 16, y0 + 1, z0 - 5, x0 + 16, y0 + 10, z0 + 14));
+        return new Vec3d(x0 + 0.5, y0 + 1, z0 + 0.5);
+    }
+
+    private static void lookgrid() {
+        cmd(5, "time set 6000");
+        cmd(5, "weather clear");
+        cmd(5, "gamerule doDaylightCycle false");
+        run(120, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            base = studio(p);
+            p.teleport(p.getServerWorld(), base.x, base.y + 0.3, base.z + 9.2, 180, 4);
+            p.getAbilities().flying = true;
+            p.sendAbilitiesUpdate();
+        });
+        run(100, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        server(5, s -> pl(s).teleport(pl(s).getServerWorld(), base.x, base.y - 0.45, base.z + 7.4, 180, 3));
+        run(100, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        for (int g = 0; g < 3; g++) {
+            final int gg = g;
+            server(gg == 0 ? 10 : 2, s -> {
+                ServerPlayerEntity p = pl(s);
+                var w = p.getServerWorld();
+                Vec3d at = base;
+                for (var u : SPAWNED) if (w.getEntity(u) != null) w.getEntity(u).discard();
+                SPAWNED.clear();
+            for (int i = 0; i < 8; i++) {
+                    int k = gg * 8 + i;
+                    boolean f = k % 2 == 1;
+                    int tone = (k * 10) / 24;
+                    long sd = seedFor(f, tone, k % com.yompix.novograd.life.LookGen.PROFILE_NAMES.length, 1000L * k + 7);
+                    CitizenEntity c = genCitizen(w, sd);
+                    place(w, c, at.add(-5.25 + i * 1.5, 0, 0));
+                    c.forceLook(sd);
+                    c.lockActivity(CitizenEntity.Activity.IDLE);
+                    c.setCustomNameVisible(false);
+                    var a = com.yompix.novograd.life.LookGen.citizen(sd);
+                    Novograd.LOG.info("[lookgrid] {} {} тон {} {} профиль {} верх {} низ {} причёска {}", k, f ? "Ж" : "М", a.skin,
+                            com.yompix.novograd.life.LookGen.PROFILE_NAMES[com.yompix.novograd.life.LookGen.profile(sd)], "", a.top, a.pants, a.hair);
+                }
+                p.teleport(w, at.x, at.y - 0.45, at.z + 7.4, 180, 3);
+                Novograd.LOG.info("[lookgrid] студия {} игрок {}", at, p.getPos());
+                p.getAbilities().flying = true;
+                p.sendAbilitiesUpdate();
+            });
+            run(gg == 0 ? 60 : 5, c -> {
+                if (c.currentScreen != null) c.setScreen(null);
+                c.options.setPerspective(Perspective.FIRST_PERSON);
+                c.options.hudHidden = true;
+                c.options.getFov().setValue(52);
+            });
+            run(70, c -> shot(c, "lookgrid_" + gg));
+            // крупно лица: средние четверо
+            server(1, s -> {
+                ServerPlayerEntity p = pl(s);
+                p.teleport(p.getServerWorld(), base.x - 0.75, base.y + 0.05, base.z + 3.4, 180, 2);
+            });
+            run(25, c -> c.options.getFov().setValue(40));
+            run(20, c -> shot(c, "lookface_" + gg));
+        }
+        // сами скины (128×128) — для листа и проверки пикселей
+        run(1, c -> {
+            java.io.File dir = new java.io.File(c.runDirectory, "screenshots/show/skins");
+            dir.mkdirs();
+            for (int k = 0; k < 24; k++) {
+                long sd = seedFor(k % 2 == 1, (k * 10) / 24, k % com.yompix.novograd.life.LookGen.PROFILE_NAMES.length, 1000L * k + 7);
+                try (var img = com.yompix.novograd.client.style.SkinComposer.compose(com.yompix.novograd.life.LookGen.citizen(sd))) {
+                    img.writeTo(new java.io.File(dir, String.format("skin_%02d.png", k)));
+                } catch (Exception e) {
+                    Novograd.LOG.warn("[lookgrid] скин {}: {}", k, e.toString());
+                }
+            }
+        });
+        finish();
+    }
+
+    /** Толпа: 40 жителей из генератора гуляют по площади; FPS с новыми скинами и с прежними (те же люди), потом ролик. */
+    private static final List<Integer> FPS = new ArrayList<>();
+
+    private static void crowd() {
+        String place = System.getProperty("novograd.lookplace", "park_center");
+        int n = Integer.getInteger("novograd.crowd", 40);
+        cmd(5, "time set 6000");
+        cmd(5, "weather clear");
+        cmd(5, "gamerule doDaylightCycle false");
+        cmd(5, "effect give " + P + " minecraft:invisibility 99999 0 true");
+        // телепорт дважды: первый до загрузки клиента иногда не доходит
+        for (int k = 0; k < 2; k++) server(k == 0 ? 5 : 100, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            Vec3d at = Story.place(w, place);
+            if (at == null) at = p.getPos();
+            base = at;
+            BlockPos gnd = Story.ground(w, at);
+            p.teleport(w, at.x - 9, gnd.getY() + 4.5, at.z - 9, -45, 22);
+            p.getAbilities().flying = true;
+            p.sendAbilitiesUpdate();
+        });
+        run(80, c -> {
+            if (c.currentScreen != null) c.setScreen(null);
+            c.options.setPerspective(Perspective.FIRST_PERSON);
+            c.options.hudHidden = true;
+        });
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            SPAWNED.clear();
+            var r = new java.util.Random(96);
+            for (int i = 0; i < n; i++) {
+                boolean f = r.nextBoolean();
+                long sd = com.yompix.novograd.life.LookGen.citizenSeed(r.nextLong(), f, r.nextInt(com.yompix.novograd.life.LookGen.PROFILE_NAMES.length));
+                CitizenEntity c = genCitizen(w, sd);
+                Vec3d q = base.add(r.nextGaussian() * 5, 0, r.nextGaussian() * 5);
+                BlockPos g = Story.ground(w, q);
+                c.refreshPositionAndAngles(q.x, g.getY(), q.z, r.nextFloat() * 360, 0);
+                w.spawnEntity(c);
+                c.setStationary(false);
+                c.forceLook(sd);
+                SPAWNED.add(c.getUuid());
+            }
+            Novograd.LOG.info("[crowd] поставлено {} жителей у {}", n, base);
+        });
+        run(120, c -> FPS.clear());
+        String[] phase = {"новые скины", "старые скины", "новые скины (снова)"};
+        for (int ph = 0; ph < 3; ph++) {
+            final int fph = ph;
+            if (ph > 0) server(1, s -> {
+                var w = pl(s).getServerWorld();
+                for (var u : SPAWNED) if (w.getEntity(u) instanceof CitizenEntity c) {
+                    if (fph == 1) {
+                        c.getCommandTags().add("seed:" + c.getLookSeed());
+                        c.forceLook(0);
+                    } else for (String t : c.getCommandTags()) if (t.startsWith("seed:")) c.forceLook(Long.parseLong(t.substring(5)));
+                }
+            });
+            run(60, c -> FPS.clear());
+            for (int i = 0; i < 12; i++) run(20, c -> FPS.add(c.getCurrentFps()));
+            run(1, c -> Novograd.LOG.info("[crowd] FPS {}: {} среднее {} (жителей в кадре {}, скинов собрано {}, {} мс на скин)", phase[fph], FPS, avg(FPS),
+                    c.world == null ? 0 : c.world.getEntitiesByClass(CitizenEntity.class, c.player.getBoundingBox().expand(40), x -> true).size(),
+                    com.yompix.novograd.client.style.SkinComposer.built,
+                    String.format(java.util.Locale.ROOT, "%.2f", com.yompix.novograd.client.style.SkinComposer.built == 0 ? 0 : com.yompix.novograd.client.style.SkinComposer.builtNanos / 1e6 / com.yompix.novograd.client.style.SkinComposer.built)));
+        }
+        run(40, c -> shot(c, "crowd_wide"));
+        // ролик: камера медленно идёт вокруг толпы
+        cmd(5, "tick rate " + System.getProperty("novograd.rectps", "5"));
+        run(5, c -> rec(c));
+        final int[] t = {0};
+        run(1, c -> perTick = () -> {
+            var pl = c.player;
+            if (pl == null || base == null) return;
+            t[0]++;
+            double k = Math.min(1, t[0] / 260.0);
+            double ang = Math.toRadians(-135 + 100 * k);
+            double x = base.x + Math.cos(ang) * 9, z = base.z + Math.sin(ang) * 9, y = base.y + 2.6;
+            pl.setPosition(x, y, z);
+            pl.setVelocity(Vec3d.ZERO);
+            float yaw = (float) Math.toDegrees(Math.atan2(-(base.x - x), base.z - z));
+            pl.setYaw(yaw);
+            pl.prevYaw = yaw;
+            pl.setPitch(14);
+            pl.prevPitch = 14;
+        });
+        label(270, "толпа");
+        run(1, c -> perTick = null);
+        run(5, c -> shot(c, "crowd_end"));
+        finish();
+    }
+
+    private static int avg(List<Integer> l) {
+        return l.isEmpty() ? 0 : (int) Math.round(l.stream().mapToInt(Integer::intValue).average().orElse(0));
+    }
+
+    /** Ролик редактора: вкладки, «случайно», пол, приближение. */
+    private static void creatorshow() {
+        server(10, s -> {
+            ServerPlayerEntity p = pl(s);
+            var w = p.getServerWorld();
+            Vec3d at = Story.place(w, "park_center");
+            if (at != null) p.teleport(w, at.x, Story.ground(w, at).getY(), at.z, 0, 0);
+            p.getInventory().selectedSlot = 8;
+        });
+        cmd(5, "gamemode survival " + P);
+        run(40, c -> {
+            c.options.hudHidden = false;
+            c.setScreen(new com.yompix.novograd.client.style.CreatorScreen(com.yompix.novograd.client.style.CreatorScreen.Mode.FIRST));
+        });
+        run(20, c -> rec(c));
+        String[] steps = {"tab0", "wait", "gender", "wait", "tone", "tone", "tone", "tab2", "hair", "hair", "hair", "haircolor", "wait", "tab1", "eyes", "lips",
+                "tab3", "top", "top", "outer", "wait", "tab4", "hat", "glasses", "bag", "zoom", "wait", "rot", "zoom", "random", "random", "random", "random",
+                "gender", "random", "random", "tab5", "tat", "wait", "tab0", "build", "build", "wait"};
+        for (String st : steps) run(st.equals("wait") ? 30 : 22, c -> {
+            if (c.currentScreen instanceof com.yompix.novograd.client.style.CreatorScreen cs) cs.demo(st);
+        });
+        run(40, c -> c.setScreen(null));
+        finish();
+    }
+
+    // ===================================================================== 0.9.6: много игроков (FakePlayer) — состояние у каждого своё, MSPT
+    private static final List<net.fabricmc.fabric.api.entity.FakePlayer> BOTS = new ArrayList<>();
+    private static final List<Double> MSPT = new ArrayList<>();
+
+    private static void mpload() {
+        String[] places = {"dt_1", "dt_3", "port_dock", "beach_bar", "suburb_street", "industry_street", "riv_strip", "riv_marina", "airfield", "village",
+                "mirage_strip", "club_neon"};
+        cmd(5, "gamerule doDaylightCycle false");
+        server(10, s -> {
+            var w = s.getOverworld();
+            for (int i = 0; i < places.length; i++) {
+                var fp = net.fabricmc.fabric.api.entity.FakePlayer.get(w, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(("bot" + i).getBytes()), "Bot" + i));
+                Vec3d at = Story.place(w, places[i]);
+                if (at == null) continue;
+                fp.refreshPositionAndAngles(at.x, at.y, at.z, 0, 0);
+                var d = com.yompix.novograd.life.Life.get(fp);
+                d.money = 1000 * (i + 1);
+                d.cash = 100 * (i + 1);
+                d.dirty = 0;
+                BOTS.add(fp);
+                // «игрок» в районе: держим район загруженным, как будто там кто-то есть
+                w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.FORCED, new net.minecraft.util.math.ChunkPos(BlockPos.ofFloored(at)), 3,
+                        new net.minecraft.util.math.ChunkPos(BlockPos.ofFloored(at)));
+            }
+            Novograd.LOG.info("[mpload] ботов {}", BOTS.size());
+        });
+        run(200, c -> MSPT.clear());
+        for (int i = 0; i < 30; i++) server(20, s -> MSPT.add(s.getAverageNanosPerTick() / 1e6));
+        // действия «каждый сам за себя»: платежи, розыск, машина — у одного бота не должно меняться у другого
+        server(1, s -> {
+            int leaks = 0;
+            var w = s.getOverworld();
+            for (int i = 0; i < BOTS.size(); i++) {
+                var fp = BOTS.get(i);
+                var d = com.yompix.novograd.life.Life.get(fp);
+                if (i % 2 == 0) com.yompix.novograd.gta.Money.pay(d, 500);
+                if (i == 3) com.yompix.novograd.gta.Wanted.add(fp, 3, "тест", 3);
+                if (i == 5) {
+                    var car = new com.yompix.novograd.entity.CarEntity(ModContent.CAR, w);
+                    car.refreshPositionAndAngles(fp.getX() + 3, fp.getY(), fp.getZ(), 0, 0);
+                    car.setOwner(fp.getUuid());
+                    w.spawnEntity(car);
+                    SPAWNED.add(car.getUuid());
+                }
+            }
+            for (int i = 0; i < BOTS.size(); i++) {
+                var fp = BOTS.get(i);
+                var d = com.yompix.novograd.life.Life.get(fp);
+                long expect = 1000L * (i + 1) + 100L * (i + 1) - (i % 2 == 0 ? 500 : 0);
+                if (d.money + d.cash != expect) {
+                    leaks++;
+                    Novograd.LOG.info("[mpload] УТЕЧКА денег у бота {}: {} вместо {}", i, d.money + d.cash, expect);
+                }
+                int st = com.yompix.novograd.gta.Wanted.stars(fp);
+                if (i == 3 ? st < 3 : st != 0) {
+                    leaks++;
+                    Novograd.LOG.info("[mpload] УТЕЧКА розыска у бота {}: {}", i, st);
+                }
+            }
+            Novograd.LOG.info("[mpload] утечек состояния между игроками: {}", leaks);
+            com.yompix.novograd.gta.Wanted.clear(BOTS.get(Math.min(3, BOTS.size() - 1)));
+        });
+        run(120, c -> {});
+        server(1, s -> {
+            int cars = 0;
+            var st = com.yompix.novograd.gta.MyCars.state(s);
+            for (int i = 0; i < BOTS.size(); i++) cars += st.cars.getOrDefault(BOTS.get(i).getUuid(), java.util.Map.of()).size();
+            int cit = 0, allCars = 0;
+            for (var e : s.getOverworld().iterateEntities()) {
+                if (e instanceof CitizenEntity) cit++;
+                else if (e instanceof com.yompix.novograd.entity.CarEntity) allCars++;
+            }
+            double avg = MSPT.stream().mapToDouble(Double::doubleValue).average().orElse(0), max = MSPT.stream().mapToDouble(Double::doubleValue).max().orElse(0);
+            Novograd.LOG.info("[mpload] {} районов загружено, MSPT среднее {} макс {}, жителей {}, машин {}, машин ботов в «Мои машины» {}",
+                    BOTS.size(), String.format(java.util.Locale.ROOT, "%.1f", avg), String.format(java.util.Locale.ROOT, "%.1f", max), cit, allCars, cars);
+            var w = s.getOverworld();
+            for (var fp : BOTS) w.getChunkManager().removeTicket(net.minecraft.server.world.ChunkTicketType.FORCED, new net.minecraft.util.math.ChunkPos(fp.getBlockPos()), 3,
+                    new net.minecraft.util.math.ChunkPos(fp.getBlockPos()));
+        });
+        finish();
+    }
+
+    /** Спортзал: все 8 упражнений по очереди от третьего лица (снимки) — у себя, как у других игроков. */
+    private static void gymshow() {
+        cmd(5, "time set 6000");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            base = studio(p);
+            p.teleport(p.getServerWorld(), base.x, base.y, base.z, 150, 10);
+            p.getAbilities().flying = false;
+            p.sendAbilitiesUpdate();
+            var d = com.yompix.novograd.life.Life.get(p);
+            d.look = com.yompix.novograd.life.LookGen.generate(42, false, com.yompix.novograd.life.LookGen.SPORT, false);
+            com.yompix.novograd.life.Life.sync(p);
+            com.yompix.novograd.life.Style.broadcast(p);
+        });
+        run(100, c -> {
+            if (c.currentScreen != null) c.setScreen(null);
+            c.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+            c.options.hudHidden = true;
+        });
+        server(5, s -> pl(s).teleport(pl(s).getServerWorld(), base.x, base.y, base.z, 150, 10));
+        run(60, c -> rec(c));
+        for (String ex : new String[]{"curl", "bench", "pullup", "bag", "pushup", "run", "squat", "yoga"}) {
+            run(5, c -> com.yompix.novograd.client.anim.PlayerAnim.play("gym_" + ex));
+            run(50, c -> shot(c, "gym_" + ex));
+            run(30, c -> {});
+        }
+        run(5, c -> com.yompix.novograd.client.anim.PlayerAnim.play("none"));
+        // экран зала
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.style.GymScreen()));
+        run(40, c -> shot(c, "gym_menu"));
+        run(5, c -> c.setScreen(null));
+        finish();
+    }
+
+    static void shot(MinecraftClient c, String name) {
+        try (var img = net.minecraft.client.util.ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
+            java.io.File dir = new java.io.File(c.runDirectory, "screenshots/show");
+            dir.mkdirs();
+            img.writeTo(new java.io.File(dir, name + ".png"));
+            Novograd.LOG.info("[show] снимок {} игрок {} камера {} экран {} пауза {}", name, c.player == null ? null : c.player.getPos(), c.gameRenderer.getCamera().getPos(), c.currentScreen, c.isPaused());
+        } catch (Exception e) {
+            Novograd.LOG.warn("[show] снимок {}: {}", name, e.toString());
+        }
+    }
 
     // ===================================================================== служебное
-    private static void rec(MinecraftClient c) {
+    static void rec(MinecraftClient c) {
         String rec = System.getProperty("novograd.rec");
         if (rec != null) com.yompix.novograd.client.story.CineRec.start(rec, 30);
     }
 
-    private static void label(int delay, String what) {
+    static void label(int delay, String what) {
         run(delay, c -> Novograd.LOG.info("[show] {}", what));
     }
 
-    private static void finish() {
+    static void finish() {
         server(1, s -> { // поставленных для ролика — убрать из мира
             var w = s.getOverworld();
             for (var u : SPAWNED) if (w.getEntity(u) != null) w.getEntity(u).discard();
@@ -496,19 +882,19 @@ public final class ShowAutotest {
         if (index < STEPS.size()) timer = STEPS.get(index).delay();
     }
 
-    private static ServerPlayerEntity pl(IntegratedServer s) {
+    static ServerPlayerEntity pl(IntegratedServer s) {
         return s.getPlayerManager().getPlayer(P);
     }
 
-    private static void run(int delay, Consumer<MinecraftClient> a) {
+    static void run(int delay, Consumer<MinecraftClient> a) {
         STEPS.add(new Step(delay, a));
     }
 
-    private static void cmd(int delay, String command) {
+    static void cmd(int delay, String command) {
         server(delay, s -> s.getCommandManager().executeWithPrefix(s.getCommandSource(), command));
     }
 
-    private static void server(int delay, Consumer<IntegratedServer> action) {
+    static void server(int delay, Consumer<IntegratedServer> action) {
         STEPS.add(new Step(delay, c -> {
             IntegratedServer s = c.getServer();
             if (s != null) s.execute(() -> {

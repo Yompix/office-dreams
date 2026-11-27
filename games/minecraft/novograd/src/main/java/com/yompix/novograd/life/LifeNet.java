@@ -51,6 +51,7 @@ public final class LifeNet {
         PayloadTypeRegistry.playC2S().register(C2S.ID, C2S.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(C2S.ID, (payload, ctx) -> {
             ServerPlayerEntity p = ctx.player();
+            if (!Admin.allow(p)) return; // 0.9.6: лимит пакетов от одного игрока
             try {
                 handle(p, payload.type(), payload.data());
             } catch (RuntimeException e) {
@@ -63,7 +64,8 @@ public final class LifeNet {
         ServerPlayNetworking.send(p, new S2C(type, data));
     }
 
-    private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none");
+    private static final java.util.Set<String> EMOTES = java.util.Set.of("wave", "dance", "dance2", "point", "sit", "facepalm", "salute", "phone", "none",
+            "gym_curl", "gym_bench", "gym_pullup", "gym_bag", "gym_pushup", "gym_run", "gym_squat", "gym_yoga", "phone_ear", "phone_text");
 
     /** 0.8: разослать жест игрокам в том же мире ближе 160 блоков (только внешний вид, без механики). */
     private static void emote(ServerPlayerEntity p, String id) {
@@ -76,8 +78,18 @@ public final class LifeNet {
     }
 
     private static void handle(ServerPlayerEntity p, String type, NbtCompound d) {
+        String scope = com.yompix.novograd.story.Npcs.push(p); // 0.9.7: герои сюжета — этого игрока
+        try {
+            handleScoped(p, type, d);
+        } finally {
+            com.yompix.novograd.story.Npcs.pop(scope);
+        }
+    }
+
+    private static void handleScoped(ServerPlayerEntity p, String type, NbtCompound d) {
         switch (type) {
             case "hello" -> Life.sync(p);
+            case "age" -> AgeGate.report(p, d); // 0.9.7: проверка возраста (ответ клиента)
             case "emote" -> emote(p, d.getString("id"));
             // 0.9: прогресс, «Империя», «Сеть», значки карты
             case "progress_state" -> com.yompix.novograd.gta.Progress.send(p);
@@ -117,12 +129,20 @@ public final class LifeNet {
             case "taxi_order" -> Jobs.takeTaxiOrder(p);
             case "work_answer" -> Jobs.answer(p, d);
             case "transfer" -> transfer(p, d.getString("to"), d.getInt("amount"));
-            case "atm" -> Bank.atm(p, d.getString("action"), d.getInt("amount"));
-            case "bj" -> OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet"));
-            case "crash_start" -> OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto"));
-            case "cg" -> CasinoGames.handle(p, d); // покер, кости, колесо, бега, плинко, мины
-            case "crash_cashout" -> OnlineCasino.crashCashout(p);
-            case "coin" -> OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads"));
+            case "atm" -> {
+                String a = d.getString("action");
+                if (a.startsWith("cash_")) com.yompix.novograd.gta.Money.atm(p, a, d.getInt("amount"));
+                else Bank.atm(p, a, d.getInt("amount"));
+            }
+            case "mycars" -> com.yompix.novograd.gta.MyCars.handle(p, d.getString("act"), d);
+            case "stash" -> com.yompix.novograd.gta.Money.stashAction(p, d.getString("act"), d.getInt("amount"));
+            case "stash_open" -> HandUses.stashOpen(p); // 0.9.8: дома — к сейфу руками, потом экран
+            case "stash_state" -> com.yompix.novograd.gta.Money.sendStash(p);
+            case "bj" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet")); }
+            case "crash_start" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.crashStart(p, d.getInt("bet"), d.getInt("auto")); }
+            case "cg" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else CasinoGames.handle(p, d); } // покер, кости, колесо, бега, плинко, мины
+            case "crash_cashout" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.crashCashout(p); }
+            case "coin" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads")); }
             case "rhythm_done" -> Fitness.result(p, d.getString("mode"), d.getInt("score"));
             case "buy_house" -> CityLife.buyHouse(p, d.getString("id"));
             case "photo" -> {
@@ -130,8 +150,8 @@ public final class LifeNet {
                 com.yompix.novograd.gta.Collectibles.onPhoto(p); // фото-точки коллекции
                 com.yompix.novograd.gta.Underworld.onPhoto(p); // разведка большого ограбления
             }
-            case "slots" -> Casino.spin(p, d.getInt("bet"));
-            case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
+            case "slots" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.spin(p, d.getInt("bet")); }
+            case "roulette" -> { if (!AgeGate.casino(p)) AgeGate.casinoClosed(p); else Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number")); }
             case "side_list" -> com.yompix.novograd.story.SideMissions.sendList(p);
             case "side_start" -> com.yompix.novograd.story.SideMissions.start(p, d.getString("id"));
             case "side_cancel" -> com.yompix.novograd.story.SideMissions.cancel(p);
@@ -156,6 +176,8 @@ public final class LifeNet {
                 }
             }
             default -> {
+                if (type.startsWith("hand_") && Hands.handle(p, type, d)) return; // 0.9.8: руки — прервать, закурить, выпить
+                if (type.startsWith("loan_") && com.yompix.novograd.gta.Loans.handle(p, type, d)) return; // 0.9.8: кредит
                 if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
                 if (type.startsWith("city_") && com.yompix.novograd.gta.CityServices.handle(p, type, d)) return; // автобусы, службы города
                 if (type.startsWith("call_") && com.yompix.novograd.story.Calls.handle(p, type, d)) return; // звонки героев, «Контакты»
@@ -173,7 +195,7 @@ public final class LifeNet {
             from.sendMessage(Text.literal("Игрок «" + toName + "» не в сети").formatted(Formatting.RED), true);
             return;
         }
-        if (!Life.pay(from, amount, "перевод " + to.getName().getString())) return;
+        if (!Life.payRaw(from, amount, "перевод " + to.getName().getString())) return;
         LifeData d = Life.get(to);
         d.money += amount;
         Life.message(to, "Банк", "Перевод $" + amount + " от " + from.getName().getString());

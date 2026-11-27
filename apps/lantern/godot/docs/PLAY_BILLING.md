@@ -1,6 +1,6 @@
 # Покупки Google Play в LANTERN 2.0 — что сделать владельцу
 
-Код готов: в Android-сборке есть плагин `LanternBilling` (Google Play Billing Library 7.1.1), сервер LANTERN
+Код готов: в Android-сборке есть плагин `LanternBilling` (Google Play Billing Library 8.3.0; до 2.0.4 — 7.1.1), сервер LANTERN
 проверяет каждую покупку у Google (`relay/billing.js`) и только потом начисляет. **Пока вы не сделаете шаги ниже,
 настоящие покупки не работают** (в приложении платное просто не показывается; ДЕМО-режим для проверки остаётся).
 

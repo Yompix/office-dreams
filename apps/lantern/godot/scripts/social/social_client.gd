@@ -85,7 +85,7 @@ func _ready() -> void:
 		token = Crypto.new().generate_random_bytes(32).hex_encode()
 		c.set_value("device", "token", token)
 		c.save(tf)
-	demo = Cfg.paid() and Cfg.get_value("app", "demo", true)
+	demo = Cfg.paid() and Cfg.demo_allowed() and Cfg.get_value("app", "demo", true)
 	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return   # e2e сервера не трогает социальную часть
 	_load_cache()

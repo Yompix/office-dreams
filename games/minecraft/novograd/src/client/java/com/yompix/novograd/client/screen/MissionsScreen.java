@@ -69,7 +69,13 @@ public class MissionsScreen extends LifeScreen {
             ctx.fill(x + 6, ry, x + w - 6, ry + rowH - 2, cur ? 0xFF4A3010 : 0xFF241416);
             ctx.drawText(textRenderer, (done ? "✔ " : open ? "• " : "○ ") + m.getString("title"), x + 12, ry + 3, done ? 0xFF8BC34A : open ? 0xFFFFFFFF : 0xFF777777, false);
             ctx.drawText(textRenderer, m.getString("giver") + " · $" + m.getInt("reward"), x + 12, ry + 12, 0xFFB0A0A0, false);
-            if (open && !done && active.isEmpty())
+            if (m.getBoolean("story"))
+                // 0.9.7: миссия сюжета начинается на метке — кнопка только ставит точку на карте
+                button(ctx, x + w - 86, ry + 2, 76, 16, "На карте", 0xFFFFB300, m.contains("x"), () -> {
+                    com.yompix.novograd.client.story.ClientStory.waypoint = new net.minecraft.util.math.Vec3d(m.getDouble("x"), 0, m.getDouble("z"));
+                    close();
+                });
+            else if (open && !done && active.isEmpty())
                 button(ctx, x + w - 76, ry + 2, 66, 16, "Начать", 0xFFD32F2F, true, () -> {
                     NbtCompound n = new NbtCompound();
                     n.putString("id", m.getString("id"));

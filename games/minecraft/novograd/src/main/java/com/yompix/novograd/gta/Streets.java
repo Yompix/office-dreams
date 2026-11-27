@@ -88,6 +88,7 @@ public final class Streets {
             if (!w.isAir(new net.minecraft.util.math.BlockPos(x, y, z))) continue;
             // не на глазах у игрока (за спиной или далеко), последние попытки — хотя бы подальше
             if (!com.yompix.novograd.world.Sidewalks.unseen(w, new Vec3d(x + 0.5, y + 1, z + 0.5)) && (tries < 6 || d < 45)) continue;
+            if (!com.yompix.novograd.world.Crowd.room(w, new Vec3d(x + 0.5, y, z + 0.5))) continue; // 0.9.7: без толп
             CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
             int skin = CitizenEntity.randomSkin(r);
             c.setup(skin, CitizenEntity.Role.CITIZEN, false, Names.random(r, CitizenEntity.isSlim(skin)));

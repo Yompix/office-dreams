@@ -46,8 +46,85 @@ public final class NovogradConfig {
     public boolean chatStyled;
     /** 0.8: живые анимации — походка, дыхание, позы и жесты игроков (и у друзей), паузы и реакции героев сюжета. */
     public boolean liveAnims = true;
+    /** 0.9.8: сел в машину — пристегнуться (жест и щелчок). */
+    public boolean seatBelt = true;
     /** 0.8: от первого лица качается только предмет в руке; камера при ходьбе не качается (true — как в Minecraft). */
     public boolean camBob = false;
+    /** 0.9.6: предупреждение «Мод для взрослых 18+» показано и принято (один раз на установку). */
+    public boolean adultOk;
+    /** 0.9.6: сообщения мода в чат (по умолчанию — всплывашкой, чат для игроков). */
+    public boolean modChat;
+    /**
+     * 0.9.7: проверка возраста (окно «Подтверди возраст» при первом запуске). Храним только результат и дату проверки —
+     * дату рождения не храним. Не 18+ — взрослый контент выключен насовсем (вернуть — только удалив config/novograd.json).
+     */
+    public boolean ageChecked;
+    public boolean adult;
+    public String ageCheckedOn = "";
+    /** 0.9.7: взрослый контент по отдельности (действует только у 18+). */
+    public boolean adultBody = true, bodyPhysics = true, adultGore = true, adultAlcohol = true, adultCasino = true;
+    /** Сила «Физики тела», 50..100 %. */
+    public int bodyPhysicsPct = 75;
+
+    // ------------------------------------------------------------------ 0.9.7: взрослый контент
+    /**
+     * Взрослый контент доступен: проверка пройдена и 18+. В автотестах без проверки — как у взрослого
+     * (-Dnovograd.minor=true — как у младше 18).
+     */
+    public static boolean adultContent() {
+        var c = get();
+        if (!c.ageChecked && System.getProperty("novograd.autotest") != null) return !Boolean.getBoolean("novograd.minor");
+        return c.ageChecked && c.adult;
+    }
+
+    /** Свой размер груди у героинь (иначе у всех — средний). */
+    public static boolean chestSizes() {
+        return adultContent() && get().adultBody;
+    }
+
+    public static boolean bodyPhysics() {
+        return adultContent() && get().bodyPhysics;
+    }
+
+    /** Сила физики 0.5..1 (ограничена сверху). */
+    public static float bodyPhysicsK() {
+        return Math.max(50, Math.min(100, get().bodyPhysicsPct)) / 100f;
+    }
+
+    /** Кровь как есть; иначе — самая мягкая (почти без частиц). */
+    public static boolean goreFull() {
+        return adultContent() && get().adultGore;
+    }
+
+    public static boolean alcohol() {
+        return adultContent() && get().adultAlcohol;
+    }
+
+    public static boolean casino() {
+        return adultContent() && get().adultCasino;
+    }
+
+    /** Записать результат проверки возраста (один раз). */
+    public static void setAge(boolean adult) {
+        var c = get();
+        c.ageChecked = true;
+        c.adult = adult;
+        c.ageCheckedOn = java.time.LocalDate.now().toString();
+        c.adultOk = true;
+        save();
+        sendAge();
+    }
+
+    /** Сообщить серверу результат и включённые взрослые вещи (пакет age; честное слово клиента). */
+    public static void sendAge() {
+        var mc = net.minecraft.client.MinecraftClient.getInstance();
+        if (mc == null || mc.getNetworkHandler() == null || cfg == null) return;
+        net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+        n.putBoolean("adult", adultContent());
+        n.putBoolean("casino", casino());
+        n.putBoolean("alcohol", alcohol());
+        NovogradClient.send("age", n);
+    }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static NovogradConfig cfg;
@@ -120,6 +197,7 @@ public final class NovogradConfig {
         com.yompix.novograd.client.render.ColorGrade.enabled = c.graphics > 0;
         com.yompix.novograd.client.render.ColorGrade.quality = c.graphics >= 2 ? 1f : 0f;
         sendPerf();
+        sendAge();
     }
 
     /** 1.0: новые меры производительности (АВТО, отсечение дальних жителей, настройки Minecraft); false — как в 0.6.6. */

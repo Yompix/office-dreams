@@ -40,18 +40,40 @@ public final class SideMissions {
         int done = 0;
         for (var e : all.entrySet()) {
             JsonObject m = e.getValue().getAsJsonObject();
-            if (m.has("hidden")) continue; // просьбы героев по телефону (story/Calls) — не в списке «Заданий»
+            boolean offered = d.flags.contains("offered:" + e.getKey()); // 0.9.7: согласился по телефону
+            if (m.has("hidden") && !offered) continue; // просьбы героев по телефону (story/Calls) — не в списке «Заданий», пока не согласился
             boolean ok = d.flags.contains("side:" + e.getKey());
             if (ok) done++;
             NbtCompound c = new NbtCompound();
             c.putString("id", e.getKey());
             c.putString("title", Story.str(m, "title", e.getKey()));
-            c.putString("cat", Story.str(m, "category", ""));
+            c.putString("cat", offered && !ok ? "Предложено" : Story.str(m, "category", ""));
             c.putString("giver", Story.str(m, "giver", ""));
             c.putInt("reward", Story.num(m, "reward", 100));
             c.putBoolean("done", ok);
             c.putBoolean("open", unlocked(d, m));
             list.add(c);
+        }
+        // 0.9.7: доступная миссия сюжета — первой строкой (она ждёт на метке связного, начинается, когда подойдёшь)
+        if (Story.idle(d)) {
+            JsonObject sm = Story.mission(d);
+            var at = Story.missionStart(p, d);
+            NbtCompound c = new NbtCompound();
+            c.putString("id", "story");
+            c.putString("title", Story.str(sm, "title", ""));
+            c.putString("cat", "Сюжет");
+            c.putString("giver", Story.contactName(Story.contact(sm)));
+            c.putInt("reward", 15);
+            c.putBoolean("open", true);
+            c.putBoolean("story", true);
+            if (at != null) {
+                c.putDouble("x", at.x);
+                c.putDouble("z", at.z);
+            }
+            NbtList l2 = new NbtList();
+            l2.add(c);
+            l2.addAll(list);
+            list = l2;
         }
         n.put("list", list);
         n.putString("active", d.side);

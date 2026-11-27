@@ -36,9 +36,10 @@ class LanternAndroidExport extends EditorExportPlugin:
 				f.store_string(FileAccess.get_file_as_string("res://addons/lantern_android/android/" + n))
 				f.close()
 
-	## 2.0: Google Play Billing Library 7 (из репозитория Google Maven, его Gradle-шаблон Godot уже подключает)
+	## Google Play Billing Library (из репозитория Google Maven, его Gradle-шаблон Godot уже подключает).
+	## 2.0.4: 7.1.1 → 8.3.0 — с 31.08.2026 Google Play требует Billing 8+ для новых приложений и обновлений.
 	func _get_android_dependencies(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
-		return PackedStringArray(["com.android.billingclient:billing:7.1.1"])
+		return PackedStringArray(["com.android.billingclient:billing:8.3.0"])
 
 	func _get_android_manifest_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:
 		return """
